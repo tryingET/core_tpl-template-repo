@@ -46,6 +46,12 @@ copier-template/{{ _copier_conf.answers_file }}.jinja
 copier-template/.github/VOUCHED.td.jinja
 copier-template/.github/workflows/vouch-check-pr.yml.jinja
 copier-template/.github/workflows/vouch-manage.yml.jinja
+copier-template/.github/pull_request_template.md.jinja
+copier-template/.github/ISSUE_TEMPLATE/config.yml.jinja
+copier-template/.github/ISSUE_TEMPLATE/bug-report.yml.jinja
+copier-template/.github/ISSUE_TEMPLATE/feature-request.yml.jinja
+copier-template/CODE_OF_CONDUCT.md.jinja
+copier-template/SUPPORT.md.jinja
 copier-template/docs/.gitkeep
 copier-template/examples/.gitkeep
 copier-template/external/.gitkeep
@@ -71,6 +77,12 @@ copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2
 copier-template/copier/template-repo/.github/VOUCHED.td.j2
 copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2
 copier-template/copier/template-repo/.github/workflows/vouch-manage.yml.j2
+copier-template/copier/template-repo/.github/pull_request_template.md.j2
+copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/config.yml.j2
+copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/bug-report.yml.j2
+copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/feature-request.yml.j2
+copier-template/copier/template-repo/CODE_OF_CONDUCT.md.j2
+copier-template/copier/template-repo/SUPPORT.md.j2
 copier-template/copier/template-repo/docs/.gitkeep
 copier-template/copier/template-repo/examples/.gitkeep
 copier-template/copier/template-repo/external/.gitkeep
@@ -128,7 +140,9 @@ EOF
 
 assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source must target copier-template/"
 assert_contains "copier.yml" "- template-repo" "L0 must expose the template-repo profile"
+assert_contains "copier.yml" "enable_community_pack" "L0 copier config must expose community pack toggle"
 assert_contains "copier.yml" "enable_vouch_gate" "L0 copier config must expose vouch gate toggle"
+assert_contains "copier-template/copier/template-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
 assert_contains "copier-template/copier/template-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
 assert_contains "CODEOWNERS" "/copier-template/**" "CODEOWNERS must protect copier-template/"
 assert_contains "AGENTS.md" "check-l0.sh" "AGENTS validation section should use consolidated L0 check"
@@ -137,6 +151,7 @@ assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR 
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
+assert_contains "README.md" "Community pack" "README should document optional community pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do

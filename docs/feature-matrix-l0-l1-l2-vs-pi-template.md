@@ -23,7 +23,7 @@ Legend:
 | Baseline folder skeleton (`docs/examples/external/ontology/policy/src/tests`) | L1 + L2 | ⚠️ (now seeded minimally with `.gitkeep`) | ✅ | AI Society keeps a lightweight starter shape; enrich per profile.
 | CI baseline for generated repos | L1 + L2 | ✅ (minimal CI + template-check) | ✅ (CI + release + publish + trust gate) | AI Society CI is intentionally lean.
 | Release automation (release-please + publish) | L1/L2 (public package repos) | ❌ | ✅ | Optional future port for public/open-source L2 repos.
-| Community intake pack (issue templates + PR template + CoC + support + contributing) | L1/L2 public | ⚠️ (PR template at L0 + CONTRIBUTING at L0/L1/L2; no full issue/CoC/support pack yet) | ✅ | Candidate uplift for public-facing L1/L2.
+| Community intake pack (issue templates + PR template + CoC + support + contributing) | L1/L2 public | ✅ (optional via `enable_community_pack`, default `false`) | ✅ | Keep optional-by-profile; enable for public/community-facing repos.
 | Vouch trust gate (`VOUCHED.td`, PR/issue workflows) | L1/L2 public trust boundary | ⚠️ (baseline scaffolded; disabled by default via `enable_vouch_gate=false`) | ✅ | Keep optional-by-profile; enable for public repos.
 | Docs discovery helper (`docs-list` wrapper) | L1/L2 | ❌ | ✅ | Optional productivity uplift.
 | Startup interview flow (`.pi/extensions/startup-intake-router.ts`) | L2 | ❌ | ✅ | Domain-specific to extension repos, not required at L0.
@@ -34,7 +34,7 @@ Legend:
 ## Interpretation for AI-Society L0/L1/L2
 
 - **Strong in AI-Society L0 now**: recursion contracts, fixture drift checks, adoption rollout tooling.
-- **Main remaining missing feature family** from `pi-extensions/template`: richer community/release automation packs for public collaboration.
+- **Main remaining missing feature family** from `pi-extensions/template`: release automation/publishing stack and related public-package governance docs.
 - **Recommended layering**:
   - Keep recursion/contract/drift controls in **L0**.
   - Add vouch/community/release features as **L1 profile options** (not forced for private/internal repos).

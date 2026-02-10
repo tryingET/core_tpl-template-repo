@@ -13,11 +13,23 @@ Generate an L1 repo from L0:
 ```bash
 ./scripts/new-l1-from-copier.sh template-repo /tmp/holdingco-templates \
   -d repo_slug=holdingco-templates \
+  -d enable_community_pack=false \
   -d enable_vouch_gate=false \
   --defaults --overwrite
 ```
 
-Set `-d enable_vouch_gate=true` for public/trust-gated template lines.
+Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
+Set `-d enable_vouch_gate=true` for trust-gated template lines.
+
+## Community pack (optional by profile)
+
+When `enable_community_pack=true`, generated L1/L2 repositories include:
+- `.github/ISSUE_TEMPLATE/` issue forms
+- `.github/pull_request_template.md`
+- `CODE_OF_CONDUCT.md`
+- `SUPPORT.md`
+
+Defaults stay conservative (`false`) for internal/private template lines.
 
 Run full L0 validations:
 
@@ -81,4 +93,4 @@ To reduce drift with richer template ecosystems, generated repositories now seed
 - folders: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
 - git baseline: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
 
-This is still a minimal L0 slice; deeper packs (release/community/trust automation) can be layered by profile.
+This is still a minimal L0 slice; deeper packs (for example release automation and stricter trust automation) can be layered by profile.

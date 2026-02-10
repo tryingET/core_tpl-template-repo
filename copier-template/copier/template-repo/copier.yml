@@ -17,8 +17,14 @@ enable_vouch_gate:
   default: false
   help: "Enable vouch trust-gate workflows for this generated L2 repo."
 
+enable_community_pack:
+  type: bool
+  default: false
+  help: "Enable community collaboration baseline (issue templates, CoC, support docs)."
+
 _tasks:
   - "chmod +x scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh .githooks/pre-commit .githooks/pre-push"
+  - "{{ 'true' if enable_community_pack else 'rm -f CODE_OF_CONDUCT.md SUPPORT.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug-report.yml .github/ISSUE_TEMPLATE/feature-request.yml' }}"
 
 _message_after_copy: |
   L2 repository scaffolded at {{ _copier_conf.dst_path }}
@@ -27,3 +33,11 @@ _message_after_copy: |
     - initialize git (if needed): git init -b main
     - install hooks:               ./scripts/install-hooks.sh
     - run smoke checks:            ./scripts/ci/smoke.sh
+
+  Community pack:
+    - currently {{ 'enabled' if enable_community_pack else 'disabled' }}
+    - toggle at generation time with: -d enable_community_pack=true|false
+
+  Vouch trust-gate:
+    - currently {{ 'enabled' if enable_vouch_gate else 'disabled' }}
+    - toggle at generation time with: -d enable_vouch_gate=true|false

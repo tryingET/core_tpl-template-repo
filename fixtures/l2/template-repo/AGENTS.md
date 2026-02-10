@@ -20,4 +20,5 @@ Forbidden:
 ## Guardrails
 - Keep `.copier-answers.yml` committed for reproducibility.
 - Preserve baseline folder skeleton + git baseline files unless policy explicitly changes them.
+- If `enable_community_pack=true`, maintain `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`, `CODE_OF_CONDUCT.md`, and `SUPPORT.md` as the public intake baseline.
 - If `enable_vouch_gate=true`, maintain `.github/VOUCHED.td` through reviewed maintainer updates only.

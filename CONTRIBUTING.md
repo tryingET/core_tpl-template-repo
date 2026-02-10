@@ -25,9 +25,13 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
   bash ./scripts/check-l0-fixtures.sh
   ```
 
-## Trust-gate note
+## Profile toggles note
 
-Vouch trust-gate (`.td`) baseline is not yet enabled in this L0 slice.
-When introduced, policy lives in:
+This L0 now exposes optional profile toggles:
+- `enable_community_pack` (issue templates / PR template / CoC / support docs)
+- `enable_vouch_gate` (vouch trust-gate workflows + `.github/VOUCHED.td`)
+
+Defaults stay `false`; enable per repository governance/risk profile.
+Policy references:
 - `docs/vouch-td-primer.md`
 - `docs/feature-matrix-l0-l1-l2-vs-pi-template.md`

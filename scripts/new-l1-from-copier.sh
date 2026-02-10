@@ -8,11 +8,13 @@ usage: new-l1-from-copier.sh <template-repo> <dest-dir> [copier args...]
 Example:
   ./scripts/new-l1-from-copier.sh template-repo /tmp/holdingco-templates \
     -d repo_slug=holdingco-templates \
+    -d enable_community_pack=false \
     -d enable_vouch_gate=false \
     --defaults --overwrite
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
+  - Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
   - Set `-d enable_vouch_gate=true` for trust-gated/public contribution templates.
 EOF
 }
