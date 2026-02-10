@@ -16,3 +16,8 @@ Forbidden:
 - Install hooks: `./scripts/install-hooks.sh`
 - Smoke lane: `./scripts/ci/smoke.sh`
 - Full lane: `./scripts/ci/full.sh`
+
+## Guardrails
+- Keep `.copier-answers.yml` committed for reproducibility.
+- Preserve baseline folder skeleton + git baseline files unless policy explicitly changes them.
+- If `enable_vouch_gate=true`, maintain `.github/VOUCHED.td` through reviewed maintainer updates only.
