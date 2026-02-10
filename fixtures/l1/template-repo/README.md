@@ -33,6 +33,9 @@ Install local hooks in a generated repo:
 ./scripts/install-hooks.sh
 ```
 
+Contribution workflow:
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## Recursion policy (explicit)
 
 Current layer: **L1**

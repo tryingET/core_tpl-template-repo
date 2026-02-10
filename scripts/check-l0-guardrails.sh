@@ -28,14 +28,18 @@ assert_contains() {
 
 required_files="
 CODEOWNERS
+CONTRIBUTING.md
 copier.yml
 .github/pull_request_template.md
 docs/release-compatibility-policy.md
 docs/l1-adoption-playbook.md
 docs/supply-chain-policy.md
+docs/vouch-td-primer.md
+docs/feature-matrix-l0-l1-l2-vs-pi-template.md
 docs/solo-builder-operating-cadence.md
 copier-template/README.md.jinja
 copier-template/AGENTS.md
+copier-template/CONTRIBUTING.md
 copier-template/contracts/layer-contract.yml
 copier-template/{{ _copier_conf.answers_file }}.jinja
 copier-template/scripts/new-repo-from-copier.sh
@@ -49,6 +53,7 @@ copier-template/.githooks/pre-push
 copier-template/copier/template-repo/copier.yml
 copier-template/copier/template-repo/README.md.jinja
 copier-template/copier/template-repo/AGENTS.md
+copier-template/copier/template-repo/CONTRIBUTING.md
 copier-template/copier/template-repo/contracts/layer-contract.yml
 copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.jinja
 copier-template/copier/template-repo/scripts/install-hooks.sh
@@ -102,6 +107,7 @@ EOF
 assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source must target copier-template/"
 assert_contains "copier.yml" "- template-repo" "L0 must expose the template-repo profile"
 assert_contains "CODEOWNERS" "/copier-template/**" "CODEOWNERS must protect copier-template/"
+assert_contains "AGENTS.md" "check-l0.sh" "AGENTS validation section should use consolidated L0 check"
 assert_contains ".github/pull_request_template.md" "check-l0-guardrails.sh" "PR template must require guardrail checks"
 assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR template must require generation checks"
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"

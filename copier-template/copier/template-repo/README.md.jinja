@@ -13,6 +13,9 @@ git init -b main
 ./scripts/ci/smoke.sh
 ```
 
+Contribution workflow:
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## Recursion policy (explicit)
 
 Current layer: **L2**

@@ -20,5 +20,8 @@ Forbidden:
 - any cycle
 
 ## Validation before merge
-- `bash ./scripts/check-l0-guardrails.sh`
-- `bash ./scripts/check-l0-generation.sh`
+- `bash ./scripts/check-l0.sh`
+- optional focused runs:
+  - `bash ./scripts/check-supply-chain.sh`
+  - `bash ./scripts/check-l0-generation.sh`
+  - `bash ./scripts/check-l0-fixtures.sh`

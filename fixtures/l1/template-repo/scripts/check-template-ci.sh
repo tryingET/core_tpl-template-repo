@@ -40,6 +40,7 @@ assert_contains() {
 required_files="
 README.md
 AGENTS.md
+CONTRIBUTING.md
 .copier-answers.yml
 contracts/layer-contract.yml
 scripts/new-repo-from-copier.sh
@@ -78,6 +79,7 @@ for doc in README.md AGENTS.md; do
   assert_contains "$doc" "L1 -> L0" "L1 docs must forbid L1 -> L0"
   assert_contains "$doc" "L2 -> L1" "L1 docs must forbid L2 -> L1"
 done
+assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
 
 contract="contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "L1 contract layer mismatch"
@@ -106,6 +108,7 @@ l2_dir="$tmp_root/l2-sample"
 l2_required_files="
 README.md
 AGENTS.md
+CONTRIBUTING.md
 .copier-answers.yml
 contracts/layer-contract.yml
 scripts/install-hooks.sh
@@ -134,6 +137,7 @@ done
 
 assert_contains "$l2_dir/README.md" "Recursion policy" "generated L2 README must include recursion section"
 assert_contains "$l2_dir/README.md" "L2 -> L1" "generated L2 README must forbid L2 -> L1"
+assert_contains "$l2_dir/CONTRIBUTING.md" ".copier-answers.yml" "generated L2 contributing guide should mention answers-file reproducibility"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "layer: L2" "generated L2 contract layer mismatch"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "L2 -> L1" "generated L2 contract must forbid reverse edge"
 
