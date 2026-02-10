@@ -21,6 +21,14 @@ This repository is an **L1 template repo** generated from AI Society L0.
 - Preserve baseline skeleton folders for generated repos (`docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`) unless explicitly changed by policy.
 - Preserve git baseline files (`.github/`, `.githooks/`, `.gitignore`, `.gitattributes`).
 
+## Optional community pack
+
+If your org enables the community collaboration pack for this template line, maintain:
+- `.github/ISSUE_TEMPLATE/`
+- `.github/pull_request_template.md`
+- `CODE_OF_CONDUCT.md`
+- `SUPPORT.md`
+
 ## Optional trust gate
 
 If your org enables vouch-based trust gating in this template family, maintain:

@@ -24,8 +24,14 @@ enable_vouch_gate:
   default: false
   help: "Enable vouch trust-gate baseline in generated L1/L2 repositories."
 
+enable_community_pack:
+  type: bool
+  default: false
+  help: "Enable community collaboration baseline (issue templates, CoC, support docs)."
+
 _tasks:
   - "chmod +x scripts/new-repo-from-copier.sh scripts/check-template-ci.sh scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh .githooks/pre-commit .githooks/pre-push copier/template-repo/scripts/install-hooks.sh copier/template-repo/scripts/ci/smoke.sh copier/template-repo/scripts/ci/full.sh copier/template-repo/.githooks/pre-commit copier/template-repo/.githooks/pre-push"
+  - "{{ 'true' if enable_community_pack else 'rm -f CODE_OF_CONDUCT.md SUPPORT.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug-report.yml .github/ISSUE_TEMPLATE/feature-request.yml' }}"
 
 _message_after_copy: |
   L1 template repository scaffolded at {{ _copier_conf.dst_path }}
@@ -34,6 +40,10 @@ _message_after_copy: |
     - run: bash ./scripts/check-template-ci.sh
     - generate an L2 sample:
       ./scripts/new-repo-from-copier.sh template-repo /tmp/l2-sample -d repo_slug=l2-sample --defaults --overwrite
+
+  Community pack:
+    - currently {{ 'enabled' if enable_community_pack else 'disabled' }}
+    - toggle at generation time with: -d enable_community_pack=true|false
 
   Vouch trust-gate:
     - currently {{ 'enabled' if enable_vouch_gate else 'disabled' }}

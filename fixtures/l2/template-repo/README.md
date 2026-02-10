@@ -4,6 +4,7 @@ Generated L2 repository scaffold.
 
 - Owner: `@repo-owner`
 - Source: L1 template profile `template-repo`
+- Community pack: **disabled**
 - Vouch trust gate: **disabled**
 
 ## Quickstart
@@ -16,6 +17,16 @@ git init -b main
 
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Optional collaboration packs
+
+When `enable_community_pack=true`, this scaffold includes:
+- `.github/ISSUE_TEMPLATE/`
+- `.github/pull_request_template.md`
+- `CODE_OF_CONDUCT.md`
+- `SUPPORT.md`
+
+When `enable_vouch_gate=true`, this scaffold includes active vouch workflows and `.github/VOUCHED.td`.
 
 ## Baseline structure
 

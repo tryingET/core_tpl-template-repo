@@ -11,7 +11,8 @@ Example:
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
-  - `enable_vouch_gate` is inherited from this L1 repo `.copier-answers.yml` unless overridden.
+  - `enable_vouch_gate` and `enable_community_pack` are inherited from this L1 repo
+    `.copier-answers.yml` unless overridden.
 EOF
 }
 
@@ -60,37 +61,65 @@ if [ "$have_answers" = "0" ]; then
   set -- -a .copier-answers.yml "$@"
 fi
 
-have_vouch_setting=0
-for arg in "$@"; do
-  case "$arg" in
-    -d)
-      have_vouch_setting_next=1
-      ;;
-    enable_vouch_gate=* )
-      if [ "${have_vouch_setting_next:-0}" -eq 1 ]; then
-        have_vouch_setting=1
-      fi
-      have_vouch_setting_next=0
-      ;;
-    -d*=enable_vouch_gate=*|-d*enable_vouch_gate=* )
-      have_vouch_setting=1
-      have_vouch_setting_next=0
-      ;;
-    *)
-      have_vouch_setting_next=0
+has_data_override() {
+  key="$1"
+  shift
+
+  expect_data_value=0
+  for arg in "$@"; do
+    if [ "$expect_data_value" = "1" ]; then
+      case "$arg" in
+        "$key="*) return 0 ;;
+      esac
+      expect_data_value=0
+      continue
+    fi
+
+    case "$arg" in
+      -d|--data)
+        expect_data_value=1
+        ;;
+      -d"$key="*|--data="$key="*)
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+read_inherited_bool() {
+  answers_file="$1"
+  key="$2"
+
+  [ -f "$answers_file" ] || return 1
+
+  awk -F':' -v key="$key" '
+    $1 ~ "^" key "$" {
+      v=$2
+      gsub(/[ \t"]/, "", v)
+      gsub(/\047/, "", v)
+      print tolower(v)
+      exit
+    }
+  ' "$answers_file"
+}
+
+repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+answers_file="$repo_root/.copier-answers.yml"
+
+for key in enable_vouch_gate enable_community_pack; do
+  if has_data_override "$key" "$@"; then
+    continue
+  fi
+
+  inherited_value="$(read_inherited_bool "$answers_file" "$key" || true)"
+  case "$inherited_value" in
+    true|false)
+      set -- -d "$key=$inherited_value" "$@"
       ;;
   esac
 done
-
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-if [ "$have_vouch_setting" = "0" ] && [ -f "$repo_root/.copier-answers.yml" ]; then
-  inherited_vouch="$(awk -F':' '/^enable_vouch_gate:/{v=$2; gsub(/[ \t"]/, "", v); gsub(/\047/, "", v); print tolower(v); exit }' "$repo_root/.copier-answers.yml" || true)"
-  case "$inherited_vouch" in
-    true|false)
-      set -- -d "enable_vouch_gate=$inherited_vouch" "$@"
-      ;;
-  esac
-fi
 
 template_dir="$repo_root/copier/$template_name"
 

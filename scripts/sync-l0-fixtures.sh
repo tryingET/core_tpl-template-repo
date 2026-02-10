@@ -25,6 +25,7 @@ l2_render="$tmp_root/l2-template-repo"
 "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$l1_render" \
   -d repo_slug=fixture-template-repo \
   -d maintainer_handle=@template-owner \
+  -d enable_community_pack=false \
   -d enable_vouch_gate=false \
   --defaults --overwrite >/dev/null
 
@@ -33,6 +34,7 @@ l2_render="$tmp_root/l2-template-repo"
   ./scripts/new-repo-from-copier.sh template-repo "$l2_render" \
     -d repo_slug=fixture-product-repo \
     -d owner_handle=@repo-owner \
+    -d enable_community_pack=false \
     -d enable_vouch_gate=false \
     --defaults --overwrite >/dev/null
 )

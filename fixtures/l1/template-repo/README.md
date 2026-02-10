@@ -38,6 +38,16 @@ Install local hooks in a generated repo:
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 
+## Community profile
+
+- Community collaboration pack is currently **disabled**.
+- When enabled, this repo includes:
+  - `.github/ISSUE_TEMPLATE/`
+  - `.github/pull_request_template.md`
+  - `CODE_OF_CONDUCT.md`
+  - `SUPPORT.md`
+- L2 generation inherits `enable_community_pack` from this L1 unless you override with `-d enable_community_pack=true|false`.
+
 ## Trust-gate profile
 
 - Vouch trust gate baseline is currently **disabled**.

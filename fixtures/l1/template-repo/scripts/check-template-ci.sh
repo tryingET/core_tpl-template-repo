@@ -26,6 +26,11 @@ assert_file() {
   [ -f "$path" ] || fail "missing file: $path"
 }
 
+assert_not_file() {
+  path="$1"
+  [ ! -f "$path" ] || fail "unexpected file present: $path"
+}
+
 assert_exec() {
   path="$1"
   [ -x "$path" ] || fail "missing executable bit: $path"
@@ -85,6 +90,12 @@ copier/template-repo/.gitattributes
 copier/template-repo/.github/VOUCHED.td.j2
 copier/template-repo/.github/workflows/vouch-check-pr.yml.j2
 copier/template-repo/.github/workflows/vouch-manage.yml.j2
+copier/template-repo/.github/pull_request_template.md.j2
+copier/template-repo/.github/ISSUE_TEMPLATE/config.yml.j2
+copier/template-repo/.github/ISSUE_TEMPLATE/bug-report.yml.j2
+copier/template-repo/.github/ISSUE_TEMPLATE/feature-request.yml.j2
+copier/template-repo/CODE_OF_CONDUCT.md.j2
+copier/template-repo/SUPPORT.md.j2
 "
 
 for path in $required_files; do
@@ -112,6 +123,7 @@ for doc in README.md AGENTS.md; do
   assert_contains "$doc" "L2 -> L1" "L1 docs must forbid L2 -> L1"
 done
 assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
+assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 
@@ -122,6 +134,8 @@ assert_contains "$contract" "L1 -> L2" "L1 contract must include L1 -> L2"
 assert_contains "$contract" "L1 -> L0" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "L2 -> L1" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "nested_copier_tasks_allowed: false" "L1 contract must forbid nested copier tasks"
+assert_contains "copier/template-repo/copier.yml" "enable_community_pack" "nested L2 copier config must expose community pack toggle"
+assert_contains "copier/template-repo/copier.yml" "enable_vouch_gate" "nested L2 copier config must expose vouch gate toggle"
 
 workflow=".github/workflows/template-check.yml"
 assert_contains "$workflow" "pull_request:" "template-check workflow must run on pull requests"
@@ -143,6 +157,24 @@ else
   assert_contains ".github/workflows/vouch-check-pr.yml" "vouch gate disabled" "vouch-check-pr disabled workflow should explain status"
   assert_contains ".github/workflows/vouch-manage.yml" "workflow_dispatch:" "vouch-manage should be inactive when enable_vouch_gate=false"
   assert_contains ".github/workflows/vouch-manage.yml" "vouch manage workflow disabled" "vouch-manage disabled workflow should explain status"
+fi
+
+community_enabled="$(bool_from_answers .copier-answers.yml enable_community_pack || true)"
+if [ "$community_enabled" = "true" ]; then
+  assert_file "CODE_OF_CONDUCT.md"
+  assert_file "SUPPORT.md"
+  assert_file ".github/pull_request_template.md"
+  assert_file ".github/ISSUE_TEMPLATE/config.yml"
+  assert_file ".github/ISSUE_TEMPLATE/bug-report.yml"
+  assert_file ".github/ISSUE_TEMPLATE/feature-request.yml"
+  assert_contains ".github/ISSUE_TEMPLATE/config.yml" "blank_issues_enabled: false" "community issue-template config should disable blank issues"
+else
+  assert_not_file "CODE_OF_CONDUCT.md"
+  assert_not_file "SUPPORT.md"
+  assert_not_file ".github/pull_request_template.md"
+  assert_not_file ".github/ISSUE_TEMPLATE/config.yml"
+  assert_not_file ".github/ISSUE_TEMPLATE/bug-report.yml"
+  assert_not_file ".github/ISSUE_TEMPLATE/feature-request.yml"
 fi
 
 tmp_root="$(mktemp -d)"
@@ -209,6 +241,24 @@ if [ "$l2_vouch_enabled" = "true" ]; then
 else
   assert_contains "$l2_dir/.github/workflows/vouch-check-pr.yml" "workflow_dispatch:" "generated L2 vouch-check-pr should be inactive when enable_vouch_gate=false"
   assert_contains "$l2_dir/.github/workflows/vouch-manage.yml" "workflow_dispatch:" "generated L2 vouch-manage should be inactive when enable_vouch_gate=false"
+fi
+
+l2_community_enabled="$(bool_from_answers "$l2_dir/.copier-answers.yml" enable_community_pack || true)"
+if [ "$l2_community_enabled" = "true" ]; then
+  assert_file "$l2_dir/CODE_OF_CONDUCT.md"
+  assert_file "$l2_dir/SUPPORT.md"
+  assert_file "$l2_dir/.github/pull_request_template.md"
+  assert_file "$l2_dir/.github/ISSUE_TEMPLATE/config.yml"
+  assert_file "$l2_dir/.github/ISSUE_TEMPLATE/bug-report.yml"
+  assert_file "$l2_dir/.github/ISSUE_TEMPLATE/feature-request.yml"
+  assert_contains "$l2_dir/.github/ISSUE_TEMPLATE/config.yml" "blank_issues_enabled: false" "generated L2 community issue-template config should disable blank issues"
+else
+  assert_not_file "$l2_dir/CODE_OF_CONDUCT.md"
+  assert_not_file "$l2_dir/SUPPORT.md"
+  assert_not_file "$l2_dir/.github/pull_request_template.md"
+  assert_not_file "$l2_dir/.github/ISSUE_TEMPLATE/config.yml"
+  assert_not_file "$l2_dir/.github/ISSUE_TEMPLATE/bug-report.yml"
+  assert_not_file "$l2_dir/.github/ISSUE_TEMPLATE/feature-request.yml"
 fi
 
 (

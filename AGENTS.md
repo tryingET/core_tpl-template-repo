@@ -8,6 +8,7 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Never encode nested `copier copy` calls inside template `_tasks`.
 - Keep `.copier-answers.yml` committed in generated repositories.
 - Preserve baseline folder skeleton + git baseline files unless intentionally changed by policy.
+- Treat `enable_community_pack` as profile policy (default disabled, enable for public/community-facing repos).
 - Treat `enable_vouch_gate` as profile policy (default disabled, enable for trust-gated/public repos).
 - No secrets in git.
 

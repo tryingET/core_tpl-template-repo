@@ -24,6 +24,14 @@ This repository is an **L2 product repo** generated from an L1 template.
 - Keep baseline structure coherent (`docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`).
 - Keep git baseline files (`.github/`, `.githooks/`, `.gitignore`, `.gitattributes`).
 
+## Optional community pack
+
+If enabled by your template policy, maintain:
+- `.github/ISSUE_TEMPLATE/`
+- `.github/pull_request_template.md`
+- `CODE_OF_CONDUCT.md`
+- `SUPPORT.md`
+
 ## Optional trust gate
 
 If enabled by your template policy, maintain the vouch files:
