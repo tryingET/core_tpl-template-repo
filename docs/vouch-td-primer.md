@@ -21,10 +21,11 @@ In `~/programming/pi-extensions/template`, vouch trust gating is implemented wit
 
 ## AI Society L0/L1/L2 stance
 Current state in `core/tpl-template-repo`:
-- no vouch trust gate baseline yet
-- recursion/layer contracts and fixture/supply-chain controls are already in place
+- vouch baseline files are scaffolded for generated L1/L2 repos
+- activation is controlled by `enable_vouch_gate` (default: `false`)
+- recursion/layer contracts and fixture/supply-chain controls remain enforced
 
-Recommended layering for future adoption:
-- **L0**: define optional vouch policy contract and required checks
-- **L1**: provide vouch-enabled profile/feature flag
-- **L2**: enforce vouch only where external/public contribution trust gating is needed
+Recommended layering:
+- **L0**: keep vouch optional and policy-driven by profile/risk level
+- **L1**: expose/propagate `enable_vouch_gate` clearly in docs and scripts
+- **L2**: enforce vouch where external/public contribution trust gating is needed

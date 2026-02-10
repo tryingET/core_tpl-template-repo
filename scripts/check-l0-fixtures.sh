@@ -40,6 +40,7 @@ actual_l2="$tmp_root/l2-template-repo"
 "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$actual_l1" \
   -d repo_slug=fixture-template-repo \
   -d maintainer_handle=@template-owner \
+  -d enable_vouch_gate=false \
   --defaults --overwrite >/dev/null
 
 (
@@ -47,6 +48,7 @@ actual_l2="$tmp_root/l2-template-repo"
   ./scripts/new-repo-from-copier.sh template-repo "$actual_l2" \
     -d repo_slug=fixture-product-repo \
     -d owner_handle=@repo-owner \
+    -d enable_vouch_gate=false \
     --defaults --overwrite >/dev/null
 )
 

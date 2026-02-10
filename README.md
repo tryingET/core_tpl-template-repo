@@ -13,8 +13,11 @@ Generate an L1 repo from L0:
 ```bash
 ./scripts/new-l1-from-copier.sh template-repo /tmp/holdingco-templates \
   -d repo_slug=holdingco-templates \
+  -d enable_vouch_gate=false \
   --defaults --overwrite
 ```
+
+Set `-d enable_vouch_gate=true` for public/trust-gated template lines.
 
 Run full L0 validations:
 
@@ -66,7 +69,16 @@ Forbidden edges:
 - Vouch `.td` primer: `docs/vouch-td-primer.md`
 - Feature matrix (AI Society L0/L1/L2 vs pi template): `docs/feature-matrix-l0-l1-l2-vs-pi-template.md`
 - Solo-builder cadence: `docs/solo-builder-operating-cadence.md`
+- L0 contribution workflow: `CONTRIBUTING.md`
 - Refresh deterministic fixtures:
   ```bash
   bash ./scripts/sync-l0-fixtures.sh
   ```
+
+## Structure baseline (L1/L2)
+
+To reduce drift with richer template ecosystems, generated repositories now seed:
+- folders: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
+- git baseline: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
+
+This is still a minimal L0 slice; deeper packs (release/community/trust automation) can be layered by profile.

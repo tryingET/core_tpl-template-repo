@@ -1,0 +1,50 @@
+name: vouch-manage
+
+{% if enable_vouch_gate %}
+{% raw %}
+on:
+  issue_comment:
+    types:
+      - created
+
+concurrency:
+  group: vouch-manage-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Apply vouch / denounce / unvouch from maintainer comments
+        uses: mitchellh/vouch/action/manage-by-issue@5713ce1baedf75e2f830afa3dac813a9c48bff12
+        with:
+          repo: ${{ github.repository }}
+          issue-id: ${{ github.event.issue.number }}
+          comment-id: ${{ github.event.comment.id }}
+          vouched-file: .github/VOUCHED.td
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+{% endraw %}
+{% else %}
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "vouch manage workflow disabled for this template instance"
+{% endif %}

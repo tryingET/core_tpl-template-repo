@@ -21,6 +21,8 @@ This repository is an **L2 product repo** generated from an L1 template.
 - Respect recursion bounds (`L2` must not generate `L1`/`L0`).
 - Keep `.copier-answers.yml` committed for reproducibility.
 - Keep `contracts/layer-contract.yml` policy-aligned.
+- Keep baseline structure coherent (`docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`).
+- Keep git baseline files (`.github/`, `.githooks/`, `.gitignore`, `.gitattributes`).
 
 ## Optional trust gate
 

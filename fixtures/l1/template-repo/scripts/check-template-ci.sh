@@ -11,6 +11,7 @@ need_cmd() {
   }
 }
 
+need_cmd awk
 need_cmd git
 need_cmd grep
 need_cmd mktemp
@@ -37,10 +38,26 @@ assert_contains() {
   grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
 }
 
+bool_from_answers() {
+  answers_file="$1"
+  key="$2"
+
+  awk -F':' -v key="$key" '
+    $1 ~ "^" key "$" {
+      v=$2
+      gsub(/[ \t"]/, "", v)
+      gsub(/\047/, "", v)
+      print tolower(v)
+      exit
+    }
+  ' "$answers_file"
+}
+
 required_files="
 README.md
 AGENTS.md
 CONTRIBUTING.md
+.gitattributes
 .copier-answers.yml
 contracts/layer-contract.yml
 scripts/new-repo-from-copier.sh
@@ -48,11 +65,26 @@ scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
+.github/VOUCHED.td
 .github/workflows/template-check.yml
 .github/workflows/ci.yml
+.github/workflows/vouch-check-pr.yml
+.github/workflows/vouch-manage.yml
 .githooks/pre-commit
 .githooks/pre-push
+docs/.gitkeep
+examples/.gitkeep
+external/.gitkeep
+ontology/.gitkeep
+policy/.gitkeep
+src/.gitkeep
+tests/.gitkeep
 copier/template-repo/copier.yml
+copier/template-repo/README.md.j2
+copier/template-repo/.gitattributes
+copier/template-repo/.github/VOUCHED.td.j2
+copier/template-repo/.github/workflows/vouch-check-pr.yml.j2
+copier/template-repo/.github/workflows/vouch-manage.yml.j2
 "
 
 for path in $required_files; do
@@ -80,6 +112,8 @@ for doc in README.md AGENTS.md; do
   assert_contains "$doc" "L2 -> L1" "L1 docs must forbid L2 -> L1"
 done
 assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
+assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
+assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 
 contract="contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "L1 contract layer mismatch"
@@ -97,6 +131,20 @@ assert_contains "$workflow" "./scripts/check-template-ci.sh" "template-check wor
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
 
+vouch_enabled="$(bool_from_answers .copier-answers.yml enable_vouch_gate || true)"
+if [ "$vouch_enabled" = "true" ]; then
+  assert_contains ".github/workflows/vouch-check-pr.yml" "pull_request_target" "vouch-check-pr must be active when enable_vouch_gate=true"
+  assert_contains ".github/workflows/vouch-check-pr.yml" "mitchellh/vouch/action/check-pr@5713ce1baedf75e2f830afa3dac813a9c48bff12" "vouch-check-pr action must be SHA pinned"
+  assert_contains ".github/workflows/vouch-check-pr.yml" "require-vouch: \"true\"" "vouch-check-pr must enforce vouched contributors"
+  assert_contains ".github/workflows/vouch-manage.yml" "issue_comment" "vouch-manage must be active when enable_vouch_gate=true"
+  assert_contains ".github/workflows/vouch-manage.yml" "mitchellh/vouch/action/manage-by-issue@5713ce1baedf75e2f830afa3dac813a9c48bff12" "vouch-manage action must be SHA pinned"
+else
+  assert_contains ".github/workflows/vouch-check-pr.yml" "workflow_dispatch:" "vouch-check-pr should be inactive when enable_vouch_gate=false"
+  assert_contains ".github/workflows/vouch-check-pr.yml" "vouch gate disabled" "vouch-check-pr disabled workflow should explain status"
+  assert_contains ".github/workflows/vouch-manage.yml" "workflow_dispatch:" "vouch-manage should be inactive when enable_vouch_gate=false"
+  assert_contains ".github/workflows/vouch-manage.yml" "vouch manage workflow disabled" "vouch-manage disabled workflow should explain status"
+fi
+
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
@@ -109,14 +157,25 @@ l2_required_files="
 README.md
 AGENTS.md
 CONTRIBUTING.md
+.gitattributes
 .copier-answers.yml
 contracts/layer-contract.yml
 scripts/install-hooks.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
+.github/VOUCHED.td
 .githooks/pre-commit
 .githooks/pre-push
 .github/workflows/ci.yml
+.github/workflows/vouch-check-pr.yml
+.github/workflows/vouch-manage.yml
+docs/.gitkeep
+examples/.gitkeep
+external/.gitkeep
+ontology/.gitkeep
+policy/.gitkeep
+src/.gitkeep
+tests/.gitkeep
 "
 
 for path in $l2_required_files; do
@@ -137,9 +196,20 @@ done
 
 assert_contains "$l2_dir/README.md" "Recursion policy" "generated L2 README must include recursion section"
 assert_contains "$l2_dir/README.md" "L2 -> L1" "generated L2 README must forbid L2 -> L1"
+assert_contains "$l2_dir/README.md" "Baseline structure" "generated L2 README should describe baseline directory structure"
 assert_contains "$l2_dir/CONTRIBUTING.md" ".copier-answers.yml" "generated L2 contributing guide should mention answers-file reproducibility"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "layer: L2" "generated L2 contract layer mismatch"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "L2 -> L1" "generated L2 contract must forbid reverse edge"
+
+l2_vouch_enabled="$(bool_from_answers "$l2_dir/.copier-answers.yml" enable_vouch_gate || true)"
+if [ "$l2_vouch_enabled" = "true" ]; then
+  assert_contains "$l2_dir/.github/workflows/vouch-check-pr.yml" "pull_request_target" "generated L2 vouch-check-pr must be active when enable_vouch_gate=true"
+  assert_contains "$l2_dir/.github/workflows/vouch-check-pr.yml" "mitchellh/vouch/action/check-pr@5713ce1baedf75e2f830afa3dac813a9c48bff12" "generated L2 vouch-check-pr action must be SHA pinned"
+  assert_contains "$l2_dir/.github/workflows/vouch-manage.yml" "issue_comment" "generated L2 vouch-manage must be active when enable_vouch_gate=true"
+else
+  assert_contains "$l2_dir/.github/workflows/vouch-check-pr.yml" "workflow_dispatch:" "generated L2 vouch-check-pr should be inactive when enable_vouch_gate=false"
+  assert_contains "$l2_dir/.github/workflows/vouch-manage.yml" "workflow_dispatch:" "generated L2 vouch-manage should be inactive when enable_vouch_gate=false"
+fi
 
 (
   cd "$l2_dir"

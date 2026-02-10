@@ -1,9 +1,10 @@
-# fixture-template-repo
+# fixture-product-repo
 
 Generated L2 repository scaffold.
 
-- Owner: ``
+- Owner: `@repo-owner`
 - Source: L1 template profile `template-repo`
+- Vouch trust gate: **disabled**
 
 ## Quickstart
 
@@ -15,6 +16,14 @@ git init -b main
 
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Baseline structure
+
+This scaffold includes common working directories:
+- `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
+
+Git baseline files included:
+- `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
 
 ## Recursion policy (explicit)
 

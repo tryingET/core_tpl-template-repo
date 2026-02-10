@@ -2,3 +2,4 @@
 l1_profile: 'template-repo'
 repo_slug: 'fixture-template-repo'
 maintainer_handle: '@template-owner'
+enable_vouch_gate: false

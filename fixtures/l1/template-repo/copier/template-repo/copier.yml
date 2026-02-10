@@ -1,6 +1,6 @@
 _subdirectory: ""
 _answers_file: .copier-answers.yml
-_templates_suffix: .jinja
+_templates_suffix: .j2
 
 repo_slug:
   type: str
@@ -11,6 +11,11 @@ owner_handle:
   type: str
   default: "@repo-owner"
   help: "Owner handle used in generated docs."
+
+enable_vouch_gate:
+  type: bool
+  default: false
+  help: "Enable vouch trust-gate workflows for this generated L2 repo."
 
 _tasks:
   - "chmod +x scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh .githooks/pre-commit .githooks/pre-push"

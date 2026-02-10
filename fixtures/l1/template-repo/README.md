@@ -10,6 +10,8 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
 - A Copier profile at `copier/template-repo` for generating L2 repositories.
 - Opinionated local hooks (`.githooks/`) and CI lane scripts (`scripts/ci/`).
 - Layer contract enforcement via `contracts/layer-contract.yml`.
+- Baseline structure seed for generated repos: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`.
+- Git hygiene files in generated repos: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
 
 ## Quickstart
 
@@ -35,6 +37,12 @@ Install local hooks in a generated repo:
 
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Trust-gate profile
+
+- Vouch trust gate baseline is currently **disabled**.
+- Files are scaffolded at `.github/VOUCHED.td`, `.github/workflows/vouch-check-pr.yml`, `.github/workflows/vouch-manage.yml`.
+- L2 generation inherits `enable_vouch_gate` from this L1 unless you override with `-d enable_vouch_gate=true|false`.
 
 ## Recursion policy (explicit)
 

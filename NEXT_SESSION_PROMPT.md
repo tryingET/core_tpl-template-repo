@@ -1,88 +1,101 @@
 # NEXT_SESSION_PROMPT.md — `core/tpl-template-repo`
 
-## Decision (locked)
-Use `~/ai-society/core/tpl-template-repo` as the home of the meta-template.
-Rationale: this is core infra (cross-org template kernel), so ownership belongs in `core/`.
+## Session state (current)
+- Repo: `~/ai-society/core/tpl-template-repo`
+- Active branch: `feat/l0-vouch-optional-structure-pack`
+- Last merged on `main`: `77ea2bd` (contrib/vouch foundation docs)
+- Working tree: **dirty** with substantial staged-eligible changes (optional vouch module + structure baseline + fixtures)
+- Full validation currently passes locally:
+  - `bash ./scripts/check-l0.sh` ✅
 
 ---
 
-## Session kickoff prompt
-Build `tpl-template-repo` as the L0 meta-template that scaffolds L1 template repos (e.g. `holdingco-templates`, `softwareco-templates`) with opinionated CI/hook/contracts.
+## What changed in this in-progress branch
 
-Use these reasoning passes in order:
-1. **Abductive**: infer required meta-template scope from current `holdingco-templates` + `softwareco-templates` state.
-2. **Deductive**: write strict DoD + artifact list before implementation.
-3. **Contrapositive**: enumerate recursion/drift/supply-chain failure modes and encode guards.
-4. **DSL scaffolding**: define layer contract language (`L0/L1/L2`, allowed transitions, answers-file policy).
-5. **Inductive**: implement smallest validated slice first, then expand.
+### 1) Optional vouch trust-gate profile
+- Added `enable_vouch_gate` to L0 `copier.yml` (default `false`).
+- Added vouch baseline templates in L1 scaffold:
+  - `copier-template/.github/VOUCHED.td.jinja`
+  - `copier-template/.github/workflows/vouch-check-pr.yml.jinja`
+  - `copier-template/.github/workflows/vouch-manage.yml.jinja`
+- Added vouch baseline templates in L2 source (nested template inside L1):
+  - `copier-template/copier/template-repo/.github/VOUCHED.td.j2`
+  - `copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2`
+  - `copier-template/copier/template-repo/.github/workflows/vouch-manage.yml.j2`
 
----
+### 2) Folder-structure baseline alignment (requested)
+- Added baseline skeleton dirs (with `.gitkeep`) in L1 + L2 sources:
+  - `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
+- Added `.gitattributes` baseline in L1 + L2 sources.
 
-## Current known state
-- GitHub workflow + custom githooks baseline has already been ported into:
-  - `~/ai-society/holdingco/holdingco-templates`
-  - `~/ai-society/softwareco/softwareco-templates`
-- Both template check scripts pass:
-  - `bash ./scripts/check-template-ci.sh`
-- Technique reference docs exist at:
-  - `~/programming/ralph-intent-kit/intent/intentOS_prompting_techniques_injection_v2.md`
-  - `~/programming/rik-depdiet/intent/intentOS_prompting_techniques_injection_v2.md`
-  - `~/programming/rik-depviz/intent/intentOS_prompting_techniques_injection_v2.md`
+### 3) Why some structure still differs from `~/programming/pi-extensions/template`
+- AI-society L0 started intentionally minimal (contracts/recursion/idempotency first).
+- We are now seeding the same **skeleton shape**, but not all feature packs yet (e.g. release/public community stack).
+- This is intentional layering: baseline first, richer packs later by profile.
 
----
+### 4) `.git*` file policy
+- Included in generated repos: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
+- Not included (never): `.git/` directory itself.
+- Generated repos keep `.copier-answers.yml` committed.
 
-## Bounded recursion contract (must enforce)
-- **L0**: meta-template (`tpl-template-repo`)
-- **L1**: template repos (`holdingco-templates`, `softwareco-templates`, future org template repos)
-- **L2**: generated product repos (`tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-owned-repo` outputs)
-
-Allowed edges:
-- `L0 -> L1`
-- `L1 -> L2`
-
-Forbidden edges:
-- `L1 -> L0`
-- `L2 -> L1`
-- any cycle
+### 5) Important templating nuance (nested Copier)
+- L0 renders L1 using `.jinja` suffix.
+- L1 contains a nested L2 Copier template; those files must survive templating for the second pass.
+- Therefore L2 source files inside `copier-template/copier/template-repo/` now use `.j2` and nested `copier.yml` sets `_templates_suffix: .j2`.
 
 ---
 
-## Definition of Done (L0 slice)
-Create a minimal but usable `tpl-template-repo` source with:
-1. `copier.yml`
-2. `copier-template/` containing:
-   - baseline `README.md.jinja`
-   - baseline `AGENTS.md`
-   - `scripts/new-repo-from-copier.sh`
-   - `scripts/check-template-ci.sh`
-   - `scripts/install-hooks.sh`
-   - `.github/workflows/template-check.yml`
-   - `.githooks/pre-commit`, `.githooks/pre-push`
-3. contract file for generated L1 repos
-4. smoke + idempotency checks for L0 generation
-5. explicit recursion policy section in generated README/AGENTS
-
-Validation required:
-- L0 guardrail script passes
-- generated L1 sample passes `scripts/check-template-ci.sh`
-- idempotency test passes
+## Immediate objective for next session
+Finalize and ship this branch (`feat/l0-vouch-optional-structure-pack`) safely:
+1. review all working tree changes,
+2. commit coherent diff,
+3. open PR,
+4. merge after green checks.
 
 ---
 
-## First implementation sequence (smallest safe path)
-1. Scaffold `core/tpl-template-repo` as Copier source.
-2. Add only one generated target profile first (generic `template-repo` profile).
-3. Generate a temp repo from L0 and run its checks.
-4. Add org flavors after first slice is stable.
+## Verification commands (run first)
+```bash
+bash ./scripts/check-l0-guardrails.sh
+bash ./scripts/check-l0.sh
+```
+
+If fixture drift appears:
+```bash
+bash ./scripts/sync-l0-fixtures.sh
+bash ./scripts/check-l0.sh
+```
 
 ---
 
-## Non-goals (for first slice)
-- No deep feature packs yet.
-- No template-of-template-of-template beyond L0.
-- No automatic nested Copier runs in `_tasks`.
+## Commit + PR workflow (expected)
+```bash
+git status --short
+git add .
+git commit -m "feat(l0): add optional vouch profile and baseline structure skeleton"
+git push -u origin feat/l0-vouch-optional-structure-pack
+```
+
+Then open PR with notes:
+- optional `enable_vouch_gate` behavior,
+- structure baseline rationale,
+- `.j2` nested-template reason,
+- validation output (`bash ./scripts/check-l0.sh`).
 
 ---
 
-## End condition for this next session
-Deliver a working L0 meta-template in `~/ai-society/core/tpl-template-repo` that can generate one valid L1 template repo with CI + hooks + checks prewired.
+## Next after merge (follow-up backlog)
+1. Add optional community pack (issue templates / CoC / support) by profile.
+2. Add optional release pack (release-please/publish) by profile.
+3. Add policy doc that maps `internal` vs `public` template profiles in AI-society governance.
+4. Re-run adoption preview against:
+   - `~/ai-society/holdingco/holdingco-templates`
+   - `~/ai-society/softwareco/softwareco-templates`
+
+---
+
+## Constraint reminders
+- Keep recursion bounded: `L0 -> L1 -> L2` only.
+- No nested `copier copy` in `_tasks`.
+- No destructive git actions.
+- No secrets in git.

@@ -7,6 +7,8 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Keep recursion bounded: `L0 -> L1 -> L2` only.
 - Never encode nested `copier copy` calls inside template `_tasks`.
 - Keep `.copier-answers.yml` committed in generated repositories.
+- Preserve baseline folder skeleton + git baseline files unless intentionally changed by policy.
+- Treat `enable_vouch_gate` as profile policy (default disabled, enable for trust-gated/public repos).
 - No secrets in git.
 
 ## Recursion policy (explicit)
