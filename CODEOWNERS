@@ -1,0 +1,11 @@
+# L0 meta-template ownership
+# Replace handle(s) with your GitHub/GitLab identity once remote is wired.
+
+* @lightningralf
+
+# Critical control surface
+/copier.yml @lightningralf
+/contracts/** @lightningralf
+/copier-template/** @lightningralf
+/scripts/** @lightningralf
+/.github/workflows/** @lightningralf

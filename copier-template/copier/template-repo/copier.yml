@@ -1,0 +1,24 @@
+_subdirectory: ""
+_answers_file: .copier-answers.yml
+_templates_suffix: .jinja
+
+repo_slug:
+  type: str
+  default: product-repo
+  help: "Slug for the generated L2 repository."
+
+owner_handle:
+  type: str
+  default: "@repo-owner"
+  help: "Owner handle used in generated docs."
+
+_tasks:
+  - "chmod +x scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh .githooks/pre-commit .githooks/pre-push"
+
+_message_after_copy: |
+  L2 repository scaffolded at {{ _copier_conf.dst_path }}
+
+  Next:
+    - initialize git (if needed): git init -b main
+    - install hooks:               ./scripts/install-hooks.sh
+    - run smoke checks:            ./scripts/ci/smoke.sh

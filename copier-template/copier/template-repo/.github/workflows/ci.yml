@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "23 2 * * *"
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Lane to run"
+        required: true
+        type: choice
+        default: full
+        options:
+          - full
+          - deep
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run smoke lane
+        run: bash ./scripts/ci/smoke.sh
+
+  full:
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.lane == 'full') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run full lane
+        run: bash ./scripts/ci/full.sh
+
+  deep:
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.lane == 'deep') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run deep lane
+        run: bash ./scripts/ci/full.sh --deep
