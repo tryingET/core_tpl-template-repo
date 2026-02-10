@@ -22,13 +22,15 @@ trap 'rm -rf "$tmp_root"' EXIT
 render_l1_case() {
   case_name="$1"
   enable_community_pack="$2"
-  enable_vouch_gate="$3"
+  enable_release_pack="$3"
+  enable_vouch_gate="$4"
   l1_dir="$tmp_root/$case_name"
 
   "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$l1_dir" \
     -d repo_slug="$case_name" \
     -d maintainer_handle=@template-owner \
     -d enable_community_pack="$enable_community_pack" \
+    -d enable_release_pack="$enable_release_pack" \
     -d enable_vouch_gate="$enable_vouch_gate" \
     --defaults --overwrite >/dev/null
 
@@ -50,6 +52,7 @@ render_l1_case() {
     -d repo_slug="$case_name" \
     -d maintainer_handle=@template-owner \
     -d enable_community_pack="$enable_community_pack" \
+    -d enable_release_pack="$enable_release_pack" \
     -d enable_vouch_gate="$enable_vouch_gate" \
     --defaults --overwrite >/dev/null
 
@@ -63,8 +66,9 @@ render_l1_case() {
   )
 }
 
-render_l1_case "l1-template-sample" false false
-render_l1_case "l1-template-community" true false
-render_l1_case "l1-template-vouch" false true
+render_l1_case "l1-template-sample" false false false
+render_l1_case "l1-template-community" true false false
+render_l1_case "l1-template-release" false true false
+render_l1_case "l1-template-vouch" false false true
 
 echo "ok: l0 generation smoke + idempotency"

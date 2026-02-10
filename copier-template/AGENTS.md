@@ -10,6 +10,7 @@ Provide one stable, guarded template surface that generates compliant L2 reposit
 - Keep `contracts/layer-contract.yml` in sync with README recursion policy.
 - Preserve baseline structure folders and git baseline files unless intentionally changed by policy.
 - Treat `enable_community_pack` as a profile decision (default disabled, enable for public/community-facing contribution surfaces).
+- Treat `enable_release_pack` as a profile decision (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as a profile decision (default disabled, enable for trust-gated/public contribution surfaces).
 
 ## Recursion policy

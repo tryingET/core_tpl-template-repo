@@ -4,3 +4,4 @@ repo_slug: 'fixture-template-repo'
 maintainer_handle: '@template-owner'
 enable_vouch_gate: false
 enable_community_pack: false
+enable_release_pack: false

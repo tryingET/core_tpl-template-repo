@@ -14,11 +14,13 @@ Generate an L1 repo from L0:
 ./scripts/new-l1-from-copier.sh template-repo /tmp/holdingco-templates \
   -d repo_slug=holdingco-templates \
   -d enable_community_pack=false \
+  -d enable_release_pack=false \
   -d enable_vouch_gate=false \
   --defaults --overwrite
 ```
 
 Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
+Set `-d enable_release_pack=true` for release-please/publish automation baseline.
 Set `-d enable_vouch_gate=true` for trust-gated template lines.
 
 ## Community pack (optional by profile)
@@ -30,6 +32,16 @@ When `enable_community_pack=true`, generated L1/L2 repositories include:
 - `SUPPORT.md`
 
 Defaults stay conservative (`false`) for internal/private template lines.
+
+## Release pack (optional by profile)
+
+When `enable_release_pack=true`, generated L1/L2 repositories include:
+- release workflows (`release-please`, `release-check`, `publish`)
+- release metadata (`.release-please-config.json`, `.release-please-manifest.json`)
+- baseline release/security docs (`CHANGELOG.md`, `SECURITY.md`)
+- release helper scripts (`scripts/release/check.sh`, `scripts/release/publish.sh`)
+
+Defaults stay conservative (`false`) and should be enabled when repository governance requires release automation.
 
 Run full L0 validations:
 
@@ -93,4 +105,4 @@ To reduce drift with richer template ecosystems, generated repositories now seed
 - folders: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
 - git baseline: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
 
-This is still a minimal L0 slice; deeper packs (for example release automation and stricter trust automation) can be layered by profile.
+This is still a minimal L0 slice; deeper ecosystem-specific packs can be layered by profile.
