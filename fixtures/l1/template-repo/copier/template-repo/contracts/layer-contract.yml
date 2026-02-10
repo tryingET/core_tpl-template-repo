@@ -1,0 +1,17 @@
+schema: ai-society.layer-contract.v1
+layer: L2
+profile: template-repo
+answers_file_policy:
+  required: true
+  path: .copier-answers.yml
+  commit_required: true
+transitions:
+  allowed:
+    - L1 -> L2
+  forbidden:
+    - L2 -> L1
+    - L2 -> L0
+    - cycle
+guardrails:
+  nested_copier_tasks_allowed: false
+  max_layer_depth: 2

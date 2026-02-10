@@ -32,9 +32,12 @@ copier.yml
 .github/pull_request_template.md
 docs/release-compatibility-policy.md
 docs/l1-adoption-playbook.md
+docs/supply-chain-policy.md
+docs/solo-builder-operating-cadence.md
 copier-template/README.md.jinja
 copier-template/AGENTS.md
 copier-template/contracts/layer-contract.yml
+copier-template/{{ _copier_conf.answers_file }}.jinja
 copier-template/scripts/new-repo-from-copier.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
@@ -47,20 +50,34 @@ copier-template/copier/template-repo/copier.yml
 copier-template/copier/template-repo/README.md.jinja
 copier-template/copier/template-repo/AGENTS.md
 copier-template/copier/template-repo/contracts/layer-contract.yml
+copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.jinja
 copier-template/copier/template-repo/scripts/install-hooks.sh
 copier-template/copier/template-repo/scripts/ci/smoke.sh
 copier-template/copier/template-repo/scripts/ci/full.sh
 copier-template/copier/template-repo/.githooks/pre-commit
 copier-template/copier/template-repo/.githooks/pre-push
 scripts/preview-l1-diff.sh
+scripts/check-supply-chain.sh
+scripts/check-l0-fixtures.sh
+scripts/sync-l0-fixtures.sh
+fixtures/l1/template-repo/README.md
+fixtures/l1/template-repo/.copier-answers.yml
+fixtures/l2/template-repo/README.md
+fixtures/l2/template-repo/.copier-answers.yml
 "
 
-for path in $required_files; do
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
   assert_file "$path"
-done
+done <<EOF
+$required_files
+EOF
 
 required_exec="
 scripts/preview-l1-diff.sh
+scripts/check-supply-chain.sh
+scripts/check-l0-fixtures.sh
+scripts/sync-l0-fixtures.sh
 copier-template/scripts/new-repo-from-copier.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
@@ -75,15 +92,20 @@ copier-template/copier/template-repo/.githooks/pre-commit
 copier-template/copier/template-repo/.githooks/pre-push
 "
 
-for path in $required_exec; do
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
   assert_exec "$path"
-done
+done <<EOF
+$required_exec
+EOF
 
 assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source must target copier-template/"
 assert_contains "copier.yml" "- template-repo" "L0 must expose the template-repo profile"
 assert_contains "CODEOWNERS" "/copier-template/**" "CODEOWNERS must protect copier-template/"
 assert_contains ".github/pull_request_template.md" "check-l0-guardrails.sh" "PR template must require guardrail checks"
 assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR template must require generation checks"
+assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
+assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
   assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"

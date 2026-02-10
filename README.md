@@ -16,11 +16,18 @@ Generate an L1 repo from L0:
   --defaults --overwrite
 ```
 
-Run L0 validations:
+Run full L0 validations:
 
 ```bash
-bash ./scripts/check-l0-guardrails.sh
+bash ./scripts/check-l0.sh
+```
+
+Optional focused checks:
+
+```bash
+bash ./scripts/check-supply-chain.sh
 bash ./scripts/check-l0-generation.sh
+bash ./scripts/check-l0-fixtures.sh
 ```
 
 ## Recursion policy (bounded)
@@ -54,4 +61,9 @@ Forbidden edges:
   ```
 - Release/compatibility policy: `docs/release-compatibility-policy.md`
 - L1 rollout playbook: `docs/l1-adoption-playbook.md`
+- Supply-chain policy: `docs/supply-chain-policy.md`
 - Solo-builder cadence: `docs/solo-builder-operating-cadence.md`
+- Refresh deterministic fixtures:
+  ```bash
+  bash ./scripts/sync-l0-fixtures.sh
+  ```

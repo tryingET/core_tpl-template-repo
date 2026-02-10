@@ -1,0 +1,5 @@
+# Local artifacts
+.tmp/
+tmp/
+*.tmp
+*.log
