@@ -96,6 +96,15 @@ copier/template-repo/.github/ISSUE_TEMPLATE/bug-report.yml.j2
 copier/template-repo/.github/ISSUE_TEMPLATE/feature-request.yml.j2
 copier/template-repo/CODE_OF_CONDUCT.md.j2
 copier/template-repo/SUPPORT.md.j2
+copier/template-repo/.release-please-config.json
+copier/template-repo/.release-please-manifest.json
+copier/template-repo/CHANGELOG.md
+copier/template-repo/SECURITY.md
+copier/template-repo/.github/workflows/release-please.yml
+copier/template-repo/.github/workflows/release-check.yml
+copier/template-repo/.github/workflows/publish.yml
+copier/template-repo/scripts/release/check.sh
+copier/template-repo/scripts/release/publish.sh
 "
 
 for path in $required_files; do
@@ -110,6 +119,8 @@ scripts/ci/smoke.sh
 scripts/ci/full.sh
 .githooks/pre-commit
 .githooks/pre-push
+copier/template-repo/scripts/release/check.sh
+copier/template-repo/scripts/release/publish.sh
 "
 
 for path in $required_exec; do
@@ -124,6 +135,7 @@ for doc in README.md AGENTS.md; do
 done
 assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
+assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 
@@ -135,6 +147,7 @@ assert_contains "$contract" "L1 -> L0" "L1 contract must include forbidden rever
 assert_contains "$contract" "L2 -> L1" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "nested_copier_tasks_allowed: false" "L1 contract must forbid nested copier tasks"
 assert_contains "copier/template-repo/copier.yml" "enable_community_pack" "nested L2 copier config must expose community pack toggle"
+assert_contains "copier/template-repo/copier.yml" "enable_release_pack" "nested L2 copier config must expose release pack toggle"
 assert_contains "copier/template-repo/copier.yml" "enable_vouch_gate" "nested L2 copier config must expose vouch gate toggle"
 
 workflow=".github/workflows/template-check.yml"
@@ -175,6 +188,31 @@ else
   assert_not_file ".github/ISSUE_TEMPLATE/config.yml"
   assert_not_file ".github/ISSUE_TEMPLATE/bug-report.yml"
   assert_not_file ".github/ISSUE_TEMPLATE/feature-request.yml"
+fi
+
+release_enabled="$(bool_from_answers .copier-answers.yml enable_release_pack || true)"
+if [ "$release_enabled" = "true" ]; then
+  assert_file ".release-please-config.json"
+  assert_file ".release-please-manifest.json"
+  assert_file "CHANGELOG.md"
+  assert_file "SECURITY.md"
+  assert_file ".github/workflows/release-please.yml"
+  assert_file ".github/workflows/release-check.yml"
+  assert_file ".github/workflows/publish.yml"
+  assert_exec "scripts/release/check.sh"
+  assert_exec "scripts/release/publish.sh"
+  assert_contains ".github/workflows/release-please.yml" "googleapis/release-please-action@v4" "release-please workflow should use release-please action"
+  assert_contains ".github/workflows/publish.yml" "softprops/action-gh-release@v2" "publish workflow should upload release artifacts"
+else
+  assert_not_file ".release-please-config.json"
+  assert_not_file ".release-please-manifest.json"
+  assert_not_file "CHANGELOG.md"
+  assert_not_file "SECURITY.md"
+  assert_not_file ".github/workflows/release-please.yml"
+  assert_not_file ".github/workflows/release-check.yml"
+  assert_not_file ".github/workflows/publish.yml"
+  assert_not_file "scripts/release/check.sh"
+  assert_not_file "scripts/release/publish.sh"
 fi
 
 tmp_root="$(mktemp -d)"
@@ -228,6 +266,7 @@ done
 
 assert_contains "$l2_dir/README.md" "Recursion policy" "generated L2 README must include recursion section"
 assert_contains "$l2_dir/README.md" "L2 -> L1" "generated L2 README must forbid L2 -> L1"
+assert_contains "$l2_dir/README.md" "Release pack" "generated L2 README should describe release profile toggle"
 assert_contains "$l2_dir/README.md" "Baseline structure" "generated L2 README should describe baseline directory structure"
 assert_contains "$l2_dir/CONTRIBUTING.md" ".copier-answers.yml" "generated L2 contributing guide should mention answers-file reproducibility"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "layer: L2" "generated L2 contract layer mismatch"
@@ -259,6 +298,31 @@ else
   assert_not_file "$l2_dir/.github/ISSUE_TEMPLATE/config.yml"
   assert_not_file "$l2_dir/.github/ISSUE_TEMPLATE/bug-report.yml"
   assert_not_file "$l2_dir/.github/ISSUE_TEMPLATE/feature-request.yml"
+fi
+
+l2_release_enabled="$(bool_from_answers "$l2_dir/.copier-answers.yml" enable_release_pack || true)"
+if [ "$l2_release_enabled" = "true" ]; then
+  assert_file "$l2_dir/.release-please-config.json"
+  assert_file "$l2_dir/.release-please-manifest.json"
+  assert_file "$l2_dir/CHANGELOG.md"
+  assert_file "$l2_dir/SECURITY.md"
+  assert_file "$l2_dir/.github/workflows/release-please.yml"
+  assert_file "$l2_dir/.github/workflows/release-check.yml"
+  assert_file "$l2_dir/.github/workflows/publish.yml"
+  assert_exec "$l2_dir/scripts/release/check.sh"
+  assert_exec "$l2_dir/scripts/release/publish.sh"
+  assert_contains "$l2_dir/.github/workflows/release-please.yml" "googleapis/release-please-action@v4" "generated L2 release-please workflow should use release-please action"
+  assert_contains "$l2_dir/.github/workflows/publish.yml" "softprops/action-gh-release@v2" "generated L2 publish workflow should upload release artifacts"
+else
+  assert_not_file "$l2_dir/.release-please-config.json"
+  assert_not_file "$l2_dir/.release-please-manifest.json"
+  assert_not_file "$l2_dir/CHANGELOG.md"
+  assert_not_file "$l2_dir/SECURITY.md"
+  assert_not_file "$l2_dir/.github/workflows/release-please.yml"
+  assert_not_file "$l2_dir/.github/workflows/release-check.yml"
+  assert_not_file "$l2_dir/.github/workflows/publish.yml"
+  assert_not_file "$l2_dir/scripts/release/check.sh"
+  assert_not_file "$l2_dir/scripts/release/publish.sh"
 fi
 
 (

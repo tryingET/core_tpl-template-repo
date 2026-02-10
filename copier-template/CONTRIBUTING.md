@@ -29,6 +29,16 @@ If your org enables the community collaboration pack for this template line, mai
 - `CODE_OF_CONDUCT.md`
 - `SUPPORT.md`
 
+## Optional release pack
+
+If your org enables release automation in this template family, maintain:
+- `.github/workflows/release-please.yml`
+- `.github/workflows/release-check.yml`
+- `.github/workflows/publish.yml`
+- `.release-please-config.json`, `.release-please-manifest.json`
+- `CHANGELOG.md`, `SECURITY.md`
+- `scripts/release/check.sh`, `scripts/release/publish.sh`
+
 ## Optional trust gate
 
 If your org enables vouch-based trust gating in this template family, maintain:

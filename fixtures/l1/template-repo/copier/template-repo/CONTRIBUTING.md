@@ -32,6 +32,16 @@ If enabled by your template policy, maintain:
 - `CODE_OF_CONDUCT.md`
 - `SUPPORT.md`
 
+## Optional release pack
+
+If enabled by your template policy, maintain:
+- `.github/workflows/release-please.yml`
+- `.github/workflows/release-check.yml`
+- `.github/workflows/publish.yml`
+- `.release-please-config.json`, `.release-please-manifest.json`
+- `CHANGELOG.md`, `SECURITY.md`
+- `scripts/release/check.sh`, `scripts/release/publish.sh`
+
 ## Optional trust gate
 
 If enabled by your template policy, maintain the vouch files:

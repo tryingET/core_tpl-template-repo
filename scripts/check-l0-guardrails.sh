@@ -52,6 +52,13 @@ copier-template/.github/ISSUE_TEMPLATE/bug-report.yml.jinja
 copier-template/.github/ISSUE_TEMPLATE/feature-request.yml.jinja
 copier-template/CODE_OF_CONDUCT.md.jinja
 copier-template/SUPPORT.md.jinja
+copier-template/.github/workflows/release-please.yml
+copier-template/.github/workflows/release-check.yml
+copier-template/.github/workflows/publish.yml
+copier-template/.release-please-config.json
+copier-template/.release-please-manifest.json
+copier-template/CHANGELOG.md
+copier-template/SECURITY.md
 copier-template/docs/.gitkeep
 copier-template/examples/.gitkeep
 copier-template/external/.gitkeep
@@ -64,6 +71,8 @@ copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
+copier-template/scripts/release/check.sh
+copier-template/scripts/release/publish.sh
 copier-template/.github/workflows/template-check.yml
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
@@ -83,6 +92,13 @@ copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/bug-report.yml.j2
 copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/feature-request.yml.j2
 copier-template/copier/template-repo/CODE_OF_CONDUCT.md.j2
 copier-template/copier/template-repo/SUPPORT.md.j2
+copier-template/copier/template-repo/.github/workflows/release-please.yml
+copier-template/copier/template-repo/.github/workflows/release-check.yml
+copier-template/copier/template-repo/.github/workflows/publish.yml
+copier-template/copier/template-repo/.release-please-config.json
+copier-template/copier/template-repo/.release-please-manifest.json
+copier-template/copier/template-repo/CHANGELOG.md
+copier-template/copier/template-repo/SECURITY.md
 copier-template/copier/template-repo/docs/.gitkeep
 copier-template/copier/template-repo/examples/.gitkeep
 copier-template/copier/template-repo/external/.gitkeep
@@ -93,6 +109,8 @@ copier-template/copier/template-repo/tests/.gitkeep
 copier-template/copier/template-repo/scripts/install-hooks.sh
 copier-template/copier/template-repo/scripts/ci/smoke.sh
 copier-template/copier/template-repo/scripts/ci/full.sh
+copier-template/copier/template-repo/scripts/release/check.sh
+copier-template/copier/template-repo/scripts/release/publish.sh
 copier-template/copier/template-repo/.githooks/pre-commit
 copier-template/copier/template-repo/.githooks/pre-push
 scripts/preview-l1-diff.sh
@@ -122,11 +140,15 @@ copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
+copier-template/scripts/release/check.sh
+copier-template/scripts/release/publish.sh
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
 copier-template/copier/template-repo/scripts/install-hooks.sh
 copier-template/copier/template-repo/scripts/ci/smoke.sh
 copier-template/copier/template-repo/scripts/ci/full.sh
+copier-template/copier/template-repo/scripts/release/check.sh
+copier-template/copier/template-repo/scripts/release/publish.sh
 copier-template/copier/template-repo/.githooks/pre-commit
 copier-template/copier/template-repo/.githooks/pre-push
 "
@@ -141,8 +163,10 @@ EOF
 assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source must target copier-template/"
 assert_contains "copier.yml" "- template-repo" "L0 must expose the template-repo profile"
 assert_contains "copier.yml" "enable_community_pack" "L0 copier config must expose community pack toggle"
+assert_contains "copier.yml" "enable_release_pack" "L0 copier config must expose release pack toggle"
 assert_contains "copier.yml" "enable_vouch_gate" "L0 copier config must expose vouch gate toggle"
 assert_contains "copier-template/copier/template-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
+assert_contains "copier-template/copier/template-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
 assert_contains "copier-template/copier/template-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
 assert_contains "CODEOWNERS" "/copier-template/**" "CODEOWNERS must protect copier-template/"
 assert_contains "AGENTS.md" "check-l0.sh" "AGENTS validation section should use consolidated L0 check"
@@ -152,6 +176,7 @@ assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR te
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
 assert_contains "README.md" "Community pack" "README should document optional community pack behavior"
+assert_contains "README.md" "Release pack" "README should document optional release pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
@@ -174,6 +199,10 @@ assert_contains "copier-template/.github/workflows/vouch-check-pr.yml.jinja" "mi
 assert_contains "copier-template/.github/workflows/vouch-manage.yml.jinja" "mitchellh/vouch/action/manage-by-issue@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L1 vouch-manage workflow should pin action SHA"
 assert_contains "copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2" "mitchellh/vouch/action/check-pr@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L2 vouch-check workflow should pin action SHA"
 assert_contains "copier-template/copier/template-repo/.github/workflows/vouch-manage.yml.j2" "mitchellh/vouch/action/manage-by-issue@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L2 vouch-manage workflow should pin action SHA"
+assert_contains "copier-template/.github/workflows/release-please.yml" "googleapis/release-please-action@v4" "L1 release-please workflow should invoke release-please action"
+assert_contains "copier-template/.github/workflows/publish.yml" "softprops/action-gh-release@v2" "L1 publish workflow should upload release artifacts"
+assert_contains "copier-template/copier/template-repo/.github/workflows/release-please.yml" "googleapis/release-please-action@v4" "L2 release-please workflow should invoke release-please action"
+assert_contains "copier-template/copier/template-repo/.github/workflows/publish.yml" "softprops/action-gh-release@v2" "L2 publish workflow should upload release artifacts"
 
 if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml copier-template/copier/template-repo/copier.yml >/dev/null 2>&1; then
   fail "nested copier invocations are not allowed in template config files"

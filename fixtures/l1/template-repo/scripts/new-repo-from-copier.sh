@@ -11,8 +11,8 @@ Example:
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
-  - `enable_vouch_gate` and `enable_community_pack` are inherited from this L1 repo
-    `.copier-answers.yml` unless overridden.
+  - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
+    are inherited from this L1 repo `.copier-answers.yml` unless overridden.
 EOF
 }
 
@@ -108,7 +108,7 @@ read_inherited_bool() {
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 answers_file="$repo_root/.copier-answers.yml"
 
-for key in enable_vouch_gate enable_community_pack; do
+for key in enable_vouch_gate enable_community_pack enable_release_pack; do
   if has_data_override "$key" "$@"; then
     continue
   fi

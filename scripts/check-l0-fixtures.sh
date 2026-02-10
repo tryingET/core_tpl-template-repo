@@ -41,6 +41,7 @@ actual_l2="$tmp_root/l2-template-repo"
   -d repo_slug=fixture-template-repo \
   -d maintainer_handle=@template-owner \
   -d enable_community_pack=false \
+  -d enable_release_pack=false \
   -d enable_vouch_gate=false \
   --defaults --overwrite >/dev/null
 
@@ -50,6 +51,7 @@ actual_l2="$tmp_root/l2-template-repo"
     -d repo_slug=fixture-product-repo \
     -d owner_handle=@repo-owner \
     -d enable_community_pack=false \
+    -d enable_release_pack=false \
     -d enable_vouch_gate=false \
     --defaults --overwrite >/dev/null
 )

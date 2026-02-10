@@ -48,6 +48,18 @@ Contribution workflow:
   - `SUPPORT.md`
 - L2 generation inherits `enable_community_pack` from this L1 unless you override with `-d enable_community_pack=true|false`.
 
+## Release profile
+
+- Release automation pack is currently **disabled**.
+- When enabled, this repo includes:
+  - `.github/workflows/release-please.yml`
+  - `.github/workflows/release-check.yml`
+  - `.github/workflows/publish.yml`
+  - `.release-please-config.json`, `.release-please-manifest.json`
+  - `CHANGELOG.md`, `SECURITY.md`
+  - `scripts/release/check.sh`, `scripts/release/publish.sh`
+- L2 generation inherits `enable_release_pack` from this L1 unless you override with `-d enable_release_pack=true|false`.
+
 ## Trust-gate profile
 
 - Vouch trust gate baseline is currently **disabled**.

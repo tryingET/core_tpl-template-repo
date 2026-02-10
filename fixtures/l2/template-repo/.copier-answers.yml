@@ -3,3 +3,4 @@ repo_slug: 'fixture-product-repo'
 owner_handle: '@repo-owner'
 enable_vouch_gate: false
 enable_community_pack: false
+enable_release_pack: false

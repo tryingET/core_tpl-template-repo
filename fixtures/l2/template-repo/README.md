@@ -5,6 +5,7 @@ Generated L2 repository scaffold.
 - Owner: `@repo-owner`
 - Source: L1 template profile `template-repo`
 - Community pack: **disabled**
+- Release pack: **disabled**
 - Vouch trust gate: **disabled**
 
 ## Quickstart
@@ -25,6 +26,14 @@ When `enable_community_pack=true`, this scaffold includes:
 - `.github/pull_request_template.md`
 - `CODE_OF_CONDUCT.md`
 - `SUPPORT.md`
+
+When `enable_release_pack=true`, this scaffold includes:
+- `.github/workflows/release-please.yml`
+- `.github/workflows/release-check.yml`
+- `.github/workflows/publish.yml`
+- `.release-please-config.json`, `.release-please-manifest.json`
+- `CHANGELOG.md`, `SECURITY.md`
+- `scripts/release/check.sh`, `scripts/release/publish.sh`
 
 When `enable_vouch_gate=true`, this scaffold includes active vouch workflows and `.github/VOUCHED.td`.
 

@@ -29,6 +29,7 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
 
 This L0 now exposes optional profile toggles:
 - `enable_community_pack` (issue templates / PR template / CoC / support docs)
+- `enable_release_pack` (release-please / release-check / publish + release docs/scripts)
 - `enable_vouch_gate` (vouch trust-gate workflows + `.github/VOUCHED.td`)
 
 Defaults stay `false`; enable per repository governance/risk profile.
