@@ -20,10 +20,11 @@ Legend:
 | Non-destructive adoption diff preview for existing templates | L0 rollout | ✅ (`preview-l1-diff.sh`) | ❌ | AI Society-specific rollout advantage.
 | `.copier-answers.yml` committed in generated repos | L1 + L2 | ✅ | ✅ | Keep enforced in both ecosystems.
 | Local hook baseline (`pre-commit` / `pre-push`) | L1 + L2 | ✅ | ✅ | Equivalent.
+| Baseline folder skeleton (`docs/examples/external/ontology/policy/src/tests`) | L1 + L2 | ⚠️ (now seeded minimally with `.gitkeep`) | ✅ | AI Society keeps a lightweight starter shape; enrich per profile.
 | CI baseline for generated repos | L1 + L2 | ✅ (minimal CI + template-check) | ✅ (CI + release + publish + trust gate) | AI Society CI is intentionally lean.
 | Release automation (release-please + publish) | L1/L2 (public package repos) | ❌ | ✅ | Optional future port for public/open-source L2 repos.
-| Community intake pack (issue templates + PR template + CoC + support + contributing) | L1/L2 public | ⚠️ (PR template only at L0) | ✅ | Candidate uplift for public-facing L1/L2.
-| Vouch trust gate (`VOUCHED.td`, PR/issue workflows) | L1/L2 public trust boundary | ❌ | ✅ | Main feature gap; likely optional profile for public repos.
+| Community intake pack (issue templates + PR template + CoC + support + contributing) | L1/L2 public | ⚠️ (PR template at L0 + CONTRIBUTING at L0/L1/L2; no full issue/CoC/support pack yet) | ✅ | Candidate uplift for public-facing L1/L2.
+| Vouch trust gate (`VOUCHED.td`, PR/issue workflows) | L1/L2 public trust boundary | ⚠️ (baseline scaffolded; disabled by default via `enable_vouch_gate=false`) | ✅ | Keep optional-by-profile; enable for public repos.
 | Docs discovery helper (`docs-list` wrapper) | L1/L2 | ❌ | ✅ | Optional productivity uplift.
 | Startup interview flow (`.pi/extensions/startup-intake-router.ts`) | L2 | ❌ | ✅ | Domain-specific to extension repos, not required at L0.
 | Generated-repo contract test (required/forbidden path scanner) | L0 + L1 | ⚠️ (layer + fixture checks, no JSON path contract) | ✅ (`contract/generated-repo.contract.json`) | Could add if path-level conformance becomes painful.
@@ -33,7 +34,7 @@ Legend:
 ## Interpretation for AI-Society L0/L1/L2
 
 - **Strong in AI-Society L0 now**: recursion contracts, fixture drift checks, adoption rollout tooling.
-- **Main missing feature family** from `pi-extensions/template`: community + trust operations for public collaboration (especially **vouch trust gate**).
+- **Main remaining missing feature family** from `pi-extensions/template`: richer community/release automation packs for public collaboration.
 - **Recommended layering**:
   - Keep recursion/contract/drift controls in **L0**.
   - Add vouch/community/release features as **L1 profile options** (not forced for private/internal repos).

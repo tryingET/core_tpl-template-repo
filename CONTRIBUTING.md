@@ -18,6 +18,7 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
 - Do not introduce nested Copier runs inside template `_tasks`.
 - Preserve recursion bounds (`L0 -> L1 -> L2`, no reverse/cycle).
 - Keep `.copier-answers.yml` committed in generated repos.
+- Keep baseline folder skeleton aligned where intended (`docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`) and document any intentional divergence.
 - Keep fixtures in sync when template outputs change:
   ```bash
   bash ./scripts/sync-l0-fixtures.sh

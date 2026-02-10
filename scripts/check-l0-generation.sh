@@ -19,40 +19,48 @@ need_cmd mktemp
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
-l1_dir="$tmp_root/l1-template-sample"
+render_l1_case() {
+  case_name="$1"
+  enable_vouch_gate="$2"
+  l1_dir="$tmp_root/$case_name"
 
-render_l1() {
   "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$l1_dir" \
-    -d repo_slug=l1-template-sample \
+    -d repo_slug="$case_name" \
     -d maintainer_handle=@template-owner \
+    -d enable_vouch_gate="$enable_vouch_gate" \
     --defaults --overwrite >/dev/null
+
+  (
+    cd "$l1_dir"
+    ./scripts/check-template-ci.sh
+  )
+
+  (
+    cd "$l1_dir"
+    git init -b main >/dev/null
+    git config user.name "tpl-template-repo ci" >/dev/null
+    git config user.email "ci@tpl-template-repo.local" >/dev/null
+    git add .
+    git commit -m "initial render ($case_name)" >/dev/null
+  )
+
+  "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$l1_dir" \
+    -d repo_slug="$case_name" \
+    -d maintainer_handle=@template-owner \
+    -d enable_vouch_gate="$enable_vouch_gate" \
+    --defaults --overwrite >/dev/null
+
+  (
+    cd "$l1_dir"
+    if [ -n "$(git status --porcelain)" ]; then
+      echo "error: non-idempotent L0 -> L1 generation ($case_name)" >&2
+      git status --short >&2
+      exit 1
+    fi
+  )
 }
 
-render_l1
-
-(
-  cd "$l1_dir"
-  ./scripts/check-template-ci.sh
-)
-
-(
-  cd "$l1_dir"
-  git init -b main >/dev/null
-  git config user.name "tpl-template-repo ci" >/dev/null
-  git config user.email "ci@tpl-template-repo.local" >/dev/null
-  git add .
-  git commit -m "initial render" >/dev/null
-)
-
-render_l1
-
-(
-  cd "$l1_dir"
-  if [ -n "$(git status --porcelain)" ]; then
-    echo "error: non-idempotent L0 -> L1 generation" >&2
-    git status --short >&2
-    exit 1
-  fi
-)
+render_l1_case "l1-template-sample" false
+render_l1_case "l1-template-vouch" true
 
 echo "ok: l0 generation smoke + idempotency"

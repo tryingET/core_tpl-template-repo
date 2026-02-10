@@ -18,6 +18,8 @@ This repository is an **L1 template repo** generated from AI Society L0.
 - Keep `.copier-answers.yml` committed.
 - Do not add nested Copier invocations in template `_tasks`.
 - Keep `contracts/layer-contract.yml` aligned with README/AGENTS recursion sections.
+- Preserve baseline skeleton folders for generated repos (`docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`) unless explicitly changed by policy.
+- Preserve git baseline files (`.github/`, `.githooks/`, `.gitignore`, `.gitattributes`).
 
 ## Optional trust gate
 

@@ -19,6 +19,11 @@ maintainer_handle:
   default: "@template-owner"
   help: "Owner handle used in generated docs/contracts."
 
+enable_vouch_gate:
+  type: bool
+  default: false
+  help: "Enable vouch trust-gate baseline in generated L1/L2 repositories."
+
 _tasks:
   - "chmod +x scripts/new-repo-from-copier.sh scripts/check-template-ci.sh scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh .githooks/pre-commit .githooks/pre-push copier/template-repo/scripts/install-hooks.sh copier/template-repo/scripts/ci/smoke.sh copier/template-repo/scripts/ci/full.sh copier/template-repo/.githooks/pre-commit copier/template-repo/.githooks/pre-push"
 
@@ -29,3 +34,7 @@ _message_after_copy: |
     - run: bash ./scripts/check-template-ci.sh
     - generate an L2 sample:
       ./scripts/new-repo-from-copier.sh template-repo /tmp/l2-sample -d repo_slug=l2-sample --defaults --overwrite
+
+  Vouch trust-gate:
+    - currently {{ 'enabled' if enable_vouch_gate else 'disabled' }}
+    - toggle at generation time with: -d enable_vouch_gate=true|false
