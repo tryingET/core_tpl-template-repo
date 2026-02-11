@@ -33,6 +33,7 @@ copier.yml
 .github/pull_request_template.md
 docs/release-compatibility-policy.md
 docs/l1-adoption-playbook.md
+docs/profile-governance-policy.md
 docs/supply-chain-policy.md
 docs/vouch-td-primer.md
 docs/feature-matrix-l0-l1-l2-vs-pi-template.md
@@ -207,7 +208,9 @@ assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR 
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
+assert_contains "CONTRIBUTING.md" "profile-governance-policy.md" "L0 contributing guide should link profile governance policy"
 assert_contains "README.md" "Organization docs profiles" "README should document org docs profile behavior"
+assert_contains "README.md" "Profile governance policy" "README should link profile governance policy"
 assert_contains "README.md" "Community pack" "README should document optional community pack behavior"
 assert_contains "README.md" "Release pack" "README should document optional release pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"

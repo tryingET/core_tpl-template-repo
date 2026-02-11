@@ -34,5 +34,6 @@ This L0 now exposes optional profile toggles:
 
 Defaults stay `false`; enable per repository governance/risk profile.
 Policy references:
+- `docs/profile-governance-policy.md`
 - `docs/vouch-td-primer.md`
 - `docs/feature-matrix-l0-l1-l2-vs-pi-template.md`

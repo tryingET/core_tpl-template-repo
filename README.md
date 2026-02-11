@@ -102,6 +102,7 @@ Forbidden edges:
 - Contributing guide: `CONTRIBUTING.md`
 - Release/compatibility policy: `docs/release-compatibility-policy.md`
 - L1 rollout playbook: `docs/l1-adoption-playbook.md`
+- Profile governance policy (internal vs public bundles): `docs/profile-governance-policy.md`
 - Supply-chain policy: `docs/supply-chain-policy.md`
 - Vouch `.td` primer: `docs/vouch-td-primer.md`
 - Feature matrix (AI Society L0/L1/L2 vs pi template): `docs/feature-matrix-l0-l1-l2-vs-pi-template.md`
