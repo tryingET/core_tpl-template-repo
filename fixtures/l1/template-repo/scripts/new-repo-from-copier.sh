@@ -13,6 +13,10 @@ Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
     are inherited from this L1 repo `.copier-answers.yml` unless overridden.
+  - `org_docs_profile` defaults to this L1 policy (`l2_org_docs_default`) and
+    can be overridden with `-d org_docs_profile=compact|rich`.
+  - Optional canonical org source can be passed via:
+    `-d org_docs_canonical_ref=<url-or-path>`.
 EOF
 }
 
@@ -88,7 +92,7 @@ has_data_override() {
   return 1
 }
 
-read_inherited_bool() {
+read_inherited_value() {
   answers_file="$1"
   key="$2"
 
@@ -113,13 +117,22 @@ for key in enable_vouch_gate enable_community_pack enable_release_pack; do
     continue
   fi
 
-  inherited_value="$(read_inherited_bool "$answers_file" "$key" || true)"
+  inherited_value="$(read_inherited_value "$answers_file" "$key" || true)"
   case "$inherited_value" in
     true|false)
       set -- -d "$key=$inherited_value" "$@"
       ;;
   esac
 done
+
+if ! has_data_override org_docs_profile "$@"; then
+  inherited_org_profile="$(read_inherited_value "$answers_file" l2_org_docs_default || true)"
+  case "$inherited_org_profile" in
+    compact|rich)
+      set -- -d "org_docs_profile=$inherited_org_profile" "$@"
+      ;;
+  esac
+fi
 
 template_dir="$repo_root/copier/$template_name"
 

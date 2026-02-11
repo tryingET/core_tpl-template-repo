@@ -4,6 +4,7 @@ Generated L2 repository scaffold.
 
 - Owner: `@repo-owner`
 - Source: L1 template profile `template-repo`
+- Organization docs profile: **compact**
 - Community pack: **disabled**
 - Release pack: **disabled**
 - Vouch trust gate: **disabled**
@@ -18,6 +19,14 @@ git init -b main
 
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Organization docs profile
+
+- This repository currently uses **compact** org docs in `docs/org/`.
+- Compact mode keeps org docs minimal and emphasizes project execution docs under `docs/project/`.
+- Rich mode adds purpose/mission/vision/governance artifacts in `docs/org/`.
+- Optional canonical organization reference can be set via `-d org_docs_canonical_ref=<url-or-path>`.
+
 
 ## Optional collaboration packs
 

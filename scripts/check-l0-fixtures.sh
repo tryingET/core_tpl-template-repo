@@ -40,6 +40,8 @@ actual_l2="$tmp_root/l2-template-repo"
 "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$actual_l1" \
   -d repo_slug=fixture-template-repo \
   -d maintainer_handle=@template-owner \
+  -d l1_org_docs_profile=rich \
+  -d l2_org_docs_default=compact \
   -d enable_community_pack=false \
   -d enable_release_pack=false \
   -d enable_vouch_gate=false \

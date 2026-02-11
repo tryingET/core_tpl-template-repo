@@ -1,0 +1,27 @@
+# Organization operating model
+
+This repository defines organization guidance for the template line.
+
+Profile: **{{ l1_org_docs_profile }}**
+Maintainer: {{ maintainer_handle }}
+
+## How this pack is used
+
+- L1 repositories carry organization-level direction and guardrails.
+- L2 repositories can stay compact by default while still linking back to canonical org intent.
+- L2 default profile for this template line: `{{ l2_org_docs_default }}`.
+
+## Core organization docs
+
+{% if l1_org_docs_profile == 'rich' %}
+- [Purpose](purpose.md)
+- [Mission](mission.md)
+- [Vision](vision.md)
+- [Strategic objectives](strategic_objectives.md)
+- [Values and ethics](values_ethics.md)
+- [Governance](governance.md)
+- [Glossary](glossary.md)
+{% else %}
+- Compact profile enabled: this repository keeps `operating_model.md` as the canonical org doc.
+- Switch to `l1_org_docs_profile=rich` to include the full org doc pack.
+{% endif %}

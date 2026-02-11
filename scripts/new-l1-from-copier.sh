@@ -8,6 +8,8 @@ usage: new-l1-from-copier.sh <template-repo> <dest-dir> [copier args...]
 Example:
   ./scripts/new-l1-from-copier.sh template-repo /tmp/holdingco-templates \
     -d repo_slug=holdingco-templates \
+    -d l1_org_docs_profile=rich \
+    -d l2_org_docs_default=compact \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
@@ -15,6 +17,8 @@ Example:
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
+  - Set `-d l1_org_docs_profile=rich|compact` to choose L1 org docs depth.
+  - Set `-d l2_org_docs_default=compact|rich` to choose default L2 org docs depth.
   - Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
   - Set `-d enable_release_pack=true` for release-please/publish automation baseline.
   - Set `-d enable_vouch_gate=true` for trust-gated/public contribution templates.

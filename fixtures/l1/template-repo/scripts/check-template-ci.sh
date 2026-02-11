@@ -43,19 +43,24 @@ assert_contains() {
   grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
 }
 
-bool_from_answers() {
+value_from_answers() {
   answers_file="$1"
   key="$2"
 
   awk -F':' -v key="$key" '
     $1 ~ "^" key "$" {
       v=$2
-      gsub(/[ \t"]/, "", v)
+      gsub(/^[ \t]+|[ \t]+$/, "", v)
+      gsub(/"/, "", v)
       gsub(/\047/, "", v)
       print tolower(v)
       exit
     }
   ' "$answers_file"
+}
+
+bool_from_answers() {
+  value_from_answers "$1" "$2"
 }
 
 required_files="
@@ -78,6 +83,7 @@ scripts/ci/full.sh
 .githooks/pre-commit
 .githooks/pre-push
 docs/.gitkeep
+docs/org/operating_model.md
 examples/.gitkeep
 external/.gitkeep
 ontology/.gitkeep
@@ -100,6 +106,23 @@ copier/template-repo/.release-please-config.json
 copier/template-repo/.release-please-manifest.json
 copier/template-repo/CHANGELOG.md
 copier/template-repo/SECURITY.md
+copier/template-repo/docs/.gitkeep
+copier/template-repo/docs/org/operating_model.md.j2
+copier/template-repo/docs/org/project-docs-intake.questions.json
+copier/template-repo/docs/org/purpose.md.j2
+copier/template-repo/docs/org/mission.md.j2
+copier/template-repo/docs/org/vision.md.j2
+copier/template-repo/docs/org/strategic_objectives.md.j2
+copier/template-repo/docs/org/values_ethics.md.j2
+copier/template-repo/docs/org/governance.md.j2
+copier/template-repo/docs/org/glossary.md.j2
+copier/template-repo/docs/project/foundation.md.j2
+copier/template-repo/docs/project/vision.md.j2
+copier/template-repo/docs/project/strategic_goals.md.j2
+copier/template-repo/docs/project/tactical_goals.md.j2
+copier/template-repo/docs/project/incentives.md.j2
+copier/template-repo/docs/project/resources.md.j2
+copier/template-repo/docs/project/skills.md.j2
 copier/template-repo/.github/workflows/release-please.yml
 copier/template-repo/.github/workflows/release-check.yml
 copier/template-repo/.github/workflows/publish.yml
@@ -134,6 +157,7 @@ for doc in README.md AGENTS.md; do
   assert_contains "$doc" "L2 -> L1" "L1 docs must forbid L2 -> L1"
 done
 assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
+assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
 assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
@@ -146,6 +170,12 @@ assert_contains "$contract" "L1 -> L2" "L1 contract must include L1 -> L2"
 assert_contains "$contract" "L1 -> L0" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "L2 -> L1" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "nested_copier_tasks_allowed: false" "L1 contract must forbid nested copier tasks"
+assert_contains ".copier-answers.yml" "l1_org_docs_profile:" "L1 answers file should persist L1 org docs profile"
+assert_contains ".copier-answers.yml" "l2_org_docs_default:" "L1 answers file should persist L2 org docs default"
+assert_contains "copier/template-repo/copier.yml" "org_docs_profile" "nested L2 copier config must expose org docs profile toggle"
+assert_contains "copier/template-repo/copier.yml" "org_docs_canonical_ref" "nested L2 copier config must expose canonical org docs reference"
+assert_contains "copier/template-repo/.copier-answers.yml.j2" "org_docs_profile:" "nested L2 answers template should persist org docs profile"
+assert_contains "copier/template-repo/.copier-answers.yml.j2" "org_docs_canonical_ref:" "nested L2 answers template should persist canonical org docs reference"
 assert_contains "copier/template-repo/copier.yml" "enable_community_pack" "nested L2 copier config must expose community pack toggle"
 assert_contains "copier/template-repo/copier.yml" "enable_release_pack" "nested L2 copier config must expose release pack toggle"
 assert_contains "copier/template-repo/copier.yml" "enable_vouch_gate" "nested L2 copier config must expose vouch gate toggle"
@@ -215,6 +245,27 @@ else
   assert_not_file "scripts/release/publish.sh"
 fi
 
+l1_org_docs_profile="$(value_from_answers .copier-answers.yml l1_org_docs_profile || true)"
+[ -n "$l1_org_docs_profile" ] || l1_org_docs_profile="rich"
+
+if [ "$l1_org_docs_profile" = "rich" ]; then
+  assert_file "docs/org/purpose.md"
+  assert_file "docs/org/mission.md"
+  assert_file "docs/org/vision.md"
+  assert_file "docs/org/strategic_objectives.md"
+  assert_file "docs/org/values_ethics.md"
+  assert_file "docs/org/governance.md"
+  assert_file "docs/org/glossary.md"
+else
+  assert_not_file "docs/org/purpose.md"
+  assert_not_file "docs/org/mission.md"
+  assert_not_file "docs/org/vision.md"
+  assert_not_file "docs/org/strategic_objectives.md"
+  assert_not_file "docs/org/values_ethics.md"
+  assert_not_file "docs/org/governance.md"
+  assert_not_file "docs/org/glossary.md"
+fi
+
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
@@ -240,6 +291,15 @@ scripts/ci/full.sh
 .github/workflows/vouch-check-pr.yml
 .github/workflows/vouch-manage.yml
 docs/.gitkeep
+docs/org/operating_model.md
+docs/org/project-docs-intake.questions.json
+docs/project/foundation.md
+docs/project/vision.md
+docs/project/strategic_goals.md
+docs/project/tactical_goals.md
+docs/project/incentives.md
+docs/project/resources.md
+docs/project/skills.md
 examples/.gitkeep
 external/.gitkeep
 ontology/.gitkeep
@@ -266,11 +326,32 @@ done
 
 assert_contains "$l2_dir/README.md" "Recursion policy" "generated L2 README must include recursion section"
 assert_contains "$l2_dir/README.md" "L2 -> L1" "generated L2 README must forbid L2 -> L1"
+assert_contains "$l2_dir/README.md" "Organization docs profile" "generated L2 README should describe org docs profile"
 assert_contains "$l2_dir/README.md" "Release pack" "generated L2 README should describe release profile toggle"
 assert_contains "$l2_dir/README.md" "Baseline structure" "generated L2 README should describe baseline directory structure"
 assert_contains "$l2_dir/CONTRIBUTING.md" ".copier-answers.yml" "generated L2 contributing guide should mention answers-file reproducibility"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "layer: L2" "generated L2 contract layer mismatch"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "L2 -> L1" "generated L2 contract must forbid reverse edge"
+
+l2_org_docs_profile="$(value_from_answers "$l2_dir/.copier-answers.yml" org_docs_profile || true)"
+[ -n "$l2_org_docs_profile" ] || l2_org_docs_profile="compact"
+if [ "$l2_org_docs_profile" = "rich" ]; then
+  assert_file "$l2_dir/docs/org/purpose.md"
+  assert_file "$l2_dir/docs/org/mission.md"
+  assert_file "$l2_dir/docs/org/vision.md"
+  assert_file "$l2_dir/docs/org/strategic_objectives.md"
+  assert_file "$l2_dir/docs/org/values_ethics.md"
+  assert_file "$l2_dir/docs/org/governance.md"
+  assert_file "$l2_dir/docs/org/glossary.md"
+else
+  assert_not_file "$l2_dir/docs/org/purpose.md"
+  assert_not_file "$l2_dir/docs/org/mission.md"
+  assert_not_file "$l2_dir/docs/org/vision.md"
+  assert_not_file "$l2_dir/docs/org/strategic_objectives.md"
+  assert_not_file "$l2_dir/docs/org/values_ethics.md"
+  assert_not_file "$l2_dir/docs/org/governance.md"
+  assert_not_file "$l2_dir/docs/org/glossary.md"
+fi
 
 l2_vouch_enabled="$(bool_from_answers "$l2_dir/.copier-answers.yml" enable_vouch_gate || true)"
 if [ "$l2_vouch_enabled" = "true" ]; then

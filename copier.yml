@@ -19,6 +19,22 @@ maintainer_handle:
   default: "@template-owner"
   help: "Owner handle used in generated docs/contracts."
 
+l1_org_docs_profile:
+  type: str
+  default: rich
+  choices:
+    - rich
+    - compact
+  help: "Organization docs profile for generated L1 repositories."
+
+l2_org_docs_default:
+  type: str
+  default: compact
+  choices:
+    - compact
+    - rich
+  help: "Default organization docs profile that generated L1 templates apply to L2 repositories."
+
 enable_vouch_gate:
   type: bool
   default: false
@@ -36,6 +52,7 @@ enable_release_pack:
 
 _tasks:
   - "chmod +x scripts/new-repo-from-copier.sh scripts/check-template-ci.sh scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh scripts/release/check.sh scripts/release/publish.sh .githooks/pre-commit .githooks/pre-push copier/template-repo/scripts/install-hooks.sh copier/template-repo/scripts/ci/smoke.sh copier/template-repo/scripts/ci/full.sh copier/template-repo/scripts/release/check.sh copier/template-repo/scripts/release/publish.sh copier/template-repo/.githooks/pre-commit copier/template-repo/.githooks/pre-push"
+  - "{{ 'true' if l1_org_docs_profile == 'rich' else 'rm -f docs/org/purpose.md docs/org/mission.md docs/org/vision.md docs/org/strategic_objectives.md docs/org/values_ethics.md docs/org/governance.md docs/org/glossary.md' }}"
   - "{{ 'true' if enable_community_pack else 'rm -f CODE_OF_CONDUCT.md SUPPORT.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug-report.yml .github/ISSUE_TEMPLATE/feature-request.yml' }}"
   - "{{ 'true' if enable_release_pack else 'rm -f .github/workflows/release-please.yml .github/workflows/release-check.yml .github/workflows/publish.yml .release-please-config.json .release-please-manifest.json CHANGELOG.md SECURITY.md && rm -rf scripts/release' }}"
 
@@ -46,6 +63,14 @@ _message_after_copy: |
     - run: bash ./scripts/check-template-ci.sh
     - generate an L2 sample:
       ./scripts/new-repo-from-copier.sh template-repo /tmp/l2-sample -d repo_slug=l2-sample --defaults --overwrite
+
+  Organization docs profile (L1):
+    - currently {{ l1_org_docs_profile }}
+    - toggle at generation time with: -d l1_org_docs_profile=rich|compact
+
+  Default organization docs profile (L2):
+    - currently {{ l2_org_docs_default }}
+    - toggle at generation time with: -d l2_org_docs_default=compact|rich
 
   Community pack:
     - currently {{ 'enabled' if enable_community_pack else 'disabled' }}

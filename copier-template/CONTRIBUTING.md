@@ -19,6 +19,9 @@ This repository is an **L1 template repo** generated from AI Society L0.
 - Do not add nested Copier invocations in template `_tasks`.
 - Keep `contracts/layer-contract.yml` aligned with README/AGENTS recursion sections.
 - Preserve baseline skeleton folders for generated repos (`docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`) unless explicitly changed by policy.
+- Keep organization docs profile intent explicit:
+  - `l1_org_docs_profile=rich|compact`
+  - `l2_org_docs_default=compact|rich`
 - Preserve git baseline files (`.github/`, `.githooks/`, `.gitignore`, `.gitattributes`).
 
 ## Optional community pack
