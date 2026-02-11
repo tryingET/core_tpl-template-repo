@@ -2,55 +2,81 @@
 
 ## Session state (current)
 - Repo: `~/ai-society/core/tpl-template-repo`
-- Active branch: `feat/l0-vouch-optional-structure-pack`
-- Last merged on `main`: `77ea2bd` (contrib/vouch foundation docs)
-- Working tree: **dirty** with substantial staged-eligible changes (optional vouch module + structure baseline + fixtures)
-- Full validation currently passes locally:
+- Branch: `main`
+- Working tree: **clean**
+- Latest merged commit on `main`: `9268342` (`feat(l0): add optional release automation profile pack`)
+- Recent merged PRs:
+  - `#2` optional vouch gate + baseline structure skeleton
+  - `#3` optional community collaboration pack
+  - `#4` optional release automation pack
+- Full validation passes locally:
   - `bash ./scripts/check-l0.sh` ✅
 
 ---
 
-## What changed in this in-progress branch
+## What is now implemented (full context)
 
 ### 1) Optional vouch trust-gate profile
-- Added `enable_vouch_gate` to L0 `copier.yml` (default `false`).
-- Added vouch baseline templates in L1 scaffold:
-  - `copier-template/.github/VOUCHED.td.jinja`
-  - `copier-template/.github/workflows/vouch-check-pr.yml.jinja`
-  - `copier-template/.github/workflows/vouch-manage.yml.jinja`
-- Added vouch baseline templates in L2 source (nested template inside L1):
-  - `copier-template/copier/template-repo/.github/VOUCHED.td.j2`
-  - `copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2`
-  - `copier-template/copier/template-repo/.github/workflows/vouch-manage.yml.j2`
+- Toggle: `enable_vouch_gate` (default `false`)
+- Added in L0 and nested L2 Copier configs.
+- Baseline files scaffolded for L1/L2:
+  - `.github/VOUCHED.td`
+  - `.github/workflows/vouch-check-pr.yml`
+  - `.github/workflows/vouch-manage.yml`
+- Disabled-by-default behavior preserved via template tasks.
 
-### 2) Folder-structure baseline alignment (requested)
-- Added baseline skeleton dirs (with `.gitkeep`) in L1 + L2 sources:
+### 2) Folder-structure baseline alignment
+- L1 + L2 seeded directories (`.gitkeep`):
   - `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
-- Added `.gitattributes` baseline in L1 + L2 sources.
+- Git baseline included:
+  - `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
 
-### 3) Why some structure still differs from `~/programming/pi-extensions/template`
-- AI-society L0 started intentionally minimal (contracts/recursion/idempotency first).
-- We are now seeding the same **skeleton shape**, but not all feature packs yet (e.g. release/public community stack).
-- This is intentional layering: baseline first, richer packs later by profile.
+### 3) Optional community collaboration pack
+- Toggle: `enable_community_pack` (default `false`)
+- Added in L0 and nested L2 Copier configs.
+- When enabled, generated L1/L2 include:
+  - `.github/ISSUE_TEMPLATE/{bug-report,feature-request,config}`
+  - `.github/pull_request_template.md`
+  - `CODE_OF_CONDUCT.md`
+  - `SUPPORT.md`
+- Disabled-by-default behavior enforced by post-copy task cleanup when false.
 
-### 4) `.git*` file policy
-- Included in generated repos: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
-- Not included (never): `.git/` directory itself.
-- Generated repos keep `.copier-answers.yml` committed.
+### 4) Optional release automation pack
+- Toggle: `enable_release_pack` (default `false`)
+- Added in L0 and nested L2 Copier configs.
+- When enabled, generated L1/L2 include:
+  - workflows: `release-please`, `release-check`, `publish`
+  - files: `.release-please-config.json`, `.release-please-manifest.json`
+  - docs: `CHANGELOG.md`, `SECURITY.md`
+  - scripts: `scripts/release/check.sh`, `scripts/release/publish.sh`
+- Disabled-by-default behavior enforced by post-copy task cleanup when false.
 
-### 5) Important templating nuance (nested Copier)
-- L0 renders L1 using `.jinja` suffix.
-- L1 contains a nested L2 Copier template; those files must survive templating for the second pass.
-- Therefore L2 source files inside `copier-template/copier/template-repo/` now use `.j2` and nested `copier.yml` sets `_templates_suffix: .j2`.
+### 5) Nested Copier nuance (still important)
+- L0 -> L1 templates use `.jinja`.
+- Nested L2 template sources inside L1 use `.j2`.
+- Nested `copier.yml` sets `_templates_suffix: .j2` to preserve second-pass templating.
+
+### 6) Inheritance + checks
+- L1 `scripts/new-repo-from-copier.sh` inherits all toggles to L2 unless explicitly overridden:
+  - `enable_community_pack`
+  - `enable_release_pack`
+  - `enable_vouch_gate`
+- L0 generation smoke now validates four cases:
+  - baseline (`false/false/false`)
+  - community (`true/false/false`)
+  - release (`false/true/false`)
+  - vouch (`false/false/true`)
+- Fixtures refreshed and passing.
 
 ---
 
 ## Immediate objective for next session
-Finalize and ship this branch (`feat/l0-vouch-optional-structure-pack`) safely:
-1. review all working tree changes,
-2. commit coherent diff,
-3. open PR,
-4. merge after green checks.
+1. Add policy doc mapping **internal vs public profile combinations** in governance terms.
+2. Link that policy doc from top-level docs/readme where appropriate.
+3. Run adoption previews against:
+   - `~/ai-society/holdingco/holdingco-templates`
+   - `~/ai-society/softwareco/softwareco-templates`
+4. Summarize adoption diffs and recommend profile defaults per target repo.
 
 ---
 
@@ -66,31 +92,11 @@ bash ./scripts/sync-l0-fixtures.sh
 bash ./scripts/check-l0.sh
 ```
 
----
-
-## Commit + PR workflow (expected)
+Adoption preview:
 ```bash
-git status --short
-git add .
-git commit -m "feat(l0): add optional vouch profile and baseline structure skeleton"
-git push -u origin feat/l0-vouch-optional-structure-pack
+./scripts/preview-l1-diff.sh ~/ai-society/holdingco/holdingco-templates
+./scripts/preview-l1-diff.sh ~/ai-society/softwareco/softwareco-templates
 ```
-
-Then open PR with notes:
-- optional `enable_vouch_gate` behavior,
-- structure baseline rationale,
-- `.j2` nested-template reason,
-- validation output (`bash ./scripts/check-l0.sh`).
-
----
-
-## Next after merge (follow-up backlog)
-1. Add optional community pack (issue templates / CoC / support) by profile.
-2. Add optional release pack (release-please/publish) by profile.
-3. Add policy doc that maps `internal` vs `public` template profiles in AI-society governance.
-4. Re-run adoption preview against:
-   - `~/ai-society/holdingco/holdingco-templates`
-   - `~/ai-society/softwareco/softwareco-templates`
 
 ---
 
