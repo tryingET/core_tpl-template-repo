@@ -3,100 +3,109 @@
 ## Session state (current)
 - Repo: `~/ai-society/core/tpl-template-repo`
 - Branch: `main`
-- Working tree: **clean**
-- Latest merged commit on `main`: `9268342` (`feat(l0): add optional release automation profile pack`)
-- Recent merged PRs:
-  - `#2` optional vouch gate + baseline structure skeleton
-  - `#3` optional community collaboration pack
-  - `#4` optional release automation pack
+- Working tree: **dirty** (policy + rollout/adoption docs changes pending commit)
+- Latest local commit: `8ca9038` (`docs(session): refresh next-session handoff prompt`)
+- Latest feature commit before this session: `29902b2` (`feat(l0): add organization docs profiles for template stacks`)
 - Full validation passes locally:
   - `bash ./scripts/check-l0.sh` ✅
 
 ---
 
-## What is now implemented (full context)
+## What was completed in this session (currently uncommitted)
 
-### 1) Optional vouch trust-gate profile
-- Toggle: `enable_vouch_gate` (default `false`)
-- Added in L0 and nested L2 Copier configs.
-- Baseline files scaffolded for L1/L2:
-  - `.github/VOUCHED.td`
-  - `.github/workflows/vouch-check-pr.yml`
-  - `.github/workflows/vouch-manage.yml`
-- Disabled-by-default behavior preserved via template tasks.
-
-### 2) Folder-structure baseline alignment
-- L1 + L2 seeded directories (`.gitkeep`):
-  - `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
-- Git baseline included:
-  - `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
-
-### 3) Optional community collaboration pack
-- Toggle: `enable_community_pack` (default `false`)
-- Added in L0 and nested L2 Copier configs.
-- When enabled, generated L1/L2 include:
-  - `.github/ISSUE_TEMPLATE/{bug-report,feature-request,config}`
-  - `.github/pull_request_template.md`
-  - `CODE_OF_CONDUCT.md`
-  - `SUPPORT.md`
-- Disabled-by-default behavior enforced by post-copy task cleanup when false.
-
-### 4) Optional release automation pack
-- Toggle: `enable_release_pack` (default `false`)
-- Added in L0 and nested L2 Copier configs.
-- When enabled, generated L1/L2 include:
-  - workflows: `release-please`, `release-check`, `publish`
-  - files: `.release-please-config.json`, `.release-please-manifest.json`
-  - docs: `CHANGELOG.md`, `SECURITY.md`
-  - scripts: `scripts/release/check.sh`, `scripts/release/publish.sh`
-- Disabled-by-default behavior enforced by post-copy task cleanup when false.
-
-### 5) Nested Copier nuance (still important)
-- L0 -> L1 templates use `.jinja`.
-- Nested L2 template sources inside L1 use `.j2`.
-- Nested `copier.yml` sets `_templates_suffix: .j2` to preserve second-pass templating.
-
-### 6) Inheritance + checks
-- L1 `scripts/new-repo-from-copier.sh` inherits all toggles to L2 unless explicitly overridden:
+### 1) Added profile governance policy (internal vs public)
+- New doc: `docs/profile-governance-policy.md`
+- Defines governance meaning of toggles:
+  - `l1_org_docs_profile`
+  - `l2_org_docs_default`
   - `enable_community_pack`
   - `enable_release_pack`
   - `enable_vouch_gate`
-- L0 generation smoke now validates four cases:
-  - baseline (`false/false/false`)
-  - community (`true/false/false`)
-  - release (`false/true/false`)
-  - vouch (`false/false/true`)
-- Fixtures refreshed and passing.
+- Adds recommended bundles (including explicit `internal-standard` = current L0 default posture).
+- Maps profile changes to consent/change-control tiers.
+
+### 2) Linked policy into top-level docs and release/adoption flow
+Updated:
+- `README.md`
+- `CONTRIBUTING.md`
+- `docs/l1-adoption-playbook.md`
+- `docs/release-compatibility-policy.md`
+
+Notable additions:
+- docs now point to `docs/profile-governance-policy.md`
+- adoption playbook now includes dirty-target handling via `git archive HEAD` snapshot compare
+- release checklist now requires confirming intended profile bundle
+
+### 3) Guardrail checks updated
+- Updated `scripts/check-l0-guardrails.sh` to:
+  - require `docs/profile-governance-policy.md`
+  - assert README/CONTRIBUTING link policy
+
+### 4) Adoption previews run and summarized
+- Ran requested previews:
+  - `./scripts/preview-l1-diff.sh ~/ai-society/holdingco/holdingco-templates`
+  - `./scripts/preview-l1-diff.sh ~/ai-society/softwareco/softwareco-templates`
+- Because both target repos are dirty, also ran normalized comparisons against `HEAD` snapshots.
+- Added report:
+  - `docs/adoption-preview-holdingco-softwareco-2026-02-11.md`
 
 ---
 
-## Immediate objective for next session
-1. Add policy doc mapping **internal vs public profile combinations** in governance terms.
-2. Link that policy doc from top-level docs/readme where appropriate.
-3. Run adoption previews against:
-   - `~/ai-society/holdingco/holdingco-templates`
-   - `~/ai-society/softwareco/softwareco-templates`
-4. Summarize adoption diffs and recommend profile defaults per target repo.
+## Key adoption findings
+
+Normalized (`render` vs target `HEAD` snapshot) summary:
+
+| Target repo | A (target-only) | D (render-only) | M (overlap modified) |
+|---|---:|---:|---:|
+| `holdingco-templates` | 234 | 85 | 4 |
+| `softwareco-templates` | 74 | 85 | 4 |
+
+Interpretation:
+- Both targets diverge structurally from current single-profile L0 `template-repo` output.
+- One-shot overwrite is unsafe.
+- Safe path is incremental adoption slices (policy/docs first, then scripts, then optional scaffolding).
+
+Recommended default bundle for both target repos:
+- **`internal-standard`**
+  - `l1_org_docs_profile=rich`
+  - `l2_org_docs_default=compact`
+  - `enable_community_pack=false`
+  - `enable_release_pack=false`
+  - `enable_vouch_gate=false`
 
 ---
 
-## Verification commands (run first)
+## Pending files (not yet committed)
+- `CONTRIBUTING.md`
+- `README.md`
+- `docs/l1-adoption-playbook.md`
+- `docs/release-compatibility-policy.md`
+- `scripts/check-l0-guardrails.sh`
+- `docs/profile-governance-policy.md` (new)
+- `docs/adoption-preview-holdingco-softwareco-2026-02-11.md` (new)
+
+---
+
+## Immediate next objective
+1. Create clean commit(s) for the pending policy/docs/guardrail/report changes.
+2. Open PR with explicit note: adoption report is informational and does **not** imply direct overwrite rollout.
+3. Start first adoption slice in each target L1 repo (policy/docs convergence only).
+
+---
+
+## Verification commands
 ```bash
 bash ./scripts/check-l0-guardrails.sh
 bash ./scripts/check-l0.sh
 ```
 
-If fixture drift appears:
-```bash
-bash ./scripts/sync-l0-fixtures.sh
-bash ./scripts/check-l0.sh
-```
-
-Adoption preview:
+Adoption preview (baseline):
 ```bash
 ./scripts/preview-l1-diff.sh ~/ai-society/holdingco/holdingco-templates
 ./scripts/preview-l1-diff.sh ~/ai-society/softwareco/softwareco-templates
 ```
+
+If target repos are dirty, compare against `HEAD` snapshot instead of working tree.
 
 ---
 
