@@ -2,6 +2,8 @@
 l1_profile: 'template-repo'
 repo_slug: 'fixture-template-repo'
 maintainer_handle: '@template-owner'
+l1_org_docs_profile: 'rich'
+l2_org_docs_default: 'compact'
 enable_vouch_gate: false
 enable_community_pack: false
 enable_release_pack: false

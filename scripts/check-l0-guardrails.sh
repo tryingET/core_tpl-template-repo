@@ -33,6 +33,7 @@ copier.yml
 .github/pull_request_template.md
 docs/release-compatibility-policy.md
 docs/l1-adoption-playbook.md
+docs/profile-governance-policy.md
 docs/supply-chain-policy.md
 docs/vouch-td-primer.md
 docs/feature-matrix-l0-l1-l2-vs-pi-template.md
@@ -60,6 +61,14 @@ copier-template/.release-please-manifest.json
 copier-template/CHANGELOG.md
 copier-template/SECURITY.md
 copier-template/docs/.gitkeep
+copier-template/docs/org/operating_model.md.jinja
+copier-template/docs/org/purpose.md.jinja
+copier-template/docs/org/mission.md.jinja
+copier-template/docs/org/vision.md.jinja
+copier-template/docs/org/strategic_objectives.md.jinja
+copier-template/docs/org/values_ethics.md.jinja
+copier-template/docs/org/governance.md.jinja
+copier-template/docs/org/glossary.md.jinja
 copier-template/examples/.gitkeep
 copier-template/external/.gitkeep
 copier-template/ontology/.gitkeep
@@ -100,6 +109,22 @@ copier-template/copier/template-repo/.release-please-manifest.json
 copier-template/copier/template-repo/CHANGELOG.md
 copier-template/copier/template-repo/SECURITY.md
 copier-template/copier/template-repo/docs/.gitkeep
+copier-template/copier/template-repo/docs/org/operating_model.md.j2
+copier-template/copier/template-repo/docs/org/project-docs-intake.questions.json
+copier-template/copier/template-repo/docs/org/purpose.md.j2
+copier-template/copier/template-repo/docs/org/mission.md.j2
+copier-template/copier/template-repo/docs/org/vision.md.j2
+copier-template/copier/template-repo/docs/org/strategic_objectives.md.j2
+copier-template/copier/template-repo/docs/org/values_ethics.md.j2
+copier-template/copier/template-repo/docs/org/governance.md.j2
+copier-template/copier/template-repo/docs/org/glossary.md.j2
+copier-template/copier/template-repo/docs/project/foundation.md.j2
+copier-template/copier/template-repo/docs/project/vision.md.j2
+copier-template/copier/template-repo/docs/project/strategic_goals.md.j2
+copier-template/copier/template-repo/docs/project/tactical_goals.md.j2
+copier-template/copier/template-repo/docs/project/incentives.md.j2
+copier-template/copier/template-repo/docs/project/resources.md.j2
+copier-template/copier/template-repo/docs/project/skills.md.j2
 copier-template/copier/template-repo/examples/.gitkeep
 copier-template/copier/template-repo/external/.gitkeep
 copier-template/copier/template-repo/ontology/.gitkeep
@@ -162,9 +187,17 @@ EOF
 
 assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source must target copier-template/"
 assert_contains "copier.yml" "- template-repo" "L0 must expose the template-repo profile"
+assert_contains "copier.yml" "l1_org_docs_profile" "L0 copier config must expose L1 org docs profile toggle"
+assert_contains "copier.yml" "l2_org_docs_default" "L0 copier config must expose L2 org docs default toggle"
 assert_contains "copier.yml" "enable_community_pack" "L0 copier config must expose community pack toggle"
 assert_contains "copier.yml" "enable_release_pack" "L0 copier config must expose release pack toggle"
 assert_contains "copier.yml" "enable_vouch_gate" "L0 copier config must expose vouch gate toggle"
+assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "l1_org_docs_profile:" "L1 answers template must persist L1 org docs profile"
+assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "l2_org_docs_default:" "L1 answers template must persist L2 org docs default"
+assert_contains "copier-template/copier/template-repo/copier.yml" "org_docs_profile" "L2 copier config must expose org docs profile toggle"
+assert_contains "copier-template/copier/template-repo/copier.yml" "org_docs_canonical_ref" "L2 copier config must expose canonical org docs reference"
+assert_contains "copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2" "org_docs_profile:" "L2 answers template must persist org docs profile"
+assert_contains "copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2" "org_docs_canonical_ref:" "L2 answers template must persist canonical org docs reference"
 assert_contains "copier-template/copier/template-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
 assert_contains "copier-template/copier/template-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
 assert_contains "copier-template/copier/template-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
@@ -175,6 +208,9 @@ assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR 
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
+assert_contains "CONTRIBUTING.md" "profile-governance-policy.md" "L0 contributing guide should link profile governance policy"
+assert_contains "README.md" "Organization docs profiles" "README should document org docs profile behavior"
+assert_contains "README.md" "Profile governance policy" "README should link profile governance policy"
 assert_contains "README.md" "Community pack" "README should document optional community pack behavior"
 assert_contains "README.md" "Release pack" "README should document optional release pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
@@ -185,6 +221,8 @@ for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
   assert_contains "$doc" "L1 -> L0" "generated L1 docs must forbid L1 -> L0"
   assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
 done
+assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
+assert_contains "copier-template/copier/template-repo/README.md.j2" "Organization docs profile" "generated L2 README template should describe org docs profile"
 
 contract="copier-template/contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "generated L1 contract must declare layer L1"

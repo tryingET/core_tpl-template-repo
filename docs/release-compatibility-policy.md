@@ -23,9 +23,10 @@ A release is publishable only if:
    ```
 3. Tag release candidate on a branch and open MR.
 4. After approval, create release tag (`vX.Y.Z`).
-5. Run adoption preview against target L1 repos:
+5. Confirm intended profile bundle in `docs/profile-governance-policy.md` (internal/public + trust/release posture).
+6. Run adoption preview against target L1 repos:
    ```bash
    ./scripts/preview-l1-diff.sh /path/to/holdingco-templates
    ./scripts/preview-l1-diff.sh /path/to/softwareco-templates
    ```
-6. Roll out via branch + MR in each L1 repo.
+7. Roll out via branch + MR in each L1 repo.

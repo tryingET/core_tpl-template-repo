@@ -2,95 +2,110 @@
 
 ## Session state (current)
 - Repo: `~/ai-society/core/tpl-template-repo`
-- Active branch: `feat/l0-vouch-optional-structure-pack`
-- Last merged on `main`: `77ea2bd` (contrib/vouch foundation docs)
-- Working tree: **dirty** with substantial staged-eligible changes (optional vouch module + structure baseline + fixtures)
-- Full validation currently passes locally:
+- Branch: `main`
+- Working tree: **dirty** (policy + rollout/adoption docs changes pending commit)
+- Latest local commit: `8ca9038` (`docs(session): refresh next-session handoff prompt`)
+- Latest feature commit before this session: `29902b2` (`feat(l0): add organization docs profiles for template stacks`)
+- Full validation passes locally:
   - `bash ./scripts/check-l0.sh` ✅
 
 ---
 
-## What changed in this in-progress branch
+## What was completed in this session (currently uncommitted)
 
-### 1) Optional vouch trust-gate profile
-- Added `enable_vouch_gate` to L0 `copier.yml` (default `false`).
-- Added vouch baseline templates in L1 scaffold:
-  - `copier-template/.github/VOUCHED.td.jinja`
-  - `copier-template/.github/workflows/vouch-check-pr.yml.jinja`
-  - `copier-template/.github/workflows/vouch-manage.yml.jinja`
-- Added vouch baseline templates in L2 source (nested template inside L1):
-  - `copier-template/copier/template-repo/.github/VOUCHED.td.j2`
-  - `copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2`
-  - `copier-template/copier/template-repo/.github/workflows/vouch-manage.yml.j2`
+### 1) Added profile governance policy (internal vs public)
+- New doc: `docs/profile-governance-policy.md`
+- Defines governance meaning of toggles:
+  - `l1_org_docs_profile`
+  - `l2_org_docs_default`
+  - `enable_community_pack`
+  - `enable_release_pack`
+  - `enable_vouch_gate`
+- Adds recommended bundles (including explicit `internal-standard` = current L0 default posture).
+- Maps profile changes to consent/change-control tiers.
 
-### 2) Folder-structure baseline alignment (requested)
-- Added baseline skeleton dirs (with `.gitkeep`) in L1 + L2 sources:
-  - `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
-- Added `.gitattributes` baseline in L1 + L2 sources.
+### 2) Linked policy into top-level docs and release/adoption flow
+Updated:
+- `README.md`
+- `CONTRIBUTING.md`
+- `docs/l1-adoption-playbook.md`
+- `docs/release-compatibility-policy.md`
 
-### 3) Why some structure still differs from `~/programming/pi-extensions/template`
-- AI-society L0 started intentionally minimal (contracts/recursion/idempotency first).
-- We are now seeding the same **skeleton shape**, but not all feature packs yet (e.g. release/public community stack).
-- This is intentional layering: baseline first, richer packs later by profile.
+Notable additions:
+- docs now point to `docs/profile-governance-policy.md`
+- adoption playbook now includes dirty-target handling via `git archive HEAD` snapshot compare
+- release checklist now requires confirming intended profile bundle
 
-### 4) `.git*` file policy
-- Included in generated repos: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
-- Not included (never): `.git/` directory itself.
-- Generated repos keep `.copier-answers.yml` committed.
+### 3) Guardrail checks updated
+- Updated `scripts/check-l0-guardrails.sh` to:
+  - require `docs/profile-governance-policy.md`
+  - assert README/CONTRIBUTING link policy
 
-### 5) Important templating nuance (nested Copier)
-- L0 renders L1 using `.jinja` suffix.
-- L1 contains a nested L2 Copier template; those files must survive templating for the second pass.
-- Therefore L2 source files inside `copier-template/copier/template-repo/` now use `.j2` and nested `copier.yml` sets `_templates_suffix: .j2`.
-
----
-
-## Immediate objective for next session
-Finalize and ship this branch (`feat/l0-vouch-optional-structure-pack`) safely:
-1. review all working tree changes,
-2. commit coherent diff,
-3. open PR,
-4. merge after green checks.
+### 4) Adoption previews run and summarized
+- Ran requested previews:
+  - `./scripts/preview-l1-diff.sh ~/ai-society/holdingco/holdingco-templates`
+  - `./scripts/preview-l1-diff.sh ~/ai-society/softwareco/softwareco-templates`
+- Because both target repos are dirty, also ran normalized comparisons against `HEAD` snapshots.
+- Added report:
+  - `docs/adoption-preview-holdingco-softwareco-2026-02-11.md`
 
 ---
 
-## Verification commands (run first)
+## Key adoption findings
+
+Normalized (`render` vs target `HEAD` snapshot) summary:
+
+| Target repo | A (target-only) | D (render-only) | M (overlap modified) |
+|---|---:|---:|---:|
+| `holdingco-templates` | 234 | 85 | 4 |
+| `softwareco-templates` | 74 | 85 | 4 |
+
+Interpretation:
+- Both targets diverge structurally from current single-profile L0 `template-repo` output.
+- One-shot overwrite is unsafe.
+- Safe path is incremental adoption slices (policy/docs first, then scripts, then optional scaffolding).
+
+Recommended default bundle for both target repos:
+- **`internal-standard`**
+  - `l1_org_docs_profile=rich`
+  - `l2_org_docs_default=compact`
+  - `enable_community_pack=false`
+  - `enable_release_pack=false`
+  - `enable_vouch_gate=false`
+
+---
+
+## Pending files (not yet committed)
+- `CONTRIBUTING.md`
+- `README.md`
+- `docs/l1-adoption-playbook.md`
+- `docs/release-compatibility-policy.md`
+- `scripts/check-l0-guardrails.sh`
+- `docs/profile-governance-policy.md` (new)
+- `docs/adoption-preview-holdingco-softwareco-2026-02-11.md` (new)
+
+---
+
+## Immediate next objective
+1. Create clean commit(s) for the pending policy/docs/guardrail/report changes.
+2. Open PR with explicit note: adoption report is informational and does **not** imply direct overwrite rollout.
+3. Start first adoption slice in each target L1 repo (policy/docs convergence only).
+
+---
+
+## Verification commands
 ```bash
 bash ./scripts/check-l0-guardrails.sh
 bash ./scripts/check-l0.sh
 ```
 
-If fixture drift appears:
+Adoption preview (baseline):
 ```bash
-bash ./scripts/sync-l0-fixtures.sh
-bash ./scripts/check-l0.sh
+./scripts/preview-l1-diff.sh ~/ai-society/holdingco/holdingco-templates
+./scripts/preview-l1-diff.sh ~/ai-society/softwareco/softwareco-templates
 ```
 
----
-
-## Commit + PR workflow (expected)
-```bash
-git status --short
-git add .
-git commit -m "feat(l0): add optional vouch profile and baseline structure skeleton"
-git push -u origin feat/l0-vouch-optional-structure-pack
-```
-
-Then open PR with notes:
-- optional `enable_vouch_gate` behavior,
-- structure baseline rationale,
-- `.j2` nested-template reason,
-- validation output (`bash ./scripts/check-l0.sh`).
-
----
-
-## Next after merge (follow-up backlog)
-1. Add optional community pack (issue templates / CoC / support) by profile.
-2. Add optional release pack (release-please/publish) by profile.
-3. Add policy doc that maps `internal` vs `public` template profiles in AI-society governance.
-4. Re-run adoption preview against:
-   - `~/ai-society/holdingco/holdingco-templates`
-   - `~/ai-society/softwareco/softwareco-templates`
+If target repos are dirty, compare against `HEAD` snapshot instead of working tree.
 
 ---
 
