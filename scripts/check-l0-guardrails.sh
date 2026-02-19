@@ -90,7 +90,7 @@ copier-template/copier/template-repo/README.md.j2
 copier-template/copier/template-repo/AGENTS.md
 copier-template/copier/template-repo/CONTRIBUTING.md
 copier-template/copier/template-repo/.gitattributes
-copier-template/copier/template-repo/contracts/layer-contract.yml
+copier-template/copier/template-repo/contracts/layer-contract.yml.j2
 copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2
 copier-template/copier/template-repo/.github/VOUCHED.td.j2
 copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2

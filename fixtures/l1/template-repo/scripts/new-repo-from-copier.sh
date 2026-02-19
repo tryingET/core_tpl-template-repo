@@ -13,6 +13,8 @@ Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
     are inherited from this L1 repo `.copier-answers.yml` unless overridden.
+  - `repo_archetype` defaults to `project` and can be overridden with:
+    `-d repo_archetype=project|agent|org|owned`.
   - `org_docs_profile` defaults to this L1 policy (`l2_org_docs_default`) and
     can be overridden with `-d org_docs_profile=compact|rich`.
   - Optional canonical org source can be passed via:

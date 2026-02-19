@@ -1,0 +1,16 @@
+# Core references
+/docs/_core/** @holding-owner
+
+
+# Project/owned context + delivery
+/docs/org/** @org-owners
+/docs/org_context/** @org-owners
+/docs/project/** @project-owners
+/docs/system4d/** @project-owners
+/docs/decisions/** @project-owners
+/docs/dev/** @project-owners
+/policy/** @project-owners
+/scripts/** @project-owners
+/src/** @project-owners
+/tests/** @project-owners
+
