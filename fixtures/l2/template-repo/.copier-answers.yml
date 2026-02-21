@@ -8,6 +8,7 @@ project_owner_handle: '@project-owners'
 agent_owner_handle: '@agent-owner'
 kernel_ontology_ref: '<gitlab:ai-society/core/ontology-kernel@v0.1.0>'
 company_ontology_ref: '<gitlab:ai-society/holdingco/ontology@v0.1.0>'
+template_source_sha: 'unknown'
 org_docs_profile: 'compact'
 org_docs_canonical_ref: ''
 enable_vouch_gate: false

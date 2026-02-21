@@ -1,0 +1,10 @@
+schema: ai-society.template-provenance.v1
+template:
+  profile: template-repo
+  source_repository: "l1-template/copier/template-repo"
+  source_sha: "unknown"
+render:
+  repo_slug: "fixture-product-repo"
+  archetype: "project"
+  answers_file: ".copier-answers.yml"
+  content_hash_sha256: "882aca390b0dd522c65993f3af69fb46614d5ef1a06a16db48b020618506cff4"

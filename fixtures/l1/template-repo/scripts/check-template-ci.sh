@@ -108,6 +108,7 @@ copier/template-repo/.release-please-manifest.json
 copier/template-repo/CHANGELOG.md
 copier/template-repo/SECURITY.md
 copier/template-repo/contracts/layer-contract.yml.j2
+copier/template-repo/contracts/provenance-seal.yml.j2
 copier/template-repo/docs/.gitkeep
 copier/template-repo/docs/_core/.gitkeep
 copier/template-repo/docs/system4d/.gitkeep
@@ -148,6 +149,12 @@ copier/template-repo/scripts/release/publish.sh
 
 for path in $required_files; do
   assert_file "$path"
+done
+
+for path in copier/*; do
+  [ -d "$path" ] || continue
+  name="$(basename "$path")"
+  [ "$name" = "template-repo" ] || fail "legacy or unsupported L2 template tree detected under copier/: $name"
 done
 
 required_exec="
@@ -197,10 +204,16 @@ assert_contains "copier/template-repo/.copier-answers.yml.j2" "org_docs_profile:
 assert_contains "copier/template-repo/.copier-answers.yml.j2" "org_docs_canonical_ref:" "nested L2 answers template should persist canonical org docs reference"
 assert_contains "copier/template-repo/copier.yml" "core_owner_handle" "nested L2 copier config must expose ownership handles"
 assert_contains "copier/template-repo/copier.yml" "kernel_ontology_ref" "nested L2 copier config must expose ontology refs"
+assert_contains "copier/template-repo/copier.yml" "template_source_sha" "nested L2 copier config must expose template source sha"
 assert_contains "copier/template-repo/.copier-answers.yml.j2" "core_owner_handle:" "nested L2 answers template should persist ownership handles"
 assert_contains "copier/template-repo/.copier-answers.yml.j2" "kernel_ontology_ref:" "nested L2 answers template should persist ontology refs"
+assert_contains "copier/template-repo/.copier-answers.yml.j2" "template_source_sha:" "nested L2 answers template should persist template source sha"
+assert_contains "scripts/new-repo-from-copier.sh" "template_source_sha" "L1 wrapper should inject template source sha"
 assert_contains "copier/template-repo/contracts/layer-contract.yml.j2" "archetype: {{ repo_archetype }}" "nested L2 contract template must declare archetype"
 assert_contains "copier/template-repo/contracts/layer-contract.yml.j2" "governance_model:" "nested L2 contract template must declare governance model"
+assert_contains "copier/template-repo/contracts/provenance-seal.yml.j2" "schema: ai-society.template-provenance.v1" "nested L2 provenance template must declare schema"
+assert_contains "copier/template-repo/contracts/provenance-seal.yml.j2" "source_sha:" "nested L2 provenance template must include source sha"
+assert_contains "copier/template-repo/contracts/provenance-seal.yml.j2" "content_hash_sha256" "nested L2 provenance template must include render hash"
 assert_contains "copier/template-repo/copier.yml" "enable_community_pack" "nested L2 copier config must expose community pack toggle"
 assert_contains "copier/template-repo/copier.yml" "enable_release_pack" "nested L2 copier config must expose release pack toggle"
 assert_contains "copier/template-repo/copier.yml" "enable_vouch_gate" "nested L2 copier config must expose vouch gate toggle"
@@ -307,6 +320,7 @@ CODEOWNERS
 .gitattributes
 .copier-answers.yml
 contracts/layer-contract.yml
+contracts/provenance-seal.yml
 scripts/install-hooks.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
@@ -370,6 +384,12 @@ assert_contains "$l2_dir/contracts/layer-contract.yml" "layer: L2" "generated L2
 assert_contains "$l2_dir/contracts/layer-contract.yml" "L2 -> L1" "generated L2 contract must forbid reverse edge"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "archetype: project" "generated L2 contract archetype mismatch"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "governance_model: org-baseline-plus-project-overlay" "generated L2 contract must declare governance layering model"
+assert_contains "$l2_dir/contracts/provenance-seal.yml" "schema: ai-society.template-provenance.v1" "generated L2 provenance seal must declare schema"
+assert_contains "$l2_dir/contracts/provenance-seal.yml" "archetype: \"project\"" "generated L2 provenance seal must capture archetype"
+assert_contains "$l2_dir/contracts/provenance-seal.yml" "content_hash_sha256:" "generated L2 provenance seal must capture render hash"
+if grep -q "__RENDER_HASH__" "$l2_dir/contracts/provenance-seal.yml"; then
+  fail "generated L2 provenance seal must not retain hash placeholder"
+fi
 assert_contains "$l2_dir/docs/project/governance_overlay.md" "Approved deviations register" "generated L2 governance overlay must include deviation register"
 assert_not_file "$l2_dir/docs/person/.gitkeep"
 assert_not_file "$l2_dir/docs/learnings/.gitkeep"
@@ -377,6 +397,7 @@ assert_not_file "$l2_dir/docs/registers/.gitkeep"
 assert_not_file "$l2_dir/prompts/activities/.gitkeep"
 assert_not_file "$l2_dir/governance/consent.md"
 
+assert_contains "$l2_dir/.copier-answers.yml" "template_source_sha:" "generated L2 answers file should persist template source sha"
 l2_repo_archetype="$(value_from_answers "$l2_dir/.copier-answers.yml" repo_archetype || true)"
 [ -n "$l2_repo_archetype" ] || l2_repo_archetype="project"
 [ "$l2_repo_archetype" = "project" ] || fail "default generated L2 archetype should be project"
@@ -463,6 +484,10 @@ for archetype in agent org owned; do
 
   assert_file "$variant_dir/.copier-answers.yml"
   assert_contains "$variant_dir/contracts/layer-contract.yml" "archetype: $archetype" "generated L2 contract archetype mismatch"
+  assert_contains "$variant_dir/contracts/provenance-seal.yml" "archetype: \"$archetype\"" "generated L2 provenance seal archetype mismatch"
+  if grep -q "__RENDER_HASH__" "$variant_dir/contracts/provenance-seal.yml"; then
+    fail "generated L2 provenance seal must not retain hash placeholder"
+  fi
 
   case "$archetype" in
     agent)

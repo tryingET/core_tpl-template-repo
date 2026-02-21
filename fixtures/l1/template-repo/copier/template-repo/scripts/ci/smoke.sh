@@ -20,6 +20,12 @@ repo_archetype="$(awk -F':' '$1 ~ /^repo_archetype$/ { v=$2; gsub(/^[ \t]+|[ \t]
 [ -n "$repo_archetype" ] || repo_archetype="project"
 
 grep -qF "archetype: $repo_archetype" contracts/layer-contract.yml || fail "contract archetype mismatch"
+[ -f "contracts/provenance-seal.yml" ] || fail "missing contracts/provenance-seal.yml"
+grep -qF "schema: ai-society.template-provenance.v1" contracts/provenance-seal.yml || fail "provenance schema mismatch"
+grep -qF "archetype: \"$repo_archetype\"" contracts/provenance-seal.yml || fail "provenance archetype mismatch"
+if grep -q "__RENDER_HASH__" contracts/provenance-seal.yml; then
+  fail "provenance render hash placeholder must be resolved"
+fi
 
 case "$repo_archetype" in
   project|owned)

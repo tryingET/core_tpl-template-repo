@@ -52,6 +52,11 @@ company_ontology_ref:
   default: "<gitlab:ai-society/holdingco/ontology@v0.1.0>"
   help: "ROCS company overlay ref (GitLab locator)."
 
+template_source_sha:
+  type: str
+  default: unknown
+  help: "Source git SHA for the template revision used to render this repo."
+
 org_docs_profile:
   type: str
   default: compact
@@ -106,6 +111,40 @@ _tasks:
         exit 2
         ;;
     esac
+  - |
+    if [ -f contracts/provenance-seal.yml ]; then
+      if command -v sha256sum >/dev/null 2>&1; then
+        content_hash="$(
+          find . -type f \
+            ! -path './.git/*' \
+            ! -path './contracts/provenance-seal.yml' \
+            | LC_ALL=C sort \
+            | while IFS= read -r path; do
+                sha256sum "$path"
+              done \
+            | sha256sum \
+            | awk '{print $1}'
+        )"
+      elif command -v shasum >/dev/null 2>&1; then
+        content_hash="$(
+          find . -type f \
+            ! -path './.git/*' \
+            ! -path './contracts/provenance-seal.yml' \
+            | LC_ALL=C sort \
+            | while IFS= read -r path; do
+                shasum -a 256 "$path"
+              done \
+            | shasum -a 256 \
+            | awk '{print $1}'
+        )"
+      else
+        content_hash="unavailable"
+      fi
+
+      tmp_file="$(mktemp)"
+      awk -v hash="$content_hash" '{ gsub("__RENDER_HASH__", hash); print }' contracts/provenance-seal.yml > "$tmp_file"
+      mv "$tmp_file" contracts/provenance-seal.yml
+    fi
 
 _message_after_copy: |
   L2 repository scaffolded at {{ _copier_conf.dst_path }}
@@ -118,6 +157,10 @@ _message_after_copy: |
   Archetype:
     - currently {{ repo_archetype }}
     - toggle at generation time with: -d repo_archetype=project|agent|org|owned
+
+  Provenance seal:
+    - written to contracts/provenance-seal.yml
+    - set source sha with: -d template_source_sha=<git-sha>
 
   Organization docs profile:
     - currently {{ org_docs_profile }}
