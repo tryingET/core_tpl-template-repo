@@ -12,6 +12,10 @@ Forbidden:
 - `L2 -> L0`
 - any cycle
 
+## Shared tooling
+- Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
+- Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
+
 ## Local quality gate
 - Install hooks: `./scripts/install-hooks.sh`
 - Smoke lane: `./scripts/ci/smoke.sh`

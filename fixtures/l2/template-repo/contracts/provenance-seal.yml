@@ -7,4 +7,4 @@ render:
   repo_slug: "fixture-product-repo"
   archetype: "project"
   answers_file: ".copier-answers.yml"
-  content_hash_sha256: "882aca390b0dd522c65993f3af69fb46614d5ef1a06a16db48b020618506cff4"
+  content_hash_sha256: "0be8166b5cac2047db7e81870dd4882e85c7250ca8c56746edbb2ce305fec139"

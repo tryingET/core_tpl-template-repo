@@ -23,6 +23,10 @@ Forbidden:
 - `L2 -> L1`
 - any cycle
 
+## Shared tooling
+- Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
+- Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
+
 ## Validation before merge
 - `bash ./scripts/check-l0.sh`
 - optional focused runs:

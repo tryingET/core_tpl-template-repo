@@ -20,6 +20,10 @@ Provide one stable, guarded template surface that generates compliant L2 reposit
 - Treat `enable_release_pack` as a profile decision (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as a profile decision (default disabled, enable for trust-gated/public contribution surfaces).
 
+## Shared tooling
+- Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
+- Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
+
 ## Recursion policy
 Allowed:
 - `L0 -> L1`
