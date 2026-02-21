@@ -1,6 +1,7 @@
 schema: ai-society.layer-contract.v1
 layer: L2
 profile: template-repo
+archetype: project
 answers_file_policy:
   required: true
   path: .copier-answers.yml
@@ -15,3 +16,10 @@ transitions:
 guardrails:
   nested_copier_tasks_allowed: false
   max_layer_depth: 2
+  governance_model: org-baseline-plus-project-overlay
+
+  project_overlay_policy:
+    file: docs/project/governance_overlay.md
+    can_tighten_without_exception: true
+    can_weaken_with_explicit_consent: true
+

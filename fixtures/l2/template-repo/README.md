@@ -2,6 +2,7 @@
 
 Generated L2 repository scaffold.
 
+- Archetype: `project`
 - Owner: `@repo-owner`
 - Source: L1 template profile `template-repo`
 - Organization docs profile: **compact**
@@ -22,10 +23,23 @@ Contribution workflow:
 
 ## Organization docs profile
 
+
 - This repository currently uses **compact** org docs in `docs/org/`.
-- Compact mode keeps org docs minimal and emphasizes project execution docs under `docs/project/`.
+- Compact mode keeps org docs minimal and emphasizes execution docs.
 - Rich mode adds purpose/mission/vision/governance artifacts in `docs/org/`.
 - Optional canonical organization reference can be set via `-d org_docs_canonical_ref=<url-or-path>`.
+
+
+
+## Governance layering
+
+
+Governance in this scaffold uses a two-level model:
+- **Organization baseline:** policy intent and non-negotiables in `docs/org/` and `docs/org_context/`.
+- **Project overlay:** execution-level rules in `docs/project/governance_overlay.md`.
+
+Project overlay rules should specialize or tighten org policy by default.
+If a project needs to weaken an org control, record explicit consent in the overlay deviation register.
 
 
 ## Optional collaboration packs
@@ -49,10 +63,13 @@ When `enable_vouch_gate=true`, this scaffold includes active vouch workflows and
 ## Baseline structure
 
 This scaffold includes common working directories:
-- `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
+- `docs/`, `examples/`, `external/`, `policy/`, `scripts/`
+- project runtime/code baseline: `src/`, `tests/`, `ontology/`
+- governance overlay seed: `docs/project/governance_overlay.md`
+
 
 Git baseline files included:
-- `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
+- `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`, `CODEOWNERS`
 
 ## Recursion policy (explicit)
 

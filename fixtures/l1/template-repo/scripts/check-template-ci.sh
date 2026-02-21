@@ -92,6 +92,7 @@ src/.gitkeep
 tests/.gitkeep
 copier/template-repo/copier.yml
 copier/template-repo/README.md.j2
+copier/template-repo/CODEOWNERS.j2
 copier/template-repo/.gitattributes
 copier/template-repo/.github/VOUCHED.td.j2
 copier/template-repo/.github/workflows/vouch-check-pr.yml.j2
@@ -106,7 +107,16 @@ copier/template-repo/.release-please-config.json
 copier/template-repo/.release-please-manifest.json
 copier/template-repo/CHANGELOG.md
 copier/template-repo/SECURITY.md
+copier/template-repo/contracts/layer-contract.yml.j2
+copier/template-repo/contracts/provenance-seal.yml.j2
 copier/template-repo/docs/.gitkeep
+copier/template-repo/docs/_core/.gitkeep
+copier/template-repo/docs/system4d/.gitkeep
+copier/template-repo/docs/decisions/.gitkeep
+copier/template-repo/docs/dev/.gitkeep
+copier/template-repo/docs/person/.gitkeep
+copier/template-repo/docs/learnings/.gitkeep
+copier/template-repo/docs/registers/.gitkeep
 copier/template-repo/docs/org/operating_model.md.j2
 copier/template-repo/docs/org/project-docs-intake.questions.json
 copier/template-repo/docs/org/purpose.md.j2
@@ -116,13 +126,20 @@ copier/template-repo/docs/org/strategic_objectives.md.j2
 copier/template-repo/docs/org/values_ethics.md.j2
 copier/template-repo/docs/org/governance.md.j2
 copier/template-repo/docs/org/glossary.md.j2
+copier/template-repo/docs/org_context/operating_model.md.j2
+copier/template-repo/docs/org_context/project-docs-intake.questions.json
 copier/template-repo/docs/project/foundation.md.j2
+copier/template-repo/docs/project/governance_overlay.md.j2
 copier/template-repo/docs/project/vision.md.j2
 copier/template-repo/docs/project/strategic_goals.md.j2
 copier/template-repo/docs/project/tactical_goals.md.j2
 copier/template-repo/docs/project/incentives.md.j2
 copier/template-repo/docs/project/resources.md.j2
 copier/template-repo/docs/project/skills.md.j2
+copier/template-repo/governance/consent.md.j2
+copier/template-repo/prompts/activities/.gitkeep
+copier/template-repo/ontology/manifest.yaml.j2
+copier/template-repo/ontology/src/.gitkeep
 copier/template-repo/.github/workflows/release-please.yml
 copier/template-repo/.github/workflows/release-check.yml
 copier/template-repo/.github/workflows/publish.yml
@@ -132,6 +149,12 @@ copier/template-repo/scripts/release/publish.sh
 
 for path in $required_files; do
   assert_file "$path"
+done
+
+for path in copier/*; do
+  [ -d "$path" ] || continue
+  name="$(basename "$path")"
+  [ "$name" = "template-repo" ] || fail "legacy or unsupported L2 template tree detected under copier/: $name"
 done
 
 required_exec="
@@ -158,6 +181,7 @@ for doc in README.md AGENTS.md; do
 done
 assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
 assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
+assert_contains "README.md" "Governance layering" "L1 README should describe governance layering"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
 assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
@@ -172,10 +196,24 @@ assert_contains "$contract" "L2 -> L1" "L1 contract must include forbidden rever
 assert_contains "$contract" "nested_copier_tasks_allowed: false" "L1 contract must forbid nested copier tasks"
 assert_contains ".copier-answers.yml" "l1_org_docs_profile:" "L1 answers file should persist L1 org docs profile"
 assert_contains ".copier-answers.yml" "l2_org_docs_default:" "L1 answers file should persist L2 org docs default"
+assert_contains "copier/template-repo/copier.yml" "repo_archetype" "nested L2 copier config must expose archetype selector"
+assert_contains "copier/template-repo/.copier-answers.yml.j2" "repo_archetype:" "nested L2 answers template should persist archetype"
 assert_contains "copier/template-repo/copier.yml" "org_docs_profile" "nested L2 copier config must expose org docs profile toggle"
 assert_contains "copier/template-repo/copier.yml" "org_docs_canonical_ref" "nested L2 copier config must expose canonical org docs reference"
 assert_contains "copier/template-repo/.copier-answers.yml.j2" "org_docs_profile:" "nested L2 answers template should persist org docs profile"
 assert_contains "copier/template-repo/.copier-answers.yml.j2" "org_docs_canonical_ref:" "nested L2 answers template should persist canonical org docs reference"
+assert_contains "copier/template-repo/copier.yml" "core_owner_handle" "nested L2 copier config must expose ownership handles"
+assert_contains "copier/template-repo/copier.yml" "kernel_ontology_ref" "nested L2 copier config must expose ontology refs"
+assert_contains "copier/template-repo/copier.yml" "template_source_sha" "nested L2 copier config must expose template source sha"
+assert_contains "copier/template-repo/.copier-answers.yml.j2" "core_owner_handle:" "nested L2 answers template should persist ownership handles"
+assert_contains "copier/template-repo/.copier-answers.yml.j2" "kernel_ontology_ref:" "nested L2 answers template should persist ontology refs"
+assert_contains "copier/template-repo/.copier-answers.yml.j2" "template_source_sha:" "nested L2 answers template should persist template source sha"
+assert_contains "scripts/new-repo-from-copier.sh" "template_source_sha" "L1 wrapper should inject template source sha"
+assert_contains "copier/template-repo/contracts/layer-contract.yml.j2" "archetype: {{ repo_archetype }}" "nested L2 contract template must declare archetype"
+assert_contains "copier/template-repo/contracts/layer-contract.yml.j2" "governance_model:" "nested L2 contract template must declare governance model"
+assert_contains "copier/template-repo/contracts/provenance-seal.yml.j2" "schema: ai-society.template-provenance.v1" "nested L2 provenance template must declare schema"
+assert_contains "copier/template-repo/contracts/provenance-seal.yml.j2" "source_sha:" "nested L2 provenance template must include source sha"
+assert_contains "copier/template-repo/contracts/provenance-seal.yml.j2" "content_hash_sha256" "nested L2 provenance template must include render hash"
 assert_contains "copier/template-repo/copier.yml" "enable_community_pack" "nested L2 copier config must expose community pack toggle"
 assert_contains "copier/template-repo/copier.yml" "enable_release_pack" "nested L2 copier config must expose release pack toggle"
 assert_contains "copier/template-repo/copier.yml" "enable_vouch_gate" "nested L2 copier config must expose vouch gate toggle"
@@ -278,9 +316,11 @@ l2_required_files="
 README.md
 AGENTS.md
 CONTRIBUTING.md
+CODEOWNERS
 .gitattributes
 .copier-answers.yml
 contracts/layer-contract.yml
+contracts/provenance-seal.yml
 scripts/install-hooks.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
@@ -291,9 +331,16 @@ scripts/ci/full.sh
 .github/workflows/vouch-check-pr.yml
 .github/workflows/vouch-manage.yml
 docs/.gitkeep
+docs/_core/.gitkeep
+docs/system4d/.gitkeep
+docs/decisions/.gitkeep
+docs/dev/.gitkeep
 docs/org/operating_model.md
 docs/org/project-docs-intake.questions.json
+docs/org_context/operating_model.md
+docs/org_context/project-docs-intake.questions.json
 docs/project/foundation.md
+docs/project/governance_overlay.md
 docs/project/vision.md
 docs/project/strategic_goals.md
 docs/project/tactical_goals.md
@@ -303,6 +350,8 @@ docs/project/skills.md
 examples/.gitkeep
 external/.gitkeep
 ontology/.gitkeep
+ontology/src/.gitkeep
+ontology/manifest.yaml
 policy/.gitkeep
 src/.gitkeep
 tests/.gitkeep
@@ -327,11 +376,31 @@ done
 assert_contains "$l2_dir/README.md" "Recursion policy" "generated L2 README must include recursion section"
 assert_contains "$l2_dir/README.md" "L2 -> L1" "generated L2 README must forbid L2 -> L1"
 assert_contains "$l2_dir/README.md" "Organization docs profile" "generated L2 README should describe org docs profile"
+assert_contains "$l2_dir/README.md" "Governance layering" "generated L2 README should describe governance layering"
 assert_contains "$l2_dir/README.md" "Release pack" "generated L2 README should describe release profile toggle"
 assert_contains "$l2_dir/README.md" "Baseline structure" "generated L2 README should describe baseline directory structure"
 assert_contains "$l2_dir/CONTRIBUTING.md" ".copier-answers.yml" "generated L2 contributing guide should mention answers-file reproducibility"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "layer: L2" "generated L2 contract layer mismatch"
 assert_contains "$l2_dir/contracts/layer-contract.yml" "L2 -> L1" "generated L2 contract must forbid reverse edge"
+assert_contains "$l2_dir/contracts/layer-contract.yml" "archetype: project" "generated L2 contract archetype mismatch"
+assert_contains "$l2_dir/contracts/layer-contract.yml" "governance_model: org-baseline-plus-project-overlay" "generated L2 contract must declare governance layering model"
+assert_contains "$l2_dir/contracts/provenance-seal.yml" "schema: ai-society.template-provenance.v1" "generated L2 provenance seal must declare schema"
+assert_contains "$l2_dir/contracts/provenance-seal.yml" "archetype: \"project\"" "generated L2 provenance seal must capture archetype"
+assert_contains "$l2_dir/contracts/provenance-seal.yml" "content_hash_sha256:" "generated L2 provenance seal must capture render hash"
+if grep -q "__RENDER_HASH__" "$l2_dir/contracts/provenance-seal.yml"; then
+  fail "generated L2 provenance seal must not retain hash placeholder"
+fi
+assert_contains "$l2_dir/docs/project/governance_overlay.md" "Approved deviations register" "generated L2 governance overlay must include deviation register"
+assert_not_file "$l2_dir/docs/person/.gitkeep"
+assert_not_file "$l2_dir/docs/learnings/.gitkeep"
+assert_not_file "$l2_dir/docs/registers/.gitkeep"
+assert_not_file "$l2_dir/prompts/activities/.gitkeep"
+assert_not_file "$l2_dir/governance/consent.md"
+
+assert_contains "$l2_dir/.copier-answers.yml" "template_source_sha:" "generated L2 answers file should persist template source sha"
+l2_repo_archetype="$(value_from_answers "$l2_dir/.copier-answers.yml" repo_archetype || true)"
+[ -n "$l2_repo_archetype" ] || l2_repo_archetype="project"
+[ "$l2_repo_archetype" = "project" ] || fail "default generated L2 archetype should be project"
 
 l2_org_docs_profile="$(value_from_answers "$l2_dir/.copier-answers.yml" org_docs_profile || true)"
 [ -n "$l2_org_docs_profile" ] || l2_org_docs_profile="compact"
@@ -405,6 +474,67 @@ else
   assert_not_file "$l2_dir/scripts/release/check.sh"
   assert_not_file "$l2_dir/scripts/release/publish.sh"
 fi
+
+for archetype in agent org owned; do
+  variant_dir="$tmp_root/l2-$archetype"
+  ./scripts/new-repo-from-copier.sh template-repo "$variant_dir" \
+    -d repo_slug="l2-$archetype" \
+    -d repo_archetype="$archetype" \
+    --defaults --overwrite >/dev/null
+
+  assert_file "$variant_dir/.copier-answers.yml"
+  assert_contains "$variant_dir/contracts/layer-contract.yml" "archetype: $archetype" "generated L2 contract archetype mismatch"
+  assert_contains "$variant_dir/contracts/provenance-seal.yml" "archetype: \"$archetype\"" "generated L2 provenance seal archetype mismatch"
+  if grep -q "__RENDER_HASH__" "$variant_dir/contracts/provenance-seal.yml"; then
+    fail "generated L2 provenance seal must not retain hash placeholder"
+  fi
+
+  case "$archetype" in
+    agent)
+      assert_contains "$variant_dir/contracts/layer-contract.yml" "governance_model: agent-local-governance" "agent archetype must set agent governance model"
+      assert_file "$variant_dir/docs/person/.gitkeep"
+      assert_file "$variant_dir/docs/system4d/.gitkeep"
+      assert_file "$variant_dir/docs/learnings/.gitkeep"
+      assert_file "$variant_dir/prompts/activities/.gitkeep"
+      assert_not_file "$variant_dir/docs/project/foundation.md"
+      assert_not_file "$variant_dir/docs/org/operating_model.md"
+      assert_not_file "$variant_dir/src/.gitkeep"
+      assert_not_file "$variant_dir/ontology/.gitkeep"
+      assert_not_file "$variant_dir/governance/consent.md"
+      ;;
+    org)
+      assert_contains "$variant_dir/contracts/layer-contract.yml" "governance_model: org-governance-primary" "org archetype must set org governance model"
+      assert_file "$variant_dir/docs/org/operating_model.md"
+      assert_file "$variant_dir/docs/system4d/.gitkeep"
+      assert_file "$variant_dir/docs/registers/.gitkeep"
+      assert_file "$variant_dir/docs/decisions/.gitkeep"
+      assert_file "$variant_dir/governance/consent.md"
+      assert_not_file "$variant_dir/docs/project/foundation.md"
+      assert_not_file "$variant_dir/docs/person/.gitkeep"
+      assert_not_file "$variant_dir/prompts/activities/.gitkeep"
+      assert_not_file "$variant_dir/src/.gitkeep"
+      assert_not_file "$variant_dir/ontology/.gitkeep"
+      ;;
+    owned)
+      assert_contains "$variant_dir/contracts/layer-contract.yml" "governance_model: org-baseline-plus-project-overlay" "owned archetype must set overlay governance model"
+      assert_file "$variant_dir/docs/project/foundation.md"
+      assert_file "$variant_dir/docs/project/governance_overlay.md"
+      assert_file "$variant_dir/docs/org_context/operating_model.md"
+      assert_file "$variant_dir/src/.gitkeep"
+      assert_file "$variant_dir/tests/.gitkeep"
+      assert_file "$variant_dir/ontology/manifest.yaml"
+      assert_not_file "$variant_dir/prompts/activities/.gitkeep"
+      assert_not_file "$variant_dir/docs/person/.gitkeep"
+      assert_not_file "$variant_dir/docs/registers/.gitkeep"
+      assert_not_file "$variant_dir/governance/consent.md"
+      ;;
+  esac
+
+  (
+    cd "$variant_dir"
+    ./scripts/ci/smoke.sh >/dev/null
+  )
+done
 
 (
   cd "$l2_dir"

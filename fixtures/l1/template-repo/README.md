@@ -6,6 +6,7 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
 - Maintainer: `@template-owner`
 - L1 organization docs profile: `rich`
 - Default L2 organization docs profile: `compact`
+- Default L2 archetype: `project`
 
 ## What this repo provides
 
@@ -28,6 +29,7 @@ Generate an L2 repository:
 ```bash
 ./scripts/new-repo-from-copier.sh template-repo /tmp/my-product \
   -d repo_slug=my-product \
+  -d repo_archetype=project \
   -d org_docs_profile=compact \
   --defaults --overwrite
 ```
@@ -41,6 +43,12 @@ Install local hooks in a generated repo:
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 
+## Archetype profile
+
+- L2 repos can be generated as `project`, `agent`, `org`, or `owned`.
+- Set with: `-d repo_archetype=project|agent|org|owned`
+- Defaults to `project` for backward compatibility with existing L2 usage.
+
 ## Organization docs profile
 
 - This L1 repository currently ships **rich** organization docs in `docs/org/`.
@@ -48,6 +56,15 @@ Contribution workflow:
 - Override at L2 generation time with:
   - `-d org_docs_profile=compact`
   - `-d org_docs_profile=rich`
+
+## Governance layering
+
+L2 governance is archetype-dependent:
+- `project` / `owned`: org baseline + `docs/project/governance_overlay.md` for local deviations.
+- `org`: governance primary in `docs/org/` + `governance/`.
+- `agent`: lightweight local governance in persona/system docs.
+
+Default rule for `project`/`owned`: overlay may specialize/tighten org baseline; weakening requires explicit consent recorded in the overlay.
 
 ## Community profile
 

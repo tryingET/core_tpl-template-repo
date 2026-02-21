@@ -1,0 +1,39 @@
+# Project governance overlay
+
+This document defines project-local governance for `fixture-product-repo`.
+
+## Baseline inheritance
+
+- Baseline governance sources in this repository: `docs/org/operating_model.md` + `docs/org_context/operating_model.md`
+- Compact org profile is enabled; organization baseline remains in `docs/org/operating_model.md`.
+
+- Canonical organization reference is not set. If required, set `org_docs_canonical_ref` and keep this file aligned.
+
+
+## Overlay policy
+
+1. Project rules may **specialize** organization rules for local execution.
+2. Project rules may **tighten** controls without additional waiver.
+3. Project rules must not **weaken** organization controls unless explicitly consented and recorded below.
+
+## Decision lanes (project level)
+
+| Lane | Scope | Minimum approval | Review cadence |
+|---|---|---|---|
+| Delivery | Backlog, implementation, tests, docs under `src/`, `tests/`, `docs/project/` | Project owner/maintainer | Per MR |
+| Governance overlay | `docs/project/governance_overlay.md` and local process constraints | Project owner + org owner | Weekly or per change |
+| Exception handling | Requested deviations from org baseline | Explicit org consent record | Time-boxed |
+
+## Approved deviations register
+
+Record only explicit, reviewed deviations from org baseline.
+
+| Rule ID | Org baseline | Project deviation | Consent record (MR/decision) | Expiry/review date |
+|---|---|---|---|---|
+| _example_ | _required security review_ | _additional project gate_ | _MR !123_ | _2026-12-31_ |
+
+## Change-control
+
+- Update this file via PR/MR only.
+- Keep rationale concise and testable.
+- Link every deviation to a review artifact and expiry/review date.

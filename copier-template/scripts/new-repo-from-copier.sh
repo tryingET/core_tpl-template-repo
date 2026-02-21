@@ -13,10 +13,14 @@ Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
     are inherited from this L1 repo `.copier-answers.yml` unless overridden.
+  - `repo_archetype` defaults to `project` and can be overridden with:
+    `-d repo_archetype=project|agent|org|owned`.
   - `org_docs_profile` defaults to this L1 policy (`l2_org_docs_default`) and
     can be overridden with `-d org_docs_profile=compact|rich`.
   - Optional canonical org source can be passed via:
     `-d org_docs_canonical_ref=<url-or-path>`.
+  - `template_source_sha` is auto-injected from this L1 git HEAD unless
+    overridden with `-d template_source_sha=<git-sha>`.
 EOF
 }
 
@@ -132,6 +136,12 @@ if ! has_data_override org_docs_profile "$@"; then
       set -- -d "org_docs_profile=$inherited_org_profile" "$@"
       ;;
   esac
+fi
+
+if ! has_data_override template_source_sha "$@"; then
+  template_source_sha="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || true)"
+  [ -n "$template_source_sha" ] || template_source_sha="unknown"
+  set -- -d "template_source_sha=$template_source_sha" "$@"
 fi
 
 template_dir="$repo_root/copier/$template_name"

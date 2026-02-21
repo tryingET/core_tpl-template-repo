@@ -1,6 +1,6 @@
 # Contributing (L2 generated repo)
 
-This repository is an **L2 product repo** generated from an L1 template.
+This repository is an **L2 repo** generated from an L1 template.
 
 ## Workflow
 
@@ -21,11 +21,14 @@ This repository is an **L2 product repo** generated from an L1 template.
 - Respect recursion bounds (`L2` must not generate `L1`/`L0`).
 - Keep `.copier-answers.yml` committed for reproducibility.
 - Keep `contracts/layer-contract.yml` policy-aligned.
-- Keep baseline structure coherent (`docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`).
+- Keep `repo_archetype=project|agent|org|owned` explicit and stable.
 - Keep organization docs profile intent explicit:
   - `org_docs_profile=compact|rich`
   - optional `org_docs_canonical_ref=<url-or-path>`
-- Keep git baseline files (`.github/`, `.githooks/`, `.gitignore`, `.gitattributes`).
+- For `project`/`owned`, keep project governance overlay explicit in `docs/project/governance_overlay.md`:
+  - specialize/tighten org baseline by default;
+  - record explicit consent for any weakening deviation.
+- Keep git baseline files (`.github/`, `.githooks/`, `.gitignore`, `.gitattributes`, `CODEOWNERS`).
 
 ## Optional community pack
 
