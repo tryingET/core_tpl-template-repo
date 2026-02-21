@@ -1,0 +1,10 @@
+schema: ai-society.template-provenance.v1
+template:
+  profile: {{ l1_profile }}
+  source_repository: "core/tpl-template-repo"
+  source_sha: "{{ l0_source_sha }}"
+render:
+  repo_slug: "{{ repo_slug }}"
+  layer: L1
+  answers_file: ".copier-answers.yml"
+  content_hash_sha256: "__RENDER_HASH__"

@@ -1,0 +1,10 @@
+schema: ai-society.template-provenance.v1
+template:
+  profile: template-repo
+  source_repository: "core/tpl-template-repo"
+  source_sha: "bf39b0ce14c0a0fa7de3a43d9a30543734d0bb35"
+render:
+  repo_slug: "fixture-template-repo"
+  layer: L1
+  answers_file: ".copier-answers.yml"
+  content_hash_sha256: "d34824e3a72516ebeeb1207dec5c9056983eec7434b4a26ea9e599639eb9424a"

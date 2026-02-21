@@ -2,6 +2,11 @@ _subdirectory: copier-template
 _answers_file: .copier-answers.yml
 _templates_suffix: .jinja
 
+l0_source_sha:
+  type: str
+  default: unknown
+  help: "Source git SHA for the L0 template revision used to render this L1 repo."
+
 l1_profile:
   type: str
   default: template-repo
@@ -55,6 +60,40 @@ _tasks:
   - "{{ 'true' if l1_org_docs_profile == 'rich' else 'rm -f docs/org/purpose.md docs/org/mission.md docs/org/vision.md docs/org/strategic_objectives.md docs/org/values_ethics.md docs/org/governance.md docs/org/glossary.md' }}"
   - "{{ 'true' if enable_community_pack else 'rm -f CODE_OF_CONDUCT.md SUPPORT.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug-report.yml .github/ISSUE_TEMPLATE/feature-request.yml' }}"
   - "{{ 'true' if enable_release_pack else 'rm -f .github/workflows/release-please.yml .github/workflows/release-check.yml .github/workflows/publish.yml .release-please-config.json .release-please-manifest.json CHANGELOG.md SECURITY.md && rm -rf scripts/release' }}"
+  - |
+    if [ -f contracts/provenance-seal.yml ]; then
+      if command -v sha256sum >/dev/null 2>&1; then
+        content_hash="$(
+          find . -type f \
+            ! -path './.git/*' \
+            ! -path './contracts/provenance-seal.yml' \
+            | LC_ALL=C sort \
+            | while IFS= read -r path; do
+                sha256sum "$path"
+              done \
+            | sha256sum \
+            | awk '{print $1}'
+        )"
+      elif command -v shasum >/dev/null 2>&1; then
+        content_hash="$(
+          find . -type f \
+            ! -path './.git/*' \
+            ! -path './contracts/provenance-seal.yml' \
+            | LC_ALL=C sort \
+            | while IFS= read -r path; do
+                shasum -a 256 "$path"
+              done \
+            | shasum -a 256 \
+            | awk '{print $1}'
+        )"
+      else
+        content_hash="unavailable"
+      fi
+
+      tmp_file="$(mktemp)"
+      awk -v hash="$content_hash" '{ gsub("__RENDER_HASH__", hash); print }' contracts/provenance-seal.yml > "$tmp_file"
+      mv "$tmp_file" contracts/provenance-seal.yml
+    fi
 
 _message_after_copy: |
   L1 template repository scaffolded at {{ _copier_conf.dst_path }}

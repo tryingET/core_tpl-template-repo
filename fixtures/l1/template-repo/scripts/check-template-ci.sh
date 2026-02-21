@@ -70,6 +70,7 @@ CONTRIBUTING.md
 .gitattributes
 .copier-answers.yml
 contracts/layer-contract.yml
+contracts/provenance-seal.yml
 scripts/new-repo-from-copier.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
@@ -194,6 +195,16 @@ assert_contains "$contract" "L1 -> L2" "L1 contract must include L1 -> L2"
 assert_contains "$contract" "L1 -> L0" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "L2 -> L1" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "nested_copier_tasks_allowed: false" "L1 contract must forbid nested copier tasks"
+
+provenance="contracts/provenance-seal.yml"
+assert_contains "$provenance" "schema: ai-society.template-provenance.v1" "L1 provenance seal schema mismatch"
+assert_contains "$provenance" "layer: L1" "L1 provenance seal layer mismatch"
+assert_contains "$provenance" "source_sha:" "L1 provenance seal must include source sha"
+if grep -q "__RENDER_HASH__" "$provenance"; then
+  fail "L1 provenance seal must not retain hash placeholder"
+fi
+
+assert_contains ".copier-answers.yml" "l0_source_sha:" "L1 answers file should persist L0 source sha"
 assert_contains ".copier-answers.yml" "l1_org_docs_profile:" "L1 answers file should persist L1 org docs profile"
 assert_contains ".copier-answers.yml" "l2_org_docs_default:" "L1 answers file should persist L2 org docs default"
 assert_contains "copier/template-repo/copier.yml" "repo_archetype" "nested L2 copier config must expose archetype selector"

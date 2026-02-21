@@ -71,4 +71,11 @@ if [ "$have_answers" = "0" ]; then
 fi
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-run_copier copy --trust -d l1_profile="$template_name" "$@" "$repo_root" "$dest_dir"
+
+# Inject L0 source SHA for provenance tracking
+l0_sha="unknown"
+if [ -d "$repo_root/.git" ]; then
+  l0_sha="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || echo unknown)"
+fi
+
+run_copier copy --trust -d l1_profile="$template_name" -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"
