@@ -1,0 +1,32 @@
+_subdirectory: ""
+_answers_file: .copier-answers.yml
+_templates_suffix: .j2
+
+repo_slug:
+  type: str
+  help: "Repo slug (e.g. agent-triage)"
+
+enable_community_pack:
+  type: bool
+  default: false
+  help: "Enable community-facing pack overlays (default: false)."
+
+enable_release_pack:
+  type: bool
+  default: false
+  help: "Enable release automation pack overlays (default: false)."
+
+enable_vouch_gate:
+  type: bool
+  default: false
+  help: "Enable trust/vouch gate overlays (default: false)."
+
+core_owner_handle:
+  type: str
+  default: "@core-owner"
+  help: "CODEOWNERS entry for core docs paths"
+
+agent_owner_handle:
+  type: str
+  default: "@agent-owner"
+  help: "CODEOWNERS entry for agent-owned paths"

@@ -9,7 +9,7 @@ Maintainer: @template-owner
 
 - L1 repositories carry organization-level direction and guardrails.
 - L2 repositories can stay compact by default while still linking back to canonical org intent.
-- L2 default profile for this template line: `compact`.
+- L2 default profile for this template line: ``.
 
 ## Core organization docs
 

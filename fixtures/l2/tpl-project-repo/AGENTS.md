@@ -1,0 +1,24 @@
+# AGENTS.md — fixture-product-repo
+
+## Intent
+Template for a delivery project repo (project context + code + tests).
+
+## Guardrails
+- No secrets in git.
+- Never push to `main`; MRs only.
+- Treat `docs/_core/**` as immutable.
+
+## Recursion policy (explicit)
+Allowed:
+- L1 -> L2
+
+Forbidden:
+- L1 -> L0
+- L2 -> L1
+- any cycle
+
+## Read order
+1) `docs/_core/`
+2) `docs/org_context/`
+3) `docs/project/`
+4) `docs/system4d/`

@@ -25,14 +25,12 @@ render_l1_case() {
   enable_release_pack="$3"
   enable_vouch_gate="$4"
   l1_org_docs_profile="$5"
-  l2_org_docs_default="$6"
   l1_dir="$tmp_root/$case_name"
 
-  "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$l1_dir" \
+  "$repo_root/scripts/new-l1-from-copier.sh" "$l1_dir" \
     -d repo_slug="$case_name" \
     -d maintainer_handle=@template-owner \
     -d l1_org_docs_profile="$l1_org_docs_profile" \
-    -d l2_org_docs_default="$l2_org_docs_default" \
     -d enable_community_pack="$enable_community_pack" \
     -d enable_release_pack="$enable_release_pack" \
     -d enable_vouch_gate="$enable_vouch_gate" \
@@ -52,11 +50,10 @@ render_l1_case() {
     git commit -m "initial render ($case_name)" >/dev/null
   )
 
-  "$repo_root/scripts/new-l1-from-copier.sh" template-repo "$l1_dir" \
+  "$repo_root/scripts/new-l1-from-copier.sh" "$l1_dir" \
     -d repo_slug="$case_name" \
     -d maintainer_handle=@template-owner \
     -d l1_org_docs_profile="$l1_org_docs_profile" \
-    -d l2_org_docs_default="$l2_org_docs_default" \
     -d enable_community_pack="$enable_community_pack" \
     -d enable_release_pack="$enable_release_pack" \
     -d enable_vouch_gate="$enable_vouch_gate" \
@@ -72,11 +69,10 @@ render_l1_case() {
   )
 }
 
-render_l1_case "l1-template-sample" false false false rich compact
-render_l1_case "l1-template-community" true false false rich compact
-render_l1_case "l1-template-release" false true false rich compact
-render_l1_case "l1-template-vouch" false false true rich compact
-render_l1_case "l1-template-compact-org" false false false compact compact
-render_l1_case "l1-template-rich-l2-default" false false false rich rich
+render_l1_case "l1-template-sample" false false false rich
+render_l1_case "l1-template-community" true false false rich
+render_l1_case "l1-template-release" false true false rich
+render_l1_case "l1-template-vouch" false false true rich
+render_l1_case "l1-template-compact-org" false false false compact
 
 echo "ok: l0 generation smoke + idempotency"

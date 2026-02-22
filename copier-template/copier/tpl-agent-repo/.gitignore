@@ -1,0 +1,28 @@
+# Bytecode / caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtualenvs
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+*.swp
+*.swo
+
+# Secrets (never commit)
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/*.env
+.envrc
+auth.json
+**/auth.json
+op-service.env
+gitlab.env

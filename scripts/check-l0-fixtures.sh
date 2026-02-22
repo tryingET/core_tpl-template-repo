@@ -26,7 +26,7 @@ fail() {
 }
 
 expected_l1="$repo_root/fixtures/l1/template-repo"
-expected_l2="$repo_root/fixtures/l2/template-repo"
+expected_l2="$repo_root/fixtures/l2/tpl-project-repo"
 
 [ -d "$expected_l1" ] || fail "missing fixture directory: $expected_l1"
 [ -d "$expected_l2" ] || fail "missing fixture directory: $expected_l2"
@@ -35,13 +35,12 @@ tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
 actual_l1="$tmp_root/l1-template-repo"
-actual_l2="$tmp_root/l2-template-repo"
+actual_l2="$tmp_root/l2-tpl-project-repo"
 
-"$repo_root/scripts/new-l1-from-copier.sh" template-repo "$actual_l1" \
+"$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
   -d repo_slug=fixture-template-repo \
   -d maintainer_handle=@template-owner \
   -d l1_org_docs_profile=rich \
-  -d l2_org_docs_default=compact \
   -d enable_community_pack=false \
   -d enable_release_pack=false \
   -d enable_vouch_gate=false \
@@ -49,9 +48,8 @@ actual_l2="$tmp_root/l2-template-repo"
 
 (
   cd "$actual_l1"
-  ./scripts/new-repo-from-copier.sh template-repo "$actual_l2" \
+  ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_l2" \
     -d repo_slug=fixture-product-repo \
-    -d owner_handle=@repo-owner \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
@@ -68,6 +66,15 @@ sanitize_answers_tree() {
       !/^_src_path:/
     ' "$answers_file" > "$sanitized_file"
     mv "$sanitized_file" "$answers_file"
+  done
+
+  # Also normalize provenance-seal content hash (changes between runs)
+  find "$tree" -type f -name 'provenance-seal.yml' | while IFS= read -r seal_file; do
+    normalized_file="${seal_file}.normalized"
+    awk '
+      !/content_hash_sha256:/
+    ' "$seal_file" > "$normalized_file"
+    mv "$normalized_file" "$seal_file"
   done
 }
 

@@ -3,22 +3,24 @@ set -eu
 
 usage() {
   cat <<'EOF' >&2
-usage: new-repo-from-copier.sh <template-repo> <dest-dir> [copier args...]
+usage: new-repo-from-copier.sh <template-name> <dest-dir> [copier args...]
+
+Templates:
+  tpl-agent-repo    AI agent repositories (personas, learnings, activities)
+  tpl-org-repo      Organization handbooks (governance, policies)
+  tpl-project-repo  Project repositories (products, services)
 
 Example:
-  ./scripts/new-repo-from-copier.sh template-repo /tmp/my-product \
+  ./scripts/new-repo-from-copier.sh tpl-agent-repo /tmp/my-agent \
+    -d repo_slug=my-agent --defaults --overwrite
+
+  ./scripts/new-repo-from-copier.sh tpl-project-repo /tmp/my-product \
     -d repo_slug=my-product --defaults --overwrite
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
     are inherited from this L1 repo `.copier-answers.yml` unless overridden.
-  - `repo_archetype` defaults to `project` and can be overridden with:
-    `-d repo_archetype=project|agent|org|owned`.
-  - `org_docs_profile` defaults to this L1 policy (`l2_org_docs_default`) and
-    can be overridden with `-d org_docs_profile=compact|rich`.
-  - Optional canonical org source can be passed via:
-    `-d org_docs_canonical_ref=<url-or-path>`.
   - `template_source_sha` is auto-injected from this L1 git HEAD unless
     overridden with `-d template_source_sha=<git-sha>`.
 EOF
@@ -52,11 +54,16 @@ if [ -z "$template_name" ] || [ -z "$dest_dir" ]; then
   exit 2
 fi
 
-if [ "$template_name" != "template-repo" ]; then
-  echo "error: unknown template profile: $template_name" >&2
-  echo "hint: only 'template-repo' is available in the first slice" >&2
-  exit 2
-fi
+case "$template_name" in
+  tpl-agent-repo|tpl-org-repo|tpl-project-repo)
+    # Valid archetype template
+    ;;
+  *)
+    echo "error: unknown template: $template_name" >&2
+    echo "hint: available templates: tpl-agent-repo, tpl-org-repo, tpl-project-repo" >&2
+    exit 2
+    ;;
+esac
 
 have_answers=0
 for arg in "$@"; do

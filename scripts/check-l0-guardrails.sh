@@ -19,6 +19,11 @@ assert_exec() {
   [ -x "$path" ] || fail "expected executable file: $path"
 }
 
+assert_dir() {
+  path="$1"
+  [ -d "$path" ] || fail "missing required directory: $path"
+}
+
 assert_absent() {
   path="$1"
   [ ! -e "$path" ] || fail "legacy path must be absent: $path"
@@ -31,6 +36,7 @@ assert_contains() {
   grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
 }
 
+# L0 core files
 required_files="
 CODEOWNERS
 CONTRIBUTING.md
@@ -90,69 +96,14 @@ copier-template/scripts/release/publish.sh
 copier-template/.github/workflows/template-check.yml
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
-copier-template/copier/template-repo/copier.yml
-copier-template/copier/template-repo/README.md.j2
-copier-template/copier/template-repo/AGENTS.md
-copier-template/copier/template-repo/CONTRIBUTING.md
-copier-template/copier/template-repo/.gitattributes
-copier-template/copier/template-repo/contracts/layer-contract.yml.j2
-copier-template/copier/template-repo/contracts/provenance-seal.yml.j2
-copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2
-copier-template/copier/template-repo/.github/VOUCHED.td.j2
-copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2
-copier-template/copier/template-repo/.github/workflows/vouch-manage.yml.j2
-copier-template/copier/template-repo/.github/pull_request_template.md.j2
-copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/config.yml.j2
-copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/bug-report.yml.j2
-copier-template/copier/template-repo/.github/ISSUE_TEMPLATE/feature-request.yml.j2
-copier-template/copier/template-repo/CODE_OF_CONDUCT.md.j2
-copier-template/copier/template-repo/SUPPORT.md.j2
-copier-template/copier/template-repo/.github/workflows/release-please.yml
-copier-template/copier/template-repo/.github/workflows/release-check.yml
-copier-template/copier/template-repo/.github/workflows/publish.yml
-copier-template/copier/template-repo/.release-please-config.json
-copier-template/copier/template-repo/.release-please-manifest.json
-copier-template/copier/template-repo/CHANGELOG.md
-copier-template/copier/template-repo/SECURITY.md
-copier-template/copier/template-repo/docs/.gitkeep
-copier-template/copier/template-repo/docs/org/operating_model.md.j2
-copier-template/copier/template-repo/docs/org/project-docs-intake.questions.json
-copier-template/copier/template-repo/docs/org/purpose.md.j2
-copier-template/copier/template-repo/docs/org/mission.md.j2
-copier-template/copier/template-repo/docs/org/vision.md.j2
-copier-template/copier/template-repo/docs/org/strategic_objectives.md.j2
-copier-template/copier/template-repo/docs/org/values_ethics.md.j2
-copier-template/copier/template-repo/docs/org/governance.md.j2
-copier-template/copier/template-repo/docs/org/glossary.md.j2
-copier-template/copier/template-repo/docs/project/foundation.md.j2
-copier-template/copier/template-repo/docs/project/vision.md.j2
-copier-template/copier/template-repo/docs/project/strategic_goals.md.j2
-copier-template/copier/template-repo/docs/project/tactical_goals.md.j2
-copier-template/copier/template-repo/docs/project/incentives.md.j2
-copier-template/copier/template-repo/docs/project/resources.md.j2
-copier-template/copier/template-repo/docs/project/skills.md.j2
-copier-template/copier/template-repo/examples/.gitkeep
-copier-template/copier/template-repo/external/.gitkeep
-copier-template/copier/template-repo/ontology/.gitkeep
-copier-template/copier/template-repo/policy/.gitkeep
-copier-template/copier/template-repo/src/.gitkeep
-copier-template/copier/template-repo/tests/.gitkeep
-copier-template/copier/template-repo/scripts/install-hooks.sh
-copier-template/copier/template-repo/scripts/ci/smoke.sh
-copier-template/copier/template-repo/scripts/ci/full.sh
-copier-template/copier/template-repo/scripts/release/check.sh
-copier-template/copier/template-repo/scripts/release/publish.sh
-copier-template/copier/template-repo/.githooks/pre-commit
-copier-template/copier/template-repo/.githooks/pre-push
 scripts/preview-l1-diff.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
 fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
-fixtures/l2/template-repo/README.md
-fixtures/l2/template-repo/.copier-answers.yml
-fixtures/l2/template-repo/contracts/provenance-seal.yml
+fixtures/l2/tpl-project-repo/AGENTS.md
+fixtures/l2/tpl-project-repo/.copier-answers.yml
 "
 
 while IFS= read -r path; do
@@ -161,6 +112,29 @@ while IFS= read -r path; do
 done <<EOF
 $required_files
 EOF
+
+# Required L2 template directories
+required_dirs="
+copier-template/copier/tpl-agent-repo
+copier-template/copier/tpl-org-repo
+copier-template/copier/tpl-project-repo
+"
+
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
+  assert_dir "$path"
+done <<EOF
+$required_dirs
+EOF
+
+# L2 template required files (each template must have these)
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
+  assert_file "copier-template/copier/$tpl/copier.yml"
+  assert_file "copier-template/copier/$tpl/AGENTS.md.j2"
+  assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
+  assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
+  assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
+done
 
 required_exec="
 scripts/preview-l1-diff.sh
@@ -176,13 +150,6 @@ copier-template/scripts/release/check.sh
 copier-template/scripts/release/publish.sh
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
-copier-template/copier/template-repo/scripts/install-hooks.sh
-copier-template/copier/template-repo/scripts/ci/smoke.sh
-copier-template/copier/template-repo/scripts/ci/full.sh
-copier-template/copier/template-repo/scripts/release/check.sh
-copier-template/copier/template-repo/scripts/release/publish.sh
-copier-template/copier/template-repo/.githooks/pre-commit
-copier-template/copier/template-repo/.githooks/pre-push
 "
 
 while IFS= read -r path; do
@@ -192,25 +159,32 @@ done <<EOF
 $required_exec
 EOF
 
+# L0 copier.yml assertions
 assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source must target copier-template/"
-assert_contains "copier.yml" "- template-repo" "L0 must expose the template-repo profile"
+assert_contains "copier.yml" "copier/tpl-agent-repo/" "L0 message must mention tpl-agent-repo template"
+assert_contains "copier.yml" "copier/tpl-org-repo/" "L0 message must mention tpl-org-repo template"
+assert_contains "copier.yml" "copier/tpl-project-repo/" "L0 message must mention tpl-project-repo template"
 assert_contains "copier.yml" "l1_org_docs_profile" "L0 copier config must expose L1 org docs profile toggle"
-assert_contains "copier.yml" "l2_org_docs_default" "L0 copier config must expose L2 org docs default toggle"
 assert_contains "copier.yml" "enable_community_pack" "L0 copier config must expose community pack toggle"
 assert_contains "copier.yml" "enable_release_pack" "L0 copier config must expose release pack toggle"
 assert_contains "copier.yml" "enable_vouch_gate" "L0 copier config must expose vouch gate toggle"
+assert_contains "copier.yml" "rm -rf copier/template-repo" "L0 must remove legacy template-repo in _tasks"
+
+# L1 answers template assertions
 assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "l1_org_docs_profile:" "L1 answers template must persist L1 org docs profile"
-assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "l2_org_docs_default:" "L1 answers template must persist L2 org docs default"
-assert_contains "copier-template/copier/template-repo/copier.yml" "org_docs_profile" "L2 copier config must expose org docs profile toggle"
-assert_contains "copier-template/copier/template-repo/copier.yml" "org_docs_canonical_ref" "L2 copier config must expose canonical org docs reference"
-assert_contains "copier-template/copier/template-repo/copier.yml" "template_source_sha" "L2 copier config must expose template source sha"
-assert_contains "copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2" "org_docs_profile:" "L2 answers template must persist org docs profile"
-assert_contains "copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2" "org_docs_canonical_ref:" "L2 answers template must persist canonical org docs reference"
-assert_contains "copier-template/copier/template-repo/{{ _copier_conf.answers_file }}.j2" "template_source_sha:" "L2 answers template must persist template source sha"
-assert_contains "copier-template/scripts/new-repo-from-copier.sh" "template_source_sha" "L1 wrapper should inject template source sha"
-assert_contains "copier-template/copier/template-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
-assert_contains "copier-template/copier/template-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
-assert_contains "copier-template/copier/template-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
+
+# L2 template assertions (check tpl-project-repo as the primary example)
+assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "repo_slug:" "L2 copier config must have repo_slug"
+assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
+assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
+assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
+
+# L1 wrapper script assertions
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
+
+# CODEOWNERS assertions
 assert_contains "CODEOWNERS" "/copier-template/**" "CODEOWNERS must protect copier-template/"
 assert_contains "AGENTS.md" "check-l0.sh" "AGENTS validation section should use consolidated L0 check"
 assert_contains ".github/pull_request_template.md" "check-l0-guardrails.sh" "PR template must require guardrail checks"
@@ -232,10 +206,6 @@ for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
   assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
 done
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
-assert_contains "copier-template/copier/template-repo/README.md.j2" "Organization docs profile" "generated L2 README template should describe org docs profile"
-assert_contains "copier-template/copier/template-repo/contracts/provenance-seal.yml.j2" "schema: ai-society.template-provenance.v1" "generated L2 provenance template must declare schema"
-assert_contains "copier-template/copier/template-repo/contracts/provenance-seal.yml.j2" "source_sha:" "generated L2 provenance template must include source sha"
-assert_contains "copier-template/copier/template-repo/contracts/provenance-seal.yml.j2" "content_hash_sha256" "generated L2 provenance template must include render hash"
 
 contract="copier-template/contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "generated L1 contract must declare layer L1"
@@ -248,23 +218,14 @@ assert_contains "$contract" "max_layer_depth: 2" "generated L1 contract must cap
 
 assert_contains "copier-template/.github/workflows/vouch-check-pr.yml.jinja" "mitchellh/vouch/action/check-pr@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L1 vouch-check workflow should pin action SHA"
 assert_contains "copier-template/.github/workflows/vouch-manage.yml.jinja" "mitchellh/vouch/action/manage-by-issue@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L1 vouch-manage workflow should pin action SHA"
-assert_contains "copier-template/copier/template-repo/.github/workflows/vouch-check-pr.yml.j2" "mitchellh/vouch/action/check-pr@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L2 vouch-check workflow should pin action SHA"
-assert_contains "copier-template/copier/template-repo/.github/workflows/vouch-manage.yml.j2" "mitchellh/vouch/action/manage-by-issue@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L2 vouch-manage workflow should pin action SHA"
 assert_contains "copier-template/.github/workflows/release-please.yml" "googleapis/release-please-action@v4" "L1 release-please workflow should invoke release-please action"
 assert_contains "copier-template/.github/workflows/publish.yml" "softprops/action-gh-release@v2" "L1 publish workflow should upload release artifacts"
-assert_contains "copier-template/copier/template-repo/.github/workflows/release-please.yml" "googleapis/release-please-action@v4" "L2 release-please workflow should invoke release-please action"
-assert_contains "copier-template/copier/template-repo/.github/workflows/publish.yml" "softprops/action-gh-release@v2" "L2 publish workflow should upload release artifacts"
 
-for path in copier-template/copier/*; do
-  [ -d "$path" ] || continue
-  profile="$(basename "$path")"
-  [ "$profile" = "template-repo" ] || fail "legacy or unsupported L2 template tree detected under copier-template/copier/: $profile"
-done
+# Ensure legacy template-repo is removed from generated L1
+assert_absent "copier-template/copier/template-repo"
 
-assert_absent "copier-template/copier/template-repo/contracts/layer-contract.yml"
-assert_absent "copier-template/copier/template-repo/contracts/provenance-seal.yml"
-
-if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml copier-template/copier/template-repo/copier.yml >/dev/null 2>&1; then
+# Ensure no nested copier invocations
+if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then
   fail "nested copier invocations are not allowed in template config files"
 fi
 

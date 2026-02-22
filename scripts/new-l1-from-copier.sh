@@ -3,22 +3,24 @@ set -eu
 
 usage() {
   cat <<'EOF' >&2
-usage: new-l1-from-copier.sh <template-repo> <dest-dir> [copier args...]
+usage: new-l1-from-copier.sh <dest-dir> [copier args...]
 
 Example:
-  ./scripts/new-l1-from-copier.sh template-repo /tmp/holdingco-templates \
+  ./scripts/new-l1-from-copier.sh /tmp/holdingco-templates \
     -d repo_slug=holdingco-templates \
     -d l1_org_docs_profile=rich \
-    -d l2_org_docs_default=compact \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
     --defaults --overwrite
 
 Notes:
+  - Generates L1 with all three embedded templates:
+    - copier/tpl-agent-repo/   (AI agent repos)
+    - copier/tpl-org-repo/     (Organization handbooks)
+    - copier/tpl-project-repo/ (Project repos)
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - Set `-d l1_org_docs_profile=rich|compact` to choose L1 org docs depth.
-  - Set `-d l2_org_docs_default=compact|rich` to choose default L2 org docs depth.
   - Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
   - Set `-d enable_release_pack=true` for release-please/publish automation baseline.
   - Set `-d enable_vouch_gate=true` for trust-gated/public contribution templates.
@@ -44,18 +46,11 @@ run_copier() {
   exit 2
 }
 
-template_name="${1:-}"
-dest_dir="${2:-}"
-shift 2 2>/dev/null || true
+dest_dir="${1:-}"
+shift 1 2>/dev/null || true
 
-if [ -z "$template_name" ] || [ -z "$dest_dir" ]; then
+if [ -z "$dest_dir" ]; then
   usage
-  exit 2
-fi
-
-if [ "$template_name" != "template-repo" ]; then
-  echo "error: unsupported L1 profile: $template_name" >&2
-  echo "hint: only 'template-repo' is available in the first slice" >&2
   exit 2
 fi
 
@@ -78,4 +73,4 @@ if [ -d "$repo_root/.git" ]; then
   l0_sha="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 fi
 
-run_copier copy --trust -d l1_profile="$template_name" -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"
+run_copier copy --trust -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"

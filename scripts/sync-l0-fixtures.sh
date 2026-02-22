@@ -20,13 +20,12 @@ tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
 l1_render="$tmp_root/l1-template-repo"
-l2_render="$tmp_root/l2-template-repo"
+l2_render="$tmp_root/l2-tpl-project-repo"
 
-"$repo_root/scripts/new-l1-from-copier.sh" template-repo "$l1_render" \
+"$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
   -d repo_slug=fixture-template-repo \
   -d maintainer_handle=@template-owner \
   -d l1_org_docs_profile=rich \
-  -d l2_org_docs_default=compact \
   -d enable_community_pack=false \
   -d enable_release_pack=false \
   -d enable_vouch_gate=false \
@@ -34,9 +33,8 @@ l2_render="$tmp_root/l2-template-repo"
 
 (
   cd "$l1_render"
-  ./scripts/new-repo-from-copier.sh template-repo "$l2_render" \
+  ./scripts/new-repo-from-copier.sh tpl-project-repo "$l2_render" \
     -d repo_slug=fixture-product-repo \
-    -d owner_handle=@repo-owner \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
@@ -45,7 +43,7 @@ l2_render="$tmp_root/l2-template-repo"
 
 fixtures_root="$repo_root/fixtures"
 fixture_l1="$fixtures_root/l1/template-repo"
-fixture_l2="$fixtures_root/l2/template-repo"
+fixture_l2="$fixtures_root/l2/tpl-project-repo"
 
 rm -rf "$fixture_l1" "$fixture_l2"
 mkdir -p "$fixture_l1" "$fixture_l2"

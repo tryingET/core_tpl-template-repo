@@ -1,0 +1,23 @@
+# AGENTS.md — {{ repo_slug }}
+
+## Intent
+Template for an org/company handbook repo (consent-gated).
+
+## Guardrails
+- No secrets in git.
+- Never push to `main`; MRs only.
+- Treat `docs/_core/**` as immutable.
+
+## Recursion policy (explicit)
+Allowed:
+- L1 -> L2
+
+Forbidden:
+- L1 -> L0
+- L2 -> L1
+- any cycle
+
+## Read order
+1) `docs/_core/`
+2) `docs/org/`
+3) `docs/system4d/`
