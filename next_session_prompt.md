@@ -55,25 +55,38 @@ cd /path/to/companyco-templates
 
 ---
 
-## P1: Regenerate healthco-templates
+## ✅ P1 COMPLETE: healthco-templates Regenerated
 
-The healthco-templates repo currently has the old `template-repo/` structure.
+healthco-templates now uses the correct tpl-*-repo structure:
 
 ```bash
-# Regenerate from fixed L0
-cd ~/ai-society/core/tpl-template-repo
-./scripts/new-l1-from-copier.sh ~/ai-society/healthco/healthco-templates \
-  -d repo_slug=healthco-templates \
-  -d maintainer_handle=@healthco-owner \
-  --defaults --overwrite
+~/ai-society/healthco/healthco-templates/
+└── copier/
+    ├── tpl-agent-repo/
+    ├── tpl-org-repo/
+    └── tpl-project-repo/
+```
 
-# Then generate agents
-cd ~/ai-society/healthco/healthco-templates
-./scripts/new-repo-from-copier.sh tpl-agent-repo ~/ai-society/healthco/agents/agent-psychotherapist \
-  -d repo_slug=agent-psychotherapist --defaults --overwrite
+### Agents Created from L0-Generated Templates
 
-./scripts/new-repo-from-copier.sh tpl-agent-repo ~/ai-society/healthco/agents/agent-nutritionist \
-  -d repo_slug=agent-nutritionist --defaults --overwrite
+| Agent | Status | Source |
+|-------|--------|--------|
+| `agent-physiotherapist` | ⚠️ Old | From holdingco (before L0 fix) |
+| `agent-psychotherapist` | ✅ New | From healthco-templates (L0-generated) |
+| `agent-nutritionist` | ✅ New | From healthco-templates (L0-generated) |
+
+### Project Repo Created
+
+| Project | Status | Notes |
+|---------|--------|-------|
+| `health-records` | ✅ | From healthco-templates tpl-project-repo |
+
+### Verification
+
+```bash
+cd ~/ai-society/healthco/agents/agent-psychotherapist
+git init -b main && git add . && git commit -m "init"
+./scripts/ci/smoke.sh  # ok: ci smoke
 ```
 
 ---
@@ -172,6 +185,9 @@ proj-{name}/
 |------|--------|-------|
 | `core/tpl-template-repo` | ✅ Fixed | Embeds tpl-*-repo templates |
 | `holdingco-templates` | ✅ Source of truth | Hand-crafted templates (copied to L0) |
-| `healthco-templates` | ⚠️ Outdated | Has old `template-repo/` - needs regeneration |
-| `healthco/agents/agent-physiotherapist` | ⚠️ | Created from holdingco (before L0 fix) |
+| `healthco-templates` | ✅ Regenerated | Now has tpl-*-repo/ from L0 |
+| `healthco/agents/agent-physiotherapist` | ⚠️ | From holdingco (before L0 fix) |
+| `healthco/agents/agent-psychotherapist` | ✅ | From healthco-templates (L0-generated) |
+| `healthco/agents/agent-nutritionist` | ✅ | From healthco-templates (L0-generated) |
+| `healthco/data/health-records` | ✅ | From healthco-templates tpl-project-repo |
 | `softwareco-templates` | ✅ | Registry style, works as designed |
