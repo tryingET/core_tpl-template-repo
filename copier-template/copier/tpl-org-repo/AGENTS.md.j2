@@ -8,6 +8,19 @@ Template for an org/company handbook repo (consent-gated).
 - Never push to `main`; MRs only.
 - Treat `docs/_core/**` as immutable.
 
+## Knowledge Crystallization Flow
+
+```
+Session → docs/diary/ (raw) → docs/learnings/ (crystallized) → TIPs (propagated)
+```
+
+**Knowledge that isn't crystallized is knowledge that will be re-learned the hard way.**
+
+1. During operations: Capture in `docs/diary/YYYY-MM-DD.md`
+2. End of session: Extract patterns, policy implications
+3. Weekly: Promote to `docs/learnings/` and `governance/`
+4. When pattern generalizes: Propose meta-TIP to L0
+
 ## Recursion policy (explicit)
 Allowed:
 - L1 -> L2
@@ -22,5 +35,6 @@ Forbidden:
 2) `docs/org/`
 3) `docs/decisions/`
 4) `docs/learnings/`
-5) `docs/registers/`
-6) `docs/system4d/`
+5) `docs/diary/`          ← recent operational sessions
+6) `docs/registers/`
+7) `docs/system4d/`
