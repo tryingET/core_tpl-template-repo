@@ -6,26 +6,24 @@
 
 One sentence: The system now self-improves — templates learn from agents, agents inherit from templates, and the boundary between learning and propagation is dissolved.
 
-The deeper intent: This file is the continuity mechanism. It ensures compound learning across sessions.
-
 ---
 
 ## STATE
 
 ```
-L0: core/tpl-template-repo @ 25bbb4c
+L0: core/tpl-template-repo @ 6fa37bd (pushed)
     Validation: ✅ 4/4
     TIPs: 3 (2 accepted, 1 proposed)
 
-holdingco-templates  ✅ L0-GENERATED
-healthco-templates   ✅ L0-GENERATED
-
 softwareco:
-    tpl-agent-repo  ✅ SYNCED
-    tpl-org-repo    ✅ SYNCED
-    tpl-owned-repo  ✅ learnings/ (local)
-    tpl-contrib-repo ✅ no KES (upstream-facing)
-    tpl-infra-repo  ✅ learnings/ (local)
+    tpl-agent-repo  ✅ (local)
+    tpl-org-repo    ✅ (local)
+    tpl-owned-repo  ✅ PRODUCTION READY (used for testers)
+    tpl-contrib-repo ✅ (local)
+    tpl-infra-repo  ✅ (local)
+
+softwareco/owned:
+    testers         ✅ INITIALIZED from tpl-owned-repo
 
 governance-kernel:
     guiding-circle.md ✅ LOOPS + TIP acceptance TODO added
@@ -33,42 +31,38 @@ governance-kernel:
 
 ---
 
+## SESSION 2026-02-23 SUMMARY
+
+**Completed:**
+1. KES pattern finalized: diary @ workspace, learnings @ repo
+2. AGENTS.md stack corrected (global → workspace → project)
+3. Cognitive tools + diary moved to `~/ai-society/AGENTS.md` (workspace-level)
+4. TIP-0003 updated for workspace diary pattern
+5. `verify-agents-stack.md` prompt template created
+6. `testers` repo created from `tpl-owned-repo` at `softwareco/owned/testers`
+
+**Commit execution pending for:**
+- `~/ai-society/AGENTS.md` (cognitive tools + diary addition)
+
+---
+
 ## KES PATTERN (Final)
 
 | Component | Location | Scope |
 |-----------|----------|-------|
-| **Diary** | `~/ai-society/AGENTS.md` | Workspace |
-| **Cognitive Tools** | `~/ai-society/AGENTS.md` | Workspace |
-| **Learnings** | `docs/learnings/` per-repo | Repo-specific |
-| **Decisions** | `docs/decisions/` per-repo | Repo-specific |
-
-| Lane | Learnings | Notes |
-|------|-----------|-------|
-| Owned | ✅ | Commit patterns |
-| Infra | ✅ | Commit incident learnings |
-| Contrib | ❌ | Diary does NOT apply |
-| Agent | ✅ | Core to memory |
-
----
-
-## RESIDUAL LIMITATIONS
-
-- LOOPS not implemented (awaiting company/holdingco implementation)
-- TIP review process undefined (awaiting Guiding Circle)
-- Lane templates are local-only (no remotes)
-- Evidence standards not codified
-- governance-kernel has uncommitted changes (unrelated)
+| Diary | `~/ai-society/AGENTS.md` | Workspace |
+| Cognitive Tools | `~/ai-society/AGENTS.md` | Workspace |
+| Learnings | `docs/learnings/` | Repo-specific |
 
 ---
 
 ## NEXT ACTIONS
 
 ```bash
-# 1. Run validation
-cd ~/ai-society/core/tpl-template-repo && ./scripts/check-l0.sh && ./scripts/tip-metrics.sh
+# 1. Commit workspace AGENTS.md
+cd ~/ai-society && git add AGENTS.md && git commit -m "feat(agents): add cognitive tools and diary to workspace"
 
-# 2. Big picture:
-# - LOOPS need implementation at company + holdingco layer
-# - TIP acceptance needs Guiding Circle operational
-# - Consider: set up remotes for lane templates?
+# 2. Optional: set up remotes for lane templates
+
+# 3. Move on to next project
 ```
