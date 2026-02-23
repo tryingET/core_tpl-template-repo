@@ -75,10 +75,21 @@ Applied INVERSION to generate alternatives:
 
 When creating or reviewing lane-specific templates:
 
-1. **Owned repos** → Add diary + learnings
-2. **Contrib repos** → Add diary + learnings
-3. **Infra repos** → Add diary + learnings
-4. **Agent repos** → Add diary + learnings + cognitive-tools
+| Lane | Diary | Learnings | Gitignored? | Reason |
+|------|-------|-----------|-------------|--------|
+| Owned | ✅ | ✅ | No | Internal, commit your learnings |
+| Infra | ✅ | ✅ | No | Internal, commit your learnings |
+| Contrib | ✅ | ✅ | **Yes** | Upstream-facing, don't leak internal context |
+| Agent | ✅ | ✅ | No | Core to agent memory |
+
+## Why Contrib KES is Gitignored
+
+Contrib lanes work against upstream repos. You want the structure locally for your own crystallization, but you don't want to:
+- Push internal learnings to upstream
+- Expose your thinking to external maintainers
+- Pollute upstream with your internal context
+
+The directories exist locally (you can use them), but they're not committed.
 
 ## RESIDUAL LIMITATIONS
 
