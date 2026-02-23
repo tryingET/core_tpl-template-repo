@@ -13,10 +13,10 @@ The deeper intent: This file is the continuity mechanism. It ensures compound le
 ## STATE
 
 ```
-L0: core/tpl-template-repo @ dbe5d20
+L0: core/tpl-template-repo @ 320b7aa
     Validation: ✅ 4/4
-    Ahead of origin: 32 commits
-    TIPs applied: 0001, 0002, 0003
+    TIPs: 3 (2 accepted, 1 proposed)
+    Metrics: tip-metrics.sh ✅
 
 holdingco-templates  ✅ L0-GENERATED
 healthco-templates   ✅ L0-GENERATED
@@ -24,56 +24,47 @@ healthco-templates   ✅ L0-GENERATED
 softwareco:
     tpl-agent-repo  ✅ SYNCED
     tpl-org-repo    ✅ SYNCED
-    tpl-owned-repo  ✅ KES ADDED (4412b90)
-    tpl-contrib-repo ✅ KES ADDED (5cdc91b)
-    tpl-infra-repo  ✅ KES ADDED (9e717b8)
+    tpl-owned-repo  ✅ KES (local)
+    tpl-contrib-repo ✅ KES (local)
+    tpl-infra-repo  ✅ KES (local)
 ```
 
 ---
 
-## DECISION: Alt 2 (Selective KES) — IMPLEMENTED
+## SESSION 2026-02-21 SUMMARY
 
-**Chosen:** Add `docs/diary/` + `docs/learnings/` to all lane-specific templates. Skip `cognitive-tools/` (agent-centric).
+**Completed:**
+1. ✅ Pushed L0 (34 commits)
+2. ✅ Implemented Alt 2 (Selective KES) for lane templates
+3. ✅ Created TIP-0003 (selective KES for lane templates)
+4. ✅ Created tip-metrics.sh for TIP health tracking
 
-**Rationale:** Cognitive tools are agent-specific. Lane repos are human-operated. Humans have their own crystallization methods. Diary captures session state; learnings captures patterns.
-
-**Outcome:**
-
-| Template | diary | learnings | decisions | cognitive-tools |
-|----------|-------|-----------|-----------|-----------------|
-| tpl-owned-repo | ✅ | ✅ | ✅ | ❌ |
-| tpl-contrib-repo | ✅ | ✅ | ✅ | ❌ |
-| tpl-infra-repo | ✅ | ✅ | ✅ | ❌ |
-
-All three templates now have the KES infrastructure committed.
+**Decisions made:**
+- Lane templates get diary + learnings, NOT cognitive-tools
+- Cognitive-tools remain agent-only (human operators have their own methods)
 
 ---
 
 ## RESIDUAL LIMITATIONS
 
-- ~~softwareco lane-specific decision pending~~ ✅ RESOLVED
-- TIP review process undefined
+- TIP review process undefined (single reviewer: session-analysis)
 - Evidence standards not codified
-- Metrics not instrumented
-- ~~L0 changes not pushed~~ ✅ PUSHED
-- Lane templates: local-only (no remotes configured)
+- Lane templates are local-only (no remotes)
+- TIP-0001 still "proposed" (needs domain TIPs to validate pattern)
 
 ---
 
 ## NEXT ACTIONS
 
 ```bash
-# 1. Push L0 (DONE)
-# cd ~/ai-society/core/tpl-template-repo && git push origin main
+# 1. Run validation
+cd ~/ai-society/core/tpl-template-repo && ./scripts/check-l0.sh
 
-# 2. Lane templates (local-only, no remotes)
-# KES additions committed locally
+# 2. Create domain TIP
+# First domain-specific learning from actual usage
 
-# 3. First domain TIP
-# Create a domain TIP with evidence to establish pattern.
-
-# 4. Metrics
-# Define tip-count, acceptance-rate, propagation-count.
+# 3. Review TIP-0001 status
+# Should it be accepted? Gather more evidence.
 ```
 
 ---
