@@ -68,11 +68,12 @@ sanitize_answers_tree() {
     mv "$sanitized_file" "$answers_file"
   done
 
-  # Also normalize provenance-seal content hash (changes between runs)
+  # Normalize provenance-seal (content hash and source sha change between runs)
   find "$tree" -type f -name 'provenance-seal.yml' | while IFS= read -r seal_file; do
     normalized_file="${seal_file}.normalized"
     awk '
-      !/content_hash_sha256:/
+      !/content_hash_sha256:/ &&
+      !/source_sha:/
     ' "$seal_file" > "$normalized_file"
     mv "$normalized_file" "$seal_file"
   done
