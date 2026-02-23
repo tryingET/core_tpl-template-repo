@@ -1,42 +1,45 @@
-# TIP-0003: Selective KES for Lane Templates
+# TIP-0003: Global Diary + Per-Repo Learnings
 
 ## Metadata
 
 ```yaml
 tip: 0003
 kind: domain
-title: Lane-specific templates get selective KES (diary + learnings), not cognitive-tools
+title: Diary is global (agent-level), learnings are per-repo
 
 provenance:
   source_agent: session-continuation
   source_l1: core/tpl-template-repo
   discovered: 2026-02-21
-  validated_days: 0
-  implemented: 2026-02-21
+  validated_days: 2
+  implemented: 2026-02-23
 
 evidence:
   before:
-    pattern: "KES only in agent templates"
-    problem: "Lane templates (owned, contrib, infra) had no crystallization infrastructure"
+    pattern: "KES duplicated in every template"
+    problem: "Diary per-repo creates fragmentation, cognitive-tools scattered"
   after:
-    pattern: "All templates have diary + learnings; cognitive-tools remain agent-only"
-    benefit: "Humans can crystallize knowledge; AI-specific tools stay where AI operates"
-  sample_size: 3 lane templates
+    pattern: "Global diary + cognitive-tools in ~/.pi/agent/AGENTS.md; per-repo learnings only"
+    benefit: "Agent continuity across all repos; crystallization captured where it matters"
+  sample_size: pattern analysis
   confidence: high
 
 changes:
+  - file: ~/.pi/agent/AGENTS.md
+    kind: modify
+    patch: |
+      Add Cognitive Tools section (reference to prompt-snippets.md)
+      Add Diary section with entry format
+      Add Diary Entries section for session capture
+  
   - file: softwareco/tpl-owned-repo/docs/learnings/
-    kind: create
-  - file: softwareco/tpl-owned-repo/docs/diary/
-    kind: create
-  - file: softwareco/tpl-contrib-repo/docs/learnings/
-    kind: create
-  - file: softwareco/tpl-contrib-repo/docs/diary/
     kind: create
   - file: softwareco/tpl-infra-repo/docs/learnings/
     kind: create
-  - file: softwareco/tpl-infra-repo/docs/diary/
-    kind: create
+  - file: softwareco/tpl-contrib-repo/AGENTS.md.jinja
+    kind: modify
+    patch: |
+      Add "Upstream-Facing Note" explaining global diary does NOT apply
 
 review:
   status: accepted
@@ -45,54 +48,51 @@ review:
 
 ## TRUE INTENT
 
-**The soul:** Every repository type can accumulate knowledge. But not every repository needs AI-specific cognitive tools.
+**The soul:** The agent is the continuity unit, not the repo.
 
-The distinction matters because:
-1. **Diary** captures raw session state — useful for humans too
-2. **Learnings** crystallizes patterns — useful for teams
-3. **Cognitive-tools** are prompts for AI reasoning — agent-specific
+Diary captures the agent's session state across ALL repos. Learnings capture crystallized patterns specific to a repo.
 
-## The Decision Matrix
+## The Pattern
 
-Applied INVERSION to generate alternatives:
+| Component | Location | Scope | Purpose |
+|-----------|----------|-------|---------|
+| **Diary** | `~/.pi/agent/AGENTS.md` | Global | Session continuity across all work |
+| **Cognitive Tools** | `~/.pi/agent/AGENTS.md` | Global | Reasoning frameworks (INVERSION, etc.) |
+| **Learnings** | `docs/learnings/` per-repo | Repo-specific | Crystallized patterns for that context |
+| **Decisions** | `docs/decisions/` per-repo | Repo-specific | ADRs for that codebase |
 
-| Alt | Diary | Learnings | Cognitive-tools | Verdict |
-|-----|-------|-----------|-----------------|---------|
-| 1 | ✅ | ✅ | ✅ | Too heavy for human repos |
-| 2 | ✅ | ✅ | ❌ | **SELECTED** — pragmatic |
-| 3 | ❌ | ❌ | ❌ | Too light — knowledge dies |
-| 4 | N/A (abstraction) | — | — | Adds complexity |
-| 5 | N/A (opt-in) | — | — | Will be forgotten |
+## Crystallization Flow
 
-## Why Cognitive-tools Stay Agent-Only
+```
+Session → Diary (global) → Learnings (per-repo) → TIPs (L0)
+                                    ↓
+                              Decisions (per-repo)
+```
 
-1. **Human operators** have their own methods (notes, docs, retros)
-2. **Cognitive tools** (like INVERSION, FIRST PRINCIPLES) are prompt patterns for AI reasoning
-3. **Forced structure** that isn't used becomes skeleton clutter
-4. **Future-proofing** — if AI operates these lanes later, add cognitive-tools then
+1. **Raw capture** → Global diary (always available)
+2. **Crystallization** → Per-repo learnings (when pattern emerges)
+3. **Propagation** → TIPs (when pattern generalizes)
 
-## Application
+## Per-Lane Application
 
-When creating or reviewing lane-specific templates:
+| Lane | Learnings | Notes |
+|------|-----------|-------|
+| Owned | ✅ `docs/learnings/` | Internal, commit patterns |
+| Infra | ✅ `docs/learnings/` | Internal, commit incident learnings |
+| Contrib | ❌ None | Upstream-facing, global diary does NOT apply |
+| Agent | ✅ `docs/learnings/` | Core to agent memory |
 
-| Lane | Diary | Learnings | Gitignored? | Reason |
-|------|-------|-----------|-------------|--------|
-| Owned | ✅ | ✅ | No | Internal, commit your learnings |
-| Infra | ✅ | ✅ | No | Internal, commit your learnings |
-| Contrib | ✅ | ✅ | **Yes** | Upstream-facing, don't leak internal context |
-| Agent | ✅ | ✅ | No | Core to agent memory |
+## Why Contrib is Different
 
-## Why Contrib KES is Gitignored
+Contrib repos interact with upstream. The agent working on contrib:
+- Should NOT capture diary entries about upstream work (leaks context)
+- Should NOT have local learnings about upstream (creates divergence)
+- Follows upstream's contribution patterns instead
 
-Contrib lanes work against upstream repos. You want the structure locally for your own crystallization, but you don't want to:
-- Push internal learnings to upstream
-- Expose your thinking to external maintainers
-- Pollute upstream with your internal context
-
-The directories exist locally (you can use them), but they're not committed.
+The global diary explicitly notes this exception.
 
 ## RESIDUAL LIMITATIONS
 
-- If future AI operates infra/owned lanes, cognitive-tools will be needed
-- Requires discipline to maintain diary → learnings → TIPs flow
-- No automated reminders or tooling yet
+- LOOPS (automated crystallization) not yet implemented at company/holdingco level
+- TIP review process undefined (needs governance-kernel integration)
+- No automated reminders to crystallize diary → learnings
