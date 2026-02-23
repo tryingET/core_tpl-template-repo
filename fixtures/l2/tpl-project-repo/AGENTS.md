@@ -21,4 +21,6 @@ Forbidden:
 1) `docs/_core/`
 2) `docs/org_context/`
 3) `docs/project/`
-4) `docs/system4d/`
+4) `docs/decisions/`
+5) `docs/learnings/`
+6) `docs/system4d/`
