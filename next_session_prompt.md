@@ -4,99 +4,156 @@
 
 ---
 
-## STATE (updated 2026-02-23)
+## STATE
 
 ```
-L0: core/tpl-template-repo @ ae41da4
+L0: core/tpl-template-repo
     Validation: ✅ 4/4 PASS
-    Working tree: DIRTY (docs pending commit)
-    TIPs: tip-0001, tip-0002, tip-0003
+    Working tree: CLEAN
+    TIPs: tip-0001, tip-0002, tip-0003 applied
 
-L1: holdingco-templates
-    Status: ✅ L0-GENERATED (208 files)
-    KES: ✅ tips/, governance/, metrics/
-
-L1: healthco-templates
-    Status: ✅ L0-GENERATED (208 files)
-    KES: ✅ tips/, governance/, metrics/
-
-L1: softwareco-templates
-    Status: REGISTRY (unchanged)
-    Analysis: docs/dev/softwareco-analysis.md
+L1: holdingco-templates  ✅ L0-GENERATED (208 files)
+L1: healthco-templates   ✅ L0-GENERATED (208 files)
+L1: softwareco-templates  REGISTRY (analysis complete, awaiting decision)
 ```
 
 ---
 
-## SESSION SUMMARY
+## APPLY COGNITIVE FRAMEWORKS
 
-### Completed
+Before executing tasks, apply these frameworks to find leverage and avoid waste.
 
-| Milestone | Description |
-|-----------|-------------|
-| L0 Validation | 4/4 checks pass |
-| holdingco transition | Hand-crafted → L0-generated with KES |
-| softwareco analysis | Documented registry pattern, no refactor |
-| TIP-0001 | Universal learnings + decisions in all templates |
-| TIP-0002 | Diary for knowledge crystallization |
-| TIP-0003 | Cognitive tools for higher-order thinking |
+### 1. NEXUS — What's the Highest-Leverage Intervention?
 
-### TIPs Applied
+Rank remaining tasks by compound value:
 
-```
-TIP-0001: docs/learnings/ + docs/decisions/ in ALL template types
-TIP-0002: docs/diary/ for raw capture → crystallization
-TIP-0003: prompts/cognitive-tools/ (8 frameworks: nexus, first-principles, etc.)
-```
+| Task | Solves Multiple Problems? | Compounds? | Enables Future Work? | NEXUS Score |
+|------|---------------------------|------------|---------------------|-------------|
+| Push to origin | No | No | Yes (others can pull) | Low |
+| softwareco sync | Yes (unifies templates) | Yes (all softwareco agents inherit) | Yes (cross-pollination) | **HIGH** |
+| First domain TIPs | Yes (demonstrates pattern) | Yes (compound learning) | Yes (sets precedent) | **HIGH** |
+| Metrics instrumentation | No | Maybe | Yes (visibility) | Medium |
 
-### New Agent Structure
+**NEXUS candidates:** softwareco sync + first domain TIPs (together they establish the full KES loop)
 
-```
-agent-<slug>/
-├── docs/
-│   ├── diary/          ← raw capture (NEW)
-│   ├── learnings/      ← crystallized patterns
-│   └── decisions/      ← ADRs (NEW for agents)
-└── prompts/
-    └── cognitive-tools/ ← higher-order thinking (NEW)
-```
+### 2. FIRST PRINCIPLES — softwareco Sync Decision
+
+The question: Should tpl-agent-repo and tpl-org-repo in softwareco sync from L0?
+
+**Decompose:**
+- Why separate? → softwareco has different lanes (owned, contrib, infra)
+- Why sync? → DRY, consistent agent behavior across ecosystem
+- What MUST be true? → Templates must produce valid repos for their lane
+- What's assumed impossible? → "Registry pattern can't use embedded templates"
+
+**Axioms:**
+1. Templates must produce valid L2 repos
+2. Lane-specific extensions are needed for owned/contrib/infra
+3. Agent and org templates are lane-agnostic
+
+**Reconstruction:**
+- Lane-agnostic templates (agent, org) → sync from L0
+- Lane-specific templates (owned, contrib, infra) → extend L0 or stay separate
+- Registry remains authoritative for lane → template mapping
+
+**First move:** Sync tpl-agent-repo from L0, verify healthco agents still work, then softwareco agents.
+
+### 3. TEMPORAL DEGRADATION — Metrics
+
+**6 months out:** What has broken?
+- TIPs proposed but not tracked → no visibility into improvement rate
+- Metrics directory exists but empty → false sense of completeness
+- No automated collection → manual effort → skipped
+
+**12 months out:**
+- Can't measure if KES is working → faith-based system
+- No evidence for TIP acceptance → subjective decisions
+
+**Prevention today:**
+- Define minimum viable metrics (TIP count, acceptance rate, propagation count)
+- Add to CI: count TIPs on each run
+- Weekly summary script (or manual process first)
+
+### 4. ESCAPE HATCH — Before Syncing softwareco
+
+If sync goes wrong:
+- Detection: L2 generation fails in softwareco
+- Rollback: Revert to pre-sync softwareco templates
+- Side effects: Existing softwareco agents may need regeneration
+
+**Smallest irreversible step:** Sync one template (tpl-agent-repo), test with one agent, then expand.
 
 ---
 
-## REMAINING
+## REMAINING TASKS (Prioritized by NEXUS)
 
-### Next Session
+### Priority 1: softwareco Sync (NEXUS intervention)
 
-1. **Push L0 to origin** — 5 commits ahead
-2. **Push L1s** — holdingco, healthco need remote setup
-3. **softwareco sync decision** — Should tpl-agent-repo/tpl-org-repo sync from L0?
-4. **First TIPs from domain** — Populate tips/domain/ with actual learnings
-5. **Metrics instrumentation** — Define collection mechanism
+```bash
+# First principles says: sync lane-agnostic templates, keep lane-specific separate
 
-### Open Questions
+# 1. Test sync with one template
+cd ~/ai-society/core/tpl-template-repo
+./scripts/new-l1-from-copier.sh ~/ai-society/softwareco/tpl-agent-repo-test \
+  -d repo_slug=tpl-agent-repo \
+  --defaults --overwrite
 
-- TIP review process: human-only, AI-assisted, or fully automated?
-- Evidence standards: what's the bar for TIP acceptance?
-- Cross-L1 propagation: how do holdingco ↔ healthco TIPs flow?
+# 2. Compare with existing softwareco tpl-agent-repo
+diff -r ~/ai-society/softwareco/tpl-agent-repo ~/ai-society/softwareco/tpl-agent-repo-test
+
+# 3. If compatible, update softwareco's tpl-agent-repo
+# 4. Regenerate a softwareco agent to verify
+```
+
+### Priority 2: First Domain TIPs (Demonstrate KES)
+
+Candidates from this session:
+- `tips/domain/tip-domain-001.md`: Generic activity prompts need domain overlays
+- `tips/domain/tip-domain-002.md`: L1 README should list domain-specific templates
+
+Create at least one TIP with evidence to establish the pattern.
+
+### Priority 3: Push to Origin
+
+```bash
+cd ~/ai-society/core/tpl-template-repo
+git push origin main
+```
+
+### Priority 4: Metrics MVP
+
+Define minimum viable metrics:
+- `metrics/tip-count`: Number of TIPs in tips/
+- `metrics/acceptance-rate`: Accepted / Total proposed
+- `metrics/propagation-count`: TIPs escalated to L0
 
 ---
 
-## NOTE
+## OPEN QUESTIONS
 
-Commit execution happening next. L0 has pending docs/ changes to commit.
+Use CONSTRAINT INVENTORY to analyze:
+
+| Question | Assumed Constraint | Is It Real? |
+|----------|-------------------|-------------|
+| TIP review: human-only? | "AI can't review quality" | False — AI can draft, human approve |
+| Evidence standards undefined? | "Need formal process first" | False — start simple, evolve |
+| Cross-L1 propagation unclear? | "Each L1 is isolated" | False — can escalate to L0 which all inherit |
 
 ---
 
 ## QUICK REFERENCE
 
 ```bash
-# L0 validate
+# Validate
 cd ~/ai-society/core/tpl-template-repo && bash ./scripts/check-l0.sh
 
-# L1 validate
-cd ~/ai-society/holdingco/holdingco-templates && bash ./scripts/check-template-ci.sh
+# Generate
+./scripts/new-l1-from-copier.sh /path/to/templates -d repo_slug=name --defaults --overwrite
+./scripts/new-repo-from-copier.sh tpl-agent-repo /path/to/agent -d repo_slug=name --defaults --overwrite
 
-# Generate L2 agent
-cd ~/ai-society/holdingco/holdingco-templates
-./scripts/new-repo-from-copier.sh tpl-agent-repo /path/to/agent-<slug> \
-  -d repo_slug=agent-<slug> --defaults --overwrite
+# Cognitive tools (invoke when stuck)
+# "What's the NEXUS intervention here?"
+# "Apply FIRST PRINCIPLES to this blocker"
+# "Inventory our CONSTRAINTS"
+# "Design the ESCAPE HATCH first"
 ```
