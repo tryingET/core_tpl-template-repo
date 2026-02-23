@@ -13,7 +13,7 @@ The deeper intent: This file is the continuity mechanism. It ensures compound le
 ## STATE
 
 ```
-L0: core/tpl-template-repo @ 3f6b35c
+L0: core/tpl-template-repo @ 25bbb4c
     Validation: ✅ 4/4
     TIPs: 3 (2 accepted, 1 proposed)
 
@@ -37,8 +37,8 @@ governance-kernel:
 
 | Component | Location | Scope |
 |-----------|----------|-------|
-| **Diary** | `~/.pi/agent/AGENTS.md` | Global (agent-level) |
-| **Cognitive Tools** | `~/.pi/agent/AGENTS.md` | Global |
+| **Diary** | `~/ai-society/AGENTS.md` | Workspace |
+| **Cognitive Tools** | `~/ai-society/AGENTS.md` | Workspace |
 | **Learnings** | `docs/learnings/` per-repo | Repo-specific |
 | **Decisions** | `docs/decisions/` per-repo | Repo-specific |
 
@@ -46,20 +46,8 @@ governance-kernel:
 |------|-----------|-------|
 | Owned | ✅ | Commit patterns |
 | Infra | ✅ | Commit incident learnings |
-| Contrib | ❌ | Global diary does NOT apply |
+| Contrib | ❌ | Diary does NOT apply |
 | Agent | ✅ | Core to memory |
-
----
-
-## SESSION 2026-02-23 SUMMARY
-
-**Completed:**
-1. ✅ Clarified diary is GLOBAL, not per-repo
-2. ✅ Added cognitive-tools reference to global AGENTS.md
-3. ✅ Removed docs/diary from lane templates
-4. ✅ Updated TIP-0003 for global diary pattern
-5. ✅ Added LOOPS + TIP acceptance to guiding-circle.md
-6. ✅ Added first diary entry to ~/.pi/agent/AGENTS.md
 
 ---
 
@@ -69,18 +57,18 @@ governance-kernel:
 - TIP review process undefined (awaiting Guiding Circle)
 - Lane templates are local-only (no remotes)
 - Evidence standards not codified
+- governance-kernel has uncommitted changes (unrelated)
 
 ---
 
 ## NEXT ACTIONS
 
 ```bash
-# 1. Push governance-kernel
-cd ~/ai-society/holdingco/governance-kernel && git push
+# 1. Run validation
+cd ~/ai-society/core/tpl-template-repo && ./scripts/check-l0.sh && ./scripts/tip-metrics.sh
 
-# 2. Validate L0
-cd ~/ai-society/core/tpl-template-repo && ./scripts/check-l0.sh
-
-# 3. Run tip-metrics
-./scripts/tip-metrics.sh
+# 2. Big picture:
+# - LOOPS need implementation at company + holdingco layer
+# - TIP acceptance needs Guiding Circle operational
+# - Consider: set up remotes for lane templates?
 ```
