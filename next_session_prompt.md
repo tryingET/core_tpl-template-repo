@@ -55,21 +55,19 @@ All three templates now have the KES infrastructure committed.
 - TIP review process undefined
 - Evidence standards not codified
 - Metrics not instrumented
-- L0 changes not pushed (32 commits ahead)
-- Lane template changes not pushed
+- ~~L0 changes not pushed~~ ✅ PUSHED
+- Lane templates: local-only (no remotes configured)
 
 ---
 
 ## NEXT ACTIONS
 
 ```bash
-# 1. Push L0
-cd ~/ai-society/core/tpl-template-repo && git push origin main
+# 1. Push L0 (DONE)
+# cd ~/ai-society/core/tpl-template-repo && git push origin main
 
-# 2. Push lane templates
-cd ~/ai-society/softwareco/tpl-owned-repo && git push origin main
-cd ~/ai-society/softwareco/tpl-contrib-repo && git push origin main
-cd ~/ai-society/softwareco/tpl-infra-repo && git push origin main
+# 2. Lane templates (local-only, no remotes)
+# KES additions committed locally
 
 # 3. First domain TIP
 # Create a domain TIP with evidence to establish pattern.
