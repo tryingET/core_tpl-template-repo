@@ -1,0 +1,77 @@
+# tpl-org-repo
+
+L2 template for organization/company handbook repositories.
+
+## Purpose
+
+Generate organization repositories with:
+- Organization documentation (`docs/org/`)
+- Governance (`governance/`)
+- Registers (`docs/registers/`)
+- Decision records (`docs/decisions/`)
+- Learnings capture (`docs/learnings/`)
+- CI baseline (`scripts/ci/`)
+
+## Usage
+
+From an L1 templates repository:
+
+```bash
+./scripts/new-repo-from-copier.sh tpl-org-repo /path/to/<org>-handbook \
+  -d repo_slug=<org>-handbook \
+  -d org_owner_handle=@<owner> \
+  --defaults --overwrite
+```
+
+## Structure
+
+```
+<org>-handbook/
+├── AGENTS.md              # Organization-specific instructions
+├── docs/
+│   ├── _core/             # Vendored governance (immutable)
+│   ├── org/               # Organization definition
+│   │   ├── vision.md
+│   │   ├── mission.md
+│   │   ├── purpose.md
+│   │   ├── model.md
+│   │   ├── core_values.md
+│   │   ├── culture.md
+│   │   ├── ethics.md
+│   │   ├── leitbild.md
+│   │   └── strategic_objectives.md
+│   ├── registers/         # Organizational registers
+│   │   ├── risks.md
+│   │   ├── debt.md
+│   │   ├── assumptions.md
+│   │   └── exceptions.md
+│   ├── decisions/         # ADR-style decision records
+│   ├── learnings/         # Captured learnings (TIP candidates)
+│   └── system4d/          # System 4D context
+├── governance/            # Governance documentation
+│   ├── consent.md
+│   └── approvals.md
+└── scripts/ci/            # CI scripts
+```
+
+## Customization
+
+- `repo_slug`: Organization identifier
+- `org_owner_handle`: CODEOWNERS entry for org paths
+- `core_owner_handle`: CODEOWNERS entry for core paths
+- `enable_vouch_gate`: Enable trust gating
+- `enable_community_pack`: Enable community collaboration
+- `enable_release_pack`: Enable release automation
+
+## Consent Model
+
+Org repos are typically consent-gated:
+- Changes require proposals (issue templates)
+- MRs use consent templates
+- No direct pushes to main
+
+## Knowledge Evolution
+
+Organizations capture learnings in `docs/learnings/`. Learnings that apply across organizations should be proposed as meta-TIPs to L0.
+
+See parent L1 `tips/` directory for TIP templates and process.

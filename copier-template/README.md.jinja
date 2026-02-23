@@ -10,11 +10,15 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
 
 ## What this repo provides
 
-- A Copier profile at `copier/template-repo` for generating L2 repositories.
+- **L2 Templates**:
+  - `copier/tpl-agent-repo/` — AI agent repositories
+  - `copier/tpl-project-repo/` — Delivery projects
+  - `copier/tpl-org-repo/` — Organization handbooks
 - Opinionated local hooks (`.githooks/`) and CI lane scripts (`scripts/ci/`).
 - Layer contract enforcement via `contracts/layer-contract.yml`.
 - Baseline structure seed for generated repos: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`.
 - Git hygiene files in generated repos: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
+- **KES Infrastructure**: `tips/`, `governance/`, `metrics/` for knowledge evolution.
 
 ## Quickstart
 
@@ -24,13 +28,30 @@ Validate this L1 template repo:
 bash ./scripts/check-template-ci.sh
 ```
 
-Generate an L2 repository:
+Generate an L2 **agent** repository:
 
 ```bash
-./scripts/new-repo-from-copier.sh template-repo /tmp/my-product \
-  -d repo_slug=my-product \
-  -d repo_archetype=project \
-  -d org_docs_profile={{ l2_org_docs_default }} \
+./scripts/new-repo-from-copier.sh tpl-agent-repo /path/to/agent-<slug> \
+  -d repo_slug=agent-<slug> \
+  -d agent_owner_handle=@<owner> \
+  --defaults --overwrite
+```
+
+Generate an L2 **project** repository:
+
+```bash
+./scripts/new-repo-from-copier.sh tpl-project-repo /path/to/<project> \
+  -d repo_slug=<project> \
+  -d project_owner_handle=@<owner> \
+  --defaults --overwrite
+```
+
+Generate an L2 **org** handbook:
+
+```bash
+./scripts/new-repo-from-copier.sh tpl-org-repo /path/to/<org>-handbook \
+  -d repo_slug=<org>-handbook \
+  -d org_owner_handle=@<owner> \
   --defaults --overwrite
 ```
 
@@ -42,6 +63,28 @@ Install local hooks in a generated repo:
 
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Knowledge Evolution System (KES)
+
+This L1 participates in KES for compound learning:
+
+```
+tips/
+├── _templates/tip.yml     # TIP genome
+├── domain/                # Domain TIPs (local)
+└── meta/                  # Meta TIPs (→ L0)
+
+governance/README.md       # Review process
+metrics/README.md          # Effectiveness tracking
+```
+
+**TIP Flow**: L2 learns → TIP proposed → review → merge → propagate
+
+- Domain TIPs improve this L1
+- Meta TIPs escalate to L0
+- All L2 inherit improvements
+
+See `tips/README.md` for TIP process.
 
 ## Archetype profile
 

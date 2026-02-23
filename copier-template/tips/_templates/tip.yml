@@ -1,0 +1,28 @@
+tip: 0000
+kind: domain | meta | infrastructure
+title: [description]
+
+provenance:
+  source_agent:
+  source_l1:
+  discovered:
+  validated_days:
+
+evidence:
+  before: {}
+  after: {}
+  sample_size:
+  confidence:
+
+changes:
+  - file:
+    kind: add_section | modify | create
+    patch: |
+
+escalation:
+  recommend_to_L0: false
+  recommend_to: []
+
+review:
+  status: proposed | accepted | rejected
+  reviewers: []

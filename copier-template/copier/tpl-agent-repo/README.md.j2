@@ -1,0 +1,63 @@
+# tpl-agent-repo
+
+L2 template for AI agent repositories.
+
+## Purpose
+
+Generate individual agent repositories with:
+- Persona documentation (`docs/person/`)
+- Activity prompts (`prompts/activities/`)
+- Learnings capture (`docs/learnings/`)
+- Decision records (`docs/decisions/`)
+- CI baseline (`scripts/ci/`)
+
+## Usage
+
+From an L1 templates repository:
+
+```bash
+./scripts/new-repo-from-copier.sh tpl-agent-repo /path/to/agent-<slug> \
+  -d repo_slug=agent-<slug> \
+  -d agent_owner_handle=@<owner> \
+  --defaults --overwrite
+```
+
+## Structure
+
+```
+agent-<slug>/
+├── AGENTS.md              # Agent-specific instructions
+├── docs/
+│   ├── _core/             # Vendored governance (immutable)
+│   ├── person/            # Persona definition
+│   │   ├── identity.md
+│   │   ├── main_task.md
+│   │   ├── behavior_rules.md
+│   │   ├── dream_goal.md
+│   │   └── reason.md
+│   ├── decisions/         # ADR-style decision records
+│   ├── learnings/         # Captured learnings (TIP candidates)
+│   └── system4d/          # System 4D context
+├── prompts/
+│   └── activities/        # Domain activity prompts
+├── policy/
+│   └── do-not-touch.md    # Safety guardrails
+└── scripts/ci/            # CI scripts
+```
+
+## Customization
+
+- `repo_slug`: Agent identifier (e.g., `agent-triage`)
+- `agent_owner_handle`: CODEOWNERS entry for agent paths
+- `core_owner_handle`: CODEOWNERS entry for core paths
+- `enable_vouch_gate`: Enable trust gating
+- `enable_community_pack`: Enable community collaboration
+- `enable_release_pack`: Enable release automation
+
+## Knowledge Evolution
+
+Agents capture learnings in `docs/learnings/`. Learnings that generalize should be proposed as TIPs:
+- Domain learnings → L1 domain TIPs
+- Meta learnings → L0 meta TIPs
+
+See parent L1 `tips/` directory for TIP templates and process.

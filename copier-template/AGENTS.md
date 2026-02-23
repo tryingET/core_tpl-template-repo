@@ -1,7 +1,15 @@
 # AGENTS.md — L1 template repo
 
 ## Intent
-Provide one stable, guarded template surface that generates compliant L2 repositories.
+Provide one stable, guarded template surface that generates compliant L2 repositories and participate in KES (Knowledge Evolution System).
+
+## Templates Provided
+
+| Template | Purpose | Generates |
+|----------|---------|-----------|
+| `copier/tpl-agent-repo/` | AI agent repositories | `agent-<slug>/` |
+| `copier/tpl-project-repo/` | Delivery projects | `<project>/` |
+| `copier/tpl-org-repo/` | Organization handbooks | `<org>-handbook/` |
 
 ## Guardrails
 - No secrets in git.
@@ -19,6 +27,39 @@ Provide one stable, guarded template surface that generates compliant L2 reposit
 - Treat `enable_community_pack` as a profile decision (default disabled, enable for public/community-facing contribution surfaces).
 - Treat `enable_release_pack` as a profile decision (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as a profile decision (default disabled, enable for trust-gated/public contribution surfaces).
+
+## KES Infrastructure (Knowledge Evolution System)
+
+This L1 participates in KES for learning propagation:
+
+```
+tips/
+├── _templates/tip.yml     # TIP genome template
+├── domain/                # Domain-specific TIPs (stay local)
+└── meta/                  # Meta TIPs (escalate to L0)
+
+governance/
+└── README.md              # TIP review authority and consent model
+
+metrics/
+└── README.md              # Template effectiveness tracking
+```
+
+### TIP Flow
+
+```
+L2 learns → TIP proposed → L1 review → merge → propagate → L0 (if meta)
+```
+
+- **Domain TIPs**: Stay in this L1
+- **Meta TIPs**: Escalate to `core/tpl-template-repo` (L0)
+- **Infrastructure TIPs**: Escalate to L0
+
+### Read Order for TIPs
+
+1. `tips/README.md` — TIP process overview
+2. `tips/_templates/tip.yml` — TIP structure
+3. `governance/README.md` — Review authority
 
 ## Shared tooling
 - Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
