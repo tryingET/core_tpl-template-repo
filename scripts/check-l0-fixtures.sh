@@ -63,7 +63,8 @@ sanitize_answers_tree() {
     sanitized_file="${answers_file}.sanitized"
     awk '
       !/^_commit:/ &&
-      !/^_src_path:/
+      !/^_src_path:/ &&
+      !/^l0_source_sha:/
     ' "$answers_file" > "$sanitized_file"
     mv "$sanitized_file" "$answers_file"
   done
