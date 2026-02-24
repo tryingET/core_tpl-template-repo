@@ -26,6 +26,12 @@ Forbidden:
 ## Shared tooling
 - Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
 - Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
+- ROCS command launcher (deterministic + portable): `./scripts/rocs.sh <rocs args...>`
+
+## Deterministic tooling policy (ROCS-first)
+- Prefer deterministic wrappers (`./scripts/rocs.sh`, repo `scripts/*`) over ad-hoc inline scripts.
+- For ontology/policy checks, run ROCS before custom Python one-offs.
+- Use inline Python only as an explicit escape hatch when no deterministic command exists.
 
 ## Validation before merge
 - `bash ./scripts/check-l0.sh`

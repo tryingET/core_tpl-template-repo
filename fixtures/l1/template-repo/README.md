@@ -61,6 +61,14 @@ Install local hooks in a generated repo:
 ./scripts/install-hooks.sh
 ```
 
+Deterministic ROCS launcher (use before ad-hoc scripting):
+
+```bash
+./scripts/rocs.sh --doctor
+./scripts/rocs.sh --which
+./scripts/rocs.sh version
+```
+
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 

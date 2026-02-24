@@ -70,6 +70,17 @@ Org repos are typically consent-gated:
 - MRs use consent templates
 - No direct pushes to main
 
+## ROCS command flow
+
+Use deterministic wrapper commands before ad-hoc scripts:
+
+```bash
+./scripts/rocs.sh --doctor
+./scripts/rocs.sh --which
+```
+
+If this repo includes ontology artifacts, run validation through the same wrapper.
+
 ## Knowledge Evolution
 
 Organizations capture learnings in `docs/learnings/`. Learnings that apply across organizations should be proposed as meta-TIPs to L0.

@@ -54,6 +54,17 @@ agent-<slug>/
 - `enable_community_pack`: Enable community collaboration
 - `enable_release_pack`: Enable release automation
 
+## ROCS command flow
+
+Use deterministic wrapper commands before ad-hoc scripts:
+
+```bash
+./scripts/rocs.sh --doctor
+./scripts/rocs.sh --which
+```
+
+If this repo includes ontology artifacts, run validation through the same wrapper.
+
 ## Knowledge Evolution
 
 Agents capture learnings in `docs/learnings/`. Learnings that generalize should be proposed as TIPs:

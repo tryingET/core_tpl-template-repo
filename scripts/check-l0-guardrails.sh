@@ -36,6 +36,15 @@ assert_contains() {
   grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
 }
 
+assert_not_contains() {
+  path="$1"
+  needle="$2"
+  label="$3"
+  if grep -qF -- "$needle" "$path"; then
+    fail "$label (found '$needle' in $path)"
+  fi
+}
+
 # L0 core files
 required_files="
 CODEOWNERS
@@ -87,6 +96,7 @@ copier-template/policy/.gitkeep
 copier-template/src/.gitkeep
 copier-template/tests/.gitkeep
 copier-template/scripts/new-repo-from-copier.sh
+copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/ci/smoke.sh
@@ -97,6 +107,7 @@ copier-template/.github/workflows/template-check.yml
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
 scripts/preview-l1-diff.sh
+scripts/rocs.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
@@ -132,16 +143,20 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "copier-template/copier/$tpl/copier.yml"
   assert_file "copier-template/copier/$tpl/AGENTS.md.j2"
   assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
+  assert_file "copier-template/copier/$tpl/scripts/rocs.sh.j2"
   assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
   assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
+  assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
 done
 
 required_exec="
 scripts/preview-l1-diff.sh
+scripts/rocs.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
 copier-template/scripts/new-repo-from-copier.sh
+copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/ci/smoke.sh
@@ -179,25 +194,42 @@ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_com
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
 
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
+  assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
+  assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
+  assert_contains "copier-template/copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
+  assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
+done
+assert_not_contains "copier-template/copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
+
 # L1 wrapper script assertions
+assert_contains "scripts/rocs.sh" "--doctor" "L0 ROCS wrapper should expose doctor mode"
+assert_contains "scripts/rocs.sh" "deterministic resolution order" "L0 ROCS wrapper should document resolution order"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
+assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
+assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
+assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 
 # CODEOWNERS assertions
 assert_contains "CODEOWNERS" "/copier-template/**" "CODEOWNERS must protect copier-template/"
 assert_contains "AGENTS.md" "check-l0.sh" "AGENTS validation section should use consolidated L0 check"
+assert_contains "AGENTS.md" "Deterministic tooling policy" "AGENTS should document deterministic tooling policy"
+assert_contains "AGENTS.md" "scripts/rocs.sh" "AGENTS should reference scripts/rocs.sh"
 assert_contains ".github/pull_request_template.md" "check-l0-guardrails.sh" "PR template must require guardrail checks"
 assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR template must require generation checks"
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
+assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L0 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "CONTRIBUTING.md" "profile-governance-policy.md" "L0 contributing guide should link profile governance policy"
 assert_contains "README.md" "Organization docs profiles" "README should document org docs profile behavior"
 assert_contains "README.md" "Profile governance policy" "README should link profile governance policy"
 assert_contains "README.md" "Community pack" "README should document optional community pack behavior"
 assert_contains "README.md" "Release pack" "README should document optional release pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
+assert_contains "README.md" "Deterministic ROCS launcher" "README should document deterministic ROCS launcher"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
   assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"
@@ -205,7 +237,11 @@ for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
   assert_contains "$doc" "L1 -> L0" "generated L1 docs must forbid L1 -> L0"
   assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
 done
+assert_contains "copier-template/AGENTS.md" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
+assert_contains "copier-template/AGENTS.md" "scripts/rocs.sh" "generated L1 AGENTS should reference scripts/rocs.sh"
+assert_contains "copier-template/CONTRIBUTING.md" "scripts/rocs.sh --doctor" "generated L1 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
+assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" "generated L1 README should describe deterministic ROCS launcher"
 
 contract="copier-template/contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "generated L1 contract must declare layer L1"

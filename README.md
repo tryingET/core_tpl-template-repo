@@ -27,6 +27,34 @@ Set `-d enable_community_pack=true` for public/community-facing collaboration in
 Set `-d enable_release_pack=true` for release-please/publish automation baseline.
 Set `-d enable_vouch_gate=true` for trust-gated template lines.
 
+## Pi local session flow
+
+- Start session with: `read @next_session_prompt.md`
+- End session with: `/commit` (project-local template at `.pi/prompts/commit.md`)
+
+## Deterministic ROCS launcher (agent-safe)
+
+Use the wrapper instead of ad-hoc inline scripting:
+
+```bash
+./scripts/rocs.sh version
+./scripts/rocs.sh validate --repo .
+```
+
+Resolution order (automatic):
+1. explicit `ROCS_BIN`
+2. vendored `./tools/rocs-cli`
+3. this repo if it is `rocs-cli`
+4. workspace core `~/ai-society/core/rocs-cli`
+5. `rocs` on `PATH`
+
+Diagnostics:
+
+```bash
+./scripts/rocs.sh --doctor
+./scripts/rocs.sh --which
+```
+
 ## Organization docs profiles (L1 vs L2)
 
 - `l1_org_docs_profile=rich` (default): generated L1 repositories include a richer `docs/org/` structure for organization-level governance and strategy artifacts.

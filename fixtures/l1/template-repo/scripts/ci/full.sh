@@ -19,4 +19,9 @@ if [ "$deep" -eq 1 ]; then
   "$repo_root/scripts/check-template-ci.sh"
 fi
 
+if [ -x "$repo_root/scripts/rocs.sh" ] && [ -f "$repo_root/ontology/manifest.yaml" ]; then
+  "$repo_root/scripts/rocs.sh" version
+  "$repo_root/scripts/rocs.sh" validate --repo . --resolve-refs
+fi
+
 echo "ok: ci full"

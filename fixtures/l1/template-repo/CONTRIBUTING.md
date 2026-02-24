@@ -10,7 +10,12 @@ This repository is an **L1 template repo** generated from AI Society L0.
    ```bash
    bash ./scripts/check-template-ci.sh
    ```
-4. Open PR with validation output.
+4. Use deterministic wrapper tooling before ad-hoc scripting:
+   ```bash
+   ./scripts/rocs.sh --doctor
+   ./scripts/rocs.sh --which
+   ```
+5. Open PR with validation output.
 
 ## Required guardrails
 

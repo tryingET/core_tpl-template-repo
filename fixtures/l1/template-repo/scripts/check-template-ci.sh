@@ -48,6 +48,15 @@ assert_contains() {
   grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
 }
 
+assert_not_contains() {
+  path="$1"
+  needle="$2"
+  label="$3"
+  if grep -qF -- "$needle" "$path"; then
+    fail "$label (found '$needle' in $path)"
+  fi
+}
+
 value_from_answers() {
   answers_file="$1"
   key="$2"
@@ -78,6 +87,7 @@ CONTRIBUTING.md
 contracts/layer-contract.yml
 contracts/provenance-seal.yml
 scripts/new-repo-from-copier.sh
+scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/ci/smoke.sh
@@ -109,12 +119,20 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "copier/$tpl/copier.yml"
   assert_file "copier/$tpl/AGENTS.md.j2"
   assert_file "copier/$tpl/CODEOWNERS.j2"
+  assert_file "copier/$tpl/scripts/rocs.sh.j2"
+  assert_exec "copier/$tpl/scripts/rocs.sh.j2"
   assert_file "copier/$tpl/scripts/ci/smoke.sh"
   assert_file "copier/$tpl/scripts/ci/full.sh"
+  assert_contains "copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
+  assert_contains "copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
+  assert_contains "copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
+  assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
+assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
 
 required_exec="
 scripts/new-repo-from-copier.sh
+scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/ci/smoke.sh
@@ -134,11 +152,15 @@ for doc in README.md AGENTS.md; do
   assert_contains "$doc" "L2 -> L1" "L1 docs must forbid L2 -> L1"
 done
 assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
+assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L1 contributing guide should include deterministic ROCS wrapper usage"
+assert_contains "AGENTS.md" "Deterministic tooling policy" "L1 AGENTS should document deterministic tooling policy"
+assert_contains "AGENTS.md" "scripts/rocs.sh" "L1 AGENTS should reference scripts/rocs.sh"
 assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
 assert_contains "README.md" "Governance layering" "L1 README should describe governance layering"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
 assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
+assert_contains "README.md" "Deterministic ROCS launcher" "L1 README should document deterministic ROCS launcher"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 
 contract="contracts/layer-contract.yml"
@@ -179,6 +201,7 @@ assert_contains "$workflow" "./scripts/check-template-ci.sh" "template-check wor
 
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
+assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 
 vouch_enabled="$(bool_from_answers .copier-answers.yml enable_vouch_gate || true)"
 if [ "$vouch_enabled" = "true" ]; then
@@ -272,8 +295,13 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "$l2_dir/.copier-answers.yml"
   assert_file "$l2_dir/AGENTS.md"
   assert_file "$l2_dir/CODEOWNERS"
+  assert_file "$l2_dir/scripts/rocs.sh"
   assert_file "$l2_dir/scripts/ci/smoke.sh"
   assert_file "$l2_dir/scripts/ci/full.sh"
+  assert_exec "$l2_dir/scripts/rocs.sh"
+  assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"
+  assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated $tpl AGENTS should reference scripts/rocs.sh"
+  assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
 
   # Initialize git for smoke test (required by scripts/ci/smoke.sh)
   (
@@ -290,6 +318,8 @@ done
 # Detailed check for tpl-project-repo (primary template)
 l2_dir="$tmp_root/tpl-project-repo"
 assert_contains "$l2_dir/AGENTS.md" "Recursion policy" "generated L2 AGENTS.md must include recursion section"
+assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated L2 AGENTS.md must include deterministic tooling policy"
+assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated L2 AGENTS.md must reference scripts/rocs.sh"
 
 # Idempotency check
 (

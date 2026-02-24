@@ -1,68 +1,67 @@
 # next_session_prompt.md
 
----
+## SESSION TRIGGER (AUTO-START)
+Reading this file is authorization to start work immediately.
+Do not ask for permission to begin.
 
-## TRUE INTENT
+## READ-FIRST ALLOWLIST (ONLY THESE)
+1. `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-rollup-plan.md`
+2. `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md`
 
-One sentence: The system now self-improves — templates learn from agents, agents inherit from templates, and the boundary between learning and propagation is dissolved.
+If blocked, read only the minimum additional file needed to unblock.
 
----
+## AUTHORITY SPLIT (NON-NEGOTIABLE)
+- Canonical issue status authority: `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md`.
+- This file's Session Checkpoint is a transient mirror for local continuity only.
+- Program naming is `FCOS`; canonical issue IDs are `FCOS-*`; `RCOS-*` remains a legacy alias during transition.
+- `ROCS` is reserved for the CLI/tool namespace (`core/rocs-cli`).
 
-## STATE
+## EXECUTION MODE (ONE SESSION = ONE ISSUE)
+Apply cognitive frameworks from `~/steve/prompts/prompt-snippets.md` (at minimum: INVERSION, TELESCOPIC, NEXUS, ESCAPE HATCH, KNOWLEDGE CRYSTALLIZATION).
+1. Parse `fcos-convergence-issue-set.md`.
+2. Pick the first unchecked issue with dependencies satisfied (lowest milestone first).
+3. Execute that issue end-to-end (not partial planning only).
+4. Run the issue’s deterministic validation/acceptance checks.
+5. Update issue status/checklist in `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md` and then add a concise mirror note here under Session Checkpoint.
 
-```
-L0: core/tpl-template-repo @ 6fa37bd (pushed)
-    Validation: ✅ 4/4
-    TIPs: 3 (2 accepted, 1 proposed)
+## NON-NEGOTIABLES
+- Control-plane authority remains in `holdingco/governance-kernel`.
+- Deterministic checks are acceptance gates.
+- Mainline-safe behavior: no irreversible actions without rollback path.
+- `softwareco/owned/testers` is proving lane only, never policy authority.
 
-softwareco:
-    tpl-agent-repo  ✅ (local)
-    tpl-org-repo    ✅ (local)
-    tpl-owned-repo  ✅ PRODUCTION READY (used for testers)
-    tpl-contrib-repo ✅ (local)
-    tpl-infra-repo  ✅ (local)
+## CURRENT PRIORITY
+Execute **M1** issues in order:
+- FCOS-M1-01
+- FCOS-M1-02
+- FCOS-M1-03
+- FCOS-M1-04
+- FCOS-M1-05
 
-softwareco/owned:
-    testers         ✅ INITIALIZED from tpl-owned-repo
+## SESSION CHECKPOINT (UPDATE BEFORE /commit)
+- Issue executed: FCOS-M1-01 (done earlier); FCOS-M1-02 prep only (not closed)
+- Outcome: partial
+- Files changed:
+  - `~/ai-society/holdingco/governance-kernel/governance/rocs/fleet-state.yaml`
+  - `~/ai-society/holdingco/governance-kernel/governance/rocs/README.md`
+  - `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md`
+  - `~/ai-society/core/tpl-template-repo/scripts/rocs.sh`
+  - `~/ai-society/core/tpl-template-repo/copier-template/**/scripts/rocs.sh*`
+  - `~/ai-society/core/tpl-template-repo/scripts/check-l0-guardrails.sh`
+  - `~/ai-society/core/tpl-template-repo/copier-template/scripts/check-template-ci.sh`
+  - `~/ai-society/core/tpl-template-repo/.pi/prompts/commit.md`
+  - `~/ai-society/core/tpl-template-repo/.pi/extensions/project-prompts-first.ts`
+- Validation run:
+  - `bash ~/ai-society/holdingco/governance-kernel/scripts/rocs/check-fcos-doc-drift.sh`
+  - `bash ~/ai-society/holdingco/governance-kernel/scripts/rocs/check-naming-boundaries.sh`
+  - `bash ./scripts/check-l0.sh`
+- Next issue: FCOS-M1-02
+- Blockers/risks: Fleet inventory in `fleet-state.yaml` is still a local-workspace snapshot; canonical M1-02 remains open until `core/rocs-cli/scripts/vendor-to.sh` is implemented and validated.
 
-governance-kernel:
-    guiding-circle.md ✅ LOOPS + TIP acceptance TODO added
-```
+## END-OF-SESSION
+Run `/commit` (project-local template: `.pi/prompts/commit.md`).
 
----
-
-## SESSION 2026-02-23 SUMMARY
-
-**Completed:**
-1. KES pattern finalized: diary @ workspace, learnings @ repo
-2. AGENTS.md stack corrected (global → workspace → project)
-3. Cognitive tools + diary moved to `~/ai-society/AGENTS.md` (workspace-level)
-4. TIP-0003 updated for workspace diary pattern
-5. `verify-agents-stack.md` prompt template created
-6. `testers` repo created from `tpl-owned-repo` at `softwareco/owned/testers`
-
-**Commit execution pending for:**
-- `~/ai-society/AGENTS.md` (cognitive tools + diary addition)
-
----
-
-## KES PATTERN (Final)
-
-| Component | Location | Scope |
-|-----------|----------|-------|
-| Diary | `~/ai-society/AGENTS.md` | Workspace |
-| Cognitive Tools | `~/ai-society/AGENTS.md` | Workspace |
-| Learnings | `docs/learnings/` | Repo-specific |
-
----
-
-## NEXT ACTIONS
-
-```bash
-# 1. Commit workspace AGENTS.md
-cd ~/ai-society && git add AGENTS.md && git commit -m "feat(agents): add cognitive tools and diary to workspace"
-
-# 2. Optional: set up remotes for lane templates
-
-# 3. Move on to next project
-```
+`/commit` must:
+- sync this file’s Session Checkpoint,
+- create clear logical commit(s),
+- include why + validation in commit body.

@@ -10,8 +10,13 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    ```bash
    bash ./scripts/check-l0.sh
    ```
-4. Update docs when behavior changes.
-5. Open a PR with validation output.
+4. Prefer deterministic wrappers over ad-hoc scripting:
+   ```bash
+   ./scripts/rocs.sh --doctor
+   ./scripts/rocs.sh --which
+   ```
+5. Update docs when behavior changes.
+6. Open a PR with validation output.
 
 ## Required guardrails
 
