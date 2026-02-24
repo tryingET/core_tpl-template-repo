@@ -38,6 +38,7 @@ agent-<slug>/
 │   ├── decisions/         # ADR-style decision records
 │   ├── learnings/         # Captured learnings (TIP candidates)
 │   └── system4d/          # System 4D context
+├── diary/                 # Repo-local session capture (KES raw input)
 ├── prompts/
 │   └── activities/        # Domain activity prompts
 ├── policy/
@@ -67,7 +68,7 @@ If this repo includes ontology artifacts, run validation through the same wrappe
 
 ## Knowledge Evolution
 
-Agents capture learnings in `docs/learnings/`. Learnings that generalize should be proposed as TIPs:
+Agents capture raw sessions in `diary/` and crystallize durable patterns in `docs/learnings/`. Learnings that generalize should be proposed as TIPs:
 - Domain learnings → L1 domain TIPs
 - Meta learnings → L0 meta TIPs
 

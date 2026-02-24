@@ -39,24 +39,25 @@ Execute **M1** issues in order:
 - FCOS-M1-05
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
-- Issue executed: FCOS-M1-01 (done earlier); FCOS-M1-02 prep only (not closed)
+- Issue executed: none (out-of-band policy correction: diary authority moved to repo-local `./diary/`)
 - Outcome: partial
 - Files changed:
-  - `~/ai-society/holdingco/governance-kernel/governance/rocs/fleet-state.yaml`
-  - `~/ai-society/holdingco/governance-kernel/governance/rocs/README.md`
-  - `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md`
-  - `~/ai-society/core/tpl-template-repo/scripts/rocs.sh`
-  - `~/ai-society/core/tpl-template-repo/copier-template/**/scripts/rocs.sh*`
+  - `~/ai-society/core/tpl-template-repo/AGENTS.md`
+  - `~/ai-society/core/tpl-template-repo/CONTRIBUTING.md`
+  - `~/ai-society/core/tpl-template-repo/README.md`
+  - `~/ai-society/core/tpl-template-repo/diary/*`
+  - `~/ai-society/core/tpl-template-repo/copier-template/**/diary/*`
+  - `~/ai-society/core/tpl-template-repo/copier-template/**/AGENTS.md*`
+  - `~/ai-society/core/tpl-template-repo/copier-template/**/README.md*`
   - `~/ai-society/core/tpl-template-repo/scripts/check-l0-guardrails.sh`
   - `~/ai-society/core/tpl-template-repo/copier-template/scripts/check-template-ci.sh`
-  - `~/ai-society/core/tpl-template-repo/.pi/prompts/commit.md`
-  - `~/ai-society/core/tpl-template-repo/.pi/extensions/project-prompts-first.ts`
+  - `~/ai-society/core/tpl-template-repo/tips/meta/tip-0002-agent-diary.md`
+  - `~/ai-society/core/tpl-template-repo/tips/meta/tip-0003-selective-kes-lane-templates.md`
 - Validation run:
-  - `bash ~/ai-society/holdingco/governance-kernel/scripts/rocs/check-fcos-doc-drift.sh`
-  - `bash ~/ai-society/holdingco/governance-kernel/scripts/rocs/check-naming-boundaries.sh`
+  - `bash ./scripts/sync-l0-fixtures.sh`
   - `bash ./scripts/check-l0.sh`
 - Next issue: FCOS-M1-02
-- Blockers/risks: Fleet inventory in `fleet-state.yaml` is still a local-workspace snapshot; canonical M1-02 remains open until `core/rocs-cli/scripts/vendor-to.sh` is implemented and validated.
+- Blockers/risks: FCOS M1-02 remains open; this commit only normalizes KES diary location and guardrails.
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).

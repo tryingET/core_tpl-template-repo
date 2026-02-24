@@ -15,8 +15,9 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    ./scripts/rocs.sh --doctor
    ./scripts/rocs.sh --which
    ```
-5. Update docs when behavior changes.
-6. Open a PR with validation output.
+5. Capture session notes in `./diary/` (repo-local KES rule).
+6. Update docs when behavior changes.
+7. Open a PR with validation output.
 
 ## Required guardrails
 

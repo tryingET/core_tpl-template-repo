@@ -41,6 +41,11 @@ assert_dir() {
   [ -d "$path" ] || fail "missing directory: $path"
 }
 
+assert_not_dir() {
+  path="$1"
+  [ ! -d "$path" ] || fail "unexpected directory present: $path"
+}
+
 assert_contains() {
   path="$1"
   needle="$2"
@@ -107,6 +112,7 @@ ontology/.gitkeep
 policy/.gitkeep
 src/.gitkeep
 tests/.gitkeep
+diary/README.md
 "
 
 for path in $required_files; do
@@ -123,8 +129,11 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_exec "copier/$tpl/scripts/rocs.sh.j2"
   assert_file "copier/$tpl/scripts/ci/smoke.sh"
   assert_file "copier/$tpl/scripts/ci/full.sh"
+  assert_file "copier/$tpl/diary/README.md"
+  assert_not_dir "copier/$tpl/docs/diary"
   assert_contains "copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
   assert_contains "copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
+  assert_contains "copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
   assert_contains "copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
   assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
@@ -155,12 +164,14 @@ assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide 
 assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L1 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "AGENTS.md" "Deterministic tooling policy" "L1 AGENTS should document deterministic tooling policy"
 assert_contains "AGENTS.md" "scripts/rocs.sh" "L1 AGENTS should reference scripts/rocs.sh"
+assert_contains "AGENTS.md" "diary/" "L1 AGENTS should require repo-local diary"
 assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
 assert_contains "README.md" "Governance layering" "L1 README should describe governance layering"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
 assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
 assert_contains "README.md" "Deterministic ROCS launcher" "L1 README should document deterministic ROCS launcher"
+assert_contains "README.md" "repo-local diary" "L1 README should document repo-local diary contract"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 
 contract="contracts/layer-contract.yml"
@@ -298,9 +309,12 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "$l2_dir/scripts/rocs.sh"
   assert_file "$l2_dir/scripts/ci/smoke.sh"
   assert_file "$l2_dir/scripts/ci/full.sh"
+  assert_file "$l2_dir/diary/README.md"
+  assert_not_dir "$l2_dir/docs/diary"
   assert_exec "$l2_dir/scripts/rocs.sh"
   assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"
   assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated $tpl AGENTS should reference scripts/rocs.sh"
+  assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
   assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
 
   # Initialize git for smoke test (required by scripts/ci/smoke.sh)
@@ -320,6 +334,7 @@ l2_dir="$tmp_root/tpl-project-repo"
 assert_contains "$l2_dir/AGENTS.md" "Recursion policy" "generated L2 AGENTS.md must include recursion section"
 assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated L2 AGENTS.md must include deterministic tooling policy"
 assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated L2 AGENTS.md must reference scripts/rocs.sh"
+assert_contains "$l2_dir/AGENTS.md" "diary/" "generated L2 AGENTS.md must reference repo-local diary"
 
 # Idempotency check
 (

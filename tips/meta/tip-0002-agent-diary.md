@@ -24,23 +24,22 @@ evidence:
   confidence: high
 
 changes:
-  - file: copier-template/copier/tpl-agent-repo/docs/diary/
+  - file: copier-template/copier/tpl-agent-repo/diary/
     kind: create
     patch: |
-      mkdir -p docs/diary
+      mkdir -p diary
       # Add README.md with entry template
-      # Add .gitkeep
 
   - file: copier-template/copier/tpl-agent-repo/AGENTS.md.j2
     kind: modify
     patch: |
       Add Knowledge Crystallization Flow section
-      Add docs/diary/ to read order
+      Add diary/ to read order
 
-  - file: copier-template/copier/tpl-project-repo/docs/diary/
+  - file: copier-template/copier/tpl-project-repo/diary/
     kind: create
 
-  - file: copier-template/copier/tpl-org-repo/docs/diary/
+  - file: copier-template/copier/tpl-org-repo/diary/
     kind: create
 
 escalation:

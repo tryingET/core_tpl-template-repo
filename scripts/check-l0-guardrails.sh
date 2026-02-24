@@ -49,6 +49,7 @@ assert_not_contains() {
 required_files="
 CODEOWNERS
 CONTRIBUTING.md
+diary/README.md
 copier.yml
 .github/pull_request_template.md
 docs/release-compatibility-policy.md
@@ -95,6 +96,7 @@ copier-template/ontology/.gitkeep
 copier-template/policy/.gitkeep
 copier-template/src/.gitkeep
 copier-template/tests/.gitkeep
+copier-template/diary/README.md.jinja
 copier-template/scripts/new-repo-from-copier.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
@@ -113,8 +115,10 @@ scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
 fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
+fixtures/l1/template-repo/diary/README.md
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
+fixtures/l2/tpl-project-repo/diary/README.md
 "
 
 while IFS= read -r path; do
@@ -146,6 +150,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "copier-template/copier/$tpl/scripts/rocs.sh.j2"
   assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
   assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
+  assert_file "copier-template/copier/$tpl/diary/README.md"
+  assert_absent "copier-template/copier/$tpl/docs/diary"
   assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
 done
 
@@ -197,6 +203,7 @@ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_vou
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
+  assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
   assert_contains "copier-template/copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
   assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
@@ -217,12 +224,14 @@ assert_contains "CODEOWNERS" "/copier-template/**" "CODEOWNERS must protect copi
 assert_contains "AGENTS.md" "check-l0.sh" "AGENTS validation section should use consolidated L0 check"
 assert_contains "AGENTS.md" "Deterministic tooling policy" "AGENTS should document deterministic tooling policy"
 assert_contains "AGENTS.md" "scripts/rocs.sh" "AGENTS should reference scripts/rocs.sh"
+assert_contains "AGENTS.md" "diary/" "AGENTS should require repo-local diary"
 assert_contains ".github/pull_request_template.md" "check-l0-guardrails.sh" "PR template must require guardrail checks"
 assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR template must require generation checks"
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
 assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L0 contributing guide should include deterministic ROCS wrapper usage"
+assert_contains "CONTRIBUTING.md" "diary/" "L0 contributing guide should require repo-local diary"
 assert_contains "CONTRIBUTING.md" "profile-governance-policy.md" "L0 contributing guide should link profile governance policy"
 assert_contains "README.md" "Organization docs profiles" "README should document org docs profile behavior"
 assert_contains "README.md" "Profile governance policy" "README should link profile governance policy"
@@ -230,6 +239,7 @@ assert_contains "README.md" "Community pack" "README should document optional co
 assert_contains "README.md" "Release pack" "README should document optional release pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
 assert_contains "README.md" "Deterministic ROCS launcher" "README should document deterministic ROCS launcher"
+assert_contains "README.md" "diary/" "README should document repo-local diary policy"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
   assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"
@@ -239,9 +249,12 @@ for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
 done
 assert_contains "copier-template/AGENTS.md" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
 assert_contains "copier-template/AGENTS.md" "scripts/rocs.sh" "generated L1 AGENTS should reference scripts/rocs.sh"
+assert_contains "copier-template/AGENTS.md" "diary/" "generated L1 AGENTS should require repo-local diary"
 assert_contains "copier-template/CONTRIBUTING.md" "scripts/rocs.sh --doctor" "generated L1 contributing guide should include deterministic ROCS wrapper usage"
+assert_contains "copier-template/CONTRIBUTING.md" "diary/" "generated L1 contributing guide should require repo-local diary"
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
 assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" "generated L1 README should describe deterministic ROCS launcher"
+assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
 
 contract="copier-template/contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "generated L1 contract must declare layer L1"
@@ -259,6 +272,15 @@ assert_contains "copier-template/.github/workflows/publish.yml" "softprops/actio
 
 # Ensure legacy template-repo is removed from generated L1
 assert_absent "copier-template/copier/template-repo"
+
+# Ensure legacy diary path is removed
+assert_absent "copier-template/copier/tpl-agent-repo/docs/diary"
+assert_absent "copier-template/copier/tpl-org-repo/docs/diary"
+assert_absent "copier-template/copier/tpl-project-repo/docs/diary"
+assert_absent "fixtures/l1/template-repo/copier/tpl-agent-repo/docs/diary"
+assert_absent "fixtures/l1/template-repo/copier/tpl-org-repo/docs/diary"
+assert_absent "fixtures/l1/template-repo/copier/tpl-project-repo/docs/diary"
+assert_absent "fixtures/l2/tpl-project-repo/docs/diary"
 
 # Ensure no nested copier invocations
 if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then

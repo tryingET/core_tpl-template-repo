@@ -1,45 +1,48 @@
-# TIP-0003: Global Diary + Per-Repo Learnings
+# TIP-0003: Repo-Local Diary by Structural Template
 
 ## Metadata
 
 ```yaml
 tip: 0003
-kind: domain
-title: Diary is global (agent-level), learnings are per-repo
+kind: meta
+title: Diary is repo-local (`./diary/`) for every archetype
 
 provenance:
   source_agent: session-continuation
   source_l1: core/tpl-template-repo
-  discovered: 2026-02-21
-  validated_days: 2
-  implemented: 2026-02-23
+  discovered: 2026-02-24
+  validated_days: 0
+  implemented: 2026-02-24
 
 evidence:
   before:
-    pattern: "KES duplicated in every template"
-    problem: "Diary per-repo creates fragmentation, cognitive-tools scattered"
+    pattern: "Mixed diary authority (workspace/global vs repo-local)"
+    problem: "Context drift and unclear ownership of raw session capture"
   after:
-    pattern: "Global diary + cognitive-tools in ~/.pi/agent/AGENTS.md; per-repo learnings only"
-    benefit: "Agent continuity across all repos; crystallization captured where it matters"
-  sample_size: pattern analysis
+    pattern: "Repo-local diary in every structural template"
+    benefit: "Clear local continuity + consistent KES entry point per repo"
+  sample_size: pattern correction
   confidence: high
 
 changes:
-  - file: ~/.pi/agent/AGENTS.md
+  - file: core/tpl-template-repo/AGENTS.md
     kind: modify
     patch: |
-      Add Cognitive Tools section (reference to prompt-snippets.md)
-      Add Diary section with entry format
-      Add Diary Entries section for session capture
-  
-  - file: softwareco/tpl-owned-repo/docs/learnings/
+      Enforce repo-local diary policy (`./diary/`).
+
+  - file: copier-template/copier/tpl-agent-repo/diary/README.md
     kind: create
-  - file: softwareco/tpl-infra-repo/docs/learnings/
+  - file: copier-template/copier/tpl-org-repo/diary/README.md
     kind: create
-  - file: softwareco/tpl-contrib-repo/AGENTS.md.jinja
-    kind: modify
-    patch: |
-      Add "Upstream-Facing Note" explaining global diary does NOT apply
+  - file: copier-template/copier/tpl-project-repo/diary/README.md
+    kind: create
+
+  - file: copier-template/copier/tpl-agent-repo/docs/diary/
+    kind: remove
+  - file: copier-template/copier/tpl-org-repo/docs/diary/
+    kind: remove
+  - file: copier-template/copier/tpl-project-repo/docs/diary/
+    kind: remove
 
 review:
   status: accepted
@@ -48,51 +51,30 @@ review:
 
 ## TRUE INTENT
 
-**The soul:** The agent is the continuity unit, not the repo.
+**The continuity unit is the repository context in front of the agent.**
 
-Diary captures the agent's session state across ALL repos. Learnings capture crystallized patterns specific to a repo.
+Each repo keeps its own raw capture under `./diary/`; crystallized outputs still live in `docs/learnings/`, `docs/decisions/`, and TIPs.
 
-## The Pattern
+## Structural Contract
 
-| Component | Location | Scope | Purpose |
-|-----------|----------|-------|---------|
-| **Diary** | `~/.pi/agent/AGENTS.md` | Global | Session continuity across all work |
-| **Cognitive Tools** | `~/.pi/agent/AGENTS.md` | Global | Reasoning frameworks (INVERSION, etc.) |
-| **Learnings** | `docs/learnings/` per-repo | Repo-specific | Crystallized patterns for that context |
-| **Decisions** | `docs/decisions/` per-repo | Repo-specific | ADRs for that codebase |
+Apply the same diary contract per structural template:
+
+- `tpl-agent-repo`
+- `tpl-org-repo`
+- `tpl-project-repo`
+- `tpl-individual-repo` (when introduced)
 
 ## Crystallization Flow
 
 ```
-Session → Diary (global) → Learnings (per-repo) → TIPs (L0)
-                                    ↓
-                              Decisions (per-repo)
+Session → ./diary/ (raw) → docs/learnings/ (crystallized) → TIPs (propagated)
+                               ↓
+                         docs/decisions/
 ```
 
-1. **Raw capture** → Global diary (always available)
-2. **Crystallization** → Per-repo learnings (when pattern emerges)
-3. **Propagation** → TIPs (when pattern generalizes)
+## Rules
 
-## Per-Lane Application
-
-| Lane | Learnings | Notes |
-|------|-----------|-------|
-| Owned | ✅ `docs/learnings/` | Internal, commit patterns |
-| Infra | ✅ `docs/learnings/` | Internal, commit incident learnings |
-| Contrib | ❌ None | Upstream-facing, global diary does NOT apply |
-| Agent | ✅ `docs/learnings/` | Core to agent memory |
-
-## Why Contrib is Different
-
-Contrib repos interact with upstream. The agent working on contrib:
-- Should NOT capture diary entries about upstream work (leaks context)
-- Should NOT have local learnings about upstream (creates divergence)
-- Follows upstream's contribution patterns instead
-
-The global diary explicitly notes this exception.
-
-## RESIDUAL LIMITATIONS
-
-- LOOPS (automated crystallization) not yet implemented at company/holdingco level
-- TIP review process undefined (needs governance-kernel integration)
-- No automated reminders to crystallize diary → learnings
+1. `./diary/` exists in every generated repo type.
+2. Diary entry template is consistent across archetypes.
+3. No workspace/global diary is canonical for repo execution history.
+4. Learnings remain per-repo and TIPs remain the propagation mechanism.

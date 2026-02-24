@@ -19,6 +19,7 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
 - Baseline structure seed for generated repos: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`.
 - Git hygiene files in generated repos: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
 - **KES Infrastructure**: `tips/`, `governance/`, `metrics/` for knowledge evolution.
+- **Repo-local diary contract**: `diary/README.md` in L1 and all generated L2 archetypes.
 
 ## Quickstart
 
@@ -91,6 +92,11 @@ metrics/README.md          # Effectiveness tracking
 - Domain TIPs improve this L1
 - Meta TIPs escalate to L0
 - All L2 inherit improvements
+
+Diary contract (repo-local diary for KES):
+- L1 logs in `./diary/`
+- each generated L2 archetype logs in `./diary/`
+- no workspace-global diary authority
 
 See `tips/README.md` for TIP process.
 

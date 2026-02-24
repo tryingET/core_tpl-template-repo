@@ -43,6 +43,7 @@ From an L1 templates repository:
 │   ├── learnings/         # Captured learnings (TIP candidates)
 │   ├── dev/               # Development notes
 │   └── system4d/          # System 4D context
+├── diary/                 # Repo-local session capture (KES raw input)
 ├── ontology/              # ROCS ontology
 │   └── src/system4d.yaml
 ├── tools/rocs-cli/        # ROCS validation tooling
@@ -76,6 +77,6 @@ This wrapper prefers vendored `tools/rocs-cli` and falls back to workspace/globa
 
 ## Knowledge Evolution
 
-Projects capture learnings in `docs/learnings/`. Learnings that apply beyond this project should be proposed as TIPs to the parent L1 templates.
+Projects capture raw sessions in `diary/` and crystallize durable patterns in `docs/learnings/`. Learnings that apply beyond this project should be proposed as TIPs to the parent L1 templates.
 
 See parent L1 `tips/` directory for TIP templates and process.
