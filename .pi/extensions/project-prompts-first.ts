@@ -24,65 +24,149 @@ const BUILTIN_COMMANDS = new Set([
 	"quit",
 ]);
 
+const CODE_SEGMENT_PATTERN = /(```[\s\S]*?```|`[^`\n]*`)/g;
+const ESCAPED_PLACEHOLDER_PATTERN =
+	/\\(\$\{@:\d+(?::\d+)?\}|\$\{ARGUMENTS\}|\$ARGUMENTS|\$\{\d+\}|\$\d+|\$@)/g;
+
 function stripFrontmatter(markdown: string): string {
-	if (!markdown.startsWith("---")) return markdown;
-	const match = markdown.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
-	return match ? markdown.slice(match[0].length) : markdown;
+	const normalized = markdown.startsWith("\uFEFF") ? markdown.slice(1) : markdown;
+	if (!normalized.startsWith("---")) return normalized;
+	const match = normalized.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+	return match ? normalized.slice(match[0].length) : normalized;
 }
 
 function parseCommandArgs(argsString: string): string[] {
 	const args: string[] = [];
 	let current = "";
 	let inQuote: '"' | "'" | null = null;
+	let quoteStartOffset = -1;
+	let escapeNext = false;
+	let tokenStarted = false;
+
+	const flush = () => {
+		if (!tokenStarted) return;
+		args.push(current);
+		current = "";
+		tokenStarted = false;
+		quoteStartOffset = -1;
+	};
 
 	for (let i = 0; i < argsString.length; i++) {
 		const ch = argsString[i];
-		if (inQuote) {
-			if (ch === inQuote) inQuote = null;
-			else current += ch;
+
+		if (escapeNext) {
+			current += ch;
+			tokenStarted = true;
+			escapeNext = false;
 			continue;
 		}
+
+		if (ch === "\\") {
+			if (inQuote === "'") {
+				current += ch;
+				tokenStarted = true;
+				continue;
+			}
+			escapeNext = true;
+			tokenStarted = true;
+			continue;
+		}
+
+		if (inQuote) {
+			if (ch === inQuote) {
+				inQuote = null;
+				quoteStartOffset = -1;
+				continue;
+			}
+			current += ch;
+			tokenStarted = true;
+			continue;
+		}
+
 		if (ch === '"' || ch === "'") {
 			inQuote = ch;
+			quoteStartOffset = current.length;
+			tokenStarted = true;
 			continue;
 		}
+
 		if (ch === " " || ch === "\t") {
-			if (current) {
-				args.push(current);
-				current = "";
-			}
+			flush();
 			continue;
 		}
+
 		current += ch;
+		tokenStarted = true;
 	}
 
-	if (current) args.push(current);
+	if (escapeNext) {
+		current += "\\";
+		tokenStarted = true;
+	}
+
+	if (inQuote && quoteStartOffset >= 0) {
+		current = `${current.slice(0, quoteStartOffset)}${inQuote}${current.slice(quoteStartOffset)}`;
+	}
+
+	flush();
 	return args;
 }
 
-function substituteArgs(content: string, args: string[]): string {
+function normalizeSliceIndex(value: string): number {
+	const parsed = Number.parseInt(value, 10);
+	if (!Number.isFinite(parsed)) return 0;
+	return Math.max(0, parsed - 1);
+}
+
+function normalizeSliceLength(value: string | undefined): number | undefined {
+	if (!value) return undefined;
+	const parsed = Number.parseInt(value, 10);
+	if (!Number.isFinite(parsed)) return 0;
+	return Math.max(0, parsed);
+}
+
+function substituteArgsInPlainText(content: string, args: string[]): string {
 	let result = content;
 
-	// Positional first
-	result = result.replace(/\$(\d+)/g, (_, num: string) => {
-		const i = Number.parseInt(num, 10) - 1;
-		return args[i] ?? "";
+	// Slices: ${@:N} and ${@:N:L}
+	result = result.replace(/(?<!\\)\$\{@:(\d+)(?::(\d+))?\}/g, (_, startStr: string, lenStr?: string) => {
+		const start = normalizeSliceIndex(startStr);
+		const len = normalizeSliceLength(lenStr);
+		if (len === undefined) return args.slice(start).join(" ");
+		return args.slice(start, start + len).join(" ");
 	});
 
-	// Slices: ${@:N} and ${@:N:L}
-	result = result.replace(/\$\{@:(\d+)(?::(\d+))?\}/g, (_, startStr: string, lenStr?: string) => {
-		let start = Number.parseInt(startStr, 10) - 1;
-		if (start < 0) start = 0;
-		if (lenStr) {
-			const len = Number.parseInt(lenStr, 10);
-			return args.slice(start, start + len).join(" ");
-		}
-		return args.slice(start).join(" ");
-	});
+	// Positional: $1 and ${1}
+	const replacePositional = (_: string, num: string): string => {
+		const idx = normalizeSliceIndex(num);
+		return args[idx] ?? "";
+	};
+	result = result.replace(/(?<!\\)\$\{(\d+)\}/g, replacePositional);
+	result = result.replace(/(?<!\\)\$(\d+)/g, replacePositional);
 
 	const all = args.join(" ");
-	result = result.replace(/\$ARGUMENTS/g, all);
-	result = result.replace(/\$@/g, all);
+	const replaceAllArgs = () => all;
+	result = result.replace(/(?<!\\)\$\{ARGUMENTS\}/g, replaceAllArgs);
+	result = result.replace(/(?<!\\)\$ARGUMENTS/g, replaceAllArgs);
+	result = result.replace(/(?<!\\)\$@/g, replaceAllArgs);
+
+	// Unescape placeholders meant to be literal (e.g. \$ARGUMENTS).
+	result = result.replace(ESCAPED_PLACEHOLDER_PATTERN, "$1");
+	return result;
+}
+
+function substituteArgs(content: string, args: string[]): string {
+	let result = "";
+	let lastIndex = 0;
+
+	for (const match of content.matchAll(CODE_SEGMENT_PATTERN)) {
+		const index = match.index ?? 0;
+		result += substituteArgsInPlainText(content.slice(lastIndex, index), args);
+		result += match[0];
+		lastIndex = index + match[0].length;
+	}
+
+	result += substituteArgsInPlainText(content.slice(lastIndex), args);
 	return result;
 }
 

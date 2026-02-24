@@ -1,34 +1,72 @@
 ---
-description: Project-local commit workflow for RCOS sessions (checkpoint sync + logical commits)
+description: Project-local commit workflow for FCOS sessions (model-first sync + logical commits)
 ---
 
-## 0) Handoff sync first
-Before any commit commands:
+## 0) Preflight + context snapshot (required)
+Set canonical root once and keep all model/projection commands root-safe:
 
-1. Update `next_session_prompt.md` session checkpoint.
-2. If present in this repo, update `docs/dev/fcos-convergence-issue-set.md` for issues touched this session.
-3. If decisions changed, keep `docs/dev/fcos-convergence-rollup-plan.md` consistent.
+```bash
+GK_ROOT=~/ai-society/holdingco/governance-kernel
+[ -d "$GK_ROOT" ] || { echo "Missing $GK_ROOT"; exit 1; }
+[ -f "$GK_ROOT/governance/rocs/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
+```
 
-Keep updates concise and factual.
-
-## 1) Context
 1. `git status --short`
 2. if clean, stop and report no-op
 3. `git diff --name-status HEAD`
 4. `git log --oneline -5`
 5. inspect only scoped diffs:
    - `git diff -- <files...>`
+6. if this commit closes a claimed FCOS issue, inspect lease state before sync:
+   - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
+
+## 1) Sync canonical state first (model-first)
+Before creating commit(s):
+
+1. Update `next_session_prompt.md` Session Checkpoint in this repo (mirror only; canonical model wins on conflict).
+2. If FCOS issue status/progress changed, update canonical status model first:
+   - `$GK_ROOT/governance/rocs/fcos-work-items.json`
+   - if issue was claimed for this session, release lease only when `status=doing` and owner matches:
+     - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
+     - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <todo|done>`
+   - run model invariants:
+     - `cd "$GK_ROOT" && just fcos-check`
+   - then refresh projection:
+     - `cd "$GK_ROOT" && scripts/rocs/render-fcos-issue-set.py`
+3. If PRD / 10,000-ft views / holdingco README projections / loops changed, edit model files first (not projection markdown):
+   - `$GK_ROOT/governance/rocs/prd-lite.json`
+   - `$GK_ROOT/governance/rocs/views-10000ft.json`
+   - `$GK_ROOT/governance/rocs/holdingco-readmes.json`
+   - `$GK_ROOT/governance/rocs/loops-registry.json`
+   - then refresh projections:
+     - `cd "$GK_ROOT" && scripts/rocs/render-holdingco-projections.py`
+     - `cd "$GK_ROOT" && scripts/rocs/render-loops-plugin-system.py`
+
+Keep updates concise and factual.
 
 ## 2) Commit workflow
+- Commit one repo at a time (no cross-repo mixed commit).
 - Create one or more logical commits.
 - Use conventional commits (`type(scope): description`).
 - Commit body must include:
   - **Why**
   - **Validation**
-- If `$ARGUMENTS` includes an RCOS issue id (e.g. `RCOS-M1-02`), include it in commit body.
+  - **Model/Projection Sync** (if applicable)
+  - **Lease/Lock Sync** (if issue claim/release was used)
+- If invocation arguments include an FCOS issue id (e.g. `FCOS-M1-03`), include it in commit body.
 
 ## 3) Validation policy
 - Prefer scoped checks per logical commit.
-- Run full repo validation once after final commit (or before push).
+- For `core/tpl-template-repo` changes, run:
+  - `bash ./scripts/check-l0.sh`
+- When governance-kernel model/projection files are touched, run:
+  - `cd "$GK_ROOT" && just fcos-check`
+  - `cd "$GK_ROOT" && bash scripts/rocs/check-fcos-doc-drift.sh`
+  - `cd "$GK_ROOT" && bash scripts/rocs/check-naming-boundaries.sh`
+  - `cd "$GK_ROOT" && bash scripts/rocs/check-holdingco-model-drift.sh`
+  - `cd "$GK_ROOT" && bash scripts/rocs/check-model-language-conformance.sh`
+  - when moving/operating in blocking enforcement stages:
+    - `cd "$GK_ROOT" && FCOS_REQUIRE_MODEL_LANG_TOOLS=1 bash scripts/rocs/check-model-language-conformance.sh`
+- Run full repo validation once after final logical commit (or before push).
 
 $ARGUMENTS
