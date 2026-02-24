@@ -8,7 +8,7 @@ Set canonical root once and keep all model/projection commands root-safe:
 ```bash
 GK_ROOT=~/ai-society/holdingco/governance-kernel
 [ -d "$GK_ROOT" ] || { echo "Missing $GK_ROOT"; exit 1; }
-[ -f "$GK_ROOT/governance/rocs/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
+[ -f "$GK_ROOT/governance/fcos/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
 ```
 
 1. `git status --short`
@@ -19,13 +19,17 @@ GK_ROOT=~/ai-society/holdingco/governance-kernel
    - `git diff -- <files...>`
 6. if this commit closes a claimed FCOS issue, inspect lease state before sync:
    - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
+7. derive canonical runnable head (anti-drift context):
+   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 
 ## 1) Sync canonical state first (model-first)
 Before creating commit(s):
 
 1. Update `next_session_prompt.md` Session Checkpoint in this repo (mirror only; canonical model wins on conflict).
+   - Keep `CURRENT PRIORITY` + `Next issue` runtime-resolved via `just fcos-runnable` (do not hardcode FCOS IDs).
+   - Treat periodic anti-drift cadence as loop-owned policy (`governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`).
 2. If FCOS issue status/progress changed, update canonical status model first:
-   - `$GK_ROOT/governance/rocs/fcos-work-items.json`
+   - `$GK_ROOT/governance/fcos/fcos-work-items.json`
    - if issue was claimed for this session, release lease only when `status=doing` and owner matches:
      - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
      - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <todo|done>`
@@ -34,10 +38,10 @@ Before creating commit(s):
    - then refresh projection:
      - `cd "$GK_ROOT" && scripts/rocs/render-fcos-issue-set.py`
 3. If PRD / 10,000-ft views / holdingco README projections / loops changed, edit model files first (not projection markdown):
-   - `$GK_ROOT/governance/rocs/prd-lite.json`
-   - `$GK_ROOT/governance/rocs/views-10000ft.json`
-   - `$GK_ROOT/governance/rocs/holdingco-readmes.json`
-   - `$GK_ROOT/governance/rocs/loops-registry.json`
+   - `$GK_ROOT/governance/fcos/prd-lite.json`
+   - `$GK_ROOT/governance/fcos/views-10000ft.json`
+   - `$GK_ROOT/governance/fcos/holdingco-readmes.json`
+   - `$GK_ROOT/governance/fcos/loops-registry.json`
    - then refresh projections:
      - `cd "$GK_ROOT" && scripts/rocs/render-holdingco-projections.py`
      - `cd "$GK_ROOT" && scripts/rocs/render-loops-plugin-system.py`
@@ -64,7 +68,7 @@ Keep updates concise and factual.
   - `cd "$GK_ROOT" && bash scripts/rocs/check-fcos-doc-drift.sh`
   - `cd "$GK_ROOT" && bash scripts/rocs/check-naming-boundaries.sh`
   - `cd "$GK_ROOT" && bash scripts/rocs/check-holdingco-model-drift.sh`
-  - `cd "$GK_ROOT" && bash scripts/rocs/check-model-language-conformance.sh`
+    - includes model-language conformance; run standalone check only for targeted debugging
   - when moving/operating in blocking enforcement stages:
     - `cd "$GK_ROOT" && FCOS_REQUIRE_MODEL_LANG_TOOLS=1 bash scripts/rocs/check-model-language-conformance.sh`
 - Run full repo validation once after final logical commit (or before push).

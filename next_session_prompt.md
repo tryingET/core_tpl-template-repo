@@ -5,7 +5,7 @@ Reading this file is authorization to start work immediately.
 Do not ask for permission to begin.
 
 ## READ-FIRST ALLOWLIST (ONLY THESE, HARD)
-1. `~/ai-society/holdingco/governance-kernel/governance/rocs/fcos-work-items.json` (canonical issue backlog + per-issue execution contracts)
+1. `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json` (canonical issue backlog + per-issue execution contracts)
 
 Do not read `fleet-state.yaml`, `loops-registry.json`, or projection markdown during startup unless the selected issue contract requires them.
 
@@ -15,7 +15,7 @@ Use explicit root context so commands are runnable from any repo:
 ```bash
 GK_ROOT=~/ai-society/holdingco/governance-kernel
 [ -d "$GK_ROOT" ] || { echo "Missing $GK_ROOT"; exit 1; }
-[ -f "$GK_ROOT/governance/rocs/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
+[ -f "$GK_ROOT/governance/fcos/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
 ```
 
 ## NEXUS GUARDRAIL (HARD) — EXECUTE-FIRST BUDGET GATE
@@ -46,9 +46,9 @@ By end of Phase A, do exactly one:
 - ask one concise blocker question.
 
 ## AUTHORITY SPLIT (NON-NEGOTIABLE)
-- Canonical issue status authority: `~/ai-society/holdingco/governance-kernel/governance/rocs/fcos-work-items.json`.
-- Canonical policy/state authority: `~/ai-society/holdingco/governance-kernel/governance/rocs/fleet-state.yaml`.
-- Canonical loop/plugin extensibility authority: `~/ai-society/holdingco/governance-kernel/governance/rocs/loops-registry.json`.
+- Canonical issue status authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json`.
+- Canonical policy/state authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml`.
+- Canonical loop/plugin extensibility authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json`.
 - Human-readable projections (issue-set/PRD/views/loops/readmes) are derived artifacts only.
 - This file's Session Checkpoint is a transient mirror for local continuity only; canonical model state wins on conflict.
 - Program naming is `FCOS`; canonical issue IDs are `FCOS-*`.
@@ -56,7 +56,7 @@ By end of Phase A, do exactly one:
 
 ## EXECUTION MODE (ONE SESSION = ONE ISSUE)
 Apply cognitive frameworks from `~/steve/prompts/prompt-snippets.md` (at minimum: INVERSION, TELESCOPIC, NEXUS, ESCAPE HATCH, KNOWLEDGE CRYSTALLIZATION) to the selected issue only; frameworks do not authorize extra discovery.
-1. Parse `$GK_ROOT/governance/rocs/fcos-work-items.json`.
+1. Parse `$GK_ROOT/governance/fcos/fcos-work-items.json`.
 2. Pick the first issue where `status == "todo"` and dependencies are satisfied (lowest milestone first).
 3. In multi-agent mode, claim the issue lease first (`just fcos-claim <ISSUE> <owner> <ttl_hours>`) and confirm `just fcos-check` is green.
 4. Read only `issue.contract.context.read_first[]`.
@@ -78,7 +78,7 @@ Available local tools (remember):
 
 Predefined workflow snippets:
 1. Targeted inspect first (no full-file scan):
-   - `jq '[ .milestones[].issues[] ] as $all | ($all | map(select(.status=="done") | .id)) as $done | $all | map(select(.status == "todo")) | map(select((.depends_on // []) as $deps | ($deps | map(. as $d | ($done | index($d) != null)) | all))) | sort_by(.id) | map({id, depends_on, repo, lock_keys:.contract.lock_keys, parallel_mode:.contract.parallel_mode, read_first:.contract.context.read_first, read_if_blocked:.contract.context.read_if_blocked})' "$GK_ROOT/governance/rocs/fcos-work-items.json"`
+   - `jq '[ .milestones[].issues[] ] as $all | ($all | map(select(.status=="done") | .id)) as $done | $all | map(select(.status == "todo")) | map(select((.depends_on // []) as $deps | ($deps | map(. as $d | ($done | index($d) != null)) | all))) | sort_by(.id) | map({id, depends_on, repo, lock_keys:.contract.lock_keys, parallel_mode:.contract.parallel_mode, read_first:.contract.context.read_first, read_if_blocked:.contract.context.read_if_blocked})' "$GK_ROOT/governance/fcos/fcos-work-items.json"`
    - `cd "$GK_ROOT" && just fcos-runnable`
    - `cd "$GK_ROOT" && just fcos-parallel`
    - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
@@ -86,8 +86,8 @@ Predefined workflow snippets:
    - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <todo|done>` (only for currently claimed issue)
    - `cd "$GK_ROOT" && just fcos-check`
 2. Model edit (atomic):
-   - `tmp=$(mktemp) && jq '<filter>' "$GK_ROOT/governance/rocs/<in>.json" > "$tmp" && mv "$tmp" "$GK_ROOT/governance/rocs/<in>.json"`
-   - `yq -y --in-place '<filter>' "$GK_ROOT/governance/rocs/<in>.yaml"`
+   - `tmp=$(mktemp) && jq '<filter>' "$GK_ROOT/governance/fcos/<in>.json" > "$tmp" && mv "$tmp" "$GK_ROOT/governance/fcos/<in>.json"`
+   - `yq -y --in-place '<filter>' "$GK_ROOT/governance/fcos/<in>.yaml"`
    - use `uv run python` for multi-field or cross-structure updates (fallback `python3`)
 3. Re-render projections + run gates immediately after edits:
    - `cd "$GK_ROOT" && scripts/rocs/render-fcos-issue-set.py`
@@ -101,7 +101,7 @@ Minimal read policy:
 
 ## ENDGAME MODE (CLOSEOUT BIAS)
 - We are in late-stage convergence: avoid new side-quests.
-- Prioritize completion of remaining **M1** issues and activation of real modeling-language enforcement.
+- Prioritize the first runnable issue from canonical model (`cd "$GK_ROOT" && just fcos-runnable`) and activation of real modeling-language enforcement.
 - Keep markdown as projection layer; move authority into models/contracts/policies.
 
 ## NON-NEGOTIABLES
@@ -112,36 +112,43 @@ Minimal read policy:
 - Mainline-safe behavior: no irreversible actions without rollback path.
 - `softwareco/owned/testers` is proving lane only, never policy authority.
 
-## CURRENT PRIORITY
-Execute remaining **M1** issue:
-- FCOS-M1-05
+## CURRENT PRIORITY (CANONICAL, DO NOT HARDCODE)
+Resolve at runtime from canonical model:
+- `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
+Use the returned issue ID for claim/execute/release; treat mirrored IDs in this file as non-authoritative.
+
+## ANTI-DRIFT CADENCE (LAYERED)
+- Required each session (cheap): resolve runnable issue once before claim/execute.
+- Required at closeout: run deterministic gates (`just fcos-check`, drift checks, strict model-language gate where required).
+- Optional periodic fleet loop (ops hygiene, e.g. every 15m):
+  - `cd ~/ai-society/core/rocs-cli && uv run python scripts/audit-fleet.py --workspace-root ~/ai-society --policy ~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml --json /tmp/fcos-audit.json --markdown /tmp/fcos-audit.md --report-only`
+- Canonical loop definition: `governance/fcos/loops-registry.json` seed plugin `loop.fcos.drift.audit` (projection: `docs/dev/loops-plugin-system.md`).
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
-- Issue executed: FCOS-M1-05 (partial, governance-kernel contract hardening + prompt alignment)
+- Issue executed: FCOS-M1-05 (done; lease released with explicit `status=done`)
 - Outcome:
-  - scheduler transitions are now invariant-guarded (dependency integrity, cycle detection, lease-owner release discipline)
-  - loop plugin policy guardrails hardened (unknown `profile_pack`/`objective`, blocking contract requirements)
-  - strict model-language enforcement mode documented and wired (`FCOS_REQUIRE_MODEL_LANG_TOOLS=1`)
-  - projections/prompts/docs aligned to canonical `todo|doing|done` + claim/release contract
+  - canonical mainline queue contract is now defined in `fleet-state.yaml` (`submit`, lock, deterministic gates, acceptance artifact, rollback semantics)
+  - rollback command contract is defined per repo class (`required|optional|ontology_repo`)
+  - queue MVP runner + canonical queue model added (`scripts/rocs/mainline-queue.py`, `governance/fcos/mainline-queue.json`)
+  - acceptance artifact format is explicitly templated (`governance/fcos/templates/mainline-acceptance-artifact.template.json`)
+  - model-language coverage extended for queue model (`mainline-queue.cue`) and wired into conformance gate
+  - issue contract/projection updated to reflect completion (`FCOS-M1-05` tasks + validation + status)
 - Major artifacts added/updated:
-  - scheduler + checks: `~/ai-society/holdingco/governance-kernel/scripts/rocs/fcos-scheduler.py`, `~/ai-society/holdingco/governance-kernel/scripts/rocs/check-model-language-conformance.sh`
-  - model contracts/policy: `~/ai-society/holdingco/governance-kernel/governance/rocs/model-languages/contract/fcos-work-items.cue`, `~/ai-society/holdingco/governance-kernel/governance/rocs/model-languages/policy/loops-policy.rego`
-  - renderers/projections: `~/ai-society/holdingco/governance-kernel/scripts/rocs/render-fcos-issue-set.py`, `~/ai-society/holdingco/governance-kernel/scripts/rocs/render-loops-plugin-system.py`, `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md`, `~/ai-society/holdingco/governance-kernel/docs/dev/loops-plugin-system.md`
-  - authority docs: `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-document-authority.md`, `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-sdk-prompt.md`, `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-rollup-plan.md`, `~/ai-society/holdingco/governance-kernel/docs/dev/mainline-cicd.md`, `~/ai-society/holdingco/governance-kernel/governance/rocs/README.md`
-  - local prompts: `next_session_prompt.md`, `.pi/prompts/commit.md`, `.pi/extensions/project-prompts-first.ts`
+  - queue runner + checks: `~/ai-society/holdingco/governance-kernel/scripts/rocs/mainline-queue.py`, `~/ai-society/holdingco/governance-kernel/scripts/rocs/check-model-language-conformance.sh`, `~/ai-society/holdingco/governance-kernel/justfile`
+  - canonical models/contracts: `~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml`, `~/ai-society/holdingco/governance-kernel/governance/fcos/mainline-queue.json`, `~/ai-society/holdingco/governance-kernel/governance/fcos/model-languages/contract/mainline-queue.cue`, `~/ai-society/holdingco/governance-kernel/governance/fcos/templates/mainline-acceptance-artifact.template.json`, `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json`
+  - docs/projections: `~/ai-society/holdingco/governance-kernel/docs/dev/mainline-cicd.md`, `~/ai-society/holdingco/governance-kernel/governance/fcos/README.md`, `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md`
 - Validation run:
-  - `cd ~/ai-society/holdingco/governance-kernel && python3 -m py_compile scripts/rocs/fcos-scheduler.py scripts/rocs/render-fcos-issue-set.py scripts/rocs/render-loops-plugin-system.py`
+  - `cd ~/ai-society/holdingco/governance-kernel && python3 -m py_compile scripts/rocs/fcos-scheduler.py scripts/rocs/mainline-queue.py scripts/rocs/render-fcos-issue-set.py scripts/rocs/render-loops-plugin-system.py`
+  - `cd ~/ai-society/holdingco/governance-kernel && tmp_queue=$(mktemp) && cp governance/fcos/mainline-queue.json "$tmp_queue" && tmp_artifacts=$(mktemp -d) && python3 scripts/rocs/mainline-queue.py --fleet-state governance/fcos/fleet-state.yaml --queue-model "$tmp_queue" submit --batch-id dryrun-fcos-m1-05 --repo-path ai-society/holdingco/governance-kernel --repo-class optional --commit-range deadbeef..feedface --risk high --consent-ref FCOS-M1-05 && python3 scripts/rocs/mainline-queue.py --fleet-state governance/fcos/fleet-state.yaml --queue-model "$tmp_queue" process-next --dry-run --simulate gate-fail --artifact-dir "$tmp_artifacts" && jq -e '.rollback_proof.executed == true and .status == "rolled_back" and .lock_proof.lock_file == "governance/fcos/mainline-queue.lock"' "$tmp_artifacts/dryrun-fcos-m1-05.json" >/dev/null`
   - `cd ~/ai-society/holdingco/governance-kernel && scripts/rocs/render-fcos-issue-set.py --check`
-  - `cd ~/ai-society/holdingco/governance-kernel && scripts/rocs/render-loops-plugin-system.py --check`
   - `cd ~/ai-society/holdingco/governance-kernel && bash scripts/rocs/check-fcos-doc-drift.sh`
   - `cd ~/ai-society/holdingco/governance-kernel && bash scripts/rocs/check-holdingco-model-drift.sh`
-  - `cd ~/ai-society/holdingco/governance-kernel && bash scripts/rocs/check-model-language-conformance.sh`
   - `cd ~/ai-society/holdingco/governance-kernel && FCOS_REQUIRE_MODEL_LANG_TOOLS=1 bash scripts/rocs/check-model-language-conformance.sh`
   - `cd ~/ai-society/holdingco/governance-kernel && bash scripts/rocs/check-naming-boundaries.sh`
-  - `cd ~/ai-society/core/tpl-template-repo && bash ./scripts/check-l0.sh`
-- Next issue: FCOS-M1-05 (complete queue/remediation flow and close remaining policy violations)
+  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-check`
+- Next issue (resolve live): `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Blockers/risks:
-  - strict model-language mode will fail when required tools (`cue`, `opa`) are missing; keep non-strict mode only where rollout stage explicitly permits.
+  - queue runner currently requires `yq` for fleet-state parsing; keep this available in execution environments.
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).
