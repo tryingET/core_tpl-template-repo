@@ -130,6 +130,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "copier/$tpl/scripts/ci/smoke.sh"
   assert_file "copier/$tpl/scripts/ci/full.sh"
   assert_file "copier/$tpl/diary/README.md"
+  assert_contains "copier/$tpl/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 template $tpl diary README should enforce descriptive filename convention"
   assert_not_dir "copier/$tpl/docs/diary"
   assert_contains "copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
   assert_contains "copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
@@ -173,6 +174,7 @@ assert_contains "README.md" "Baseline structure" "L1 README should describe base
 assert_contains "README.md" "Deterministic ROCS launcher" "L1 README should document deterministic ROCS launcher"
 assert_contains "README.md" "repo-local diary" "L1 README should document repo-local diary contract"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
+assert_contains "diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README should enforce descriptive filename convention"
 
 contract="contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "L1 contract layer mismatch"
@@ -310,6 +312,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "$l2_dir/scripts/ci/smoke.sh"
   assert_file "$l2_dir/scripts/ci/full.sh"
   assert_file "$l2_dir/diary/README.md"
+  assert_contains "$l2_dir/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "generated $tpl diary README should enforce descriptive filename convention"
   assert_not_dir "$l2_dir/docs/diary"
   assert_exec "$l2_dir/scripts/rocs.sh"
   assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"

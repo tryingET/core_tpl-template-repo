@@ -34,7 +34,7 @@ Forbidden:
 - Use inline Python only as an explicit escape hatch when no deterministic command exists.
 
 ## Diary policy (repo-local, mandatory)
-- Keep session capture in `./diary/YYYY-MM-DD.md` for this repo.
+- Keep session capture in `./diary/YYYY-MM-DD--type-scope-summary.md` for this repo.
 - Keep diary guidance in `./diary/README.md`.
 - Apply the same diary contract per structural template (`tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-individual-repo` when added).
 

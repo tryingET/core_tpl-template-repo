@@ -6,9 +6,13 @@ Repo-local session capture for this L1 template repository.
 
 Use `./diary/` as the canonical raw log for work in this repository.
 
-- Entry: `YYYY-MM-DD.md`
-- Multiple sessions/day: `YYYY-MM-DD-2.md`
+- Entry: `YYYY-MM-DD--type-scope-summary.md`
+- Multiple sessions/day: `YYYY-MM-DD--type-scope-summary--2.md`
 - Crystallize to: `tips/` and `docs/learnings/` when patterns generalize
+
+Filename convention:
+- Start from a commit-style header: `type(scope): summary`
+- Slug it into filename-safe form: `type-scope-summary`
 
 ## Entry template
 

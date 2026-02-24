@@ -57,7 +57,7 @@ L2 learns → TIP proposed → L1 review → merge → propagate → L0 (if meta
 
 ## Diary policy (repo-local, mandatory)
 
-- Keep raw session capture in `./diary/YYYY-MM-DD.md` for this repo.
+- Keep raw session capture in `./diary/YYYY-MM-DD--type-scope-summary.md` for this repo.
 - Every generated L2 archetype must include the same root diary contract at `./diary/README.md`.
 - Structural scope for KES diary parity: `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, and `tpl-individual-repo` when introduced.
 

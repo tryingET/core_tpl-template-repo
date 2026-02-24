@@ -39,25 +39,18 @@ Execute **M1** issues in order:
 - FCOS-M1-05
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
-- Issue executed: none (out-of-band policy correction: diary authority moved to repo-local `./diary/`)
+- Issue executed: none (out-of-band KES policy correction)
 - Outcome: partial
 - Files changed:
-  - `~/ai-society/core/tpl-template-repo/AGENTS.md`
-  - `~/ai-society/core/tpl-template-repo/CONTRIBUTING.md`
-  - `~/ai-society/core/tpl-template-repo/README.md`
-  - `~/ai-society/core/tpl-template-repo/diary/*`
-  - `~/ai-society/core/tpl-template-repo/copier-template/**/diary/*`
-  - `~/ai-society/core/tpl-template-repo/copier-template/**/AGENTS.md*`
-  - `~/ai-society/core/tpl-template-repo/copier-template/**/README.md*`
-  - `~/ai-society/core/tpl-template-repo/scripts/check-l0-guardrails.sh`
-  - `~/ai-society/core/tpl-template-repo/copier-template/scripts/check-template-ci.sh`
-  - `~/ai-society/core/tpl-template-repo/tips/meta/tip-0002-agent-diary.md`
-  - `~/ai-society/core/tpl-template-repo/tips/meta/tip-0003-selective-kes-lane-templates.md`
+  - repo-local diary policy + naming convention (`YYYY-MM-DD--type-scope-summary.md`) in L0/L1/L2 docs
+  - legacy `docs/diary/*` removed from L2 archetypes and fixtures
+  - guardrails updated to enforce `./diary/README.md` + descriptive filename convention
+  - `tips/meta/tip-0002-agent-diary.md` and `tips/meta/tip-0003-selective-kes-lane-templates.md`
 - Validation run:
   - `bash ./scripts/sync-l0-fixtures.sh`
   - `bash ./scripts/check-l0.sh`
 - Next issue: FCOS-M1-02
-- Blockers/risks: FCOS M1-02 remains open; this commit only normalizes KES diary location and guardrails.
+- Blockers/risks: FCOS backlog unchanged in this repo; M1-02 still requires implementation in `core/rocs-cli`.
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).

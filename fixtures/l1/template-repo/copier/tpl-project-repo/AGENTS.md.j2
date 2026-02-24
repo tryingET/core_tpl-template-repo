@@ -21,7 +21,7 @@ Session → diary/ (raw) → docs/learnings/ (crystallized) → TIPs (propagated
 
 **Knowledge that isn't crystallized is knowledge that will be re-learned the hard way.**
 
-1. During work: Capture in `diary/YYYY-MM-DD.md`
+1. During work: Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
 2. End of session: Extract patterns, decisions, learnings
 3. Weekly: Promote to `docs/learnings/` and `docs/decisions/`
 4. When pattern generalizes: Propose TIP

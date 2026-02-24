@@ -151,6 +151,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
   assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
   assert_file "copier-template/copier/$tpl/diary/README.md"
+  assert_contains "copier-template/copier/$tpl/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 template $tpl diary README should enforce descriptive filename convention"
   assert_absent "copier-template/copier/$tpl/docs/diary"
   assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
 done
@@ -240,6 +241,8 @@ assert_contains "README.md" "Release pack" "README should document optional rele
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
 assert_contains "README.md" "Deterministic ROCS launcher" "README should document deterministic ROCS launcher"
 assert_contains "README.md" "diary/" "README should document repo-local diary policy"
+assert_contains "diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L0 diary README should enforce descriptive filename convention"
+assert_contains "copier-template/diary/README.md.jinja" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README template should enforce descriptive filename convention"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
   assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"
@@ -255,6 +258,8 @@ assert_contains "copier-template/CONTRIBUTING.md" "diary/" "generated L1 contrib
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
 assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" "generated L1 README should describe deterministic ROCS launcher"
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
+assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
+assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
 
 contract="copier-template/contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "generated L1 contract must declare layer L1"
