@@ -2,54 +2,69 @@
 
 Template governance layer for this company.
 
-## Structure
+## Purpose
+
+This folder contains **planning artifacts** for company-level coordination:
+
+| Folder | Purpose | Operational? |
+|--------|---------|--------------|
+| `programs/` | Company-level work tracking | Planning only |
+| `model-languages/` | Schema validation | Yes (CUE) |
+
+## Three-Level Hierarchy
+
+| Level | Scope | Location | Operational? |
+|-------|-------|----------|--------------|
+| **L0** | Cross-company | governance-kernel/governance/programs/ | Yes (scheduler) |
+| **L1** | Company | this repo: governance/programs/ | Planning only |
+| **L2** | Project | repo/governance/work-items.json | Planning only |
+
+## Company-Level Programs
+
+Programs are tracked in `programs/`:
 
 ```
-governance/
-├── README.md              # This file
-└── programs/              # Company-level programs
-    └── template-setup/
-        └── work-items.json
+programs/
+└── template-setup/
+    ├── work-items.json    # Milestones and issues
+    └── README.md
 ```
 
-## Program Tracking
+### What Goes Here
 
-Company-level programs are tracked in `programs/`:
+- Template individualization for this company
+- Repo bootstrapping (tpl-owned, tpl-contrib, tpl-infra)
+- Company-specific compliance baseline
 
-| Program | Description |
-|---------|-------------|
-| template-setup | Individualize L2 templates, bootstrap company repos |
+### What Does NOT Go Here
 
-See `programs/README.md` for details.
+- Cross-company work → L0 (governance-kernel)
+- Single-repo features → L2 (project governance)
 
-## TIP Review Authority
+## Validation
 
-- **Domain TIPs**: Reviewed by L1 maintainer
-- **Meta TIPs**: Escalate to L0 maintainers
-- **Infrastructure TIPs**: Escalate to L0 maintainers
+Validate work-items against schema:
 
-## Consent Model
-
-Changes flow through consent:
-1. TIP proposed with evidence
-2. Review period (default: 3 days)
-3. No objection → merge
-4. Objection → discuss → revise → re-propose
-
-## Escalation Paths
-
-```
-L1 TIPs ─┬─ domain ──────► stay local
-         │
-         ├─ meta ────────► L0 core/tpl-template-repo
-         │
-         └─ infra ───────► L0 core/tpl-template-repo
+```bash
+cue vet governance/programs/*/work-items.json governance/model-languages/contract/work-items.cue
 ```
 
-## Hierarchy
+## TIP Review Process
 
-| Level | Scope | Location |
-|-------|-------|----------|
-| L0 | Cross-company | governance-kernel/governance/programs/ |
-| L1 | Company | this repo: governance/programs/ |
-| L2 | Project | repo/governance/work-items.json |
+See `governance/README.md` for TIP escalation paths.
+
+## State Machine
+
+All levels use the same 5-state machine:
+
+```
+triage → queued → doing → review → done
+```
+
+Defined in: `governance-kernel/governance/fcos/state-machine.yaml`
+
+## Related
+
+- L0 Programs: `governance-kernel/governance/programs/`
+- State Machine: `governance-kernel/governance/fcos/state-machine.yaml`
+- Org Handbook: `holdingco/org-handbook/docs/org/governance/structure.md`
