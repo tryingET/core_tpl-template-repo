@@ -1,0 +1,12 @@
+_src_path: /tmp/tmp.KOGRwtMh02/l1-template-repo/copier/tpl-individual-repo
+company_ontology_ref: <gitlab:org/ontology@v0.1.0>
+core_owner_handle: '@core-owner'
+enable_community_pack: false
+enable_release_pack: false
+enable_vouch_gate: false
+kernel_ontology_ref: <gitlab:org/ontology-kernel@v0.1.0>
+org_owner_handle: '@org-owners'
+project_owner_handle: '@project-owners'
+repo_slug: fixture-individual-repo
+
+

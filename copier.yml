@@ -42,7 +42,7 @@ enable_release_pack:
 
 _tasks:
   - "chmod +x scripts/new-repo-from-copier.sh scripts/check-template-ci.sh scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh scripts/release/check.sh scripts/release/publish.sh .githooks/pre-commit .githooks/pre-push"
-  - "chmod +x copier/tpl-agent-repo/scripts/ci/smoke.sh copier/tpl-agent-repo/scripts/ci/full.sh copier/tpl-org-repo/scripts/ci/smoke.sh copier/tpl-org-repo/scripts/ci/full.sh copier/tpl-project-repo/scripts/ci/smoke.sh copier/tpl-project-repo/scripts/ci/full.sh"
+  - "chmod +x copier/tpl-agent-repo/scripts/ci/smoke.sh copier/tpl-agent-repo/scripts/ci/full.sh copier/tpl-org-repo/scripts/ci/smoke.sh copier/tpl-org-repo/scripts/ci/full.sh copier/tpl-project-repo/scripts/ci/smoke.sh copier/tpl-project-repo/scripts/ci/full.sh copier/tpl-individual-repo/scripts/ci/smoke.sh copier/tpl-individual-repo/scripts/ci/full.sh"
   - "{{ 'true' if l1_org_docs_profile == 'rich' else 'rm -f docs/org/purpose.md docs/org/mission.md docs/org/vision.md docs/org/strategic_objectives.md docs/org/values_ethics.md docs/org/governance.md docs/org/glossary.md' }}"
   - "{{ 'true' if enable_community_pack else 'rm -f CODE_OF_CONDUCT.md SUPPORT.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug-report.yml .github/ISSUE_TEMPLATE/feature-request.yml' }}"
   - "{{ 'true' if enable_release_pack else 'rm -f .github/workflows/release-please.yml .github/workflows/release-check.yml .github/workflows/publish.yml .release-please-config.json .release-please-manifest.json CHANGELOG.md SECURITY.md && rm -rf scripts/release' }}"
@@ -86,9 +86,10 @@ _message_after_copy: |
   L1 template repository scaffolded at {{ _copier_conf.dst_path }}
 
   Embedded templates:
-    - copier/tpl-agent-repo/   (AI agent repos)
-    - copier/tpl-org-repo/     (Organization handbooks)
-    - copier/tpl-project-repo/ (Project repos)
+    - copier/tpl-agent-repo/      (AI agent repos)
+    - copier/tpl-org-repo/        (Organization handbooks)
+    - copier/tpl-project-repo/    (Project repos)
+    - copier/tpl-individual-repo/ (Individual repos)
 
   Next steps:
     - run: bash ./scripts/check-template-ci.sh
@@ -98,6 +99,9 @@ _message_after_copy: |
     - generate an L2 project:
       ./scripts/new-repo-from-copier.sh tpl-project-repo /tmp/my-project \
         -d repo_slug=my-project --defaults --overwrite
+    - generate an L2 individual repo:
+      ./scripts/new-repo-from-copier.sh tpl-individual-repo /tmp/my-individual \
+        -d repo_slug=my-individual --defaults --overwrite
     - generate an L2 org handbook:
       ./scripts/new-repo-from-copier.sh tpl-org-repo /tmp/my-org \
         -d repo_slug=my-org --defaults --overwrite

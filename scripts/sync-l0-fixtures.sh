@@ -15,42 +15,74 @@ need_cmd cp
 need_cmd mkdir
 need_cmd mktemp
 need_cmd rm
+need_cmd tail
+
+SYNC_VERBOSE="${SYNC_VERBOSE:-0}"
+
+run_step() {
+  if [ "$SYNC_VERBOSE" = "1" ]; then
+    "$@"
+    return
+  fi
+
+  log_file="$(mktemp)"
+  if "$@" >"$log_file" 2>&1; then
+    rm -f "$log_file"
+    return
+  fi
+
+  echo "error: command failed: $*" >&2
+  echo "--- last 200 lines ---" >&2
+  tail -n 200 "$log_file" >&2 || true
+  rm -f "$log_file"
+  return 1
+}
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
 l1_render="$tmp_root/l1-template-repo"
-l2_render="$tmp_root/l2-tpl-project-repo"
+l2_render_project="$tmp_root/l2-tpl-project-repo"
+l2_render_individual="$tmp_root/l2-tpl-individual-repo"
 
-"$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
+run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
   -d repo_slug=fixture-template-repo \
   -d maintainer_handle=@template-owner \
   -d l1_org_docs_profile=rich \
   -d enable_community_pack=false \
   -d enable_release_pack=false \
   -d enable_vouch_gate=false \
-  --defaults --overwrite >/dev/null
+  --defaults --overwrite
 
 (
   cd "$l1_render"
-  ./scripts/new-repo-from-copier.sh tpl-project-repo "$l2_render" \
+  run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$l2_render_project" \
     -d repo_slug=fixture-product-repo \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
-    --defaults --overwrite >/dev/null
+    --defaults --overwrite
+  run_step ./scripts/new-repo-from-copier.sh tpl-individual-repo "$l2_render_individual" \
+    -d repo_slug=fixture-individual-repo \
+    -d enable_community_pack=false \
+    -d enable_release_pack=false \
+    -d enable_vouch_gate=false \
+    --defaults --overwrite
 )
 
 fixtures_root="$repo_root/fixtures"
 fixture_l1="$fixtures_root/l1/template-repo"
-fixture_l2="$fixtures_root/l2/tpl-project-repo"
+fixture_l2_project="$fixtures_root/l2/tpl-project-repo"
+fixture_l2_individual="$fixtures_root/l2/tpl-individual-repo"
 
-rm -rf "$fixture_l1" "$fixture_l2"
-mkdir -p "$fixture_l1" "$fixture_l2"
+rm -rf "$fixture_l1" "$fixture_l2_project" "$fixture_l2_individual"
+mkdir -p "$fixture_l1" "$fixture_l2_project" "$fixture_l2_individual"
 
 cp -R "$l1_render/." "$fixture_l1/"
-cp -R "$l2_render/." "$fixture_l2/"
+cp -R "$l2_render_project/." "$fixture_l2_project/"
+cp -R "$l2_render_individual/." "$fixture_l2_individual/"
 
 echo "ok: fixtures synchronized"
 echo "  - $fixture_l1"
-echo "  - $fixture_l2"
+echo "  - $fixture_l2_project"
+echo "  - $fixture_l2_individual"

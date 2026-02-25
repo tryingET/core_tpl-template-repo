@@ -15,10 +15,11 @@ Example:
     --defaults --overwrite
 
 Notes:
-  - Generates L1 with all three embedded templates:
-    - copier/tpl-agent-repo/   (AI agent repos)
-    - copier/tpl-org-repo/     (Organization handbooks)
-    - copier/tpl-project-repo/ (Project repos)
+  - Generates L1 with all embedded templates:
+    - copier/tpl-agent-repo/      (AI agent repos)
+    - copier/tpl-org-repo/        (Organization handbooks)
+    - copier/tpl-project-repo/    (Project repos)
+    - copier/tpl-individual-repo/ (Individual repos)
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - Set `-d l1_org_docs_profile=rich|compact` to choose L1 org docs depth.
   - Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
@@ -28,18 +29,25 @@ EOF
 }
 
 COPIER_VERSION="${COPIER_VERSION:-9.11.1}"
+COPIER_WARN_FILTER="${COPIER_WARN_FILTER:-ignore:Dirty template changes included automatically.:Warning}"
+COPIER_VCS_REF="${COPIER_VCS_REF:-HEAD}"
 
 run_copier() {
+  pythonwarnings="$COPIER_WARN_FILTER"
+  if [ -n "${PYTHONWARNINGS:-}" ]; then
+    pythonwarnings="$pythonwarnings,${PYTHONWARNINGS}"
+  fi
+
   if command -v uvx >/dev/null 2>&1; then
-    uvx --from "copier==${COPIER_VERSION}" copier "$@"
+    PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"
     return
   fi
   if command -v copier >/dev/null 2>&1; then
-    copier "$@"
+    PYTHONWARNINGS="$pythonwarnings" copier "$@"
     return
   fi
   if command -v uv >/dev/null 2>&1; then
-    uv tool run --from "copier==${COPIER_VERSION}" copier "$@"
+    PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"
     return
   fi
   echo "error: missing dependency: copier (or uvx/uv)" >&2
@@ -65,12 +73,38 @@ if [ "$have_answers" = "0" ]; then
   set -- -a .copier-answers.yml "$@"
 fi
 
+has_vcs_ref_override() {
+  expect_ref_value=0
+  for arg in "$@"; do
+    if [ "$expect_ref_value" = "1" ]; then
+      return 0
+    fi
+
+    case "$arg" in
+      -r|--vcs-ref)
+        expect_ref_value=1
+        ;;
+      -r*|--vcs-ref=*)
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 
 # Inject L0 source SHA for provenance tracking
 l0_sha="unknown"
 if [ -d "$repo_root/.git" ]; then
   l0_sha="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || echo unknown)"
+fi
+
+if ! has_vcs_ref_override "$@"; then
+  if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    set -- -r "$COPIER_VCS_REF" "$@"
+  fi
 fi
 
 run_copier copy --trust -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"

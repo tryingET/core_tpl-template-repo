@@ -45,6 +45,84 @@ assert_not_contains() {
   fi
 }
 
+is_project_individual_parity_allowlisted() {
+  rel_path="$1"
+  case "$rel_path" in
+    AGENTS.md.j2|CODEOWNERS.j2|README.md.j2|copier.yml)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+list_template_files() {
+  template_dir="$1"
+
+  find "$template_dir" -type f | while IFS= read -r abs_path; do
+    rel_path="${abs_path#$template_dir/}"
+    case "$rel_path" in
+      */__pycache__/*|*.pyc)
+        continue
+        ;;
+    esac
+    printf '%s\n' "$rel_path"
+  done | LC_ALL=C sort
+}
+
+check_project_individual_template_parity() {
+  project_dir="$1"
+  individual_dir="$2"
+
+  project_files="$(mktemp)"
+  individual_files="$(mktemp)"
+
+  list_template_files "$project_dir" > "$project_files"
+  list_template_files "$individual_dir" > "$individual_files"
+
+  set +e
+  git diff --no-index --quiet -- "$project_files" "$individual_files"
+  list_status=$?
+  set -e
+
+  if [ "$list_status" -eq 1 ]; then
+    echo "error: tpl-project-repo and tpl-individual-repo file sets drifted" >&2
+    git --no-pager diff --no-index -- "$project_files" "$individual_files" >&2 || true
+    rm -f "$project_files" "$individual_files"
+    exit 1
+  fi
+  if [ "$list_status" -ne 0 ]; then
+    rm -f "$project_files" "$individual_files"
+    fail "unable to compare tpl-project-repo and tpl-individual-repo file sets"
+  fi
+
+  while IFS= read -r rel_path; do
+    [ -n "$rel_path" ] || continue
+    if is_project_individual_parity_allowlisted "$rel_path"; then
+      continue
+    fi
+
+    set +e
+    git diff --no-index --quiet -- "$project_dir/$rel_path" "$individual_dir/$rel_path"
+    content_status=$?
+    set -e
+
+    if [ "$content_status" -eq 1 ]; then
+      echo "error: parity drift outside allowlist: $rel_path" >&2
+      git --no-pager diff --no-index -- "$project_dir/$rel_path" "$individual_dir/$rel_path" >&2 || true
+      rm -f "$project_files" "$individual_files"
+      exit 1
+    fi
+    if [ "$content_status" -ne 0 ]; then
+      rm -f "$project_files" "$individual_files"
+      fail "unable to compare tpl-project-repo and tpl-individual-repo contents"
+    fi
+  done < "$project_files"
+
+  rm -f "$project_files" "$individual_files"
+}
+
 # L0 core files
 required_files="
 CODEOWNERS
@@ -119,6 +197,9 @@ fixtures/l1/template-repo/diary/README.md
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
 fixtures/l2/tpl-project-repo/diary/README.md
+fixtures/l2/tpl-individual-repo/AGENTS.md
+fixtures/l2/tpl-individual-repo/.copier-answers.yml
+fixtures/l2/tpl-individual-repo/diary/README.md
 "
 
 while IFS= read -r path; do
@@ -133,6 +214,7 @@ required_dirs="
 copier-template/copier/tpl-agent-repo
 copier-template/copier/tpl-org-repo
 copier-template/copier/tpl-project-repo
+copier-template/copier/tpl-individual-repo
 "
 
 while IFS= read -r path; do
@@ -143,7 +225,7 @@ $required_dirs
 EOF
 
 # L2 template required files (each template must have these)
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   assert_file "copier-template/copier/$tpl/copier.yml"
   assert_file "copier-template/copier/$tpl/AGENTS.md.j2"
   assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
@@ -155,6 +237,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_absent "copier-template/copier/$tpl/docs/diary"
   assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
 done
+
+check_project_individual_template_parity "copier-template/copier/tpl-project-repo" "copier-template/copier/tpl-individual-repo"
 
 required_exec="
 scripts/preview-l1-diff.sh
@@ -186,6 +270,7 @@ assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source 
 assert_contains "copier.yml" "copier/tpl-agent-repo/" "L0 message must mention tpl-agent-repo template"
 assert_contains "copier.yml" "copier/tpl-org-repo/" "L0 message must mention tpl-org-repo template"
 assert_contains "copier.yml" "copier/tpl-project-repo/" "L0 message must mention tpl-project-repo template"
+assert_contains "copier.yml" "copier/tpl-individual-repo/" "L0 message must mention tpl-individual-repo template"
 assert_contains "copier.yml" "l1_org_docs_profile" "L0 copier config must expose L1 org docs profile toggle"
 assert_contains "copier.yml" "enable_community_pack" "L0 copier config must expose community pack toggle"
 assert_contains "copier.yml" "enable_release_pack" "L0 copier config must expose release pack toggle"
@@ -201,7 +286,7 @@ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_com
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
 
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
@@ -209,6 +294,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
 assert_not_contains "copier-template/copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
+assert_not_contains "copier-template/copier/tpl-individual-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-individual-repo CI should not hardcode uvx vendored invocation"
 
 # L1 wrapper script assertions
 assert_contains "scripts/rocs.sh" "--doctor" "L0 ROCS wrapper should expose doctor mode"
@@ -216,6 +302,7 @@ assert_contains "scripts/rocs.sh" "deterministic resolution order" "L0 ROCS wrap
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-individual-repo" "L1 wrapper must list tpl-individual-repo template"
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
 assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
@@ -260,6 +347,7 @@ assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" 
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
+assert_contains "fixtures/l2/tpl-individual-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 individual fixture diary README should enforce descriptive filename convention"
 
 contract="copier-template/contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "generated L1 contract must declare layer L1"
@@ -282,10 +370,13 @@ assert_absent "copier-template/copier/template-repo"
 assert_absent "copier-template/copier/tpl-agent-repo/docs/diary"
 assert_absent "copier-template/copier/tpl-org-repo/docs/diary"
 assert_absent "copier-template/copier/tpl-project-repo/docs/diary"
+assert_absent "copier-template/copier/tpl-individual-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-agent-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-org-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-project-repo/docs/diary"
+assert_absent "fixtures/l1/template-repo/copier/tpl-individual-repo/docs/diary"
 assert_absent "fixtures/l2/tpl-project-repo/docs/diary"
+assert_absent "fixtures/l2/tpl-individual-repo/docs/diary"
 
 # Ensure no nested copier invocations
 if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then

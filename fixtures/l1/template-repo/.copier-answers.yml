@@ -2,7 +2,7 @@
 l1_profile: ''
 repo_slug: 'fixture-template-repo'
 maintainer_handle: '@template-owner'
-l0_source_sha: '2e07a22e554d0ff6e84afa7ac5ee25109a848a82'
+l0_source_sha: '13094919df1e3b68e19ecaaeef12e7fafb9b4d00'
 l1_org_docs_profile: 'rich'
 l2_org_docs_default: ''
 enable_vouch_gate: false

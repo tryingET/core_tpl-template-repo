@@ -1,0 +1,55 @@
+_subdirectory: ""
+_answers_file: .copier-answers.yml
+_templates_suffix: .j2
+_exclude:
+  - "copier.yml"
+  - "tools/rocs-cli/build"
+  - "tools/rocs-cli/dist"
+  - "tools/rocs-cli/.venv"
+  - "tools/rocs-cli/src/*.egg-info"
+  - "**/__pycache__"
+  - "**/*.pyc"
+
+repo_slug:
+  type: str
+  help: "Repo slug (e.g. individual-foo)"
+
+enable_community_pack:
+  type: bool
+  default: false
+  help: "Enable community-facing pack overlays (default: false)."
+
+enable_release_pack:
+  type: bool
+  default: false
+  help: "Enable release automation pack overlays (default: false)."
+
+enable_vouch_gate:
+  type: bool
+  default: false
+  help: "Enable trust/vouch gate overlays (default: false)."
+
+kernel_ontology_ref:
+  type: str
+  default: "<gitlab:org/ontology-kernel@v0.1.0>"
+  help: "ROCS core/kernel ontology ref (GitLab locator)"
+
+company_ontology_ref:
+  type: str
+  default: "<gitlab:org/ontology@v0.1.0>"
+  help: "ROCS company overlay ref (GitLab locator)"
+
+core_owner_handle:
+  type: str
+  default: "@core-owner"
+  help: "CODEOWNERS entry for core docs paths"
+
+org_owner_handle:
+  type: str
+  default: "@org-owners"
+  help: "CODEOWNERS entry for org-owned paths"
+
+project_owner_handle:
+  type: str
+  default: "@project-owners"
+  help: "CODEOWNERS entry for individual execution paths"

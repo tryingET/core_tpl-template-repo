@@ -125,30 +125,26 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
 - Canonical loop definition: `governance/fcos/loops-registry.json` seed plugin `loop.fcos.drift.audit` (projection: `docs/dev/loops-plugin-system.md`).
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
-- Issue executed: FCOS-M1-05 (done; lease released with explicit `status=done`)
-- Outcome:
-  - canonical mainline queue contract is now defined in `fleet-state.yaml` (`submit`, lock, deterministic gates, acceptance artifact, rollback semantics)
-  - rollback command contract is defined per repo class (`required|optional|ontology_repo`)
-  - queue MVP runner + canonical queue model added (`scripts/rocs/mainline-queue.py`, `governance/fcos/mainline-queue.json`)
-  - acceptance artifact format is explicitly templated (`governance/fcos/templates/mainline-acceptance-artifact.template.json`)
-  - model-language coverage extended for queue model (`mainline-queue.cue`) and wired into conformance gate
-  - issue contract/projection updated to reflect completion (`FCOS-M1-05` tasks + validation + status)
-- Major artifacts added/updated:
-  - queue runner + checks: `~/ai-society/holdingco/governance-kernel/scripts/rocs/mainline-queue.py`, `~/ai-society/holdingco/governance-kernel/scripts/rocs/check-model-language-conformance.sh`, `~/ai-society/holdingco/governance-kernel/justfile`
-  - canonical models/contracts: `~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml`, `~/ai-society/holdingco/governance-kernel/governance/fcos/mainline-queue.json`, `~/ai-society/holdingco/governance-kernel/governance/fcos/model-languages/contract/mainline-queue.cue`, `~/ai-society/holdingco/governance-kernel/governance/fcos/templates/mainline-acceptance-artifact.template.json`, `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json`
-  - docs/projections: `~/ai-society/holdingco/governance-kernel/docs/dev/mainline-cicd.md`, `~/ai-society/holdingco/governance-kernel/governance/fcos/README.md`, `~/ai-society/holdingco/governance-kernel/docs/dev/fcos-convergence-issue-set.md`
+- Issue executed this session:
+  - non-FCOS maintenance in `core/tpl-template-repo` (L0/L1 template hardening + parity guardrails).
+- Outcome (repo-local mirror only; canonical FCOS model remains source of truth):
+  - added `tpl-individual-repo` across L0 message/docs/fixtures/wrappers.
+  - enforced `tpl-project-repo` ↔ `tpl-individual-repo` parity via deterministic allowlist checks in:
+    - `scripts/check-l0-guardrails.sh`
+    - `copier-template/scripts/check-template-ci.sh`
+    - `fixtures/l1/template-repo/scripts/check-template-ci.sh`
+  - expanded generated-template idempotency checks to all four L2 templates.
+  - updated AGENTS guardrails to make lockstep parity policy explicit.
 - Validation run:
-  - `cd ~/ai-society/holdingco/governance-kernel && python3 -m py_compile scripts/rocs/fcos-scheduler.py scripts/rocs/mainline-queue.py scripts/rocs/render-fcos-issue-set.py scripts/rocs/render-loops-plugin-system.py`
-  - `cd ~/ai-society/holdingco/governance-kernel && tmp_queue=$(mktemp) && cp governance/fcos/mainline-queue.json "$tmp_queue" && tmp_artifacts=$(mktemp -d) && python3 scripts/rocs/mainline-queue.py --fleet-state governance/fcos/fleet-state.yaml --queue-model "$tmp_queue" submit --batch-id dryrun-fcos-m1-05 --repo-path ai-society/holdingco/governance-kernel --repo-class optional --commit-range deadbeef..feedface --risk high --consent-ref FCOS-M1-05 && python3 scripts/rocs/mainline-queue.py --fleet-state governance/fcos/fleet-state.yaml --queue-model "$tmp_queue" process-next --dry-run --simulate gate-fail --artifact-dir "$tmp_artifacts" && jq -e '.rollback_proof.executed == true and .status == "rolled_back" and .lock_proof.lock_file == "governance/fcos/mainline-queue.lock"' "$tmp_artifacts/dryrun-fcos-m1-05.json" >/dev/null`
-  - `cd ~/ai-society/holdingco/governance-kernel && scripts/rocs/render-fcos-issue-set.py --check`
-  - `cd ~/ai-society/holdingco/governance-kernel && bash scripts/rocs/check-fcos-doc-drift.sh`
-  - `cd ~/ai-society/holdingco/governance-kernel && bash scripts/rocs/check-holdingco-model-drift.sh`
-  - `cd ~/ai-society/holdingco/governance-kernel && FCOS_REQUIRE_MODEL_LANG_TOOLS=1 bash scripts/rocs/check-model-language-conformance.sh`
-  - `cd ~/ai-society/holdingco/governance-kernel && bash scripts/rocs/check-naming-boundaries.sh`
-  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-check`
-- Next issue (resolve live): `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
+  - `bash ./scripts/check-l0.sh`
+- Current priority (resolve live from canonical model):
+  - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
+- Next issue (resolve live):
+  - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
+- Lease/lock sync:
+  - no FCOS lease claimed/released in this repo session.
 - Blockers/risks:
-  - queue runner currently requires `yq` for fleet-state parsing; keep this available in execution environments.
+  - none; parity drift now fails deterministic checks outside the explicit allowlist.
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).

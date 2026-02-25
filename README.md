@@ -4,14 +4,14 @@
 
 First validated slice:
 - one L1 profile: `template-repo`
-- generated L1 repos include CI, hooks, contracts, and a single L2 copier profile (`template-repo`)
+- generated L1 repos include CI, hooks, contracts, and four L2 templates (`tpl-agent-repo`, `tpl-project-repo`, `tpl-individual-repo`, `tpl-org-repo`)
 
 ## Quickstart
 
 Generate an L1 repo from L0:
 
 ```bash
-./scripts/new-l1-from-copier.sh template-repo /tmp/holdingco-templates \
+./scripts/new-l1-from-copier.sh /tmp/holdingco-templates \
   -d repo_slug=holdingco-templates \
   -d l1_org_docs_profile=rich \
   -d l2_org_docs_default=compact \

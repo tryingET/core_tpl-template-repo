@@ -12,9 +12,11 @@ need_cmd() {
 }
 
 need_cmd awk
+need_cmd find
 need_cmd git
 need_cmd grep
 need_cmd mktemp
+need_cmd sort
 
 fail() {
   echo "error: $*" >&2
@@ -60,6 +62,84 @@ assert_not_contains() {
   if grep -qF -- "$needle" "$path"; then
     fail "$label (found '$needle' in $path)"
   fi
+}
+
+is_project_individual_parity_allowlisted() {
+  rel_path="$1"
+  case "$rel_path" in
+    AGENTS.md.j2|CODEOWNERS.j2|README.md.j2|copier.yml)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+list_template_files() {
+  template_dir="$1"
+
+  find "$template_dir" -type f | while IFS= read -r abs_path; do
+    rel_path="${abs_path#$template_dir/}"
+    case "$rel_path" in
+      */__pycache__/*|*.pyc)
+        continue
+        ;;
+    esac
+    printf '%s\n' "$rel_path"
+  done | LC_ALL=C sort
+}
+
+check_project_individual_template_parity() {
+  project_dir="$1"
+  individual_dir="$2"
+
+  project_files="$(mktemp)"
+  individual_files="$(mktemp)"
+
+  list_template_files "$project_dir" > "$project_files"
+  list_template_files "$individual_dir" > "$individual_files"
+
+  set +e
+  git diff --no-index --quiet -- "$project_files" "$individual_files"
+  list_status=$?
+  set -e
+
+  if [ "$list_status" -eq 1 ]; then
+    echo "error: tpl-project-repo and tpl-individual-repo file sets drifted" >&2
+    git --no-pager diff --no-index -- "$project_files" "$individual_files" >&2 || true
+    rm -f "$project_files" "$individual_files"
+    exit 1
+  fi
+  if [ "$list_status" -ne 0 ]; then
+    rm -f "$project_files" "$individual_files"
+    fail "unable to compare tpl-project-repo and tpl-individual-repo file sets"
+  fi
+
+  while IFS= read -r rel_path; do
+    [ -n "$rel_path" ] || continue
+    if is_project_individual_parity_allowlisted "$rel_path"; then
+      continue
+    fi
+
+    set +e
+    git diff --no-index --quiet -- "$project_dir/$rel_path" "$individual_dir/$rel_path"
+    content_status=$?
+    set -e
+
+    if [ "$content_status" -eq 1 ]; then
+      echo "error: parity drift outside allowlist: $rel_path" >&2
+      git --no-pager diff --no-index -- "$project_dir/$rel_path" "$individual_dir/$rel_path" >&2 || true
+      rm -f "$project_files" "$individual_files"
+      exit 1
+    fi
+    if [ "$content_status" -ne 0 ]; then
+      rm -f "$project_files" "$individual_files"
+      fail "unable to compare tpl-project-repo and tpl-individual-repo contents"
+    fi
+  done < "$project_files"
+
+  rm -f "$project_files" "$individual_files"
 }
 
 value_from_answers() {
@@ -120,7 +200,7 @@ for path in $required_files; do
 done
 
 # L2 embedded templates required
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   assert_dir "copier/$tpl"
   assert_file "copier/$tpl/copier.yml"
   assert_file "copier/$tpl/AGENTS.md.j2"
@@ -139,6 +219,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
+assert_not_contains "copier/tpl-individual-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-individual-repo CI should not hardcode uvx vendored invocation"
+
+check_project_individual_template_parity "copier/tpl-project-repo" "copier/tpl-individual-repo"
 
 required_exec="
 scripts/new-repo-from-copier.sh
@@ -196,7 +279,7 @@ assert_contains ".copier-answers.yml" "l0_source_sha:" "L1 answers file should p
 assert_contains ".copier-answers.yml" "l1_org_docs_profile:" "L1 answers file should persist L1 org docs profile"
 
 # Check L2 template copier configs
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   assert_contains "copier/$tpl/copier.yml" "repo_slug" "L2 template $tpl must expose repo_slug"
   assert_contains "copier/$tpl/copier.yml" "enable_community_pack" "L2 template $tpl must expose community pack toggle"
   assert_contains "copier/$tpl/copier.yml" "enable_release_pack" "L2 template $tpl must expose release pack toggle"
@@ -206,6 +289,7 @@ done
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
+assert_contains "scripts/new-repo-from-copier.sh" "tpl-individual-repo" "L1 wrapper must list tpl-individual-repo template"
 
 workflow=".github/workflows/template-check.yml"
 assert_contains "$workflow" "pull_request:" "template-check workflow must run on pull requests"
@@ -298,7 +382,7 @@ fi
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   l2_dir="$tmp_root/$tpl"
   ./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
     -d repo_slug="$tpl" \
@@ -320,7 +404,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
   assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
   assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
 
-  # Initialize git for smoke test (required by scripts/ci/smoke.sh)
+  # Initialize git for smoke + idempotency test (smoke requires git repo)
   (
     cd "$l2_dir"
     git init -b main >/dev/null
@@ -330,6 +414,19 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo; do
     git commit -m "initial L2 render" >/dev/null
     ./scripts/ci/smoke.sh >/dev/null
   )
+
+  ./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
+    -d repo_slug="$tpl" \
+    --defaults --overwrite >/dev/null
+
+  (
+    cd "$l2_dir"
+    if [ -n "$(git status --porcelain)" ]; then
+      echo "error: non-idempotent L1 -> L2 generation ($tpl)" >&2
+      git status --short >&2
+      exit 1
+    fi
+  )
 done
 
 # Detailed check for tpl-project-repo (primary template)
@@ -338,29 +435,5 @@ assert_contains "$l2_dir/AGENTS.md" "Recursion policy" "generated L2 AGENTS.md m
 assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated L2 AGENTS.md must include deterministic tooling policy"
 assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated L2 AGENTS.md must reference scripts/rocs.sh"
 assert_contains "$l2_dir/AGENTS.md" "diary/" "generated L2 AGENTS.md must reference repo-local diary"
-
-# Idempotency check
-(
-  cd "$l2_dir"
-  git init -b main >/dev/null 2>&1 || true
-  git config user.name "l1-template ci" >/dev/null
-  git config user.email "ci@l1-template.local" >/dev/null
-  git add .
-  git commit -m "initial L2 render" >/dev/null 2>&1 || true
-  [ -f ./scripts/install-hooks.sh ] && ./scripts/install-hooks.sh >/dev/null || true
-)
-
-./scripts/new-repo-from-copier.sh tpl-project-repo "$l2_dir" \
-  -d repo_slug=tpl-project-repo \
-  --defaults --overwrite >/dev/null
-
-(
-  cd "$l2_dir"
-  if [ -n "$(git status --porcelain)" ]; then
-    echo "error: non-idempotent L1 -> L2 generation" >&2
-    git status --short >&2
-    exit 1
-  fi
-)
 
 echo "ok: template ci"

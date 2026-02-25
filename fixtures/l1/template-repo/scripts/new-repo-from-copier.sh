@@ -6,9 +6,10 @@ usage() {
 usage: new-repo-from-copier.sh <template-name> <dest-dir> [copier args...]
 
 Templates:
-  tpl-agent-repo    AI agent repositories (personas, learnings, activities)
-  tpl-org-repo      Organization handbooks (governance, policies)
-  tpl-project-repo  Project repositories (products, services)
+  tpl-agent-repo       AI agent repositories (personas, learnings, activities)
+  tpl-org-repo         Organization handbooks (governance, policies)
+  tpl-project-repo     Project repositories (products, services)
+  tpl-individual-repo  Individual repositories (personal execution lanes)
 
 Example:
   ./scripts/new-repo-from-copier.sh tpl-agent-repo /tmp/my-agent \
@@ -16,6 +17,9 @@ Example:
 
   ./scripts/new-repo-from-copier.sh tpl-project-repo /tmp/my-product \
     -d repo_slug=my-product --defaults --overwrite
+
+  ./scripts/new-repo-from-copier.sh tpl-individual-repo /tmp/my-individual \
+    -d repo_slug=my-individual --defaults --overwrite
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
@@ -27,18 +31,25 @@ EOF
 }
 
 COPIER_VERSION="${COPIER_VERSION:-9.11.1}"
+COPIER_WARN_FILTER="${COPIER_WARN_FILTER:-ignore:Dirty template changes included automatically.:Warning}"
+COPIER_VCS_REF="${COPIER_VCS_REF:-HEAD}"
 
 run_copier() {
+  pythonwarnings="$COPIER_WARN_FILTER"
+  if [ -n "${PYTHONWARNINGS:-}" ]; then
+    pythonwarnings="$pythonwarnings,${PYTHONWARNINGS}"
+  fi
+
   if command -v uvx >/dev/null 2>&1; then
-    uvx --from "copier==${COPIER_VERSION}" copier "$@"
+    PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"
     return
   fi
   if command -v copier >/dev/null 2>&1; then
-    copier "$@"
+    PYTHONWARNINGS="$pythonwarnings" copier "$@"
     return
   fi
   if command -v uv >/dev/null 2>&1; then
-    uv tool run --from "copier==${COPIER_VERSION}" copier "$@"
+    PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"
     return
   fi
   echo "error: missing dependency: copier (or uvx/uv)" >&2
@@ -55,12 +66,12 @@ if [ -z "$template_name" ] || [ -z "$dest_dir" ]; then
 fi
 
 case "$template_name" in
-  tpl-agent-repo|tpl-org-repo|tpl-project-repo)
+  tpl-agent-repo|tpl-org-repo|tpl-project-repo|tpl-individual-repo)
     # Valid archetype template
     ;;
   *)
     echo "error: unknown template: $template_name" >&2
-    echo "hint: available templates: tpl-agent-repo, tpl-org-repo, tpl-project-repo" >&2
+    echo "hint: available templates: tpl-agent-repo, tpl-org-repo, tpl-project-repo, tpl-individual-repo" >&2
     exit 2
     ;;
 esac
@@ -75,6 +86,26 @@ done
 if [ "$have_answers" = "0" ]; then
   set -- -a .copier-answers.yml "$@"
 fi
+
+has_vcs_ref_override() {
+  expect_ref_value=0
+  for arg in "$@"; do
+    if [ "$expect_ref_value" = "1" ]; then
+      return 0
+    fi
+
+    case "$arg" in
+      -r|--vcs-ref)
+        expect_ref_value=1
+        ;;
+      -r*|--vcs-ref=*)
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
 
 has_data_override() {
   key="$1"
@@ -157,5 +188,11 @@ template_dir="$repo_root/copier/$template_name"
   echo "error: missing copier template: $template_dir" >&2
   exit 2
 }
+
+if ! has_vcs_ref_override "$@"; then
+  if git -C "$template_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    set -- -r "$COPIER_VCS_REF" "$@"
+  fi
+fi
 
 run_copier copy --trust "$@" "$template_dir" "$dest_dir"
