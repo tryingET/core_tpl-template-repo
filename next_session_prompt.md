@@ -135,6 +135,7 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
     - `fixtures/l1/template-repo/scripts/check-template-ci.sh`
   - expanded generated-template idempotency checks to all four L2 templates.
   - updated AGENTS guardrails to make lockstep parity policy explicit.
+  - set Copier wrappers to quiet-by-default (`--quiet`) with opt-out via `COPIER_QUIET=0`.
 - Validation run:
   - `bash ./scripts/check-l0.sh`
 - Current priority (resolve live from canonical model):

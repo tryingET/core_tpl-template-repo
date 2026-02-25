@@ -23,6 +23,7 @@ Example:
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
+  - Wrapper runs Copier in quiet mode by default; set `COPIER_QUIET=0` to show Copier progress logs.
   - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
     are inherited from this L1 repo `.copier-answers.yml` unless overridden.
   - `template_source_sha` is auto-injected from this L1 git HEAD unless
@@ -33,6 +34,7 @@ EOF
 COPIER_VERSION="${COPIER_VERSION:-9.11.1}"
 COPIER_WARN_FILTER="${COPIER_WARN_FILTER:-ignore:Dirty template changes included automatically.:Warning}"
 COPIER_VCS_REF="${COPIER_VCS_REF:-HEAD}"
+COPIER_QUIET="${COPIER_QUIET:-1}"
 
 run_copier() {
   pythonwarnings="$COPIER_WARN_FILTER"
@@ -105,6 +107,29 @@ has_vcs_ref_override() {
   done
 
   return 1
+}
+
+has_quiet_override() {
+  for arg in "$@"; do
+    case "$arg" in
+      -q|--quiet)
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+is_enabled() {
+  case "$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes|on)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 has_data_override() {
@@ -193,6 +218,10 @@ if ! has_vcs_ref_override "$@"; then
   if git -C "$template_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     set -- -r "$COPIER_VCS_REF" "$@"
   fi
+fi
+
+if is_enabled "$COPIER_QUIET" && ! has_quiet_override "$@"; then
+  set -- --quiet "$@"
 fi
 
 run_copier copy --trust "$@" "$template_dir" "$dest_dir"
