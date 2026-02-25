@@ -2,9 +2,9 @@ schema: ai-society.template-provenance.v1
 template:
   profile: 
   source_repository: "core/tpl-template-repo"
-  source_sha: "13094919df1e3b68e19ecaaeef12e7fafb9b4d00"
+  source_sha: "__VOLATILE_SOURCE_SHA__"
 render:
   repo_slug: "fixture-template-repo"
   layer: L1
   answers_file: ".copier-answers.yml"
-  content_hash_sha256: "27aec8531776d3a1de9b6af8b9ec1c4701d03b81788d7ae6a004259bc486f4bb"
+  content_hash_sha256: "__VOLATILE_CONTENT_HASH_SHA256__"

@@ -45,6 +45,32 @@ assert_not_contains() {
   fi
 }
 
+suffix_policy_lib="$repo_root/copier-template/scripts/lib/suffix-policy.sh"
+[ -f "$suffix_policy_lib" ] || fail "missing required file: $suffix_policy_lib"
+# shellcheck source=/dev/null
+. "$suffix_policy_lib"
+
+check_multi_pass_suffix_policy() {
+  self_test_untemplated_jinja_matcher || fail "suffix-policy matcher regression: expected to ignore GitHub expressions and detect unsuffixed Jinja markers"
+
+  l0_suffix="$(yaml_scalar_value "copier.yml" "_templates_suffix")"
+  [ "$l0_suffix" = ".jinja" ] || fail "L0 copier config must use .jinja suffix (found ${l0_suffix:-<missing>})"
+
+  for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+    tpl_suffix="$(yaml_scalar_value "copier-template/copier/$tpl/copier.yml" "_templates_suffix")"
+    [ "$tpl_suffix" = ".j2" ] || fail "L2 template $tpl copier config must use .j2 suffix (found ${tpl_suffix:-<missing>})"
+  done
+
+  nested_jinja="$(first_suffix_match "copier-template/copier" "*.jinja")"
+  [ -z "$nested_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 templates must not use .jinja (found $nested_jinja)"
+
+  outer_j2="$(first_suffix_match "copier-template" "*.j2" "copier-template/copier/*")"
+  [ -z "$outer_j2" ] || fail "pass-boundary suffix policy violated: outer L1 template surface must not use .j2 outside copier-template/copier/ (found $outer_j2)"
+
+  nested_untemplated_jinja="$(first_untemplated_jinja_match "copier-template/copier" ".j2")"
+  [ -z "$nested_untemplated_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 template file contains Jinja markers but is not suffixed .j2 (found $nested_untemplated_jinja)"
+}
+
 is_project_individual_parity_allowlisted() {
   rel_path="$1"
   case "$rel_path" in
@@ -180,6 +206,7 @@ copier-template/scripts/new-repo-from-copier.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
+copier-template/scripts/lib/suffix-policy.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
 copier-template/scripts/release/check.sh
@@ -193,9 +220,11 @@ scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
+scripts/lib/fixture-normalization.sh
 fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
 fixtures/l1/template-repo/diary/README.md
+fixtures/l1/template-repo/scripts/lib/suffix-policy.sh
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
 fixtures/l2/tpl-project-repo/diary/README.md
@@ -240,6 +269,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
 done
 
+check_multi_pass_suffix_policy
 check_project_individual_template_parity "copier-template/copier/tpl-project-repo" "copier-template/copier/tpl-individual-repo"
 
 required_exec="
@@ -337,6 +367,8 @@ assert_contains "README.md" "Community pack" "README should document optional co
 assert_contains "README.md" "Release pack" "README should document optional release pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
 assert_contains "README.md" "Deterministic ROCS launcher" "README should document deterministic ROCS launcher"
+assert_contains "README.md" "Multi-pass template suffix policy" "README should document multi-pass suffix policy"
+assert_contains "README.md" "Pass-boundary rule" "README should describe pass-boundary suffix rule"
 assert_contains "README.md" "docs/learnings/" "README should describe KES crystallization destination"
 assert_contains "README.md" "diary/" "README should document repo-local diary policy"
 assert_contains "scripts/check-l0.sh" "check-session-checkpoint" "consolidated L0 check should run session checkpoint guardrails"
@@ -364,6 +396,7 @@ assert_contains "copier-template/CONTRIBUTING.md" "scripts/rocs.sh --doctor" "ge
 assert_contains "copier-template/CONTRIBUTING.md" "diary/" "generated L1 contributing guide should require repo-local diary"
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
 assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" "generated L1 README should describe deterministic ROCS launcher"
+assert_contains "copier-template/README.md.jinja" "Multi-pass template suffix policy" "generated L1 README should describe multi-pass suffix policy"
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"

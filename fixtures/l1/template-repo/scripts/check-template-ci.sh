@@ -64,6 +64,29 @@ assert_not_contains() {
   fi
 }
 
+suffix_policy_lib="$repo_root/scripts/lib/suffix-policy.sh"
+[ -f "$suffix_policy_lib" ] || fail "missing file: $suffix_policy_lib"
+# shellcheck source=/dev/null
+. "$suffix_policy_lib"
+
+check_multi_pass_suffix_policy() {
+  self_test_untemplated_jinja_matcher || fail "suffix-policy matcher regression: expected to ignore GitHub expressions and detect unsuffixed Jinja markers"
+
+  for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+    tpl_suffix="$(yaml_scalar_value "copier/$tpl/copier.yml" "_templates_suffix")"
+    [ "$tpl_suffix" = ".j2" ] || fail "L2 template $tpl copier config must use .j2 suffix (found ${tpl_suffix:-<missing>})"
+  done
+
+  nested_jinja="$(first_suffix_match "copier" "*.jinja")"
+  [ -z "$nested_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 templates must not use .jinja (found $nested_jinja)"
+
+  outer_j2="$(first_suffix_match "." "*.j2" "./copier/*")"
+  [ -z "$outer_j2" ] || fail "pass-boundary suffix policy violated: L1 surface must not use .j2 outside copier/ (found $outer_j2)"
+
+  nested_untemplated_jinja="$(first_untemplated_jinja_match "copier" ".j2")"
+  [ -z "$nested_untemplated_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 template file contains Jinja markers but is not suffixed .j2 (found $nested_untemplated_jinja)"
+}
+
 is_project_individual_parity_allowlisted() {
   rel_path="$1"
   case "$rel_path" in
@@ -175,6 +198,7 @@ scripts/new-repo-from-copier.sh
 scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
+scripts/lib/suffix-policy.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
 .github/VOUCHED.td
@@ -221,6 +245,7 @@ done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
 assert_not_contains "copier/tpl-individual-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-individual-repo CI should not hardcode uvx vendored invocation"
 
+check_multi_pass_suffix_policy
 check_project_individual_template_parity "copier/tpl-project-repo" "copier/tpl-individual-repo"
 
 required_exec="
@@ -255,6 +280,7 @@ assert_contains "README.md" "Community profile" "L1 README should describe commu
 assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
 assert_contains "README.md" "Deterministic ROCS launcher" "L1 README should document deterministic ROCS launcher"
+assert_contains "README.md" "Multi-pass template suffix policy" "L1 README should document multi-pass suffix policy"
 assert_contains "README.md" "repo-local diary" "L1 README should document repo-local diary contract"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 assert_contains "diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README should enforce descriptive filename convention"

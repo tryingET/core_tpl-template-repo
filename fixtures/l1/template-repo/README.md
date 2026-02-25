@@ -80,6 +80,19 @@ Deterministic ROCS launcher (use before ad-hoc scripting):
 ./scripts/rocs.sh version
 ```
 
+## Multi-pass template suffix policy (`.jinja` vs `.j2`)
+
+This L1 template repo has two template boundaries:
+
+- **L0 -> L1 artifacts** in this repository use `.jinja` at authoring time (as rendered from L0).
+- **L1 -> L2 artifacts** under `./copier/` use `_templates_suffix: .j2` in each L2 template `copier.yml`.
+
+Pass-boundary rule:
+- never place `.jinja` template files under `./copier/`
+- never place `.j2` template files outside `./copier/`
+
+`bash ./scripts/check-template-ci.sh` enforces this boundary so nested L2 templates cannot accidentally inherit the outer pass suffix, and fails if nested files contain Jinja markers without the `.j2` suffix.
+
 Contribution workflow:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 

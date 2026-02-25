@@ -47,6 +47,11 @@ fail() {
   exit 1
 }
 
+fixture_normalization_lib="$repo_root/scripts/lib/fixture-normalization.sh"
+[ -f "$fixture_normalization_lib" ] || fail "missing required helper: $fixture_normalization_lib"
+# shellcheck source=/dev/null
+. "$fixture_normalization_lib"
+
 expected_l1="$repo_root/fixtures/l1/template-repo"
 expected_l2_project="$repo_root/fixtures/l2/tpl-project-repo"
 expected_l2_individual="$repo_root/fixtures/l2/tpl-individual-repo"
@@ -87,37 +92,13 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
     --defaults --overwrite
 )
 
-sanitize_answers_tree() {
-  tree="$1"
-
-  find "$tree" -type f -name '.copier-answers.yml' | while IFS= read -r answers_file; do
-    sanitized_file="${answers_file}.sanitized"
-    awk '
-      !/^_commit:/ &&
-      !/^_src_path:/ &&
-      !/^l0_source_sha:/
-    ' "$answers_file" > "$sanitized_file"
-    mv "$sanitized_file" "$answers_file"
-  done
-
-  # Normalize provenance-seal (content hash and source sha change between runs)
-  find "$tree" -type f -name 'provenance-seal.yml' | while IFS= read -r seal_file; do
-    normalized_file="${seal_file}.normalized"
-    awk '
-      !/content_hash_sha256:/ &&
-      !/source_sha:/
-    ' "$seal_file" > "$normalized_file"
-    mv "$normalized_file" "$seal_file"
-  done
-}
-
 prepare_compare_tree() {
   src="$1"
   dst="$2"
   rm -rf "$dst"
   mkdir -p "$dst"
   cp -R "$src/." "$dst/"
-  sanitize_answers_tree "$dst"
+  normalize_fixture_tree_volatiles "$dst"
 }
 
 compare_tree() {

@@ -27,6 +27,21 @@ Set `-d enable_community_pack=true` for public/community-facing collaboration in
 Set `-d enable_release_pack=true` for release-please/publish automation baseline.
 Set `-d enable_vouch_gate=true` for trust-gated template lines.
 
+## Multi-pass template suffix policy (`.jinja` vs `.j2`)
+
+This repository runs two Copier passes with different template suffixes:
+
+- **L0 -> L1 pass** uses `_templates_suffix: .jinja` (`./copier.yml`).
+  - Files under `./copier-template/` that should render in this pass must use `.jinja`.
+- **L1 -> L2 pass** uses `_templates_suffix: .j2` (each `./copier-template/copier/*/copier.yml`).
+  - Files under `./copier-template/copier/` that should render in this pass must use `.j2`.
+
+Pass-boundary rule:
+- never place `.jinja` templates under `./copier-template/copier/`
+- never place `.j2` templates directly under `./copier-template/` (outside `./copier-template/copier/`)
+
+`bash ./scripts/check-l0-guardrails.sh` enforces this boundary to prevent accidental cross-pass suffix drift and fails if nested L2 files contain Jinja markers without the `.j2` suffix.
+
 ## Pi local session flow
 
 - Start session with: `read @next_session_prompt.md`

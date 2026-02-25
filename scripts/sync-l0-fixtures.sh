@@ -11,9 +11,12 @@ need_cmd() {
   }
 }
 
+need_cmd awk
 need_cmd cp
+need_cmd find
 need_cmd mkdir
 need_cmd mktemp
+need_cmd mv
 need_cmd rm
 need_cmd tail
 
@@ -37,6 +40,14 @@ run_step() {
   rm -f "$log_file"
   return 1
 }
+
+fixture_normalization_lib="$repo_root/scripts/lib/fixture-normalization.sh"
+[ -f "$fixture_normalization_lib" ] || {
+  echo "error: missing required helper: $fixture_normalization_lib" >&2
+  exit 1
+}
+# shellcheck source=/dev/null
+. "$fixture_normalization_lib"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
@@ -81,6 +92,10 @@ mkdir -p "$fixture_l1" "$fixture_l2_project" "$fixture_l2_individual"
 cp -R "$l1_render/." "$fixture_l1/"
 cp -R "$l2_render_project/." "$fixture_l2_project/"
 cp -R "$l2_render_individual/." "$fixture_l2_individual/"
+
+normalize_fixture_tree_volatiles "$fixture_l1"
+normalize_fixture_tree_volatiles "$fixture_l2_project"
+normalize_fixture_tree_volatiles "$fixture_l2_individual"
 
 echo "ok: fixtures synchronized"
 echo "  - $fixture_l1"

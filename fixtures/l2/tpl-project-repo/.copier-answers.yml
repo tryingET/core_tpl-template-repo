@@ -1,4 +1,4 @@
-_src_path: /tmp/tmp.KOGRwtMh02/l1-template-repo/copier/tpl-project-repo
+_src_path: __VOLATILE_SRC_PATH__
 company_ontology_ref: <gitlab:org/ontology@v0.1.0>
 core_owner_handle: '@core-owner'
 enable_community_pack: false
