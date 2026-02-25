@@ -9,6 +9,7 @@ Set canonical root once and keep all model/projection commands root-safe:
 GK_ROOT=~/ai-society/holdingco/governance-kernel
 [ -d "$GK_ROOT" ] || { echo "Missing $GK_ROOT"; exit 1; }
 [ -f "$GK_ROOT/governance/fcos/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
+[ -f "$GK_ROOT/governance/fcos/state-machine.yaml" ] || { echo "Missing state machine authority"; exit 1; }
 ```
 
 1. `git status --short`
@@ -28,11 +29,13 @@ Before creating commit(s):
 1. Update `next_session_prompt.md` Session Checkpoint in this repo (mirror only; canonical model wins on conflict).
    - Keep `CURRENT PRIORITY` + `Next issue` runtime-resolved via `just fcos-runnable` (do not hardcode FCOS IDs).
    - Treat periodic anti-drift cadence as loop-owned policy (`governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`).
-2. If FCOS issue status/progress changed, update canonical status model first:
+2. If FCOS issue state/progress changed, update canonical state model first:
    - `$GK_ROOT/governance/fcos/fcos-work-items.json`
-   - if issue was claimed for this session, release lease only when `status=doing` and owner matches:
+   - State machine authority: `$GK_ROOT/governance/fcos/state-machine.yaml`
+   - Valid states: `triage | queued | doing | review | done`
+   - if issue was claimed for this session, release lease only when `state=doing` or `state=review` and owner matches:
      - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
-     - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <todo|done>`
+     - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <queued|done|review>`
    - run model invariants:
      - `cd "$GK_ROOT" && just fcos-check`
    - then refresh projection:
@@ -70,7 +73,7 @@ Keep updates concise and factual.
   - `cd "$GK_ROOT" && bash scripts/rocs/check-holdingco-model-drift.sh`
     - includes model-language conformance; run standalone check only for targeted debugging
   - when moving/operating in blocking enforcement stages:
-    - `cd "$GK_ROOT" && FCOS_REQUIRE_MODEL_LANG_TOOLS=1 bash scripts/rocs/check-model-language-conformance.sh`
+    - `cd "$GK_ROOT" && bash scripts/rocs/check-model-language-conformance.sh`
 - Run full repo validation once after final logical commit (or before push).
 
 $ARGUMENTS

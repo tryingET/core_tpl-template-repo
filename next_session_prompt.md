@@ -6,6 +6,7 @@ Do not ask for permission to begin.
 
 ## READ-FIRST ALLOWLIST (ONLY THESE, HARD)
 1. `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json` (canonical issue backlog + per-issue execution contracts)
+2. `~/ai-society/holdingco/governance-kernel/governance/fcos/state-machine.yaml` (state machine authority)
 
 Do not read `fleet-state.yaml`, `loops-registry.json`, or projection markdown during startup unless the selected issue contract requires them.
 
@@ -16,6 +17,7 @@ Use explicit root context so commands are runnable from any repo:
 GK_ROOT=~/ai-society/holdingco/governance-kernel
 [ -d "$GK_ROOT" ] || { echo "Missing $GK_ROOT"; exit 1; }
 [ -f "$GK_ROOT/governance/fcos/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
+[ -f "$GK_ROOT/governance/fcos/state-machine.yaml" ] || { echo "Missing state machine authority"; exit 1; }
 ```
 
 ## NEXUS GUARDRAIL (HARD) — EXECUTE-FIRST BUDGET GATE
@@ -42,12 +44,16 @@ Forbidden before first implementation edit:
 - reads outside selected issue contract scope unless blocked and recorded in Context Gap Note
 
 By end of Phase A, do exactly one:
-- start implementation in the selected issue’s target repo, or
+- start implementation in the selected issue's target repo, or
 - ask one concise blocker question.
 
 ## AUTHORITY SPLIT (NON-NEGOTIABLE)
 - Canonical issue IDs follow pattern `FCOS-M<milestone>-<issue>` (e.g., FCOS-M1-01, FCOS-M2-03).
-- Canonical issue status authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json`.
+- Canonical issue state authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json`.
+- State machine authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/state-machine.yaml`.
+- Valid states: `triage | queued | doing | review | done`
+- States requiring lease: `doing`, `review`
+- Claimable states: `queued` only
 - Canonical policy/state authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml`.
 - Canonical loop/plugin extensibility authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json`.
 - Human-readable projections (issue-set/PRD/views/loops/readmes) are derived artifacts only.
@@ -55,17 +61,32 @@ By end of Phase A, do exactly one:
 - Program naming is `FCOS`; canonical issue IDs are `FCOS-*`.
 - `ROCS` is reserved for the CLI/tool namespace (`core/rocs-cli`).
 
+## STATE MACHINE
+```
+triage → queued → doing → review → done
+                  ↓       ↑
+                  └───────┘ (gate fail)
+```
+
+| State | Claimable? | Lease Required? | Meaning |
+|-------|------------|-----------------|---------|
+| `triage` | No | No | Not yet shaped |
+| `queued` | Yes | No | Shaped, claimable |
+| `doing` | No | Yes | In progress, leased |
+| `review` | No | Yes | Work done, awaiting gate |
+| `done` | No | No | Gate passed, immutable |
+
 ## EXECUTION MODE (ONE SESSION = ONE ISSUE)
 Apply cognitive frameworks from `~/steve/prompts/prompt-snippets.md` (at minimum: INVERSION, TELESCOPIC, NEXUS, ESCAPE HATCH, KNOWLEDGE CRYSTALLIZATION) to the selected issue only; frameworks do not authorize extra discovery.
 1. Parse `$GK_ROOT/governance/fcos/fcos-work-items.json`.
-2. Pick the first issue where `status == "todo"` and dependencies are satisfied (lowest milestone first).
+2. Pick the first issue where `state == "queued"` and dependencies are satisfied (lowest milestone first).
 3. In multi-agent mode, claim the issue lease first (`just fcos-claim <ISSUE> <owner> <ttl_hours>`) and confirm `just fcos-check` is green.
 4. Read only `issue.contract.context.read_first[]`.
 5. If blocked by missing context, read only `issue.contract.context.read_if_blocked[]` (or file a Context Gap Note).
 6. Execute that issue end-to-end (not partial planning only).
 7. Run deterministic validation/acceptance checks.
 8. Update canonical model(s) first, then refresh projections, then mirror here.
-9. If claimed (and currently `status=doing` under your owner), release lease with explicit final status (`just fcos-release <ISSUE> <owner> <todo|done>`) and run `just fcos-check`.
+9. If claimed (and currently `state=doing` or `state=review` under your owner), release lease with explicit final state (`just fcos-release <ISSUE> <owner> <queued|done|review>`) and run `just fcos-check`.
 
 ## TOKEN-EFFICIENT MODEL OPS (PREDEFINED)
 Use structured model tooling first; avoid verbose file reads unless needed.
@@ -79,12 +100,12 @@ Available local tools (remember):
 
 Predefined workflow snippets:
 1. Targeted inspect first (no full-file scan):
-   - `jq '[ .milestones[].issues[] ] as $all | ($all | map(select(.status=="done") | .id)) as $done | $all | map(select(.status == "todo")) | map(select((.depends_on // []) as $deps | ($deps | map(. as $d | ($done | index($d) != null)) | all))) | sort_by(.id) | map({id, depends_on, repo, lock_keys:.contract.lock_keys, parallel_mode:.contract.parallel_mode, read_first:.contract.context.read_first, read_if_blocked:.contract.context.read_if_blocked})' "$GK_ROOT/governance/fcos/fcos-work-items.json"`
+   - `jq '[ .milestones[].issues[] ] as $all | ($all | map(select(.state=="done") | .id)) as $done | $all | map(select(.state == "queued")) | map(select((.depends_on // []) as $deps | ($deps | map(. as $d | ($done | index($d) != null)) | all))) | sort_by(.id) | map({id, depends_on, repo, lock_keys:.contract.lock_keys, parallel_mode:.contract.parallel_mode, read_first:.contract.context.read_first, read_if_blocked:.contract.context.read_if_blocked})' "$GK_ROOT/governance/fcos/fcos-work-items.json"`
    - `cd "$GK_ROOT" && just fcos-runnable`
    - `cd "$GK_ROOT" && just fcos-parallel`
    - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
    - `cd "$GK_ROOT" && just fcos-claim <FCOS-ISSUE-ID> <owner> 4` (multi-agent mode)
-   - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <todo|done>` (only for currently claimed issue)
+   - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <queued|done|review>` (only for currently claimed issue)
    - `cd "$GK_ROOT" && just fcos-check`
 2. Model edit (atomic):
    - `tmp=$(mktemp) && jq '<filter>' "$GK_ROOT/governance/fcos/<in>.json" > "$tmp" && mv "$tmp" "$GK_ROOT/governance/fcos/<in>.json"`
@@ -109,7 +130,7 @@ Minimal read policy:
 - Control-plane authority remains in `holdingco/governance-kernel`.
 - Deterministic checks are acceptance gates.
 - In blocking enforcement stages, run strict model-language gate:
-  - `FCOS_REQUIRE_MODEL_LANG_TOOLS=1 bash scripts/rocs/check-model-language-conformance.sh`
+  - `bash scripts/rocs/check-model-language-conformance.sh`
 - Mainline-safe behavior: no irreversible actions without rollback path.
 - `softwareco/owned/testers` is proving lane only, never policy authority.
 
@@ -127,55 +148,25 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Issue executed this session:
-  - non-FCOS maintenance in `core/tpl-template-repo` (adversarial suffix-policy hardening + fixture volatility normalization).
-- Outcome (repo-local mirror only; canonical FCOS model remains source of truth):
-  - hardened multi-pass suffix guardrails with shared helper:
-    - `copier-template/scripts/lib/suffix-policy.sh`
-    - `scripts/check-l0-guardrails.sh`
-    - `copier-template/scripts/check-template-ci.sh`
-    - `fixtures/l1/template-repo/scripts/lib/suffix-policy.sh`
-    - `fixtures/l1/template-repo/scripts/check-template-ci.sh`
-    - semantic `_templates_suffix` assertions (`.jinja` for L0, `.j2` for nested L2 templates)
-    - unsuffixed-Jinja detection under nested L2 templates
-    - matcher self-test ensures GitHub `${{ ... }}` expressions are ignored while real `{{ ... }}` markers are flagged
-  - normalized volatile fixture fields to stable placeholders:
-    - `scripts/lib/fixture-normalization.sh`
-    - `scripts/sync-l0-fixtures.sh`
-    - `scripts/check-l0-fixtures.sh`
-    - `fixtures/l1/template-repo/.copier-answers.yml`
-    - `fixtures/l1/template-repo/contracts/provenance-seal.yml`
-    - `fixtures/l2/tpl-project-repo/.copier-answers.yml`
-    - `fixtures/l2/tpl-individual-repo/.copier-answers.yml`
-  - documented suffix boundary policy in:
-    - `README.md`
-    - `copier-template/README.md.jinja`
-    - `fixtures/l1/template-repo/README.md`
-  - canonical model/projection sync:
-    - none (no FCOS model edits in this repo session)
+  - _fill before commit_
+- Outcome:
+  - _fill before commit_
 - Validation run:
-  - `bash ./scripts/check-l0-guardrails.sh`
-  - `bash ./scripts/check-l0-fixtures.sh`
-  - `bash ./scripts/check-l0.sh`
-  - `cd "$GK_ROOT" && just fcos-check`
+  - _fill before commit_
 - Current priority (resolve live from canonical model):
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Next issue (resolve live):
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Lease/lock sync:
-  - `cd "$GK_ROOT" && just fcos-context FCOS-M2-04` (verified `lease: null`)
-  - no FCOS lease claimed/released in this repo session.
-- Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md`
-- KES crystallization flow:
-  - `Session output -> diary/YYYY-MM-DD--type-scope-summary.md -> docs/learnings/YYYY-MM-DD-*.md -> tips/meta/tip-*.md`
+  - _fill before commit_
 - Blockers/risks:
-  - none.
+  - _fill before commit_
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).
 
 `/commit` must:
-- sync this file’s Session Checkpoint,
+- sync this file's Session Checkpoint,
 - keep model-first authority ordering,
 - keep `GK_ROOT`-safe command paths,
 - create clear logical commit(s),
