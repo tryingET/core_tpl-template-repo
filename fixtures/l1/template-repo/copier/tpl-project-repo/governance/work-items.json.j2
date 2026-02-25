@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "updated_at": "{{ _copier_conf.now }}",
+  "owner": "{{ repo_slug }}",
+  "naming_contract": {
+    "system_name": "{{ repo_slug|upper|replace('-', '_') }}",
+    "issue_prefix": "{{ repo_slug|upper|replace('-', '')|truncate(8, end='') }}-",
+    "tool_namespace": "{{ repo_slug }}"
+  },
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Initial Setup",
+      "issues": []
+    }
+  ],
+  "program_dod": [
+    "All tests pass",
+    "Documentation updated",
+    "Code reviewed"
+  ]
+}

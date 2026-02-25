@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "updated_at": "",
+  "owner": "fixture-individual-repo",
+  "naming_contract": {
+    "system_name": "FIXTURE_INDIVIDUAL_REPO",
+    "issue_prefix": "FIXTUREI-",
+    "tool_namespace": "fixture-individual-repo"
+  },
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Initial Setup",
+      "issues": []
+    }
+  ],
+  "program_dod": [
+    "All tests pass",
+    "Documentation updated",
+    "Code reviewed"
+  ]
+}
