@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "updated_at": "{{ _copier_conf.now }}",
+  "owner": "{{ repo_slug }}",
+  "naming_contract": {
+    "system_name": "{{ repo_slug|upper|replace('-', '_') }}",
+    "issue_prefix": "{{ repo_slug|upper|replace('-','')|truncate(8,end='') }}-",
+    "tool_namespace": "{{ repo_slug }}"
+  },
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Template Individualization",
+      "issues": [
+        {
+          "id": "{{ repo_slug|upper|replace('-','')|truncate(8,end='') }}-M1-01",
+          "title": "Customize L2 templates for company needs",
+          "repo": ["{{ repo_slug }}"],
+          "depends_on": [],
+          "labels": ["program::template-setup", "milestone::m1"],
+          "tasks": [
+            {"text": "Review L2 template defaults", "done": false},
+            {"text": "Identify company-specific customizations", "done": false},
+            {"text": "Apply customizations to tpl-project-repo", "done": false},
+            {"text": "Apply customizations to tpl-individual-repo", "done": false}
+          ],
+          "dod": "L2 templates reflect company conventions",
+          "validation": [],
+          "rollback": "revert customizations",
+          "contract": {
+            "context": {
+              "read_first": [],
+              "read_if_blocked": []
+            },
+            "writable_roots": ["{{ repo_slug }}/copier/*"],
+            "lock_keys": ["repo:{{ repo_slug }}"],
+            "parallel_mode": "exclusive"
+          },
+          "state": "queued"
+        },
+        {
+          "id": "{{ repo_slug|upper|replace('-','')|truncate(8,end='') }}-M1-02",
+          "title": "Initialize company-specific L2 repos",
+          "repo": ["{{ repo_slug }}"],
+          "depends_on": ["{{ repo_slug|upper|replace('-','')|truncate(8,end='') }}-M1-01"],
+          "labels": ["program::template-setup", "milestone::m1"],
+          "tasks": [
+            {"text": "Generate tpl-owned-repo from template", "done": false},
+            {"text": "Generate tpl-contrib-repo from template", "done": false},
+            {"text": "Generate tpl-infra-repo from template", "done": false},
+            {"text": "Wire CI/CD for each repo", "done": false}
+          ],
+          "dod": "All company L2 repos bootstrapped and passing CI",
+          "validation": [],
+          "rollback": "remove generated repos",
+          "contract": {
+            "context": {
+              "read_first": [],
+              "read_if_blocked": []
+            },
+            "writable_roots": ["{{ repo_slug }}"],
+            "lock_keys": ["repo:{{ repo_slug }}"],
+            "parallel_mode": "exclusive"
+          },
+          "state": "queued"
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "title": "Compliance Baseline",
+      "issues": []
+    }
+  ],
+  "program_dod": [
+    "All L2 templates individualized",
+    "All company repos bootstrapped",
+    "CI/CD passing on all repos"
+  ]
+}

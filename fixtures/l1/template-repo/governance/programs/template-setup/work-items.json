@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "updated_at": "",
+  "owner": "fixture-template-repo",
+  "naming_contract": {
+    "system_name": "FIXTURE_TEMPLATE_REPO",
+    "issue_prefix": "FIXTURET-",
+    "tool_namespace": "fixture-template-repo"
+  },
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Template Individualization",
+      "issues": [
+        {
+          "id": "FIXTURET-M1-01",
+          "title": "Customize L2 templates for company needs",
+          "repo": ["fixture-template-repo"],
+          "depends_on": [],
+          "labels": ["program::template-setup", "milestone::m1"],
+          "tasks": [
+            {"text": "Review L2 template defaults", "done": false},
+            {"text": "Identify company-specific customizations", "done": false},
+            {"text": "Apply customizations to tpl-project-repo", "done": false},
+            {"text": "Apply customizations to tpl-individual-repo", "done": false}
+          ],
+          "dod": "L2 templates reflect company conventions",
+          "validation": [],
+          "rollback": "revert customizations",
+          "contract": {
+            "context": {
+              "read_first": [],
+              "read_if_blocked": []
+            },
+            "writable_roots": ["fixture-template-repo/copier/*"],
+            "lock_keys": ["repo:fixture-template-repo"],
+            "parallel_mode": "exclusive"
+          },
+          "state": "queued"
+        },
+        {
+          "id": "FIXTURET-M1-02",
+          "title": "Initialize company-specific L2 repos",
+          "repo": ["fixture-template-repo"],
+          "depends_on": ["FIXTURET-M1-01"],
+          "labels": ["program::template-setup", "milestone::m1"],
+          "tasks": [
+            {"text": "Generate tpl-owned-repo from template", "done": false},
+            {"text": "Generate tpl-contrib-repo from template", "done": false},
+            {"text": "Generate tpl-infra-repo from template", "done": false},
+            {"text": "Wire CI/CD for each repo", "done": false}
+          ],
+          "dod": "All company L2 repos bootstrapped and passing CI",
+          "validation": [],
+          "rollback": "remove generated repos",
+          "contract": {
+            "context": {
+              "read_first": [],
+              "read_if_blocked": []
+            },
+            "writable_roots": ["fixture-template-repo"],
+            "lock_keys": ["repo:fixture-template-repo"],
+            "parallel_mode": "exclusive"
+          },
+          "state": "queued"
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "title": "Compliance Baseline",
+      "issues": []
+    }
+  ],
+  "program_dod": [
+    "All L2 templates individualized",
+    "All company repos bootstrapped",
+    "CI/CD passing on all repos"
+  ]
+}
