@@ -46,6 +46,7 @@ By end of Phase A, do exactly one:
 - ask one concise blocker question.
 
 ## AUTHORITY SPLIT (NON-NEGOTIABLE)
+- Canonical issue IDs follow pattern `FCOS-M<milestone>-<issue>` (e.g., FCOS-M1-01, FCOS-M2-03).
 - Canonical issue status authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json`.
 - Canonical policy/state authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml`.
 - Canonical loop/plugin extensibility authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json`.
@@ -126,22 +127,42 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Issue executed this session:
-  - non-FCOS maintenance in `core/tpl-template-repo` (quiet-mode guardrail hardening + session-checkpoint command portability fix).
+  - non-FCOS maintenance in `core/tpl-template-repo` (adversarial suffix-policy hardening + fixture volatility normalization).
 - Outcome (repo-local mirror only; canonical FCOS model remains source of truth):
-  - hardened L0 wrapper guardrails in `scripts/check-l0-guardrails.sh`:
-    - `scripts/new-l1-from-copier.sh` must expose `COPIER_QUIET` and default `--quiet`
-    - `copier-template/scripts/new-repo-from-copier.sh` must expose `COPIER_QUIET` and default `--quiet`
-  - corrected Session Checkpoint validation command to root-safe cross-repo form:
-    - `cd ~/ai-society/healthco/healthco-templates && bash ./scripts/check-template-ci.sh`
+  - hardened multi-pass suffix guardrails with shared helper:
+    - `copier-template/scripts/lib/suffix-policy.sh`
+    - `scripts/check-l0-guardrails.sh`
+    - `copier-template/scripts/check-template-ci.sh`
+    - `fixtures/l1/template-repo/scripts/lib/suffix-policy.sh`
+    - `fixtures/l1/template-repo/scripts/check-template-ci.sh`
+    - semantic `_templates_suffix` assertions (`.jinja` for L0, `.j2` for nested L2 templates)
+    - unsuffixed-Jinja detection under nested L2 templates
+    - matcher self-test ensures GitHub `${{ ... }}` expressions are ignored while real `{{ ... }}` markers are flagged
+  - normalized volatile fixture fields to stable placeholders:
+    - `scripts/lib/fixture-normalization.sh`
+    - `scripts/sync-l0-fixtures.sh`
+    - `scripts/check-l0-fixtures.sh`
+    - `fixtures/l1/template-repo/.copier-answers.yml`
+    - `fixtures/l1/template-repo/contracts/provenance-seal.yml`
+    - `fixtures/l2/tpl-project-repo/.copier-answers.yml`
+    - `fixtures/l2/tpl-individual-repo/.copier-answers.yml`
+  - documented suffix boundary policy in:
+    - `README.md`
+    - `copier-template/README.md.jinja`
+    - `fixtures/l1/template-repo/README.md`
+  - canonical model/projection sync:
+    - none (no FCOS model edits in this repo session)
 - Validation run:
-  - `bash ./scripts/check-session-checkpoint.sh`
   - `bash ./scripts/check-l0-guardrails.sh`
+  - `bash ./scripts/check-l0-fixtures.sh`
   - `bash ./scripts/check-l0.sh`
+  - `cd "$GK_ROOT" && just fcos-check`
 - Current priority (resolve live from canonical model):
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Next issue (resolve live):
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Lease/lock sync:
+  - `cd "$GK_ROOT" && just fcos-context FCOS-M2-04` (verified `lease: null`)
   - no FCOS lease claimed/released in this repo session.
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md`
