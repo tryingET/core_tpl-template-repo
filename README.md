@@ -32,6 +32,7 @@ Set `-d enable_vouch_gate=true` for trust-gated template lines.
 - Start session with: `read @next_session_prompt.md`
 - End session with: `/commit` (project-local template at `.pi/prompts/commit.md`)
 - Capture raw session notes in `./diary/` (repo-local KES rule)
+- Crystallize via KES flow: `Session output -> diary/ -> docs/learnings/ -> tips/meta/`
 
 ## Deterministic ROCS launcher (agent-safe)
 

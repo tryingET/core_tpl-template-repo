@@ -39,6 +39,11 @@ Forbidden:
 - Keep diary guidance in `./diary/README.md`.
 - Apply the same diary contract per structural template (`tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-individual-repo`).
 
+## Knowledge crystallization flow (mandatory)
+- Flow: `Session output -> diary/ (raw) -> docs/learnings/ (crystallized) -> tips/meta/ (propagated)`.
+- `/deep-review` findings are raw input only until crystallized into `docs/learnings/`.
+- When a learning is recurrent, encode a deterministic check in `scripts/` so regressions fail fast.
+
 ## Validation before merge
 - `bash ./scripts/check-l0.sh`
 - optional focused runs:

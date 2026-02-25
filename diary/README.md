@@ -10,6 +10,12 @@ Use `./diary/` in this repository as the canonical raw session log.
 - Multiple sessions/day: `YYYY-MM-DD--type-scope-summary--2.md`
 - Crystallize to: `docs/learnings/` and TIPs when patterns generalize
 
+Crystallization flow (mandatory):
+
+```text
+Session output → diary/ (raw) → docs/learnings/ (crystallized) → tips/meta/ (propagated)
+```
+
 Filename convention:
 - Start from a commit-style header: `type(scope): summary`
 - Slug it into filename-safe form: `type-scope-summary`

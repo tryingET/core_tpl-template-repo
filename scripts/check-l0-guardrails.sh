@@ -134,6 +134,7 @@ docs/release-compatibility-policy.md
 docs/l1-adoption-playbook.md
 docs/profile-governance-policy.md
 docs/supply-chain-policy.md
+docs/learnings/README.md
 docs/vouch-td-primer.md
 docs/feature-matrix-l0-l1-l2-vs-pi-template.md
 docs/solo-builder-operating-cadence.md
@@ -188,6 +189,7 @@ copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
 scripts/preview-l1-diff.sh
 scripts/rocs.sh
+scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
@@ -243,6 +245,7 @@ check_project_individual_template_parity "copier-template/copier/tpl-project-rep
 required_exec="
 scripts/preview-l1-diff.sh
 scripts/rocs.sh
+scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
@@ -313,13 +316,16 @@ assert_contains "AGENTS.md" "check-l0.sh" "AGENTS validation section should use 
 assert_contains "AGENTS.md" "Deterministic tooling policy" "AGENTS should document deterministic tooling policy"
 assert_contains "AGENTS.md" "scripts/rocs.sh" "AGENTS should reference scripts/rocs.sh"
 assert_contains "AGENTS.md" "diary/" "AGENTS should require repo-local diary"
+assert_contains "AGENTS.md" "Knowledge crystallization flow" "AGENTS should define crystallization flow"
 assert_contains ".github/pull_request_template.md" "check-l0-guardrails.sh" "PR template must require guardrail checks"
+assert_contains ".github/pull_request_template.md" "check-session-checkpoint.sh" "PR template must require session checkpoint check"
 assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR template must require generation checks"
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
 assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L0 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "CONTRIBUTING.md" "diary/" "L0 contributing guide should require repo-local diary"
+assert_contains "CONTRIBUTING.md" "docs/learnings/" "L0 contributing guide should include crystallization destination"
 assert_contains "CONTRIBUTING.md" "profile-governance-policy.md" "L0 contributing guide should link profile governance policy"
 assert_contains "README.md" "Organization docs profiles" "README should document org docs profile behavior"
 assert_contains "README.md" "Profile governance policy" "README should link profile governance policy"
@@ -327,8 +333,18 @@ assert_contains "README.md" "Community pack" "README should document optional co
 assert_contains "README.md" "Release pack" "README should document optional release pack behavior"
 assert_contains "README.md" "Structure baseline" "README should document baseline scaffold structure"
 assert_contains "README.md" "Deterministic ROCS launcher" "README should document deterministic ROCS launcher"
+assert_contains "README.md" "docs/learnings/" "README should describe KES crystallization destination"
 assert_contains "README.md" "diary/" "README should document repo-local diary policy"
+assert_contains "scripts/check-l0.sh" "check-session-checkpoint" "consolidated L0 check should run session checkpoint guardrails"
+assert_contains "docs/learnings/README.md" "Session output" "L0 learnings README should define KES flow"
+assert_contains "docs/learnings/README.md" "tips/meta/" "L0 learnings README should include TIP propagation target"
 assert_contains "diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L0 diary README should enforce descriptive filename convention"
+assert_contains "diary/README.md" "Session output" "L0 diary README should define crystallization flow"
+assert_contains "diary/README.md" "docs/learnings/" "L0 diary README should include learnings destination"
+assert_contains "diary/README.md" "tips/meta/" "L0 diary README should include TIP destination"
+assert_contains "next_session_prompt.md" "Rollback path (mirror-only correction)" "session checkpoint should include rollback path"
+assert_contains "next_session_prompt.md" "git restore -- next_session_prompt.md" "session checkpoint rollback path should include restore command"
+assert_contains "next_session_prompt.md" "KES crystallization flow" "session checkpoint should include KES flow"
 assert_contains "copier-template/diary/README.md.jinja" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README template should enforce descriptive filename convention"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
@@ -382,5 +398,7 @@ assert_absent "fixtures/l2/tpl-individual-repo/docs/diary"
 if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then
   fail "nested copier invocations are not allowed in template config files"
 fi
+
+"$repo_root/scripts/check-session-checkpoint.sh"
 
 echo "ok: l0 guardrails"

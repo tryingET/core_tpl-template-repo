@@ -3,6 +3,7 @@
 
 ## L0 validation checklist
 - [ ] `bash ./scripts/check-l0-guardrails.sh`
+- [ ] `bash ./scripts/check-session-checkpoint.sh`
 - [ ] `bash ./scripts/check-supply-chain.sh`
 - [ ] `bash ./scripts/check-l0-generation.sh`
 - [ ] `bash ./scripts/check-l0-fixtures.sh`

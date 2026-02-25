@@ -126,17 +126,22 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Issue executed this session:
-  - non-FCOS maintenance in `core/tpl-template-repo` (L0/L1 template hardening + parity guardrails).
+  - non-FCOS maintenance in `core/tpl-template-repo` (NEXUS guardrail for session checkpoint portability + KES crystallization closure).
 - Outcome (repo-local mirror only; canonical FCOS model remains source of truth):
-  - added `tpl-individual-repo` across L0 message/docs/fixtures/wrappers.
-  - enforced `tpl-project-repo` ↔ `tpl-individual-repo` parity via deterministic allowlist checks in:
-    - `scripts/check-l0-guardrails.sh`
-    - `copier-template/scripts/check-template-ci.sh`
-    - `fixtures/l1/template-repo/scripts/check-template-ci.sh`
-  - expanded generated-template idempotency checks to all four L2 templates.
-  - updated AGENTS guardrails to make lockstep parity policy explicit.
-  - set Copier wrappers to quiet-by-default (`--quiet`) with opt-out via `COPIER_QUIET=0`.
+  - added deterministic session-checkpoint guardrail: `scripts/check-session-checkpoint.sh`.
+  - enforced guardrail in validation surfaces:
+    - `scripts/check-l0.sh` (consolidated run includes `check-session-checkpoint`)
+    - `scripts/check-l0-guardrails.sh` (required artifact/assertions + invocation)
+    - `.github/pull_request_template.md` (explicit checklist item)
+  - made KES flow explicit and executable in repo docs:
+    - `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, `diary/README.md`
+    - added `docs/learnings/README.md`
+  - crystallized this session:
+    - `diary/2026-02-24--fix-session-checkpoint-guardrails-and-kes-flow.md`
+    - `docs/learnings/2026-02-24-session-checkpoint-guardrails.md`
 - Validation run:
+  - `bash ./scripts/check-session-checkpoint.sh`
+  - `bash ./scripts/check-l0-guardrails.sh`
   - `bash ./scripts/check-l0.sh`
 - Current priority (resolve live from canonical model):
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
@@ -144,8 +149,12 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Lease/lock sync:
   - no FCOS lease claimed/released in this repo session.
+- Rollback path (mirror-only correction):
+  - `git restore -- next_session_prompt.md`
+- KES crystallization flow:
+  - `Session output -> diary/YYYY-MM-DD--type-scope-summary.md -> docs/learnings/YYYY-MM-DD-*.md -> tips/meta/tip-*.md`
 - Blockers/risks:
-  - none; parity drift now fails deterministic checks outside the explicit allowlist.
+  - none; checkpoint drift now fails deterministic checks.
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).
