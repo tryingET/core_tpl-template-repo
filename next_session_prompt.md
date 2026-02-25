@@ -126,19 +126,13 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Issue executed this session:
-  - non-FCOS maintenance in `core/tpl-template-repo` (NEXUS guardrail for session checkpoint portability + KES crystallization closure).
+  - non-FCOS maintenance in `core/tpl-template-repo` (quiet-mode guardrail hardening + session-checkpoint command portability fix).
 - Outcome (repo-local mirror only; canonical FCOS model remains source of truth):
-  - added deterministic session-checkpoint guardrail: `scripts/check-session-checkpoint.sh`.
-  - enforced guardrail in validation surfaces:
-    - `scripts/check-l0.sh` (consolidated run includes `check-session-checkpoint`)
-    - `scripts/check-l0-guardrails.sh` (required artifact/assertions + invocation)
-    - `.github/pull_request_template.md` (explicit checklist item)
-  - made KES flow explicit and executable in repo docs:
-    - `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, `diary/README.md`
-    - added `docs/learnings/README.md`
-  - crystallized this session:
-    - `diary/2026-02-24--fix-session-checkpoint-guardrails-and-kes-flow.md`
-    - `docs/learnings/2026-02-24-session-checkpoint-guardrails.md`
+  - hardened L0 wrapper guardrails in `scripts/check-l0-guardrails.sh`:
+    - `scripts/new-l1-from-copier.sh` must expose `COPIER_QUIET` and default `--quiet`
+    - `copier-template/scripts/new-repo-from-copier.sh` must expose `COPIER_QUIET` and default `--quiet`
+  - corrected Session Checkpoint validation command to root-safe cross-repo form:
+    - `cd ~/ai-society/healthco/healthco-templates && bash ./scripts/check-template-ci.sh`
 - Validation run:
   - `bash ./scripts/check-session-checkpoint.sh`
   - `bash ./scripts/check-l0-guardrails.sh`
@@ -154,7 +148,7 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
 - KES crystallization flow:
   - `Session output -> diary/YYYY-MM-DD--type-scope-summary.md -> docs/learnings/YYYY-MM-DD-*.md -> tips/meta/tip-*.md`
 - Blockers/risks:
-  - none; checkpoint drift now fails deterministic checks.
+  - none.
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).
