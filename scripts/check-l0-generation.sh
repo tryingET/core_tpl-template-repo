@@ -11,7 +11,9 @@ need_cmd() {
   }
 }
 
+need_cmd cp
 need_cmd git
+need_cmd grep
 need_cmd mktemp
 
 "$repo_root/scripts/check-l0-guardrails.sh"
@@ -38,14 +40,12 @@ render_l1_case() {
 
   (
     cd "$l1_dir"
-    ./scripts/check-template-ci.sh
-  )
-
-  (
-    cd "$l1_dir"
     git init -b main >/dev/null
     git config user.name "tpl-template-repo ci" >/dev/null
     git config user.email "ci@tpl-template-repo.local" >/dev/null
+    ./scripts/install-hooks.sh >/dev/null
+    ./scripts/ci/smoke.sh >/dev/null
+    ./scripts/check-template-ci.sh
     git add .
     git commit -m "initial render ($case_name)" >/dev/null
   )
@@ -67,6 +67,24 @@ render_l1_case() {
       exit 1
     fi
   )
+
+  if [ "$case_name" = "l1-template-sample" ]; then
+    preview_target="$tmp_root/l1-preview-target"
+    "$repo_root/scripts/new-l1-from-copier.sh" "$preview_target" \
+      -d repo_slug="$case_name" \
+      --defaults --overwrite >/dev/null
+
+    alias_target="$tmp_root/l1-preview-alias"
+    rm -rf "$alias_target"
+    cp -R "$preview_target" "$alias_target"
+
+    preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$alias_target")"
+    printf '%s\n' "$preview_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+      echo "error: preview-l1-diff did not produce clean no-diff output for sample alias target" >&2
+      printf '%s\n' "$preview_output" >&2
+      exit 1
+    }
+  fi
 }
 
 render_l1_case "l1-template-sample" false false false rich

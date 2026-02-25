@@ -17,8 +17,9 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
   - `copier/tpl-org-repo/` — Organization handbooks
 - Opinionated local hooks (`.githooks/`) and CI lane scripts (`scripts/ci/`).
 - Layer contract enforcement via `contracts/layer-contract.yml`.
-- Baseline structure seed for generated repos: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`.
-- Git hygiene files in generated repos: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
+- Baseline structure in this generated L1 repo: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`.
+- Git hygiene in this L1 repo: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
+- Generated L2 repositories are archetype/profile-specific and do not all share identical folder/git baselines; GitHub assets are profile-gated.
 - **KES Infrastructure**: `tips/`, `governance/`, `metrics/` for knowledge evolution.
 - **Repo-local diary contract**: `diary/README.md` in L1 and all generated L2 archetypes.
 

@@ -21,11 +21,18 @@ chmod +x \
   "$repo_root/scripts/ci/full.sh" \
   "$repo_root/.githooks/pre-commit" \
   "$repo_root/.githooks/pre-push" \
-  "$repo_root/copier/template-repo/scripts/install-hooks.sh" \
-  "$repo_root/copier/template-repo/scripts/ci/smoke.sh" \
-  "$repo_root/copier/template-repo/scripts/ci/full.sh" \
-  "$repo_root/copier/template-repo/.githooks/pre-commit" \
-  "$repo_root/copier/template-repo/.githooks/pre-push"
+  "$repo_root/copier/tpl-agent-repo/scripts/rocs.sh.j2" \
+  "$repo_root/copier/tpl-agent-repo/scripts/ci/smoke.sh" \
+  "$repo_root/copier/tpl-agent-repo/scripts/ci/full.sh" \
+  "$repo_root/copier/tpl-org-repo/scripts/rocs.sh.j2" \
+  "$repo_root/copier/tpl-org-repo/scripts/ci/smoke.sh" \
+  "$repo_root/copier/tpl-org-repo/scripts/ci/full.sh" \
+  "$repo_root/copier/tpl-project-repo/scripts/rocs.sh.j2" \
+  "$repo_root/copier/tpl-project-repo/scripts/ci/smoke.sh" \
+  "$repo_root/copier/tpl-project-repo/scripts/ci/full.sh" \
+  "$repo_root/copier/tpl-individual-repo/scripts/rocs.sh.j2" \
+  "$repo_root/copier/tpl-individual-repo/scripts/ci/smoke.sh" \
+  "$repo_root/copier/tpl-individual-repo/scripts/ci/full.sh"
 
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   git config core.hooksPath .githooks

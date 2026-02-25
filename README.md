@@ -158,10 +158,11 @@ Forbidden edges:
   bash ./scripts/sync-l0-fixtures.sh
   ```
 
-## Structure baseline (L1/L2)
+## Structure baseline (L1 vs L2)
 
-To reduce drift with richer template ecosystems, generated repositories now seed:
-- folders: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
-- git baseline: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
+To reduce drift with richer template ecosystems:
+- generated **L1 template repositories** seed baseline folders: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
+- generated **L1 template repositories** also seed git baseline files: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
+- generated **L2 repositories** are archetype/profile-specific (from `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-individual-repo`) and do not all ship identical folder/git baselines; GitHub assets are profile-gated (`enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`)
 
-This is still a minimal L0 slice; deeper ecosystem-specific packs can be layered by profile.
+Use `fixtures/` plus `bash ./scripts/check-l0-fixtures.sh` for the exact rendered baseline contract.

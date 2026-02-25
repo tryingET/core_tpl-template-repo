@@ -64,6 +64,20 @@ assert_not_contains() {
   fi
 }
 
+assert_line_precedes() {
+  path="$1"
+  first="$2"
+  second="$3"
+  label="$4"
+
+  first_line="$(grep -nF -- "$first" "$path" | awk -F ':' 'NR == 1 { print $1 }')"
+  second_line="$(grep -nF -- "$second" "$path" | awk -F ':' 'NR == 1 { print $1 }')"
+
+  [ -n "$first_line" ] || fail "$label (missing '$first' in $path)"
+  [ -n "$second_line" ] || fail "$label (missing '$second' in $path)"
+  [ "$first_line" -lt "$second_line" ] || fail "$label (expected '$first' before '$second' in $path)"
+}
+
 suffix_policy_lib="$repo_root/scripts/lib/suffix-policy.sh"
 [ -f "$suffix_policy_lib" ] || fail "missing file: $suffix_policy_lib"
 # shellcheck source=/dev/null
@@ -317,6 +331,22 @@ assert_contains "scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper mus
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-individual-repo" "L1 wrapper must list tpl-individual-repo template"
 
+expected_pin='COPIER_VERSION="${COPIER_VERSION:-9.11.1}"'
+expected_uvx='uvx --from "copier==${COPIER_VERSION}" copier'
+expected_uvtool='uv tool run --from "copier==${COPIER_VERSION}" copier'
+fallback_warning='warning: uvx/uv not found; falling back to unpinned copier on PATH'
+uvx_guard='if command -v uvx >/dev/null 2>&1; then'
+uv_guard='if command -v uv >/dev/null 2>&1; then'
+copier_guard='if command -v copier >/dev/null 2>&1; then'
+
+assert_contains "scripts/new-repo-from-copier.sh" "$expected_pin" "L1 wrapper must pin Copier version"
+assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvx" "L1 wrapper must use pinned uvx invocation"
+assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvtool" "L1 wrapper must use pinned uv tool invocation"
+assert_contains "scripts/new-repo-from-copier.sh" "$fallback_warning" "L1 wrapper must surface unpinned fallback warning"
+assert_not_contains "scripts/new-repo-from-copier.sh" "uvx copier" "L1 wrapper must not call unpinned uvx copier"
+assert_line_precedes "scripts/new-repo-from-copier.sh" "$uvx_guard" "$uv_guard" "L1 wrapper must prefer uvx before uv tool run"
+assert_line_precedes "scripts/new-repo-from-copier.sh" "$uv_guard" "$copier_guard" "L1 wrapper must prefer pinned runtimes before unpinned copier"
+
 workflow=".github/workflows/template-check.yml"
 assert_contains "$workflow" "pull_request:" "template-check workflow must run on pull requests"
 assert_contains "$workflow" "push:" "template-check workflow must run on pushes"
@@ -325,6 +355,14 @@ assert_contains "$workflow" "./scripts/check-template-ci.sh" "template-check wor
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
 assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
+assert_not_contains "scripts/install-hooks.sh" "copier/template-repo" "install-hooks must not reference removed legacy template-repo path"
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+  assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "install-hooks must include executable bit normalization for $tpl rocs wrapper"
+  assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "install-hooks must include executable bit normalization for $tpl smoke lane"
+  assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "install-hooks must include executable bit normalization for $tpl full lane"
+done
+assert_not_contains "scripts/ci/smoke.sh" "copier/template-repo/copier.yml" "L1 smoke lane must not lint removed legacy template-repo path"
+assert_contains "scripts/ci/smoke.sh" "copier.yml copier/*/copier.yml" "L1 smoke lane should lint nested copier configs"
 
 vouch_enabled="$(bool_from_answers .copier-answers.yml enable_vouch_gate || true)"
 if [ "$vouch_enabled" = "true" ]; then

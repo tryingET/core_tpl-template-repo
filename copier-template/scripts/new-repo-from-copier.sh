@@ -46,12 +46,13 @@ run_copier() {
     PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"
     return
   fi
-  if command -v copier >/dev/null 2>&1; then
-    PYTHONWARNINGS="$pythonwarnings" copier "$@"
-    return
-  fi
   if command -v uv >/dev/null 2>&1; then
     PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"
+    return
+  fi
+  if command -v copier >/dev/null 2>&1; then
+    echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2
+    PYTHONWARNINGS="$pythonwarnings" copier "$@"
     return
   fi
   echo "error: missing dependency: copier (or uvx/uv)" >&2

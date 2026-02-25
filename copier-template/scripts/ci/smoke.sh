@@ -21,7 +21,7 @@ if grep -q "__RENDER_HASH__" contracts/provenance-seal.yml; then
   fail "provenance render hash placeholder must be resolved"
 fi
 
-if grep -nE 'copier[[:space:]]+(copy|update)' copier/template-repo/copier.yml >/dev/null 2>&1; then
+if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml copier/*/copier.yml >/dev/null 2>&1; then
   fail "nested copier invocations are forbidden in L1 template config"
 fi
 

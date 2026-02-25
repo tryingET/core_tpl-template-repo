@@ -5,7 +5,8 @@ Keep template generation reproducible and low-risk across L0/L1/L2.
 
 ## Baseline controls
 - Copier invocation is pinned through `COPIER_VERSION` (default `9.11.1`).
-- Copier execution prefers `uvx --from "copier==${COPIER_VERSION}"`.
+- Copier execution order is deterministic: `uvx --from "copier==${COPIER_VERSION}"` → `uv tool run --from "copier==${COPIER_VERSION}"` → bare `copier` fallback only when `uvx/uv` are unavailable.
+- Bare `copier` fallback emits an explicit warning so unpinned execution is visible.
 - Local template sources are rendered with `--trust` and repository-local paths.
 - `.copier-answers.yml` remains committed for reproducibility.
 

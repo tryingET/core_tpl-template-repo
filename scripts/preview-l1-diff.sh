@@ -37,6 +37,25 @@ need_cmd mktemp
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 
 if [ -z "$repo_slug" ]; then
+  answers_file="$target_repo/.copier-answers.yml"
+  if [ -f "$answers_file" ]; then
+    repo_slug_from_answers="$(awk -F':' '
+      $1 ~ "^repo_slug$" {
+        v=$2
+        gsub(/^[ \t]+|[ \t]+$/, "", v)
+        gsub(/"/, "", v)
+        gsub(/\047/, "", v)
+        print v
+        exit
+      }
+    ' "$answers_file")"
+    if [ -n "$repo_slug_from_answers" ]; then
+      repo_slug="$repo_slug_from_answers"
+    fi
+  fi
+fi
+
+if [ -z "$repo_slug" ]; then
   repo_slug="$(basename "$target_repo")"
 fi
 
@@ -45,7 +64,7 @@ trap 'rm -rf "$tmp_root"' EXIT
 
 render_dir="$tmp_root/l1-render"
 
-"$repo_root/scripts/new-l1-from-copier.sh" template-repo "$render_dir" \
+"$repo_root/scripts/new-l1-from-copier.sh" "$render_dir" \
   -d repo_slug="$repo_slug" \
   --defaults --overwrite >/dev/null
 
