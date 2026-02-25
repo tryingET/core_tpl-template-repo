@@ -148,19 +148,60 @@ Use the returned issue ID for claim/execute/release; treat mirrored IDs in this 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Issue executed this session:
-  - _fill before commit_
-- Outcome:
-  - _fill before commit_
+  - non-FCOS maintenance in `core/tpl-template-repo` (wrapper semantics hardening, L1 helper-path drift repair, baseline contract doc alignment, fail-fast check runner control).
+- Outcome (repo-local mirror only; canonical FCOS model remains source of truth):
+  - hardened Copier wrapper runtime precedence + explicit unpinned fallback warning in:
+    - `scripts/new-l1-from-copier.sh`
+    - `copier-template/scripts/new-repo-from-copier.sh`
+    - `fixtures/l1/template-repo/scripts/new-repo-from-copier.sh`
+  - fixed helper-wrapper contracts and runtime coverage:
+    - `scripts/preview-l1-diff.sh` positional arg contract fixed
+    - default `repo_slug` inference now reads target `.copier-answers.yml` before basename fallback
+    - `scripts/check-l0-generation.sh` now executes generated L1 `install-hooks` + `ci/smoke` and validates `preview-l1-diff` no-diff runtime path
+  - repaired legacy path drift in generated L1 helpers:
+    - `copier-template/scripts/install-hooks.sh`
+    - `copier-template/scripts/ci/smoke.sh`
+    - `fixtures/l1/template-repo/scripts/install-hooks.sh`
+    - `fixtures/l1/template-repo/scripts/ci/smoke.sh`
+  - expanded deterministic guardrails:
+    - `scripts/check-supply-chain.sh`
+    - `copier-template/scripts/check-template-ci.sh`
+    - `scripts/check-l0-guardrails.sh`
+    - `fixtures/l1/template-repo/scripts/check-template-ci.sh`
+  - tightened aggregator signal + fail-fast control in consolidated checks:
+    - `scripts/check-l0.sh` warning parser now matches diagnostic prefixes
+    - `L0_CHECK_TIMEOUT_SECONDS` added (default `180`, `0` disables timeout)
+    - `CONTRIBUTING.md` updated with timeout usage
+  - baseline contract wording aligned with rendered output:
+    - `README.md`
+    - `copier-template/README.md.jinja`
+    - `fixtures/l1/template-repo/README.md`
+  - KES capture + crystallization + propagation added:
+    - diary entries under `diary/2026-02-24--*.md`
+    - learnings under `docs/learnings/2026-02-24-*.md`
+    - TIPs:
+      - `tips/meta/tip-0004-executable-wrapper-contract-guardrails.md`
+      - `tips/meta/tip-0005-diagnostic-prefix-contracts-for-check-aggregators.md`
+      - `tips/meta/tip-0006-fail-fast-timeout-conventions-for-check-runners.md`
+      - `tips/meta/tip-0007-readme-baseline-claims-must-map-to-render-axes.md`
+  - canonical model/projection sync:
+    - none (no FCOS model edits in this repo session)
 - Validation run:
-  - _fill before commit_
+  - `L0_CHECK_TIMEOUT_SECONDS=120 bash ./scripts/check-l0.sh`
+  - `cd "$GK_ROOT" && just fcos-check`
 - Current priority (resolve live from canonical model):
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Next issue (resolve live):
   - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Lease/lock sync:
-  - _fill before commit_
+  - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'` resolved `FCOS-M3-02` during validation.
+  - no FCOS lease claimed/released in this repo session.
+- Rollback path (mirror-only correction):
+  - `git restore -- next_session_prompt.md`
+- KES crystallization flow:
+  - `Session output -> diary/YYYY-MM-DD--type-scope-summary.md -> docs/learnings/YYYY-MM-DD-*.md -> tips/meta/tip-*.md`
 - Blockers/risks:
-  - _fill before commit_
+  - none.
 
 ## END-OF-SESSION
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).
