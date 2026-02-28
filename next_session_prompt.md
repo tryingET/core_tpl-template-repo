@@ -51,7 +51,7 @@ L3: (only inside monorepos)
 ### Key Parameters
 
 ```yaml
-# L0 copier.yml - NEW
+# L0 copier.yml
 company_slug:
   type: str
   help: "Company slug (e.g., holdingco, softwareco, healthco)"
@@ -61,16 +61,18 @@ company_name:
   help: "Company display name (e.g., Holding Company)"
 
 # tpl-project-repo/copier.yml
+location:
+  default: owned
+  choices: [owned, contrib, infra]
 language:
   default: python
   choices: [python, node, typescript, rust, go, bash]
+enable_software_pack:
+  default: false
 
-# tpl-monorepo/copier.yml
-language:
-  default: python
-  choices: [python, node, typescript, rust, go]
+# tpl-monorepo/copier.yml (NO language - deferred to packages)
 package_manager:
-  choices: [uv, npm, pnpm, cargo]
+  choices: [uv, npm, pnpm, cargo, go-mod]
 
 # tpl-package/copier.yml
 package_type:
@@ -255,22 +257,24 @@ After each work package:
   - **WP6.5**: L2 validation - greenfield (template-test-bed) + brownfield (org-handbook)
   - **WP7**: Regenerated softwareco-templates, deleted orphan tpl-*-repo dirs
   - **WP8**: Regenerated healthco-templates from L0
-  - **FIX**: Added `! -path '*/tools/*'` to suffix-policy.sh to exclude vendored code
+  - **DIMENSION-REFACTOR**: Added `language` + `location` + `enable_software_pack` to tpl-project-repo
+  - **DIMENSION-REFACTOR**: Removed `language` from tpl-monorepo (deferred to packages)
 - Outcome:
   - All 3 L1s (holdingco, softwareco, healthco) regenerated with company_slug
   - All 3 L1s have all 5 canonical templates
   - L0→L1→L2 chain validated end-to-end
   - Greenfield and brownfield L2 migrations work
+  - 3 dimensions now explicit: Location, Structure, Language
 - Current priority:
-  - KES crystallization (capture patterns from full chain validation)
+  - S4: Location-driven defaults (release_pack, CODEOWNERS)
+  - S6: Conditional file generation (pyproject.toml, package.json)
+  - S9: Tech-stack-core linking when software_pack enabled
   - WP9-WP10 remain (workstation backup, pi-extensions monorepo)
 - Blockers/risks:
   - None identified
 - Validation run:
   - `bash ./scripts/check-l0.sh`
   - `cd ~/ai-society/holdingco/holdingco-templates && bash ./scripts/check-template-ci.sh`
-  - `cd ~/ai-society/healthco/healthco-templates && bash ./scripts/check-template-ci.sh`
-  - `cd ~/ai-society/softwareco/softwareco-templates && bash ./scripts/check-template-ci.sh`
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md` to revert session state
 - KES crystallization flow:
