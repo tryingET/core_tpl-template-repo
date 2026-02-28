@@ -286,6 +286,10 @@ assert_contains "$workflow" "pull_request:" "template-check workflow must run on
 assert_contains "$workflow" "push:" "template-check workflow must run on pushes"
 assert_contains "$workflow" "./scripts/check-template-ci.sh" "template-check workflow must run template checks"
 
+ci_workflow=".github/workflows/ci.yml"
+assert_contains "$ci_workflow" "Setup uv (full lane)" "ci full lane must provision uv before running full checks"
+assert_contains "$ci_workflow" "Run full lane" "ci workflow must expose full lane"
+
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
 assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"

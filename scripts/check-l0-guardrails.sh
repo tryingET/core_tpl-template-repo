@@ -148,6 +148,7 @@ copier-template/scripts/ci/full.sh
 copier-template/scripts/release/check.sh
 copier-template/scripts/release/publish.sh
 copier-template/.github/workflows/template-check.yml
+copier-template/.github/workflows/ci.yml
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
 scripts/preview-l1-diff.sh
@@ -287,6 +288,7 @@ assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must 
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
 assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
+assert_contains "copier-template/.github/workflows/ci.yml" "Setup uv (full lane)" "L1 CI workflow should provision uv in the full lane"
 assert_not_contains "copier-template/scripts/install-hooks.sh" "copier/template-repo" "L1 install-hooks must not reference removed legacy template-repo path"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"

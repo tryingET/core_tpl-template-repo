@@ -31,27 +31,43 @@ need_cmd() {
 }
 
 need_cmd basename
+need_cmd cp
 need_cmd git
+need_cmd mkdir
 need_cmd mktemp
+need_cmd rm
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 
-if [ -z "$repo_slug" ]; then
-  answers_file="$target_repo/.copier-answers.yml"
-  if [ -f "$answers_file" ]; then
-    repo_slug_from_answers="$(awk -F':' '
-      $1 ~ "^repo_slug$" {
-        v=$2
-        gsub(/^[ \t]+|[ \t]+$/, "", v)
-        gsub(/"/, "", v)
-        gsub(/\047/, "", v)
-        print v
-        exit
+read_answer_value() {
+  file="$1"
+  key="$2"
+
+  [ -f "$file" ] || return 1
+
+  awk -v key="$key" '
+    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
+      v = $0
+      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", v)
+      gsub(/^[ \t]+|[ \t]+$/, "", v)
+      sub(/[[:space:]]+#.*$/, "", v)
+      if (v ~ /^".*"$/) {
+        v = substr(v, 2, length(v) - 2)
+      } else if (v ~ /^\047.*\047$/) {
+        v = substr(v, 2, length(v) - 2)
       }
-    ' "$answers_file")"
-    if [ -n "$repo_slug_from_answers" ]; then
-      repo_slug="$repo_slug_from_answers"
-    fi
+      print v
+      exit
+    }
+  ' "$file"
+}
+
+answers_file="$target_repo/.copier-answers.yml"
+
+if [ -z "$repo_slug" ] && [ -f "$answers_file" ]; then
+  repo_slug_from_answers="$(read_answer_value "$answers_file" repo_slug || true)"
+  if [ -n "$repo_slug_from_answers" ]; then
+    repo_slug="$repo_slug_from_answers"
   fi
 fi
 
@@ -64,9 +80,20 @@ trap 'rm -rf "$tmp_root"' EXIT
 
 render_dir="$tmp_root/l1-render"
 
-"$repo_root/scripts/new-l1-from-copier.sh" "$render_dir" \
-  -d repo_slug="$repo_slug" \
-  --defaults --overwrite >/dev/null
+set -- --defaults --overwrite
+
+if [ -f "$answers_file" ]; then
+  for key in company_slug company_name maintainer_handle l1_org_docs_profile enable_vouch_gate enable_community_pack enable_release_pack; do
+    value="$(read_answer_value "$answers_file" "$key" || true)"
+    if [ -n "$value" ]; then
+      set -- "$@" -d "$key=$value"
+    fi
+  done
+fi
+
+set -- "$@" -d "repo_slug=$repo_slug"
+
+"$repo_root/scripts/new-l1-from-copier.sh" "$render_dir" "$@" >/dev/null
 
 echo "==> rendered: $render_dir"
 echo "==> target:   $target_repo"
@@ -77,8 +104,15 @@ if git -C "$target_repo" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   fi
 fi
 
+compare_render_dir="$tmp_root/l1-render-compare"
+compare_target_dir="$tmp_root/l1-target-compare"
+mkdir -p "$compare_render_dir" "$compare_target_dir"
+cp -R "$render_dir/." "$compare_render_dir/"
+cp -R "$target_repo/." "$compare_target_dir/"
+rm -rf "$compare_render_dir/.git" "$compare_target_dir/.git"
+
 set +e
-git --no-pager diff --no-index -- "$render_dir" "$target_repo"
+git --no-pager diff --no-index -- "$compare_render_dir" "$compare_target_dir"
 status=$?
 set -e
 

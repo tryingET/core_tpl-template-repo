@@ -174,9 +174,10 @@ read_inherited_value() {
 
   [ -f "$answers_file" ] || return 1
 
-  awk -F':' -v key="$key" '
-    $1 ~ "^" key "$" {
-      v=$2
+  awk -v key="$key" '
+    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
+      v = $0
+      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", v)
       gsub(/^[ \t]+|[ \t]+$/, "", v)
       gsub(/"/, "", v)
       gsub(/\047/, "", v)
@@ -192,9 +193,10 @@ read_inherited_string() {
 
   [ -f "$answers_file" ] || return 1
 
-  awk -F':' -v key="$key" '
-    $1 ~ "^" key "$" {
-      v=$2
+  awk -v key="$key" '
+    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
+      v = $0
+      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", v)
       gsub(/^[ \t]+|[ \t]+$/, "", v)
       gsub(/"/, "", v)
       gsub(/\047/, "", v)
