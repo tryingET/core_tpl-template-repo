@@ -27,7 +27,7 @@ governance/      # Work items, policies
 
 ## Package Management
 - Package manager: **uv**
-- Primary language: **python**
+- Languages: Defined per-package in `packages/` and `apps/` (via tpl-package)
 - Workspace config at root; packages inherit workspace settings.
 
 ## Knowledge Crystallization Flow

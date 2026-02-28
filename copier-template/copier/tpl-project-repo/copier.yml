@@ -24,6 +24,32 @@ repo_slug:
   type: str
   help: "Repo slug (e.g. proj-foo)"
 
+location:
+  type: str
+  default: owned
+  choices:
+    - owned
+    - contrib
+    - infra
+  help: "Location archetype: owned (company projects), contrib (upstream contributions), infra (infrastructure)"
+
+language:
+  type: str
+  default: python
+  choices:
+    - python
+    - node
+    - typescript
+    - rust
+    - go
+    - bash
+  help: "Primary language for the project"
+
+enable_software_pack:
+  type: bool
+  default: false
+  help: "Enable software development scaffolding (pyproject.toml, package.json, etc.)"
+
 enable_community_pack:
   type: bool
   default: false

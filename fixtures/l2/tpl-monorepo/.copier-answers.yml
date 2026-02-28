@@ -2,7 +2,6 @@
 company_slug: 'holdingco'
 company_name: 'Holding Company'
 repo_slug: 'fixture-monorepo'
-language: 'python'
 package_manager: 'uv'
 enable_community_pack: false
 enable_release_pack: false

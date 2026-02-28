@@ -1,3 +1,6 @@
+# Location: owned
+# Language: python
+
 # Core + org context snapshots
 docs/_core/** @core-owner
 docs/org_context/** @org-owners
@@ -13,4 +16,3 @@ policy/** @project-owners
 scripts/** @project-owners
 src/** @project-owners
 tests/** @project-owners
-

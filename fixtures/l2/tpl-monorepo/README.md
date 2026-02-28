@@ -16,7 +16,7 @@ scripts/         # CI/utility scripts
 ## Package Manager
 
 - **uv** — workspace package management
-- **python** — primary language
+- Languages — defined per-package (see `packages/` and `apps/`)
 
 ## Quick Commands
 
@@ -45,7 +45,7 @@ Use `tpl-package` from your L1 templates to add packages:
 ./scripts/new-repo-from-copier.sh tpl-package /path/to/monorepo/packages/<name> \
   -d package_name=<name> \
   -d package_type=library \
-  -d language=python \
+  -d language=<python|node|typescript|rust|go> \
   --defaults --overwrite
 ```
 
@@ -56,7 +56,7 @@ Use `tpl-package` from your L1 templates to add packages:
 ./scripts/new-repo-from-copier.sh tpl-package /path/to/monorepo/apps/<name> \
   -d package_name=<name> \
   -d package_type=app \
-  -d language=python \
+  -d language=<python|node|typescript|rust|go> \
   --defaults --overwrite
 ```
 

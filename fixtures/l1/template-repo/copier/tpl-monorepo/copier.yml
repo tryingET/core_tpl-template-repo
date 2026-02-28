@@ -20,16 +20,8 @@ repo_slug:
   type: str
   help: "Repo slug (e.g. dspx, platform-mono)"
 
-language:
-  type: str
-  default: python
-  choices:
-    - python
-    - node
-    - typescript
-    - rust
-    - go
-  help: "Primary language for the monorepo"
+# Note: Monorepos don't have a single language - each package in packages/ or apps/ 
+# defines its own language when generated from tpl-package
 
 package_manager:
   type: str
