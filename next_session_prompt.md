@@ -112,41 +112,48 @@ copier tpl-package softwareco/owned/dspx/packages/dspx-auth/ \
 ## WORK PACKAGES (IN ORDER)
 
 ### WP1: Add company_slug to L0
-- [ ] Add `company_slug` and `company_name` parameters to `core/tpl-template-repo/copier.yml`
-- [ ] Create `{{ company_slug }}` variable for use in templates
-- [ ] Update README with new parameter documentation
+- [x] Add `company_slug` and `company_name` parameters to `core/tpl-template-repo/copier.yml`
+- [x] Create `{{ company_slug }}` variable for use in templates
+- [x] Update README with new parameter documentation
 
 ### WP2: Template all company-specific paths
-- [ ] Audit all hardcoded company paths in L0 templates
-- [ ] Replace with `{{ company_slug }}` variables
-- [ ] Key files to update:
-  - `copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/cli.py`
-  - `copier-template/copier/tpl-project-repo/docs/_core/README.md`
-  - Other paths referencing `holdingco/`, `softwareco/`, etc.
+- [x] Audit all hardcoded company paths in L0 templates
+- [x] Replace with `{{ company_slug }}` variables
+- [x] Key files updated:
+  - `copier-template/{{ _copier_conf.answers_file }}.jinja` - Added company fields
+  - `copier-template/copier/tpl-project-repo/copier.yml` - Added company params
+  - `copier-template/copier/tpl-org-repo/copier.yml` - Added company params
+  - `copier-template/copier/tpl-agent-repo/copier.yml` - Added company params
+  - `copier-template/copier/*/docs/_core/README.md.j2` - Templated paths
+  - `copier-template/scripts/new-repo-from-copier.sh` - Inherit company params
+  - `copier-template/governance/README.md.jinja` - Templated example path
 
 ### WP3: Eliminate tpl-individual-repo
-- [ ] Delete `core/tpl-template-repo/copier-template/copier/tpl-individual-repo/`
-- [ ] Remove references from L0 copier.yml `_tasks` and `_message_after_copy`
-- [ ] Update fixtures and tests
-- [ ] Document that "individual" is just `tpl-project-repo` with single maintainer
+- [x] Delete `core/tpl-template-repo/copier-template/copier/tpl-individual-repo/`
+- [x] Remove references from L0 copier.yml `_tasks` and `_message_after_copy`
+- [x] Update fixtures and tests
+- [x] Document that "individual" is just `tpl-project-repo` with single maintainer
 
 ### WP4: Add tpl-monorepo archetype
-- [ ] Create `copier-template/copier/tpl-monorepo/` based on `tpl-project-repo`
-- [ ] Add monorepo-specific structure: `packages/`, `apps/`, workspace config
-- [ ] Add `package_manager` parameter
-- [ ] Update L0 copier.yml to include in archetype list
+- [x] Create `copier-template/copier/tpl-monorepo/` based on `tpl-project-repo`
+- [x] Add monorepo-specific structure: `packages/`, `apps/`, workspace config
+- [x] Add `package_manager` and `language` parameters
+- [x] Update L0 copier.yml to include in archetype list
+- [x] Update guardrails and scripts to include tpl-monorepo
 
 ### WP5: Add tpl-package archetype
-- [ ] Create `copier-template/copier/tpl-package/`
-- [ ] NO `.git`, NO `.github`, NO release tooling
-- [ ] Has `package_type` parameter: library, app, service
-- [ ] Minimal structure: `src/`, `tests/`, `pyproject.toml` or `package.json`
+- [x] Create `copier-template/copier/tpl-package/`
+- [x] NO `.git`, NO `.github`, NO release tooling
+- [x] Has `package_type` parameter: library, app, service
+- [x] Has `language` parameter: python, node, typescript, rust, go
+- [x] Minimal structure: `src/`, `tests/`, `docs/`, `scripts/ci/`
+- [x] Update guardrails and scripts to include tpl-package
 
 ### WP6: Regenerate holdingco-templates
-- [ ] Run L0 → L1 with `company_slug=holdingco`
-- [ ] Verify `.copier-answers.yml` has company_slug
-- [ ] Verify paths are templated (not hardcoded)
-- [ ] Run validation checks
+- [x] Run L0 → L1 with `company_slug=holdingco`
+- [x] Verify `.copier-answers.yml` has company_slug
+- [x] Verify paths are templated (not hardcoded)
+- [x] Run validation checks
 
 ### WP7: Create softwareco-templates (proper L1)
 - [ ] Run L0 → L1 with `company_slug=softwareco`
@@ -237,20 +244,30 @@ After each work package:
 
 ---
 
-## SESSION CHECKPOINT
+## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 
 - Work package executed this session:
-  - **WP0**: Analysis and architecture design complete
+  - **WP6**: Regenerated holdingco-templates from L0
+  - **FIX-6**: Added `! -path '*/tools/*'` to suffix-policy.sh to exclude vendored code
 - Outcome:
-  - Identified broken template chain
-  - Designed 5-template architecture
-  - Planned 10 work packages
+  - `.copier-answers.yml` now has `company_slug` and `company_name`
+  - All 5 templates present: tpl-agent-repo, tpl-org-repo, tpl-project-repo, tpl-monorepo, tpl-package
+  - L1 validation passes (`check-template-ci.sh`)
+  - L0 validation passes (all 5 checks)
 - Current priority:
-  - **WP1**: Add company_slug to L0 copier.yml
+  - WP7: Create softwareco-templates (proper L1)
 - Blockers/risks:
-  - None identified yet
-- KES crystallization:
-  - This session captured in diary if significant learnings emerge
+  - None identified
+- Validation run:
+  - `bash ./scripts/check-l0.sh`
+  - `cd ~/ai-society/holdingco/holdingco-templates && bash ./scripts/check-template-ci.sh`
+- Rollback path (mirror-only correction):
+  - `git restore -- next_session_prompt.md` to revert session state
+  - `git restore -- scripts/ fixtures/ copier-template/scripts/` to revert code changes
+- KES crystallization flow:
+  - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
+  - Crystallize to `docs/learnings/` if recurrent patterns
+  - Propagate meta patterns to `tips/meta/`
 
 ---
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set -eu
 
 # Normalize volatile render metadata so fixture snapshots stay stable across runs.
 
@@ -18,6 +19,10 @@ normalize_fixture_tree_volatiles() {
       }
       /^l0_source_sha:/ {
         print "l0_source_sha: __VOLATILE_L0_SOURCE_SHA__"
+        next
+      }
+      /^template_source_sha:/ {
+        print "template_source_sha: __VOLATILE_TEMPLATE_SOURCE_SHA__"
         next
       }
       {

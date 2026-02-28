@@ -21,6 +21,16 @@ package workitems
 	done: bool
 }
 
+// Deferred task with ATOMIC COMPLETION contract
+// Must have: owner, trigger, deadline, blast_radius
+#DeferredTask: {
+	text:         string
+	owner:        string & =~"^.+$"
+	trigger:      string
+	deadline:     string & =~"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+	blast_radius: string
+}
+
 #IssueContext: {
 	read_first:      [...string]
 	read_if_blocked: [...string]
@@ -41,6 +51,7 @@ package workitems
 	depends_on:  [...string]
 	labels:      [...string]
 	tasks:       [#Task, ...#Task]
+	deferred_tasks?: [#DeferredTask, ...#DeferredTask]
 	dod:         string
 	validation:  [...string]
 	rollback:    string

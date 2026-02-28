@@ -50,8 +50,8 @@ first_untemplated_jinja_match() {
   template_suffix="$2"
 
   # Detect Jinja markers while ignoring common non-Jinja patterns like GitHub
-  # expression syntax (${ {... }}).
-  find "$search_root" -type f ! -name "*${template_suffix}" ! -path '*/.git/*' \
+  # expression syntax (${ {... }}) and vendored tools (Python f-string escapes {{ }}).
+  find "$search_root" -type f ! -name "*${template_suffix}" ! -path '*/.git/*' ! -path '*/tools/*' \
     -exec grep -I -l -m 1 -E '(^|[^$])\{\{|(^|[^$])\{%|\{#' {} + 2>/dev/null \
     | LC_ALL=C sort \
     | awk 'NR==1{print;exit}'

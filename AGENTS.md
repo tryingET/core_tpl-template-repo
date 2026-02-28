@@ -8,7 +8,6 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Never encode nested `copier copy` calls inside template `_tasks`.
 - Keep `.copier-answers.yml` committed in generated repositories.
 - Preserve baseline folder skeleton + git baseline files unless intentionally changed by policy.
-- Keep `tpl-project-repo` and `tpl-individual-repo` baseline assets in lockstep; only intentional identity/config docs may diverge.
 - Treat `enable_community_pack` as profile policy (default disabled, enable for public/community-facing repos).
 - Treat `enable_release_pack` as profile policy (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as profile policy (default disabled, enable for trust-gated/public repos).
@@ -37,7 +36,7 @@ Forbidden:
 ## Diary policy (repo-local, mandatory)
 - Keep session capture in `./diary/YYYY-MM-DD--type-scope-summary.md` for this repo.
 - Keep diary guidance in `./diary/README.md`.
-- Apply the same diary contract per structural template (`tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-individual-repo`).
+- Apply the same diary contract per structural template (`tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`).
 
 ## Knowledge crystallization flow (mandatory)
 - Flow: `Session output -> diary/ (raw) -> docs/learnings/ (crystallized) -> tips/meta/ (propagated)`.

@@ -30,9 +30,12 @@ chmod +x \
   "$repo_root/copier/tpl-project-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/full.sh" \
-  "$repo_root/copier/tpl-individual-repo/scripts/rocs.sh.j2" \
-  "$repo_root/copier/tpl-individual-repo/scripts/ci/smoke.sh" \
-  "$repo_root/copier/tpl-individual-repo/scripts/ci/full.sh"
+  "$repo_root/copier/tpl-monorepo/scripts/rocs.sh.j2" \
+  "$repo_root/copier/tpl-monorepo/scripts/ci/smoke.sh" \
+  "$repo_root/copier/tpl-monorepo/scripts/ci/full.sh" \
+  "$repo_root/copier/tpl-package/scripts/rocs.sh.j2" \
+  "$repo_root/copier/tpl-package/scripts/ci/smoke.sh" \
+  "$repo_root/copier/tpl-package/scripts/ci/full.sh"
 
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   git config core.hooksPath .githooks

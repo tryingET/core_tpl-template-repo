@@ -4,7 +4,7 @@
 
 First validated slice:
 - one L1 profile: `template-repo`
-- generated L1 repos include CI, hooks, contracts, and four L2 templates (`tpl-agent-repo`, `tpl-project-repo`, `tpl-individual-repo`, `tpl-org-repo`)
+- generated L1 repos include CI, hooks, contracts, and five L2 templates (`tpl-agent-repo`, `tpl-project-repo`, `tpl-monorepo`, `tpl-package`, `tpl-org-repo`)
 
 ## Quickstart
 
@@ -163,6 +163,6 @@ Forbidden edges:
 To reduce drift with richer template ecosystems:
 - generated **L1 template repositories** seed baseline folders: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
 - generated **L1 template repositories** also seed git baseline files: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
-- generated **L2 repositories** are archetype/profile-specific (from `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-individual-repo`) and do not all ship identical folder/git baselines; GitHub assets are profile-gated (`enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`)
+- generated **L2 repositories** are archetype/profile-specific (from `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`) and do not all ship identical folder/git baselines; GitHub assets are profile-gated (`enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`)
 
 Use `fixtures/` plus `bash ./scripts/check-l0-fixtures.sh` for the exact rendered baseline contract.

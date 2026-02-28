@@ -9,7 +9,8 @@ Templates:
   tpl-agent-repo       AI agent repositories (personas, learnings, activities)
   tpl-org-repo         Organization handbooks (governance, policies)
   tpl-project-repo     Project repositories (products, services)
-  tpl-individual-repo  Individual repositories (personal execution lanes)
+  tpl-monorepo         Monorepo workspaces (packages + apps)
+  tpl-package          Packages inside monorepos (NO .git, NO .github)
 
 Example:
   ./scripts/new-repo-from-copier.sh tpl-agent-repo /tmp/my-agent \
@@ -18,8 +19,9 @@ Example:
   ./scripts/new-repo-from-copier.sh tpl-project-repo /tmp/my-product \
     -d repo_slug=my-product --defaults --overwrite
 
-  ./scripts/new-repo-from-copier.sh tpl-individual-repo /tmp/my-individual \
-    -d repo_slug=my-individual --defaults --overwrite
+  ./scripts/new-repo-from-copier.sh tpl-monorepo /tmp/my-monorepo \
+    -d repo_slug=my-monorepo -d language=python -d package_manager=uv \
+    --defaults --overwrite
 
 Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
@@ -43,12 +45,18 @@ run_copier() {
   fi
 
   if command -v uvx >/dev/null 2>&1; then
-    PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"
-    return
+    if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
+      return
+    fi
+    echo "error: uvx pinned runtime (copier==${COPIER_VERSION}) failed" >&2
+    exit 2
   fi
   if command -v uv >/dev/null 2>&1; then
-    PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"
-    return
+    if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
+      return
+    fi
+    echo "error: uv tool pinned runtime (copier==${COPIER_VERSION}) failed" >&2
+    exit 2
   fi
   if command -v copier >/dev/null 2>&1; then
     echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2
@@ -69,12 +77,12 @@ if [ -z "$template_name" ] || [ -z "$dest_dir" ]; then
 fi
 
 case "$template_name" in
-  tpl-agent-repo|tpl-org-repo|tpl-project-repo|tpl-individual-repo)
+  tpl-agent-repo|tpl-org-repo|tpl-project-repo|tpl-monorepo|tpl-package)
     # Valid archetype template
     ;;
   *)
     echo "error: unknown template: $template_name" >&2
-    echo "hint: available templates: tpl-agent-repo, tpl-org-repo, tpl-project-repo, tpl-individual-repo" >&2
+    echo "hint: available templates: tpl-agent-repo, tpl-org-repo, tpl-project-repo, tpl-monorepo, tpl-package" >&2
     exit 2
     ;;
 esac
@@ -169,9 +177,28 @@ read_inherited_value() {
   awk -F':' -v key="$key" '
     $1 ~ "^" key "$" {
       v=$2
-      gsub(/[ \t"]/, "", v)
+      gsub(/^[ \t]+|[ \t]+$/, "", v)
+      gsub(/"/, "", v)
       gsub(/\047/, "", v)
       print tolower(v)
+      exit
+    }
+  ' "$answers_file"
+}
+
+read_inherited_string() {
+  answers_file="$1"
+  key="$2"
+
+  [ -f "$answers_file" ] || return 1
+
+  awk -F':' -v key="$key" '
+    $1 ~ "^" key "$" {
+      v=$2
+      gsub(/^[ \t]+|[ \t]+$/, "", v)
+      gsub(/"/, "", v)
+      gsub(/\047/, "", v)
+      print v
       exit
     }
   ' "$answers_file"
@@ -192,6 +219,21 @@ for key in enable_vouch_gate enable_community_pack enable_release_pack; do
       ;;
   esac
 done
+
+# Inherit company_slug and company_name from L1 answers
+if ! has_data_override company_slug "$@"; then
+  inherited_slug="$(read_inherited_string "$answers_file" company_slug || true)"
+  if [ -n "$inherited_slug" ]; then
+    set -- -d "company_slug=$inherited_slug" "$@"
+  fi
+fi
+
+if ! has_data_override company_name "$@"; then
+  inherited_name="$(read_inherited_string "$answers_file" company_name || true)"
+  if [ -n "$inherited_name" ]; then
+    set -- -d "company_name=$inherited_name" "$@"
+  fi
+fi
 
 if ! has_data_override org_docs_profile "$@"; then
   inherited_org_profile="$(read_inherited_value "$answers_file" l2_org_docs_default || true)"

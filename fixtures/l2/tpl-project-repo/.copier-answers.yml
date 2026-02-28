@@ -1,5 +1,7 @@
 _src_path: __VOLATILE_SRC_PATH__
+company_name: Holding Company
 company_ontology_ref: <gitlab:org/ontology@v0.1.0>
+company_slug: holdingco
 core_owner_handle: '@core-owner'
 enable_community_pack: false
 enable_release_pack: false

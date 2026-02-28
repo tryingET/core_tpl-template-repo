@@ -19,7 +19,6 @@ Notes:
     - copier/tpl-agent-repo/      (AI agent repos)
     - copier/tpl-org-repo/        (Organization handbooks)
     - copier/tpl-project-repo/    (Project repos)
-    - copier/tpl-individual-repo/ (Individual repos)
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - Wrapper runs Copier in quiet mode by default; set `COPIER_QUIET=0` to show Copier progress logs.
   - Set `-d l1_org_docs_profile=rich|compact` to choose L1 org docs depth.
@@ -41,12 +40,18 @@ run_copier() {
   fi
 
   if command -v uvx >/dev/null 2>&1; then
-    PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"
-    return
+    if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
+      return
+    fi
+    echo "error: uvx pinned runtime (copier==${COPIER_VERSION}) failed" >&2
+    exit 2
   fi
   if command -v uv >/dev/null 2>&1; then
-    PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"
-    return
+    if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
+      return
+    fi
+    echo "error: uv tool pinned runtime (copier==${COPIER_VERSION}) failed" >&2
+    exit 2
   fi
   if command -v copier >/dev/null 2>&1; then
     echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2

@@ -1,0 +1,56 @@
+_subdirectory: ""
+_answers_file: .copier-answers.yml
+_templates_suffix: .j2
+_exclude:
+  - "copier.yml"
+  - "**/__pycache__"
+  - "**/*.pyc"
+
+company_slug:
+  type: str
+  default: holdingco
+  help: "Company slug for path derivation (e.g., holdingco, softwareco)"
+
+company_name:
+  type: str
+  default: Holding Company
+  help: "Company display name (e.g., Holding Company, Software Company)"
+
+package_name:
+  type: str
+  help: "Package name (e.g., dspx-core, auth-lib)"
+
+package_type:
+  type: str
+  default: library
+  choices:
+    - library
+    - app
+    - service
+  help: "Package type: library (reusable), app (deployable), service (API)"
+
+language:
+  type: str
+  default: python
+  choices:
+    - python
+    - node
+    - typescript
+    - rust
+    - go
+  help: "Primary language for the package"
+
+package_description:
+  type: str
+  default: ""
+  help: "Short description of the package"
+
+kernel_ontology_ref:
+  type: str
+  default: "<gitlab:org/ontology-kernel@v0.1.0>"
+  help: "ROCS core/kernel ontology ref (GitLab locator)"
+
+company_ontology_ref:
+  type: str
+  default: "<gitlab:org/ontology@v0.1.0>"
+  help: "ROCS company overlay ref (GitLab locator)"

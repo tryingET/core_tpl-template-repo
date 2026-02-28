@@ -54,21 +54,26 @@ fixture_normalization_lib="$repo_root/scripts/lib/fixture-normalization.sh"
 
 expected_l1="$repo_root/fixtures/l1/template-repo"
 expected_l2_project="$repo_root/fixtures/l2/tpl-project-repo"
-expected_l2_individual="$repo_root/fixtures/l2/tpl-individual-repo"
+expected_l2_monorepo="$repo_root/fixtures/l2/tpl-monorepo"
+expected_l2_package="$repo_root/fixtures/l2/tpl-package"
 
 [ -d "$expected_l1" ] || fail "missing fixture directory: $expected_l1"
 [ -d "$expected_l2_project" ] || fail "missing fixture directory: $expected_l2_project"
-[ -d "$expected_l2_individual" ] || fail "missing fixture directory: $expected_l2_individual"
+[ -d "$expected_l2_monorepo" ] || fail "missing fixture directory: $expected_l2_monorepo"
+[ -d "$expected_l2_package" ] || fail "missing fixture directory: $expected_l2_package"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
 actual_l1="$tmp_root/l1-template-repo"
 actual_l2_project="$tmp_root/l2-tpl-project-repo"
-actual_l2_individual="$tmp_root/l2-tpl-individual-repo"
+actual_l2_monorepo="$tmp_root/l2-tpl-monorepo"
+actual_l2_package="$tmp_root/l2-tpl-package"
 
 run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
   -d repo_slug=fixture-template-repo \
+  -d company_slug=holdingco \
+  -d company_name="Holding Company" \
   -d maintainer_handle=@template-owner \
   -d l1_org_docs_profile=rich \
   -d enable_community_pack=false \
@@ -84,11 +89,20 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
     --defaults --overwrite
-  run_step ./scripts/new-repo-from-copier.sh tpl-individual-repo "$actual_l2_individual" \
-    -d repo_slug=fixture-individual-repo \
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-monorepo "$actual_l2_monorepo" \
+    -d repo_slug=fixture-monorepo \
+    -d language=python \
+    -d package_manager=uv \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-package "$actual_l2_package" \
+    -d package_name=fixture-core \
+    -d package_type=library \
+    -d language=python \
     --defaults --overwrite
 )
 
@@ -128,18 +142,23 @@ compare_expected_l1="$tmp_root/compare/expected-l1"
 compare_actual_l1="$tmp_root/compare/actual-l1"
 compare_expected_l2_project="$tmp_root/compare/expected-l2-project"
 compare_actual_l2_project="$tmp_root/compare/actual-l2-project"
-compare_expected_l2_individual="$tmp_root/compare/expected-l2-individual"
-compare_actual_l2_individual="$tmp_root/compare/actual-l2-individual"
+compare_expected_l2_monorepo="$tmp_root/compare/expected-l2-monorepo"
+compare_actual_l2_monorepo="$tmp_root/compare/actual-l2-monorepo"
+compare_expected_l2_package="$tmp_root/compare/expected-l2-package"
+compare_actual_l2_package="$tmp_root/compare/actual-l2-package"
 
 prepare_compare_tree "$expected_l1" "$compare_expected_l1"
 prepare_compare_tree "$actual_l1" "$compare_actual_l1"
 prepare_compare_tree "$expected_l2_project" "$compare_expected_l2_project"
 prepare_compare_tree "$actual_l2_project" "$compare_actual_l2_project"
-prepare_compare_tree "$expected_l2_individual" "$compare_expected_l2_individual"
-prepare_compare_tree "$actual_l2_individual" "$compare_actual_l2_individual"
+prepare_compare_tree "$expected_l2_monorepo" "$compare_expected_l2_monorepo"
+prepare_compare_tree "$actual_l2_monorepo" "$compare_actual_l2_monorepo"
+prepare_compare_tree "$expected_l2_package" "$compare_expected_l2_package"
+prepare_compare_tree "$actual_l2_package" "$compare_actual_l2_package"
 
 compare_tree "$compare_expected_l1" "$compare_actual_l1" "L1 fixture"
 compare_tree "$compare_expected_l2_project" "$compare_actual_l2_project" "L2 project fixture"
-compare_tree "$compare_expected_l2_individual" "$compare_actual_l2_individual" "L2 individual fixture"
+compare_tree "$compare_expected_l2_monorepo" "$compare_actual_l2_monorepo" "L2 monorepo fixture"
+compare_tree "$compare_expected_l2_package" "$compare_actual_l2_package" "L2 package fixture"
 
 echo "ok: l0 fixtures"

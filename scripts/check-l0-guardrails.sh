@@ -56,7 +56,7 @@ check_multi_pass_suffix_policy() {
   l0_suffix="$(yaml_scalar_value "copier.yml" "_templates_suffix")"
   [ "$l0_suffix" = ".jinja" ] || fail "L0 copier config must use .jinja suffix (found ${l0_suffix:-<missing>})"
 
-  for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+  for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
     tpl_suffix="$(yaml_scalar_value "copier-template/copier/$tpl/copier.yml" "_templates_suffix")"
     [ "$tpl_suffix" = ".j2" ] || fail "L2 template $tpl copier config must use .j2 suffix (found ${tpl_suffix:-<missing>})"
   done
@@ -71,18 +71,6 @@ check_multi_pass_suffix_policy() {
   [ -z "$nested_untemplated_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 template file contains Jinja markers but is not suffixed .j2 (found $nested_untemplated_jinja)"
 }
 
-is_project_individual_parity_allowlisted() {
-  rel_path="$1"
-  case "$rel_path" in
-    AGENTS.md.j2|CODEOWNERS.j2|README.md.j2|copier.yml)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
 list_template_files() {
   template_dir="$1"
 
@@ -95,58 +83,6 @@ list_template_files() {
     esac
     printf '%s\n' "$rel_path"
   done | LC_ALL=C sort
-}
-
-check_project_individual_template_parity() {
-  project_dir="$1"
-  individual_dir="$2"
-
-  project_files="$(mktemp)"
-  individual_files="$(mktemp)"
-
-  list_template_files "$project_dir" > "$project_files"
-  list_template_files "$individual_dir" > "$individual_files"
-
-  set +e
-  git diff --no-index --quiet -- "$project_files" "$individual_files"
-  list_status=$?
-  set -e
-
-  if [ "$list_status" -eq 1 ]; then
-    echo "error: tpl-project-repo and tpl-individual-repo file sets drifted" >&2
-    git --no-pager diff --no-index -- "$project_files" "$individual_files" >&2 || true
-    rm -f "$project_files" "$individual_files"
-    exit 1
-  fi
-  if [ "$list_status" -ne 0 ]; then
-    rm -f "$project_files" "$individual_files"
-    fail "unable to compare tpl-project-repo and tpl-individual-repo file sets"
-  fi
-
-  while IFS= read -r rel_path; do
-    [ -n "$rel_path" ] || continue
-    if is_project_individual_parity_allowlisted "$rel_path"; then
-      continue
-    fi
-
-    set +e
-    git diff --no-index --quiet -- "$project_dir/$rel_path" "$individual_dir/$rel_path"
-    content_status=$?
-    set -e
-
-    if [ "$content_status" -eq 1 ]; then
-      echo "error: parity drift outside allowlist: $rel_path" >&2
-      git --no-pager diff --no-index -- "$project_dir/$rel_path" "$individual_dir/$rel_path" >&2 || true
-      rm -f "$project_files" "$individual_files"
-      exit 1
-    fi
-    if [ "$content_status" -ne 0 ]; then
-      rm -f "$project_files" "$individual_files"
-      fail "unable to compare tpl-project-repo and tpl-individual-repo contents"
-    fi
-  done < "$project_files"
-
-  rm -f "$project_files" "$individual_files"
 }
 
 # L0 core files
@@ -228,9 +164,6 @@ fixtures/l1/template-repo/scripts/lib/suffix-policy.sh
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
 fixtures/l2/tpl-project-repo/diary/README.md
-fixtures/l2/tpl-individual-repo/AGENTS.md
-fixtures/l2/tpl-individual-repo/.copier-answers.yml
-fixtures/l2/tpl-individual-repo/diary/README.md
 "
 
 while IFS= read -r path; do
@@ -245,7 +178,8 @@ required_dirs="
 copier-template/copier/tpl-agent-repo
 copier-template/copier/tpl-org-repo
 copier-template/copier/tpl-project-repo
-copier-template/copier/tpl-individual-repo
+copier-template/copier/tpl-monorepo
+copier-template/copier/tpl-package
 "
 
 while IFS= read -r path; do
@@ -256,7 +190,7 @@ $required_dirs
 EOF
 
 # L2 template required files (each template must have these)
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_file "copier-template/copier/$tpl/copier.yml"
   assert_file "copier-template/copier/$tpl/AGENTS.md.j2"
   assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
@@ -270,7 +204,6 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
 done
 
 check_multi_pass_suffix_policy
-check_project_individual_template_parity "copier-template/copier/tpl-project-repo" "copier-template/copier/tpl-individual-repo"
 
 required_exec="
 scripts/preview-l1-diff.sh
@@ -303,7 +236,6 @@ assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source 
 assert_contains "copier.yml" "copier/tpl-agent-repo/" "L0 message must mention tpl-agent-repo template"
 assert_contains "copier.yml" "copier/tpl-org-repo/" "L0 message must mention tpl-org-repo template"
 assert_contains "copier.yml" "copier/tpl-project-repo/" "L0 message must mention tpl-project-repo template"
-assert_contains "copier.yml" "copier/tpl-individual-repo/" "L0 message must mention tpl-individual-repo template"
 assert_contains "copier.yml" "l1_org_docs_profile" "L0 copier config must expose L1 org docs profile toggle"
 assert_contains "copier.yml" "enable_community_pack" "L0 copier config must expose community pack toggle"
 assert_contains "copier.yml" "enable_release_pack" "L0 copier config must expose release pack toggle"
@@ -311,15 +243,20 @@ assert_contains "copier.yml" "enable_vouch_gate" "L0 copier config must expose v
 assert_contains "copier.yml" "rm -rf copier/template-repo" "L0 must remove legacy template-repo in _tasks"
 
 # L1 answers template assertions
+assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "company_slug:" "L1 answers template must persist company_slug"
+assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "company_name:" "L1 answers template must persist company_name"
 assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "l1_org_docs_profile:" "L1 answers template must persist L1 org docs profile"
 
 # L2 template assertions (check tpl-project-repo as the primary example)
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "repo_slug:" "L2 copier config must have repo_slug"
+assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "company_slug:" "L2 copier config must have company_slug"
+assert_contains "copier-template/copier/tpl-org-repo/copier.yml" "company_slug:" "L2 tpl-org-repo copier config must have company_slug"
+assert_contains "copier-template/copier/tpl-agent-repo/copier.yml" "company_slug:" "L2 tpl-agent-repo copier config must have company_slug"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
 
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
@@ -327,7 +264,6 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
 assert_not_contains "copier-template/copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
-assert_not_contains "copier-template/copier/tpl-individual-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-individual-repo CI should not hardcode uvx vendored invocation"
 
 # L1 wrapper script assertions
 assert_contains "scripts/rocs.sh" "--doctor" "L0 ROCS wrapper should expose doctor mode"
@@ -340,7 +276,6 @@ assert_contains "scripts/preview-l1-diff.sh" "repo_slug_from_answers" "preview-l
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
-assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-individual-repo" "L1 wrapper must list tpl-individual-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_QUIET" "L1 wrapper must expose Copier quiet-mode toggle"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "--quiet" "L1 wrapper must default Copier execution to quiet mode"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_VERSION" "L1 wrapper must pin Copier version"
@@ -353,7 +288,7 @@ assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper sh
 assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 assert_not_contains "copier-template/scripts/install-hooks.sh" "copier/template-repo" "L1 install-hooks must not reference removed legacy template-repo path"
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "L1 install-hooks should normalize executable bits for $tpl smoke lane"
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "L1 install-hooks should normalize executable bits for $tpl full lane"
@@ -424,7 +359,6 @@ assert_contains "copier-template/README.md.jinja" "Multi-pass template suffix po
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
-assert_contains "fixtures/l2/tpl-individual-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 individual fixture diary README should enforce descriptive filename convention"
 
 contract="copier-template/contracts/layer-contract.yml"
 assert_contains "$contract" "layer: L1" "generated L1 contract must declare layer L1"
@@ -447,13 +381,10 @@ assert_absent "copier-template/copier/template-repo"
 assert_absent "copier-template/copier/tpl-agent-repo/docs/diary"
 assert_absent "copier-template/copier/tpl-org-repo/docs/diary"
 assert_absent "copier-template/copier/tpl-project-repo/docs/diary"
-assert_absent "copier-template/copier/tpl-individual-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-agent-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-org-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-project-repo/docs/diary"
-assert_absent "fixtures/l1/template-repo/copier/tpl-individual-repo/docs/diary"
 assert_absent "fixtures/l2/tpl-project-repo/docs/diary"
-assert_absent "fixtures/l2/tpl-individual-repo/docs/diary"
 
 # Ensure no nested copier invocations
 if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then

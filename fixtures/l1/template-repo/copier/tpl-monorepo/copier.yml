@@ -1,0 +1,83 @@
+_subdirectory: ""
+_answers_file: .copier-answers.yml
+_templates_suffix: .j2
+_exclude:
+  - "copier.yml"
+  - "**/__pycache__"
+  - "**/*.pyc"
+
+company_slug:
+  type: str
+  default: holdingco
+  help: "Company slug for path derivation (e.g., holdingco, softwareco)"
+
+company_name:
+  type: str
+  default: Holding Company
+  help: "Company display name (e.g., Holding Company, Software Company)"
+
+repo_slug:
+  type: str
+  help: "Repo slug (e.g. dspx, platform-mono)"
+
+language:
+  type: str
+  default: python
+  choices:
+    - python
+    - node
+    - typescript
+    - rust
+    - go
+  help: "Primary language for the monorepo"
+
+package_manager:
+  type: str
+  default: uv
+  choices:
+    - uv
+    - npm
+    - pnpm
+    - cargo
+    - go-mod
+  help: "Package manager for workspace"
+
+enable_community_pack:
+  type: bool
+  default: false
+  help: "Enable community-facing pack overlays (default: false)."
+
+enable_release_pack:
+  type: bool
+  default: false
+  help: "Enable release automation pack overlays (default: false)."
+
+enable_vouch_gate:
+  type: bool
+  default: false
+  help: "Enable trust/vouch gate overlays (default: false)."
+
+kernel_ontology_ref:
+  type: str
+  default: "<gitlab:org/ontology-kernel@v0.1.0>"
+  help: "ROCS core/kernel ontology ref (GitLab locator)"
+
+company_ontology_ref:
+  type: str
+  default: "<gitlab:org/ontology@v0.1.0>"
+  help: "ROCS company overlay ref (GitLab locator)"
+
+core_owner_handle:
+  type: str
+  default: "@core-owner"
+  help: "CODEOWNERS entry for core docs paths"
+
+org_owner_handle:
+  type: str
+  default: "@org-owners"
+  help: "CODEOWNERS entry for org-owned paths"
+
+project_owner_handle:
+  type: str
+  default: "@project-owners"
+  help: "CODEOWNERS entry for monorepo execution paths"

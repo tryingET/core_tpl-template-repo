@@ -1,0 +1,36 @@
+# AGENTS.md — {{ package_name }}
+
+## Intent
+Package inside monorepo: {{ package_type }} ({{ language }})
+
+## Guardrails
+- No secrets in code.
+- NO `.git` — managed by parent monorepo.
+- NO `.github` — CI runs from monorepo root.
+- NO release tooling — released from monorepo root.
+
+## Deterministic tooling policy (ROCS-first)
+- Run ROCS commands from monorepo root: `../../scripts/rocs.sh <args...>`
+- For ontology/policy checks, use ROCS commands as the default execution path.
+
+## Structure
+```
+src/              # Source code
+tests/            # Test files
+docs/             # Package docs
+pyproject.toml    # Python (if language=python)
+package.json      # Node (if language=node|typescript)
+Cargo.toml        # Rust (if language=rust)
+go.mod            # Go (if language=go)
+```
+
+## Recursion policy
+This is L3 (inside monorepo L2).
+- No further nesting allowed.
+- All packages in monorepo share root workspace config.
+
+## Read order
+1) `docs/` — package docs
+2) `src/` — source code
+3) `tests/` — test files
+4) `diary/` — session notes

@@ -6,14 +6,13 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
 - Maintainer: `@template-owner`
 - L1 organization docs profile: `rich`
 - Default L2 organization docs profile: ``
-- Baseline L2 template family: `project`, `individual`, `agent`, `org`
+- Baseline L2 template family: `project`, `agent`, `org`
 
 ## What this repo provides
 
 - **L2 Templates**:
   - `copier/tpl-agent-repo/` — AI agent repositories
   - `copier/tpl-project-repo/` — Delivery projects
-  - `copier/tpl-individual-repo/` — Individual execution repositories
   - `copier/tpl-org-repo/` — Organization handbooks
 - Opinionated local hooks (`.githooks/`) and CI lane scripts (`scripts/ci/`).
 - Layer contract enforcement via `contracts/layer-contract.yml`.
@@ -45,15 +44,6 @@ Generate an L2 **project** repository:
 ```bash
 ./scripts/new-repo-from-copier.sh tpl-project-repo /path/to/<project> \
   -d repo_slug=<project> \
-  -d project_owner_handle=@<owner> \
-  --defaults --overwrite
-```
-
-Generate an L2 **individual** repository:
-
-```bash
-./scripts/new-repo-from-copier.sh tpl-individual-repo /path/to/<individual-repo> \
-  -d repo_slug=<individual-repo> \
   -d project_owner_handle=@<owner> \
   --defaults --overwrite
 ```
@@ -129,10 +119,7 @@ See `tips/README.md` for TIP process.
 - L2 repos are generated via explicit template selection:
   - `tpl-agent-repo`
   - `tpl-project-repo`
-  - `tpl-individual-repo`
   - `tpl-org-repo`
-- `tpl-individual-repo` intentionally reuses the same baseline capability pack as `tpl-project-repo`
-  (ROCS tooling, ontology seed, CI lanes) so company lanes can layer deterministic overlays consistently.
 
 ## Organization docs profile
 

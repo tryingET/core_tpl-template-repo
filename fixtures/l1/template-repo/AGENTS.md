@@ -9,7 +9,8 @@ Provide one stable, guarded template surface that generates compliant L2 reposit
 |----------|---------|-----------|
 | `copier/tpl-agent-repo/` | AI agent repositories | `agent-<slug>/` |
 | `copier/tpl-project-repo/` | Delivery projects | `<project>/` |
-| `copier/tpl-individual-repo/` | Individual execution repositories | `<individual-repo>/` |
+| `copier/tpl-monorepo/` | Monorepo workspaces | `<monorepo>/` (packages + apps) |
+| `copier/tpl-package/` | Packages inside monorepos | `packages/<name>/` (NO .git) |
 | `copier/tpl-org-repo/` | Organization handbooks | `<org>-handbook/` |
 
 ## Guardrails
@@ -20,10 +21,9 @@ Provide one stable, guarded template surface that generates compliant L2 reposit
 - Preserve baseline structure folders and git baseline files unless intentionally changed by policy.
 - Treat `l1_org_docs_profile` as a profile decision (default rich; compact allowed for lightweight internal template lines).
 - Treat `l2_org_docs_default` as a profile decision (default compact; rich when L2 repos should carry full org docs).
-- Keep L2 template selection explicit (`tpl-project-repo|tpl-individual-repo|tpl-agent-repo|tpl-org-repo`) and avoid changing baseline semantics without updating checks/fixtures.
-- Keep `tpl-project-repo` and `tpl-individual-repo` in lockstep; only `AGENTS.md.j2`, `README.md.j2`, `CODEOWNERS.j2`, and `copier.yml` may diverge intentionally.
+- Keep L2 template selection explicit (`tpl-project-repo|tpl-agent-repo|tpl-org-repo`) and avoid changing baseline semantics without updating checks/fixtures.
 - Keep L2 governance layering explicit:
-  - `tpl-project-repo|tpl-individual-repo`: org baseline + `docs/project/governance_overlay.md`
+  - `tpl-project-repo`: org baseline + `docs/project/governance_overlay.md`
   - `tpl-org-repo`: governance primary in `docs/org/` + `governance/`
   - `tpl-agent-repo`: local persona/system governance
 - Treat `enable_community_pack` as a profile decision (default disabled, enable for public/community-facing contribution surfaces).
@@ -61,7 +61,7 @@ L2 learns → TIP proposed → L1 review → merge → propagate → L0 (if meta
 
 - Keep raw session capture in `./diary/YYYY-MM-DD--type-scope-summary.md` for this repo.
 - Every generated L2 archetype must include the same root diary contract at `./diary/README.md`.
-- Structural scope for KES diary parity: `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, and `tpl-individual-repo`.
+- Structural scope for KES diary parity: `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`.
 
 ### Read Order for TIPs
 

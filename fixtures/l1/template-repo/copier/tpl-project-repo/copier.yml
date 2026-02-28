@@ -10,6 +10,16 @@ _exclude:
   - "**/__pycache__"
   - "**/*.pyc"
 
+company_slug:
+  type: str
+  default: holdingco
+  help: "Company slug for path derivation (e.g., holdingco, softwareco)"
+
+company_name:
+  type: str
+  default: Holding Company
+  help: "Company display name (e.g., Holding Company, Software Company)"
+
 repo_slug:
   type: str
   help: "Repo slug (e.g. proj-foo)"

@@ -86,7 +86,7 @@ suffix_policy_lib="$repo_root/scripts/lib/suffix-policy.sh"
 check_multi_pass_suffix_policy() {
   self_test_untemplated_jinja_matcher || fail "suffix-policy matcher regression: expected to ignore GitHub expressions and detect unsuffixed Jinja markers"
 
-  for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+  for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
     tpl_suffix="$(yaml_scalar_value "copier/$tpl/copier.yml" "_templates_suffix")"
     [ "$tpl_suffix" = ".j2" ] || fail "L2 template $tpl copier config must use .j2 suffix (found ${tpl_suffix:-<missing>})"
   done
@@ -101,18 +101,6 @@ check_multi_pass_suffix_policy() {
   [ -z "$nested_untemplated_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 template file contains Jinja markers but is not suffixed .j2 (found $nested_untemplated_jinja)"
 }
 
-is_project_individual_parity_allowlisted() {
-  rel_path="$1"
-  case "$rel_path" in
-    AGENTS.md.j2|CODEOWNERS.j2|README.md.j2|copier.yml)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
 list_template_files() {
   template_dir="$1"
 
@@ -125,58 +113,6 @@ list_template_files() {
     esac
     printf '%s\n' "$rel_path"
   done | LC_ALL=C sort
-}
-
-check_project_individual_template_parity() {
-  project_dir="$1"
-  individual_dir="$2"
-
-  project_files="$(mktemp)"
-  individual_files="$(mktemp)"
-
-  list_template_files "$project_dir" > "$project_files"
-  list_template_files "$individual_dir" > "$individual_files"
-
-  set +e
-  git diff --no-index --quiet -- "$project_files" "$individual_files"
-  list_status=$?
-  set -e
-
-  if [ "$list_status" -eq 1 ]; then
-    echo "error: tpl-project-repo and tpl-individual-repo file sets drifted" >&2
-    git --no-pager diff --no-index -- "$project_files" "$individual_files" >&2 || true
-    rm -f "$project_files" "$individual_files"
-    exit 1
-  fi
-  if [ "$list_status" -ne 0 ]; then
-    rm -f "$project_files" "$individual_files"
-    fail "unable to compare tpl-project-repo and tpl-individual-repo file sets"
-  fi
-
-  while IFS= read -r rel_path; do
-    [ -n "$rel_path" ] || continue
-    if is_project_individual_parity_allowlisted "$rel_path"; then
-      continue
-    fi
-
-    set +e
-    git diff --no-index --quiet -- "$project_dir/$rel_path" "$individual_dir/$rel_path"
-    content_status=$?
-    set -e
-
-    if [ "$content_status" -eq 1 ]; then
-      echo "error: parity drift outside allowlist: $rel_path" >&2
-      git --no-pager diff --no-index -- "$project_dir/$rel_path" "$individual_dir/$rel_path" >&2 || true
-      rm -f "$project_files" "$individual_files"
-      exit 1
-    fi
-    if [ "$content_status" -ne 0 ]; then
-      rm -f "$project_files" "$individual_files"
-      fail "unable to compare tpl-project-repo and tpl-individual-repo contents"
-    fi
-  done < "$project_files"
-
-  rm -f "$project_files" "$individual_files"
 }
 
 value_from_answers() {
@@ -238,7 +174,7 @@ for path in $required_files; do
 done
 
 # L2 embedded templates required
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_dir "copier/$tpl"
   assert_file "copier/$tpl/copier.yml"
   assert_file "copier/$tpl/AGENTS.md.j2"
@@ -257,10 +193,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
   assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
-assert_not_contains "copier/tpl-individual-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-individual-repo CI should not hardcode uvx vendored invocation"
 
 check_multi_pass_suffix_policy
-check_project_individual_template_parity "copier/tpl-project-repo" "copier/tpl-individual-repo"
 
 required_exec="
 scripts/new-repo-from-copier.sh
@@ -319,7 +253,8 @@ assert_contains ".copier-answers.yml" "l0_source_sha:" "L1 answers file should p
 assert_contains ".copier-answers.yml" "l1_org_docs_profile:" "L1 answers file should persist L1 org docs profile"
 
 # Check L2 template copier configs
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
+  assert_contains "copier/$tpl/copier.yml" "company_slug" "L2 template $tpl must expose company_slug"
   assert_contains "copier/$tpl/copier.yml" "repo_slug" "L2 template $tpl must expose repo_slug"
   assert_contains "copier/$tpl/copier.yml" "enable_community_pack" "L2 template $tpl must expose community pack toggle"
   assert_contains "copier/$tpl/copier.yml" "enable_release_pack" "L2 template $tpl must expose release pack toggle"
@@ -329,7 +264,6 @@ done
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
-assert_contains "scripts/new-repo-from-copier.sh" "tpl-individual-repo" "L1 wrapper must list tpl-individual-repo template"
 
 expected_pin='COPIER_VERSION="${COPIER_VERSION:-9.11.1}"'
 expected_uvx='uvx --from "copier==${COPIER_VERSION}" copier'
@@ -356,7 +290,7 @@ assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must ru
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
 assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 assert_not_contains "scripts/install-hooks.sh" "copier/template-repo" "install-hooks must not reference removed legacy template-repo path"
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "install-hooks must include executable bit normalization for $tpl rocs wrapper"
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "install-hooks must include executable bit normalization for $tpl smoke lane"
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "install-hooks must include executable bit normalization for $tpl full lane"
@@ -446,7 +380,7 @@ fi
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
-for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   l2_dir="$tmp_root/$tpl"
   ./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
     -d repo_slug="$tpl" \
@@ -492,6 +426,37 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-individual-repo; do
     fi
   )
 done
+
+# Test tpl-package separately (different parameters, no git required)
+tpl="tpl-package"
+l2_dir="$tmp_root/$tpl"
+./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
+  -d package_name="$tpl" \
+  -d package_type=library \
+  -d language=python \
+  --defaults --overwrite >/dev/null
+
+assert_file "$l2_dir/.copier-answers.yml"
+assert_file "$l2_dir/AGENTS.md"
+assert_file "$l2_dir/CODEOWNERS"
+assert_file "$l2_dir/scripts/rocs.sh"
+assert_file "$l2_dir/scripts/ci/smoke.sh"
+assert_file "$l2_dir/scripts/ci/full.sh"
+assert_file "$l2_dir/diary/README.md"
+assert_contains "$l2_dir/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "generated $tpl diary README should enforce descriptive filename convention"
+assert_not_dir "$l2_dir/docs/diary"
+assert_exec "$l2_dir/scripts/rocs.sh"
+assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"
+assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated $tpl AGENTS should reference scripts/rocs.sh"
+assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
+assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
+
+# tpl-package idempotency check (no git required)
+./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
+  -d package_name="$tpl" \
+  -d package_type=library \
+  -d language=python \
+  --defaults --overwrite >/dev/null
 
 # Detailed check for tpl-project-repo (primary template)
 l2_dir="$tmp_root/tpl-project-repo"
