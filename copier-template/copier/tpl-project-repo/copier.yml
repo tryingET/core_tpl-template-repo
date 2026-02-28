@@ -89,3 +89,17 @@ project_owner_handle:
   type: str
   default: "@project-owners"
   help: "CODEOWNERS entry for project-owned paths"
+
+# Location-derived defaults (computed in templates, not exposed as params)
+# owned -> typically @company-owners, release_pack=true
+# contrib -> typically @contrib-team, release_pack=false  
+# infra -> typically @infra-team, release_pack=false
+
+_tasks:
+  - "chmod +x scripts/ci/smoke.sh scripts/ci/full.sh scripts/rocs.sh 2>/dev/null || true"
+  # Clean up empty/unused software pack files
+  - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'python' ]; then rm -f pyproject.toml uv.lock 2>/dev/null; fi"
+  - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'node' ]; then rm -f package.json package-lock.json 2>/dev/null; fi"
+  - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'typescript' ]; then rm -f package.json tsconfig.json 2>/dev/null; fi"
+  - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'rust' ]; then rm -f Cargo.toml Cargo.lock 2>/dev/null; fi"
+  - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'go' ]; then rm -f go.mod go.sum 2>/dev/null; fi"

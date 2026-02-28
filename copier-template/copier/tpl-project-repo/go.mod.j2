@@ -1,0 +1,5 @@
+{%- if enable_software_pack and language == "go" -%}
+module {{ company_slug }}.ai/{{ repo_slug }}
+
+go 1.22
+{%- endif -%}

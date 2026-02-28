@@ -1,10 +1,15 @@
-# tpl-project-repo
+# fixture-product-repo
 
-L2 template for delivery project repositories.
+Holding Company project repository.
+
+## Context
+
+- **Location**: owned
+- **Language**: python
 
 ## Purpose
 
-Generate project repositories with:
+Project repository with:
 - Project documentation (`docs/project/`)
 - Organization context (`docs/org_context/`)
 - Decision records (`docs/decisions/`)

@@ -1,0 +1,14 @@
+{%- if enable_software_pack and language in ["node", "typescript"] -%}
+{
+  "name": "{{ repo_slug }}",
+  "version": "0.1.0",
+  "description": "{{ company_name }} project",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "lint": "biome check .",
+    "format": "biome format . --write"
+  },
+  "devDependencies": {}
+}
+{%- endif -%}

@@ -1,10 +1,18 @@
-# tpl-project-repo
+# {{ repo_slug }}
 
-L2 template for delivery project repositories.
+{{ company_name }} project repository.
+
+## Context
+
+- **Location**: {{ location }}
+- **Language**: {{ language }}
+{%- if enable_software_pack %}
+- **Software Pack**: Enabled (see language-specific files below)
+{%- endif %}
 
 ## Purpose
 
-Generate project repositories with:
+Project repository with:
 - Project documentation (`docs/project/`)
 - Organization context (`docs/org_context/`)
 - Decision records (`docs/decisions/`)
@@ -12,6 +20,59 @@ Generate project repositories with:
 - Ontology support (`ontology/`)
 - ROCS tooling (`tools/rocs-cli/`)
 - CI baseline (`scripts/ci/`)
+{%- if enable_software_pack %}
+
+## Software Pack
+
+{%- if language == "python" %}
+
+Python project scaffolded with:
+- `pyproject.toml` — project configuration
+- `uv` for dependency management
+
+```bash
+uv sync              # Install dependencies
+uv run pytest        # Run tests
+uv run ruff check .  # Lint
+```
+
+See: `~/ai-society/core/tech-stack-core/lanes/tech-stack-py.md`
+{%- elif language in ["node", "typescript"] %}
+
+{{ "TypeScript" if language == "typescript" else "Node" }} project scaffolded with:
+- `package.json` — project configuration
+{%- if language == "typescript" %}
+- `tsconfig.json` — TypeScript configuration
+{%- endif %}
+
+```bash
+npm install          # Install dependencies
+npm test             # Run tests
+```
+
+See: `~/ai-society/core/tech-stack-core/lanes/tech-stack-{{ "ts" if language == "typescript" else "pi-ts" }}.md`
+{%- elif language == "rust" %}
+
+Rust project scaffolded with:
+- `Cargo.toml` — project configuration
+
+```bash
+cargo build          # Build
+cargo test           # Run tests
+```
+{%- elif language == "go" %}
+
+Go project scaffolded with:
+- `go.mod` — module configuration
+
+```bash
+go build ./...       # Build
+go test ./...        # Run tests
+```
+
+See: `~/ai-society/core/tech-stack-core/lanes/tech-stack-go.md`
+{%- endif %}
+{%- endif %}
 
 ## Usage
 

@@ -1,18 +1,28 @@
 # Location: {{ location }}
 # Language: {{ language }}
 
+{%- if location == "owned" -%}
+{%- set location_owner = "@" + company_slug + "-owners" -%}
+{%- elif location == "contrib" -%}
+{%- set location_owner = "@" + company_slug + "-contrib" -%}
+{%- elif location == "infra" -%}
+{%- set location_owner = "@" + company_slug + "-infra" -%}
+{%- else -%}
+{%- set location_owner = project_owner_handle -%}
+{%- endif -%}
+
 # Core + org context snapshots
 docs/_core/** {{ core_owner_handle }}
 docs/org_context/** {{ org_owner_handle }}
 
 # Project delivery + governance
-docs/project/** {{ project_owner_handle }}
-docs/system4d/** {{ project_owner_handle }}
-docs/decisions/** {{ project_owner_handle }}
-docs/dev/** {{ project_owner_handle }}
-policy/** {{ project_owner_handle }}
+docs/project/** {{ location_owner }}
+docs/system4d/** {{ location_owner }}
+docs/decisions/** {{ location_owner }}
+docs/dev/** {{ location_owner }}
+policy/** {{ location_owner }}
 
 # Code
-scripts/** {{ project_owner_handle }}
-src/** {{ project_owner_handle }}
-tests/** {{ project_owner_handle }}
+scripts/** {{ location_owner }}
+src/** {{ location_owner }}
+tests/** {{ location_owner }}

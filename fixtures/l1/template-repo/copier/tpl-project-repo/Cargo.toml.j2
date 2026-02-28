@@ -1,0 +1,11 @@
+{%- if enable_software_pack and language == "rust" -%}
+[package]
+name = "{{ repo_slug | replace('-', '_') }}"
+version = "0.1.0"
+edition = "2021"
+description = "{{ company_name }} project"
+
+[dependencies]
+
+[dev-dependencies]
+{%- endif -%}

@@ -51,7 +51,8 @@ first_untemplated_jinja_match() {
 
   # Detect Jinja markers while ignoring common non-Jinja patterns like GitHub
   # expression syntax (${ {... }}) and vendored tools (Python f-string escapes {{ }}).
-  find "$search_root" -type f ! -name "*${template_suffix}" ! -path '*/.git/*' ! -path '*/tools/*' \
+  # Also exclude copier.yml files which legitimately contain Jinja2 syntax.
+  find "$search_root" -type f ! -name "*${template_suffix}" ! -name "copier.yml" ! -path '*/.git/*' ! -path '*/tools/*' \
     -exec grep -I -l -m 1 -E '(^|[^$])\{\{|(^|[^$])\{%|\{#' {} + 2>/dev/null \
     | LC_ALL=C sort \
     | awk 'NR==1{print;exit}'
