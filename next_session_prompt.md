@@ -266,14 +266,14 @@ After each work package:
   - All L0 checks pass (5/5)
   - All L1 validations pass (3/3)
 - Current priority:
-  - S9: Tech-stack-core linking when software_pack enabled (partially done in README)
+  - **FCOS-M4-02**: Flip ring1 to blocking deterministic gates (next from `just fcos-runnable`)
   - WP9: Instantiate workstation backup repo
   - WP10: Migrate pi-extensions to monorepo
 - Blockers/risks:
-  - None identified
+  - Brownfield repos - tread carefully
 - Validation run:
   - `bash ./scripts/check-l0.sh`
-  - `cd ~/ai-society/holdingco/holdingco-templates && bash ./scripts/check-template-ci.sh`
+  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-check`
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md` to revert session state
 - KES crystallization flow:
