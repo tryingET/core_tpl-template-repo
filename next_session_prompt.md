@@ -156,14 +156,18 @@ copier tpl-package softwareco/owned/dspx/packages/dspx-auth/ \
 - [x] Run validation checks
 
 ### WP7: Create softwareco-templates (proper L1)
-- [ ] Run L0 → L1 with `company_slug=softwareco`
-- [ ] Move content from orphan `softwareco/tpl-*-repo/` into `softwareco-templates/copier/`
-- [ ] Delete orphan template folders
-- [ ] Verify chain: L0 → L1 (softwareco-templates) → L2 (dspx, etc.)
+- [x] Run L0 → L1 with `company_slug=softwareco`
+- [x] Move content from orphan `softwareco/tpl-*-repo/` into `softwareco-templates/copier/`
+- [x] Delete orphan template folders
+- [x] Verify chain: L0 → L1 (softwareco-templates) → L2
 
 ### WP8: Regenerate healthco-templates
-- [ ] Run L0 → L1 with `company_slug=healthco`
-- [ ] Verify alignment with new architecture
+- [x] Run L0 → L1 with `company_slug=healthco`
+- [x] Verify alignment with new architecture
+
+### WP6.5: L2 Validation (holdingco)
+- [x] Greenfield: `holdingco/infra/template-test-bed/` from tpl-project-repo
+- [x] Brownfield: `holdingco/org-handbook/` migration from tpl-org-repo
 
 ### WP9: Instantiate workstation backup repo
 - [ ] Create `softwareco/infra/workstation/` from `tpl-project-repo`
@@ -248,22 +252,27 @@ After each work package:
 
 - Work package executed this session:
   - **WP6**: Regenerated holdingco-templates from L0
-  - **FIX-6**: Added `! -path '*/tools/*'` to suffix-policy.sh to exclude vendored code
+  - **WP6.5**: L2 validation - greenfield (template-test-bed) + brownfield (org-handbook)
+  - **WP7**: Regenerated softwareco-templates, deleted orphan tpl-*-repo dirs
+  - **WP8**: Regenerated healthco-templates from L0
+  - **FIX**: Added `! -path '*/tools/*'` to suffix-policy.sh to exclude vendored code
 - Outcome:
-  - `.copier-answers.yml` now has `company_slug` and `company_name`
-  - All 5 templates present: tpl-agent-repo, tpl-org-repo, tpl-project-repo, tpl-monorepo, tpl-package
-  - L1 validation passes (`check-template-ci.sh`)
-  - L0 validation passes (all 5 checks)
+  - All 3 L1s (holdingco, softwareco, healthco) regenerated with company_slug
+  - All 3 L1s have all 5 canonical templates
+  - L0→L1→L2 chain validated end-to-end
+  - Greenfield and brownfield L2 migrations work
 - Current priority:
-  - WP7: Create softwareco-templates (proper L1)
+  - KES crystallization (capture patterns from full chain validation)
+  - WP9-WP10 remain (workstation backup, pi-extensions monorepo)
 - Blockers/risks:
   - None identified
 - Validation run:
   - `bash ./scripts/check-l0.sh`
   - `cd ~/ai-society/holdingco/holdingco-templates && bash ./scripts/check-template-ci.sh`
+  - `cd ~/ai-society/healthco/healthco-templates && bash ./scripts/check-template-ci.sh`
+  - `cd ~/ai-society/softwareco/softwareco-templates && bash ./scripts/check-template-ci.sh`
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md` to revert session state
-  - `git restore -- scripts/ fixtures/ copier-template/scripts/` to revert code changes
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
   - Crystallize to `docs/learnings/` if recurrent patterns
