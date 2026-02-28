@@ -4,189 +4,256 @@
 Reading this file is authorization to start work immediately.
 Do not ask for permission to begin.
 
-## READ-FIRST ALLOWLIST (ONLY THESE, HARD)
-1. `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json` (canonical issue backlog + per-issue execution contracts)
-2. `~/ai-society/holdingco/governance-kernel/governance/fcos/state-machine.yaml` (state machine authority)
+## CURRENT MISSION: TEMPLATE ARCHITECTURE REFORM
 
-Do not read `fleet-state.yaml`, `loops-registry.json`, or projection markdown during startup unless the selected issue contract requires them.
+We are reforming the template hierarchy to fix a broken chain and enable clean company-specific template derivation.
 
-## EXECUTION CONTEXT PRE-FLIGHT (REQUIRED)
-Use explicit root context so commands are runnable from any repo:
+### Problem Discovered
+
+1. **Missing L0 parameter**: `core/tpl-template-repo/copier.yml` has no `company_slug` parameter
+2. **Hardcoded paths**: Company-specific paths (e.g., `holdingco/governance-kernel`) were manually hardcoded in L1 templates instead of templated
+3. **Broken chain**: `softwareco/tpl-*-repo/` templates have no `.copier-answers.yml` - they're manual orphans
+4. **Redundant archetype**: `tpl-individual-repo` is just `tpl-project-repo` with single maintainer - unnecessary
+5. **Confused dimensions**: "flavors" (owned/contrib/infra) conflated with "structure" (single/monorepo/package)
+
+### Target Architecture
+
+```
+L0: core/tpl-template-repo/
+    └── copier/
+        ├── tpl-agent-repo/      # AI agents
+        ├── tpl-org-repo/        # Organization handbooks
+        ├── tpl-project-repo/    # Single-project repos
+        ├── tpl-monorepo/        # Monorepo repos (has packages/ apps/)
+        └── tpl-package/         # Package inside monorepo (no .git)
+
+L1: {company}/{company}-templates/
+    └── copier/  (same 5 templates, company paths baked in)
+
+L2: {company}/{archetype}/{name}/
+    └── Generated from L1 templates
+
+L3: (only inside monorepos)
+    {company}/owned/{monorepo}/packages/{name}/
+    {company}/owned/{monorepo}/apps/{name}/
+```
+
+### 5 Templates (Clear Purpose)
+
+| Template | Generates | Has .git | Use Case |
+|----------|-----------|----------|----------|
+| `tpl-agent-repo` | AI agent repo | ✅ | `agents/agent-triage/` |
+| `tpl-org-repo` | Org handbook | ✅ | `holdingco/org-handbook/` |
+| `tpl-project-repo` | Single-project repo | ✅ | `owned/agent-kernel/`, `infra/workstation/` |
+| `tpl-monorepo` | Monorepo workspace | ✅ | `owned/dspx/` |
+| `tpl-package` | Package inside monorepo | ❌ | `owned/dspx/packages/dspx-core/` |
+
+### Key Parameters
+
+```yaml
+# L0 copier.yml - NEW
+company_slug:
+  type: str
+  help: "Company slug (e.g., holdingco, softwareco, healthco)"
+
+company_name:
+  type: str
+  help: "Company display name (e.g., Holding Company)"
+
+# tpl-project-repo/copier.yml
+language:
+  default: python
+  choices: [python, node, typescript, rust, go, bash]
+
+# tpl-monorepo/copier.yml
+language:
+  default: python
+  choices: [python, node, typescript, rust, go]
+package_manager:
+  choices: [uv, npm, pnpm, cargo]
+
+# tpl-package/copier.yml
+package_type:
+  choices: [library, app, service]
+language:
+  choices: [python, node, typescript, rust, go]
+```
+
+### Usage Examples
 
 ```bash
-GK_ROOT=~/ai-society/holdingco/governance-kernel
-[ -d "$GK_ROOT" ] || { echo "Missing $GK_ROOT"; exit 1; }
-[ -f "$GK_ROOT/governance/fcos/fcos-work-items.json" ] || { echo "Missing FCOS canonical model"; exit 1; }
-[ -f "$GK_ROOT/governance/fcos/state-machine.yaml" ] || { echo "Missing state machine authority"; exit 1; }
+# L0 → L1: Generate company templates
+./scripts/new-l1-from-copier.sh ~/ai-society/softwareco/softwareco-templates \
+  -d company_slug=softwareco \
+  -d company_name="Software Company" \
+  -d repo_slug=softwareco-templates \
+  --defaults --overwrite
+
+# L1 → L2: Create single-project repo
+copier tpl-project-repo softwareco/infra/workstation/ \
+  -d repo_slug=workstation \
+  -d language=bash
+
+# L1 → L2: Create monorepo
+copier tpl-monorepo softwareco/owned/dspx/ \
+  -d repo_slug=dspx \
+  -d language=python \
+  -d package_manager=uv
+
+# L1 → L3: Add package to monorepo
+copier tpl-package softwareco/owned/dspx/packages/dspx-auth/ \
+  -d package_name=dspx-auth \
+  -d package_type=library \
+  -d language=python
 ```
 
-## NEXUS GUARDRAIL (HARD) — EXECUTE-FIRST BUDGET GATE
-Single highest-leverage intervention to prevent overreading:
+---
 
-Phase A (startup, required):
-1. Max **8 tool calls**.
-2. Max **500 lines read**.
-3. Only targeted reads from the read-first allowlist.
-4. Select issue first, then use its contract-defined read scope.
+## WORK PACKAGES (IN ORDER)
 
-Context Gap Note (only if blocked in Phase A):
-- missing fact/decision
-- exact extra files needed (max 3)
-- estimated extra lines
+### WP1: Add company_slug to L0
+- [ ] Add `company_slug` and `company_name` parameters to `core/tpl-template-repo/copier.yml`
+- [ ] Create `{{ company_slug }}` variable for use in templates
+- [ ] Update README with new parameter documentation
 
-Phase B (only with Context Gap Note):
-- Additional max **700 lines read** (absolute cap **1200** before implementation)
-- Targeted reads only; no broad workspace scans
+### WP2: Template all company-specific paths
+- [ ] Audit all hardcoded company paths in L0 templates
+- [ ] Replace with `{{ company_slug }}` variables
+- [ ] Key files to update:
+  - `copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/cli.py`
+  - `copier-template/copier/tpl-project-repo/docs/_core/README.md`
+  - Other paths referencing `holdingco/`, `softwareco/`, etc.
 
-Forbidden before first implementation edit:
-- workspace-wide discovery scans (`find`, broad `rg` from workspace root)
-- broad file reads in non-target repos
-- reads outside selected issue contract scope unless blocked and recorded in Context Gap Note
+### WP3: Eliminate tpl-individual-repo
+- [ ] Delete `core/tpl-template-repo/copier-template/copier/tpl-individual-repo/`
+- [ ] Remove references from L0 copier.yml `_tasks` and `_message_after_copy`
+- [ ] Update fixtures and tests
+- [ ] Document that "individual" is just `tpl-project-repo` with single maintainer
 
-By end of Phase A, do exactly one:
-- start implementation in the selected issue's target repo, or
-- ask one concise blocker question.
+### WP4: Add tpl-monorepo archetype
+- [ ] Create `copier-template/copier/tpl-monorepo/` based on `tpl-project-repo`
+- [ ] Add monorepo-specific structure: `packages/`, `apps/`, workspace config
+- [ ] Add `package_manager` parameter
+- [ ] Update L0 copier.yml to include in archetype list
 
-## AUTHORITY SPLIT (NON-NEGOTIABLE)
-- Canonical issue IDs follow pattern `FCOS-M<milestone>-<issue>` (e.g., FCOS-M1-01, FCOS-M2-03).
-- Canonical issue state authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fcos-work-items.json`.
-- State machine authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/state-machine.yaml`.
-- Valid states: `triage | queued | doing | review | done`
-- States requiring lease: `doing`, `review`
-- Claimable states: `queued` only
-- Canonical policy/state authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml`.
-- Canonical loop/plugin extensibility authority: `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json`.
-- Human-readable projections (issue-set/PRD/views/loops/readmes) are derived artifacts only.
-- This file's Session Checkpoint is a transient mirror for local continuity only; canonical model state wins on conflict.
-- Program naming is `FCOS`; canonical issue IDs are `FCOS-*`.
-- `ROCS` is reserved for the CLI/tool namespace (`core/rocs-cli`).
+### WP5: Add tpl-package archetype
+- [ ] Create `copier-template/copier/tpl-package/`
+- [ ] NO `.git`, NO `.github`, NO release tooling
+- [ ] Has `package_type` parameter: library, app, service
+- [ ] Minimal structure: `src/`, `tests/`, `pyproject.toml` or `package.json`
 
-## STATE MACHINE
+### WP6: Regenerate holdingco-templates
+- [ ] Run L0 → L1 with `company_slug=holdingco`
+- [ ] Verify `.copier-answers.yml` has company_slug
+- [ ] Verify paths are templated (not hardcoded)
+- [ ] Run validation checks
+
+### WP7: Create softwareco-templates (proper L1)
+- [ ] Run L0 → L1 with `company_slug=softwareco`
+- [ ] Move content from orphan `softwareco/tpl-*-repo/` into `softwareco-templates/copier/`
+- [ ] Delete orphan template folders
+- [ ] Verify chain: L0 → L1 (softwareco-templates) → L2 (dspx, etc.)
+
+### WP8: Regenerate healthco-templates
+- [ ] Run L0 → L1 with `company_slug=healthco`
+- [ ] Verify alignment with new architecture
+
+### WP9: Instantiate workstation backup repo
+- [ ] Create `softwareco/infra/workstation/` from `tpl-project-repo`
+- [ ] Move backup documentation from `softwareco/infra/infra-workstation-backup/`
+- [ ] Add progressive backup plan (6 stages)
+- [ ] Connect to DS1621 backup target
+
+### WP10: Migrate pi-extensions to monorepo
+- [ ] Create `~/programming/pi-extensions/pi-extensions-mono/` from `tpl-monorepo`
+- [ ] Migrate existing extensions as packages:
+  - `pi-evalset-lab/` → `packages/pi-evalset-lab/`
+  - `prompt-template-accelerator/` → `packages/prompt-template-accelerator/`
+  - `secure-package-update/` → `packages/secure-package-update/`
+  - `system4d-intake-workflow/` → `packages/system4d-intake-workflow/`
+- [ ] Update `pi-extensions-template_copier/` to support `extension_flavor=package`
+
+---
+
+## READ-FIRST ALLOWLIST (ONLY THESE, HARD)
+
+1. This file (you're reading it)
+2. `copier.yml` - L0 parameter definitions
+3. `copier-template/` - Template source files
+4. `fixtures/l1/template-repo/` - Expected L1 output
+5. `scripts/new-l1-from-copier.sh` - L0 → L1 generation script
+
+Do not read company-specific repos unless blocked and documented.
+
+---
+
+## EXECUTION MODE
+
+1. **Pick next incomplete work package** from the list above
+2. **Read only what's needed** from allowlist
+3. **Implement end-to-end** for that work package
+4. **Validate** with `./scripts/check-l0-guardrails.sh` and `./scripts/check-l0-generation.sh`
+5. **Commit** with clear WP reference in message
+6. **Update this file** to mark WP complete
+
+---
+
+## VALIDATION GATES
+
+After each work package:
+
+```bash
+# L0 guardrails
+./scripts/check-l0-guardrails.sh
+
+# L0 generation (sample)
+./scripts/check-l0-generation.sh
+
+# Template CI
+./scripts/check-template-ci.sh
 ```
-triage → queued → doing → review → done
-                  ↓       ↑
-                  └───────┘ (gate fail)
-```
 
-| State | Claimable? | Lease Required? | Meaning |
-|-------|------------|-----------------|---------|
-| `triage` | No | No | Not yet shaped |
-| `queued` | Yes | No | Shaped, claimable |
-| `doing` | No | Yes | In progress, leased |
-| `review` | No | Yes | Work done, awaiting gate |
-| `done` | No | No | Gate passed, immutable |
+---
 
-## EXECUTION MODE (ONE SESSION = ONE ISSUE)
-Apply cognitive frameworks from `~/steve/prompts/prompt-snippets.md` (at minimum: INVERSION, TELESCOPIC, NEXUS, ESCAPE HATCH, KNOWLEDGE CRYSTALLIZATION) to the selected issue only; frameworks do not authorize extra discovery.
-1. Parse `$GK_ROOT/governance/fcos/fcos-work-items.json`.
-2. Pick the first issue where `state == "queued"` and dependencies are satisfied (lowest milestone first).
-3. In multi-agent mode, claim the issue lease first (`just fcos-claim <ISSUE> <owner> <ttl_hours>`) and confirm `just fcos-check` is green.
-4. Read only `issue.contract.context.read_first[]`.
-5. If blocked by missing context, read only `issue.contract.context.read_if_blocked[]` (or file a Context Gap Note).
-6. Execute that issue end-to-end (not partial planning only).
-7. Run deterministic validation/acceptance checks.
-8. Update canonical model(s) first, then refresh projections, then mirror here.
-9. If claimed (and currently `state=doing` or `state=review` under your owner), release lease with explicit final state (`just fcos-release <ISSUE> <owner> <queued|done|review>`) and run `just fcos-check`.
+## NAMING CONVENTIONS (FINAL)
 
-## TOKEN-EFFICIENT MODEL OPS (PREDEFINED)
-Use structured model tooling first; avoid verbose file reads unless needed.
+### Archetypes (what template generates)
+- `agent` → AI agent repo
+- `org` → Organization handbook
+- `project` → Single-project repo
+- `monorepo` → Workspace with packages/apps
+- `package` → Library/app inside monorepo
 
-Available local tools (remember):
-- `jq` (JSON query/patch)
-- `yq` (YAML via jq wrapper, supports in-place edits)
-- `uv run python` (preferred scripted transforms; fallback `python3`)
-- `uvx` (ephemeral CLI tooling when needed)
-- `node` (optional scripted transforms)
+### NOT archetypes (just folder locations)
+- `owned/` → Company-owned projects
+- `contrib/` → Upstream contributions
+- `infra/` → Infrastructure
+- `agents/` → AI agents
 
-Predefined workflow snippets:
-1. Targeted inspect first (no full-file scan):
-   - `jq '[ .milestones[].issues[] ] as $all | ($all | map(select(.state=="done") | .id)) as $done | $all | map(select(.state == "queued")) | map(select((.depends_on // []) as $deps | ($deps | map(. as $d | ($done | index($d) != null)) | all))) | sort_by(.id) | map({id, depends_on, repo, lock_keys:.contract.lock_keys, parallel_mode:.contract.parallel_mode, read_first:.contract.context.read_first, read_if_blocked:.contract.context.read_if_blocked})' "$GK_ROOT/governance/fcos/fcos-work-items.json"`
-   - `cd "$GK_ROOT" && just fcos-runnable`
-   - `cd "$GK_ROOT" && just fcos-parallel`
-   - `cd "$GK_ROOT" && just fcos-context <FCOS-ISSUE-ID>`
-   - `cd "$GK_ROOT" && just fcos-claim <FCOS-ISSUE-ID> <owner> 4` (multi-agent mode)
-   - `cd "$GK_ROOT" && just fcos-release <FCOS-ISSUE-ID> <owner> <queued|done|review>` (only for currently claimed issue)
-   - `cd "$GK_ROOT" && just fcos-check`
-2. Model edit (atomic):
-   - `tmp=$(mktemp) && jq '<filter>' "$GK_ROOT/governance/fcos/<in>.json" > "$tmp" && mv "$tmp" "$GK_ROOT/governance/fcos/<in>.json"`
-   - `yq -y --in-place '<filter>' "$GK_ROOT/governance/fcos/<in>.yaml"`
-   - use `uv run python` for multi-field or cross-structure updates (fallback `python3`)
-3. Re-render projections + run gates immediately after edits:
-   - `cd "$GK_ROOT" && scripts/rocs/render-fcos-issue-set.py`
-   - `cd "$GK_ROOT" && scripts/rocs/render-holdingco-projections.py`
-   - `cd "$GK_ROOT" && scripts/rocs/render-loops-plugin-system.py`
+### Dimensions (separate concerns)
+- **Location**: `owned/`, `contrib/`, `infra/` — where you instantiate
+- **Structure**: `project`, `monorepo`, `package` — what's inside
+- **Language**: `python`, `node`, `rust`, `go` — tooling
 
-Minimal read policy:
-- Read only fields needed for the selected issue contract.
-- Prefer canonical model files over projection markdown.
-- Escalate to contract-declared `read_if_blocked` paths before any broader reads.
+---
 
-## ENDGAME MODE (CLOSEOUT BIAS)
-- We are in late-stage convergence: avoid new side-quests.
-- Prioritize the first runnable issue from canonical model (`cd "$GK_ROOT" && just fcos-runnable`) and activation of real modeling-language enforcement.
-- Keep markdown as projection layer; move authority into models/contracts/policies.
+## SESSION CHECKPOINT
 
-## NON-NEGOTIABLES
-- Control-plane authority remains in `holdingco/governance-kernel`.
-- Deterministic checks are acceptance gates.
-- In blocking enforcement stages, run strict model-language gate:
-  - `bash scripts/rocs/check-model-language-conformance.sh`
-- Mainline-safe behavior: no irreversible actions without rollback path.
-- `softwareco/owned/testers` is proving lane only, never policy authority.
-
-## CURRENT PRIORITY (CANONICAL, DO NOT HARDCODE)
-Resolve at runtime from canonical model:
-- `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
-Use the returned issue ID for claim/execute/release; treat mirrored IDs in this file as non-authoritative.
-
-## ANTI-DRIFT CADENCE (LAYERED)
-- Required each session (cheap): resolve runnable issue once before claim/execute.
-- Required at closeout: run deterministic gates (`just fcos-check`, drift checks, strict model-language gate where required).
-- Optional periodic fleet loop (ops hygiene, e.g. every 15m):
-  - `cd ~/ai-society/core/rocs-cli && uv run python scripts/audit-fleet.py --workspace-root ~/ai-society --policy ~/ai-society/holdingco/governance-kernel/governance/fcos/fleet-state.yaml --json /tmp/fcos-audit.json --markdown /tmp/fcos-audit.md --report-only`
-- Canonical loop definition: `governance/fcos/loops-registry.json` seed plugin `loop.fcos.drift.audit` (projection: `docs/dev/loops-plugin-system.md`).
-
-## SESSION CHECKPOINT (UPDATE BEFORE /commit)
-- Issue executed this session:
-  - **FCOS-M3-02**: Bootstrap second canary repo (`softwareco/owned/dep-diet`)
-- Outcome (repo-local mirror only; canonical FCOS model remains source of truth):
-  - resolved placeholder repo field in issue definition → `softwareco/owned/dep-diet`
-  - bootstrapped FCOS baseline via `rocs-cli/scripts/bootstrap-repo.sh`:
-    - vendored rocs-cli v0.1.4 into `tools/rocs-cli/`
-    - added ontology manifest with softwareco layer refs
-    - added CI gate (advisory mode) via `gitlab/ci/rocs.yml`
-    - updated `.gitlab-ci.yml` to include rocs CI
-  - advisory checks passed:
-    - `vendored-check: OK`
-    - fleet audit: all capabilities observed as TRUE
-  - canonical model updates:
-    - `governance/fcos/fcos-work-items.json`: FCOS-M3-02 tasks done, state=done
-    - `governance/fcos/fleet-state.yaml`: dep-diet state=compliant, all capabilities=true
-    - re-rendered `docs/dev/fcos-convergence-issue-set.md`
-- Validation run:
-  - `cd "$GK_ROOT" && just fcos-check` → ok
-  - fleet audit scorecard generated at `/tmp/fcos-m3-02-scorecard.json`
-- Current priority (resolve live from canonical model):
-  - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
-- Next issue (resolve live):
-  - `cd "$GK_ROOT" && just fcos-runnable | jq -r '.[0].id // "none"'`
-- Lease/lock sync:
-  - no FCOS lease claimed (single-agent mode)
-- Rollback path:
-  - `softwareco/owned/dep-diet`: `git revert HEAD`
-  - `holdingco/governance-kernel`: `git revert HEAD`
-- KES crystallization flow:
-  - Session output -> diary/YYYY-MM-DD--type-scope-summary.md (if needed)
+- Work package executed this session:
+  - **WP0**: Analysis and architecture design complete
+- Outcome:
+  - Identified broken template chain
+  - Designed 5-template architecture
+  - Planned 10 work packages
+- Current priority:
+  - **WP1**: Add company_slug to L0 copier.yml
 - Blockers/risks:
-  - GitLab network timeout prevented `rocs build --resolve-refs` (environmental, not blocking)
-  - Issue FCOS-M3-02 had placeholder repo field (resolved via NEXUS interpretation)
+  - None identified yet
+- KES crystallization:
+  - This session captured in diary if significant learnings emerge
+
+---
 
 ## END-OF-SESSION
-Run `/commit` (project-local template: `.pi/prompts/commit.md`).
 
-`/commit` must:
-- sync this file's Session Checkpoint,
-- keep model-first authority ordering,
-- keep `GK_ROOT`-safe command paths,
-- create clear logical commit(s),
-- include why + validation in commit body.
+Run `/commit` (project-local template: `.pi/prompts/commit.md`).
