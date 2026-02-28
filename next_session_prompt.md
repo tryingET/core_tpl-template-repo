@@ -253,27 +253,28 @@ After each work package:
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 
 - Work package executed this session:
-  - **WP6-8**: All L1s regenerated with company_slug
-  - **WP6.5**: L2 validation (greenfield + brownfield)
-  - **DIMENSION-REFACTOR**: Added `language` + `location` + `enable_software_pack` to tpl-project-repo
-  - **DIMENSION-REFACTOR**: Removed `language` from tpl-monorepo (deferred to packages)
-  - **S4**: Location-driven CODEOWNERS (@company-owners, @company-contrib, @company-infra)
-  - **S6**: Conditional software scaffolding (pyproject.toml, package.json, Cargo.toml, go.mod)
+  - **PROFILE-PREVIEW**: `scripts/preview-l1-diff.sh` now rehydrates key target answers (profile/toggles/company fields) before render.
+  - **PREVIEW-NOISE-REDUCTION**: preview diff now excludes `.git/` by comparing normalized copies.
+  - **ANSWERS-PARSING-HARDENING**: `copier-template/scripts/new-repo-from-copier.sh` now preserves colon-containing inherited values (e.g., `company_name: Foo: Labs`).
+  - **CI-RUNTIME-CONTRACT**: `copier-template/.github/workflows/ci.yml` full lane now provisions uv explicitly.
+  - **REGRESSION-COVERAGE**: added generation checks for release-profile preview no-diff + colon-preservation inheritance.
+  - **KES**: session captured in diary + crystallized learning + propagated meta TIP.
 - Outcome:
-  - All 3 L1s (holdingco, softwareco, healthco) updated and validated
-  - 3 dimensions explicit: Location (owned/contrib/infra), Structure (project/monorepo/package), Language (6 choices)
-  - Software pack conditional on enable_software_pack=true + language choice
-  - All L0 checks pass (5/5)
-  - All L1 validations pass (3/3)
+  - Commit `ae6bdbd` landed with preview/profile parsing + CI hardening fixes.
+  - Fixtures synchronized; guardrails updated for full-lane uv contract.
+  - `bash ./scripts/check-l0.sh` passing (5/5).
 - Current priority:
-  - **FCOS-M4-02**: Flip ring1 to blocking deterministic gates (next from `just fcos-runnable`)
-  - WP9: Instantiate workstation backup repo
-  - WP10: Migrate pi-extensions to monorepo
+  - **CURRENT PRIORITY**: advance ring1 deterministic-gate enforcement (FCOS queue head, model-authoritative in governance-kernel).
+  - **Next issue (runtime-resolved; do not hardcode)**:
+    - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
+    - Snapshot at update time: `FCOS-M4-02`.
+  - Periodic anti-drift cadence is loop-owned policy in governance-kernel (`governance/fcos/loops-registry.json`, plugin `loop.fcos.drift.audit`).
+  - Local backlog after FCOS queue head: WP9 (workstation backup repo) -> WP10 (pi-extensions monorepo migration).
 - Blockers/risks:
-  - Brownfield repos - tread carefully
+  - Brownfield repos: preserve non-default profile toggles during preview/adoption to avoid false drift.
 - Validation run:
   - `bash ./scripts/check-l0.sh`
-  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-check`
+  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md` to revert session state
 - KES crystallization flow:
