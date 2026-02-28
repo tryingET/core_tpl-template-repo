@@ -253,23 +253,22 @@ After each work package:
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 
 - Work package executed this session:
-  - **WP6**: Regenerated holdingco-templates from L0
-  - **WP6.5**: L2 validation - greenfield (template-test-bed) + brownfield (org-handbook)
-  - **WP7**: Regenerated softwareco-templates, deleted orphan tpl-*-repo dirs
-  - **WP8**: Regenerated healthco-templates from L0
+  - **WP6-8**: All L1s regenerated with company_slug
+  - **WP6.5**: L2 validation (greenfield + brownfield)
   - **DIMENSION-REFACTOR**: Added `language` + `location` + `enable_software_pack` to tpl-project-repo
   - **DIMENSION-REFACTOR**: Removed `language` from tpl-monorepo (deferred to packages)
+  - **S4**: Location-driven CODEOWNERS (@company-owners, @company-contrib, @company-infra)
+  - **S6**: Conditional software scaffolding (pyproject.toml, package.json, Cargo.toml, go.mod)
 - Outcome:
-  - All 3 L1s (holdingco, softwareco, healthco) regenerated with company_slug
-  - All 3 L1s have all 5 canonical templates
-  - L0→L1→L2 chain validated end-to-end
-  - Greenfield and brownfield L2 migrations work
-  - 3 dimensions now explicit: Location, Structure, Language
+  - All 3 L1s (holdingco, softwareco, healthco) updated and validated
+  - 3 dimensions explicit: Location (owned/contrib/infra), Structure (project/monorepo/package), Language (6 choices)
+  - Software pack conditional on enable_software_pack=true + language choice
+  - All L0 checks pass (5/5)
+  - All L1 validations pass (3/3)
 - Current priority:
-  - S4: Location-driven defaults (release_pack, CODEOWNERS)
-  - S6: Conditional file generation (pyproject.toml, package.json)
-  - S9: Tech-stack-core linking when software_pack enabled
-  - WP9-WP10 remain (workstation backup, pi-extensions monorepo)
+  - S9: Tech-stack-core linking when software_pack enabled (partially done in README)
+  - WP9: Instantiate workstation backup repo
+  - WP10: Migrate pi-extensions to monorepo
 - Blockers/risks:
   - None identified
 - Validation run:
