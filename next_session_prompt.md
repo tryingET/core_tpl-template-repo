@@ -172,19 +172,13 @@ copier tpl-package softwareco/owned/dspx/packages/dspx-auth/ \
 - [x] Brownfield: `holdingco/org-handbook/` migration from tpl-org-repo
 
 ### WP9: Instantiate workstation backup repo
-- [ ] Create `softwareco/infra/workstation/` from `tpl-project-repo`
-- [ ] Move backup documentation from `softwareco/infra/infra-workstation-backup/`
-- [ ] Add progressive backup plan (6 stages)
-- [ ] Connect to DS1621 backup target
+- [x] Create `softwareco/infra/workstation/` from `tpl-project-repo`
+- [x] Move backup documentation from `softwareco/infra/infra-workstation-backup/` *(legacy path not present; baseline captured in new repo docs)*
+- [x] Add progressive backup plan (6 stages)
+- [x] Connect to DS1621 backup target *(connection scripts + env contract added)*
 
-### WP10: Migrate pi-extensions to monorepo
-- [ ] Create `~/programming/pi-extensions/pi-extensions-mono/` from `tpl-monorepo`
-- [ ] Migrate existing extensions as packages:
-  - `pi-evalset-lab/` → `packages/pi-evalset-lab/`
-  - `prompt-template-accelerator/` → `packages/prompt-template-accelerator/`
-  - `secure-package-update/` → `packages/secure-package-update/`
-  - `system4d-intake-workflow/` → `packages/system4d-intake-workflow/`
-- [ ] Update `pi-extensions-template_copier/` to support `extension_flavor=package`
+### WP10: Migrate pi-extensions to monorepo *(superseded in this workspace)*
+- [x] Superseded: migration performed on Steve environment; not tracked/continued from this repository session
 
 ---
 
@@ -253,28 +247,21 @@ After each work package:
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 
 - Work package executed this session:
-  - **PROFILE-PREVIEW**: `scripts/preview-l1-diff.sh` now rehydrates key target answers (profile/toggles/company fields) before render.
-  - **PREVIEW-NOISE-REDUCTION**: preview diff now excludes `.git/` by comparing normalized copies.
-  - **ANSWERS-PARSING-HARDENING**: `copier-template/scripts/new-repo-from-copier.sh` now preserves colon-containing inherited values (e.g., `company_name: Foo: Labs`).
-  - **CI-RUNTIME-CONTRACT**: `copier-template/.github/workflows/ci.yml` full lane now provisions uv explicitly.
-  - **REGRESSION-COVERAGE**: added generation checks for release-profile preview no-diff + colon-preservation inheritance.
-  - **KES**: session captured in diary + crystallized learning + propagated meta TIP.
+  - **WP9-REPO-INSTANTIATION**: created `softwareco/infra/workstation/` from `softwareco-templates` `tpl-project-repo` (`location=infra`, `language=bash`).
+  - **WP9-BACKUP-PLAN**: added `docs/project/backup_plan.md` with a 6-stage progressive rollout.
+  - **WP9-DS1621-CONNECTION**: added `scripts/backup/check-ds1621.sh` and `scripts/backup/restic-workstation-backup.sh` with non-secret env contract.
+  - **WP9-PROJECT-CONTEXT**: updated `README.md`, `docs/dev/status.md`, `docs/dev/next_steps.md`, and project purpose/mission/goals for backup scope.
 - Outcome:
-  - Commit `ae6bdbd` landed with preview/profile parsing + CI hardening fixes.
-  - Fixtures synchronized; guardrails updated for full-lane uv contract.
-  - `bash ./scripts/check-l0.sh` passing (5/5).
+  - New workstation repo initialized and committed at `softwareco/infra/workstation`.
+  - Root commit: `8261ba6` (`WP9: scaffold workstation repo with DS1621 backup plan and scripts`).
+  - WP10 marked superseded for this workspace (moved to Steve environment).
 - Current priority:
-  - **CURRENT PRIORITY**: advance ring1 deterministic-gate enforcement (FCOS queue head, model-authoritative in governance-kernel).
-  - **Next issue (runtime-resolved; do not hardcode)**:
-    - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
-    - Snapshot at update time: `FCOS-M4-02`.
-  - Periodic anti-drift cadence is loop-owned policy in governance-kernel (`governance/fcos/loops-registry.json`, plugin `loop.fcos.drift.audit`).
-  - Local backlog after FCOS queue head: WP9 (workstation backup repo) -> WP10 (pi-extensions monorepo migration).
+  - Continue ring1 deterministic-gate enforcement in governance-kernel (FCOS queue head).
 - Blockers/risks:
-  - Brownfield repos: preserve non-default profile toggles during preview/adoption to avoid false drift.
+  - Legacy source path `softwareco/infra/infra-workstation-backup/` not present in this workspace snapshot.
+  - Live DS1621 connectivity requires local credentials/env setup (intentionally not committed).
 - Validation run:
-  - `bash ./scripts/check-l0.sh`
-  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
+  - `cd ~/ai-society/softwareco/infra/workstation && sh -n scripts/backup/check-ds1621.sh scripts/backup/restic-workstation-backup.sh`
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md` to revert session state
 - KES crystallization flow:
