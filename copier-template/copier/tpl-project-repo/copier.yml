@@ -53,17 +53,17 @@ enable_software_pack:
 enable_community_pack:
   type: bool
   default: false
-  help: "Enable community-facing pack overlays (default: false)."
+  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo."
 
 enable_release_pack:
   type: bool
   default: false
-  help: "Enable release automation pack overlays (default: false)."
+  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo."
 
 enable_vouch_gate:
   type: bool
   default: false
-  help: "Enable trust/vouch gate overlays (default: false)."
+  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo."
 
 kernel_ontology_ref:
   type: str

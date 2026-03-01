@@ -6,7 +6,7 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
 - Maintainer: `{{ maintainer_handle }}`
 - L1 organization docs profile: `{{ l1_org_docs_profile }}`
 - Default L2 organization docs profile: `{{ l2_org_docs_default }}`
-- Baseline L2 template family: `project`, `agent`, `org`
+- Baseline L2 template family: `agent`, `project`, `org`, `monorepo`, `package`
 
 ## What this repo provides
 
@@ -14,6 +14,8 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
   - `copier/tpl-agent-repo/` — AI agent repositories
   - `copier/tpl-project-repo/` — Delivery projects
   - `copier/tpl-org-repo/` — Organization handbooks
+  - `copier/tpl-monorepo/` — Monorepo workspaces
+  - `copier/tpl-package/` — Packages inside monorepos
 - Opinionated local hooks (`.githooks/`) and CI lane scripts (`scripts/ci/`).
 - Layer contract enforcement via `contracts/layer-contract.yml`.
 - Baseline structure in this generated L1 repo: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`.
@@ -56,6 +58,46 @@ Generate an L2 **org** handbook:
   -d org_owner_handle=@<owner> \
   --defaults --overwrite
 ```
+
+Generate an L2 **monorepo** workspace:
+
+```bash
+./scripts/new-repo-from-copier.sh tpl-monorepo /path/to/<monorepo> \
+  -d repo_slug=<monorepo> \
+  -d language=python \
+  -d package_manager=uv \
+  --defaults --overwrite
+```
+
+Generate an L2 **package** (inside monorepos):
+
+```bash
+./scripts/new-repo-from-copier.sh tpl-package /path/to/packages/<name> \
+  -d package_name=<name> \
+  -d package_type=library \
+  -d language=python \
+  --defaults --overwrite
+```
+
+### Transition existing L2 repos (scaffold-first)
+
+There is no automatic in-place migrator. Use this deterministic pattern:
+
+1) Render baseline:
+```bash
+./scripts/new-repo-from-copier.sh tpl-project-repo /tmp/<repo>-template \
+  -d repo_slug=<repo> \
+  --defaults --overwrite
+```
+
+2) Diff against existing repo:
+```bash
+git diff --no-index -- /tmp/<repo>-template /absolute/path/to/<existing-repo>
+```
+
+3) Adopt control-plane first (`AGENTS.md`, `CODEOWNERS`, `scripts/`, `governance/`, `docs/`, `ontology/`), then reconcile product code.
+
+4) Validate and open MR.
 
 Install local hooks in a generated repo:
 
@@ -120,6 +162,11 @@ See `tips/README.md` for TIP process.
   - `tpl-agent-repo`
   - `tpl-project-repo`
   - `tpl-org-repo`
+  - `tpl-monorepo`
+  - `tpl-package`
+- Detailed project-template file map (canonical):
+  - `docs/dev/tpl-project-repo-file-contract.md`
+  - wikilink: `[[docs/dev/tpl-project-repo-file-contract.md]]`
 
 ## Organization docs profile
 
@@ -132,11 +179,15 @@ See `tips/README.md` for TIP process.
 ## Governance layering
 
 L2 governance is archetype-dependent:
-- `project` / `owned`: org baseline + `docs/project/governance_overlay.md` for local deviations.
-- `org`: governance primary in `docs/org/` + `governance/`.
-- `agent`: lightweight local governance in persona/system docs.
+- `tpl-project-repo`: `governance/work-items.*` + `docs/project/` + `docs/system4d/`.
+- `tpl-org-repo`: governance-primary docs in `docs/org/` + `governance/`.
+- `tpl-agent-repo`: lightweight local governance in persona/system docs.
+- `tpl-monorepo`: repo-level delivery governance with package/app decomposition.
+- `tpl-package`: package-local governance and quality controls inside a monorepo.
 
-Default rule for `project`/`owned`: overlay may specialize/tighten org baseline; weakening requires explicit consent recorded in the overlay.
+For `tpl-project-repo`, the canonical file-by-file contract is:
+- `docs/dev/tpl-project-repo-file-contract.md`
+- wikilink: `[[docs/dev/tpl-project-repo-file-contract.md]]`
 
 ## Community profile
 

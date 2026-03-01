@@ -21,11 +21,14 @@ Provide one stable, guarded template surface that generates compliant L2 reposit
 - Preserve baseline structure folders and git baseline files unless intentionally changed by policy.
 - Treat `l1_org_docs_profile` as a profile decision (default rich; compact allowed for lightweight internal template lines).
 - Treat `l2_org_docs_default` as a profile decision (default compact; rich when L2 repos should carry full org docs).
-- Keep L2 template selection explicit (`tpl-project-repo|tpl-agent-repo|tpl-org-repo`) and avoid changing baseline semantics without updating checks/fixtures.
+- Keep L2 template selection explicit (`tpl-project-repo|tpl-agent-repo|tpl-org-repo|tpl-monorepo|tpl-package`) and avoid changing baseline semantics without updating checks/fixtures.
 - Keep L2 governance layering explicit:
-  - `tpl-project-repo`: org baseline + `docs/project/governance_overlay.md`
+  - `tpl-project-repo`: `governance/work-items.*` + `docs/project/` + `docs/system4d/`
   - `tpl-org-repo`: governance primary in `docs/org/` + `governance/`
   - `tpl-agent-repo`: local persona/system governance
+  - `tpl-monorepo`: repo-level delivery governance + package/app boundaries
+  - `tpl-package`: package-local governance inside monorepo boundaries
+- Treat `docs/dev/tpl-project-repo-file-contract.md` as the canonical project-template file map.
 - Treat `enable_community_pack` as a profile decision (default disabled, enable for public/community-facing contribution surfaces).
 - Treat `enable_release_pack` as a profile decision (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as a profile decision (default disabled, enable for trust-gated/public contribution surfaces).

@@ -116,6 +116,16 @@ _message_after_copy: |
     - generate an L2 org handbook:
       ./scripts/new-repo-from-copier.sh tpl-org-repo /tmp/my-org \
         -d repo_slug=my-org --defaults --overwrite
+    - generate an L2 monorepo:
+      ./scripts/new-repo-from-copier.sh tpl-monorepo /tmp/my-monorepo \
+        -d repo_slug=my-monorepo -d language=python -d package_manager=uv \
+        --defaults --overwrite
+    - generate an L2 package:
+      ./scripts/new-repo-from-copier.sh tpl-package /tmp/packages/my-lib \
+        -d package_name=my-lib -d package_type=library -d language=python \
+        --defaults --overwrite
+    - project-template contract:
+      docs/dev/tpl-project-repo-file-contract.md
 
   Organization docs profile (L1):
     - currently {{ l1_org_docs_profile }}

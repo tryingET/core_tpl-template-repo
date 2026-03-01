@@ -94,12 +94,14 @@ copier.yml
 .github/pull_request_template.md
 docs/release-compatibility-policy.md
 docs/l1-adoption-playbook.md
+docs/l2-transition-playbook.md
 docs/profile-governance-policy.md
 docs/supply-chain-policy.md
 docs/learnings/README.md
 docs/vouch-td-primer.md
 docs/feature-matrix-l0-l1-l2-vs-pi-template.md
 docs/solo-builder-operating-cadence.md
+docs/dev/README.md
 copier-template/README.md.jinja
 copier-template/AGENTS.md
 copier-template/CONTRIBUTING.md
@@ -123,6 +125,7 @@ copier-template/.release-please-manifest.json
 copier-template/CHANGELOG.md
 copier-template/SECURITY.md
 copier-template/docs/.gitkeep
+copier-template/docs/dev/tpl-project-repo-file-contract.md
 copier-template/docs/org/operating_model.md.jinja
 copier-template/docs/org/purpose.md.jinja
 copier-template/docs/org/mission.md.jinja
@@ -237,6 +240,8 @@ assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source 
 assert_contains "copier.yml" "copier/tpl-agent-repo/" "L0 message must mention tpl-agent-repo template"
 assert_contains "copier.yml" "copier/tpl-org-repo/" "L0 message must mention tpl-org-repo template"
 assert_contains "copier.yml" "copier/tpl-project-repo/" "L0 message must mention tpl-project-repo template"
+assert_contains "copier.yml" "copier/tpl-monorepo/" "L0 message must mention tpl-monorepo template"
+assert_contains "copier.yml" "copier/tpl-package/" "L0 message must mention tpl-package template"
 assert_contains "copier.yml" "l1_org_docs_profile" "L0 copier config must expose L1 org docs profile toggle"
 assert_contains "copier.yml" "enable_community_pack" "L0 copier config must expose community pack toggle"
 assert_contains "copier.yml" "enable_release_pack" "L0 copier config must expose release pack toggle"
@@ -277,6 +282,8 @@ assert_contains "scripts/preview-l1-diff.sh" "repo_slug_from_answers" "preview-l
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-monorepo" "L1 wrapper must list tpl-monorepo template"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-package" "L1 wrapper must list tpl-package template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_QUIET" "L1 wrapper must expose Copier quiet-mode toggle"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "--quiet" "L1 wrapper must default Copier execution to quiet mode"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_VERSION" "L1 wrapper must pin Copier version"
@@ -328,6 +335,14 @@ assert_contains "README.md" "Multi-pass template suffix policy" "README should d
 assert_contains "README.md" "Pass-boundary rule" "README should describe pass-boundary suffix rule"
 assert_contains "README.md" "docs/learnings/" "README should describe KES crystallization destination"
 assert_contains "README.md" "diary/" "README should document repo-local diary policy"
+assert_contains "README.md" "docs/dev/README.md" "README should link setup+transition operator entrypoint"
+assert_contains "README.md" "l2-transition-playbook.md" "README should link L2 transition playbook"
+assert_contains "README.md" "tpl-project-repo-file-contract.md" "README should link the canonical tpl-project-repo file contract"
+assert_contains "docs/dev/README.md" "Agent handoff line" "operator entrypoint should include explicit agent handoff guidance"
+assert_contains "docs/dev/README.md" "docs/l2-transition-playbook.md" "operator entrypoint should link L2 transition playbook"
+assert_contains "docs/dev/README.md" "no in-place auto-migrator" "operator entrypoint should clarify migration limitation"
+assert_contains "docs/l1-adoption-playbook.md" "docs/dev/README.md" "L1 adoption playbook should link operator entrypoint"
+assert_contains "docs/l1-adoption-playbook.md" "docs/l2-transition-playbook.md" "L1 adoption playbook should link L2 migration playbook"
 assert_contains "scripts/check-l0.sh" "check-session-checkpoint" "consolidated L0 check should run session checkpoint guardrails"
 assert_contains "scripts/check-l0.sh" "L0_CHECK_TIMEOUT_SECONDS" "consolidated L0 check should expose fail-fast timeout control"
 assert_contains "scripts/check-l0-generation.sh" "preview-l1-diff.sh" "L0 generation checks should execute preview-l1-diff runtime coverage"
@@ -359,6 +374,9 @@ assert_contains "copier-template/README.md.jinja" "archetype/profile-specific" "
 assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" "generated L1 README should describe deterministic ROCS launcher"
 assert_contains "copier-template/README.md.jinja" "Multi-pass template suffix policy" "generated L1 README should describe multi-pass suffix policy"
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
+assert_contains "copier-template/README.md.jinja" "no automatic in-place migrator" "generated L1 README should document deterministic migration limitation"
+assert_contains "copier-template/README.md.jinja" "tpl-project-repo-file-contract.md" "generated L1 README should link canonical tpl-project-repo file contract"
+assert_contains "copier-template/AGENTS.md" "tpl-project-repo-file-contract.md" "generated L1 AGENTS should link canonical tpl-project-repo file contract"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
 
@@ -387,6 +405,17 @@ assert_absent "fixtures/l1/template-repo/copier/tpl-agent-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-org-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-project-repo/docs/diary"
 assert_absent "fixtures/l2/tpl-project-repo/docs/diary"
+
+# Ensure template sources do not include generated Python build/cache artifacts
+if find copier-template/copier -type d \( -name '__pycache__' -o -name '*.egg-info' \) | grep -q .; then
+  fail "template source contains generated python cache/metadata directories"
+fi
+if find copier-template/copier -type f -name '*.pyc' | grep -q .; then
+  fail "template source contains generated python bytecode files"
+fi
+if find copier-template/copier -type d -path '*/tools/rocs-cli/build' | grep -q .; then
+  fail "template source contains rocs-cli build output directory"
+fi
 
 # Ensure no nested copier invocations
 if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then

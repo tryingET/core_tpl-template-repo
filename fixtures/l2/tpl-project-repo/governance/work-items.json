@@ -1,22 +1,13 @@
 {
   "schema_version": 1,
   "updated_at": "",
-  "owner": "fixture-product-repo",
-  "naming_contract": {
-    "system_name": "FIXTURE_PRODUCT_REPO",
-    "issue_prefix": "FIXTUREP-",
-    "tool_namespace": "fixture-product-repo"
-  },
+  "owner": "@project-owners",
+  "project_name": "fixture-product-repo",
   "milestones": [
     {
       "id": "M1",
       "title": "Initial Setup",
       "issues": []
     }
-  ],
-  "program_dod": [
-    "All tests pass",
-    "Documentation updated",
-    "Code reviewed"
   ]
 }

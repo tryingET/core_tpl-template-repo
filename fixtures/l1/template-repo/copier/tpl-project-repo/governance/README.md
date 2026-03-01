@@ -1,51 +1,29 @@
 # Project Work Items
 
-This file tracks project-specific work (features, bugs, improvements).
+`governance/work-items.json` is the project-local planning model for this repository.
 
 ## Purpose
 
-**This is a PLANNING ARTIFACT, not an execution queue.**
+- Scope: **single repo** (features, bugs, improvements)
+- Authority: planning/coordination
+- Operational status: **non-operational** (no scheduler)
 
-| Aspect | Status |
-|--------|--------|
-| Structure | ✓ Complete |
-| Validation | ✓ CUE schema |
-| Operational | ✗ No scheduler support |
+Use this when work is local to this repo. Use L0/FCOS programs when work spans repos.
 
-Projects may also use:
-- Git issues / milestones
-- FCOS work-items (for cross-repo work)
-- External trackers
+## Contract (must stay aligned)
 
-## Ontology
+- Schema: `governance/work-items.cue`
+- Seed model: `governance/work-items.json`
 
-```
-Milestone > Issue > Task
-```
+Core fields:
+- `schema_version`
+- `updated_at`
+- `owner`
+- `project_name`
+- `milestones[]`
 
-## State Machine
-
-```
-triage → queued → doing → review → done
-```
-
-| State | Meaning |
-|-------|---------|
-| triage | Not yet shaped |
-| queued | Ready to start |
-| doing | In progress |
-| review | Awaiting review |
-| done | Complete |
-
-## Structure
-
-| Field | Description |
-|-------|-------------|
-| `id` | Issue ID (e.g., `PROJ-M1-01`) |
-| `title` | Short description |
-| `state` | `triage` \| `queued` \| `doing` \| `review` \| `done` |
-| `tasks` | List of tasks with `text` and `done` |
-| `dod` | Definition of done |
+Issue state machine:
+- `triage -> queued -> doing -> review -> done`
 
 ## Validation
 
@@ -53,25 +31,14 @@ triage → queued → doing → review → done
 cue vet governance/work-items.json governance/work-items.cue
 ```
 
-## Program vs Project
+## Use this vs alternatives
 
-| Type | Location | Scope | Operational? |
-|------|----------|-------|--------------|
-| **Program** | governance-kernel/governance/programs/ | Cross-company | Yes |
-| **Program** | company-templates/governance/programs/ | Company | No |
-| **Project** | repo/governance/work-items.json (this file) | This repo | No |
+| Use this file when | Use alternative when |
+|---|---|
+| Work is repo-local and needs milestone/issue/task structure | Work spans multiple repos/programs (use FCOS/L0 program models) |
+| You need deterministic schema checks | You only need lightweight conversational triage (use issues/notes) |
 
-## When to Use This vs Alternatives
+## Non-negotiable
 
-| Use This When | Use Alternative When |
-|---------------|---------------------|
-| Work is specific to this repo | Work spans multiple repos (→ FCOS) |
-| You want structured tracking | Simple bugs (→ git issues) |
-| You need milestone tracking | Quick tasks (→ TODO comments) |
-
-## Related
-
-- L0 Programs: `governance-kernel/governance/programs/`
-- L1 Programs: `company-templates/governance/programs/`
-- State Machine: `governance-kernel/governance/fcos/state-machine.yaml`
-- Glossary: `governance-kernel/docs/core/glossary.md`
+Do not leave deferred work as ad-hoc TODO comments or scattered markdown notes.
+Track deferred work in the authoritative work-items model.

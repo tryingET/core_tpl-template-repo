@@ -159,6 +159,7 @@ scripts/ci/full.sh
 .githooks/pre-commit
 .githooks/pre-push
 docs/.gitkeep
+docs/dev/tpl-project-repo-file-contract.md
 docs/org/operating_model.md
 examples/.gitkeep
 external/.gitkeep
@@ -222,6 +223,7 @@ assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L1 contributing gu
 assert_contains "AGENTS.md" "Deterministic tooling policy" "L1 AGENTS should document deterministic tooling policy"
 assert_contains "AGENTS.md" "scripts/rocs.sh" "L1 AGENTS should reference scripts/rocs.sh"
 assert_contains "AGENTS.md" "diary/" "L1 AGENTS should require repo-local diary"
+assert_contains "AGENTS.md" "tpl-project-repo-file-contract.md" "L1 AGENTS should link canonical tpl-project-repo file contract"
 assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
 assert_contains "README.md" "Governance layering" "L1 README should describe governance layering"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
@@ -230,7 +232,9 @@ assert_contains "README.md" "Baseline structure" "L1 README should describe base
 assert_contains "README.md" "Deterministic ROCS launcher" "L1 README should document deterministic ROCS launcher"
 assert_contains "README.md" "Multi-pass template suffix policy" "L1 README should document multi-pass suffix policy"
 assert_contains "README.md" "repo-local diary" "L1 README should document repo-local diary contract"
+assert_contains "README.md" "no automatic in-place migrator" "L1 README should describe deterministic migration limitation"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
+assert_contains "README.md" "tpl-project-repo-file-contract.md" "L1 README should link canonical tpl-project-repo file contract"
 assert_contains "diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README should enforce descriptive filename convention"
 
 contract="contracts/layer-contract.yml"
@@ -264,6 +268,8 @@ done
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
+assert_contains "scripts/new-repo-from-copier.sh" "tpl-monorepo" "L1 wrapper must list tpl-monorepo template"
+assert_contains "scripts/new-repo-from-copier.sh" "tpl-package" "L1 wrapper must list tpl-package template"
 
 expected_pin='COPIER_VERSION="${COPIER_VERSION:-9.11.1}"'
 expected_uvx='uvx --from "copier==${COPIER_VERSION}" copier'
@@ -378,6 +384,17 @@ else
   assert_not_file "docs/org/values_ethics.md"
   assert_not_file "docs/org/governance.md"
   assert_not_file "docs/org/glossary.md"
+fi
+
+# Ensure no generated Python build/cache artifacts are committed in embedded templates
+if find copier -type d \( -name '__pycache__' -o -name '*.egg-info' \) | grep -q .; then
+  fail "embedded template source contains generated python cache/metadata directories"
+fi
+if find copier -type f -name '*.pyc' | grep -q .; then
+  fail "embedded template source contains generated python bytecode files"
+fi
+if find copier -type d -path '*/tools/rocs-cli/build' | grep -q .; then
+  fail "embedded template source contains rocs-cli build output directory"
 fi
 
 # Test L2 generation for each template
