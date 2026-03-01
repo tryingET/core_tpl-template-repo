@@ -7,3 +7,9 @@ tmp/
 # Python generated artifacts
 __pycache__/
 *.pyc
+
+# L2 project folders (each has own .git)
+owned/
+contrib/
+infra/
+agents/

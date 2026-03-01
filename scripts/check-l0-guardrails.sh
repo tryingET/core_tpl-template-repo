@@ -103,7 +103,7 @@ docs/feature-matrix-l0-l1-l2-vs-pi-template.md
 docs/solo-builder-operating-cadence.md
 docs/dev/README.md
 copier-template/README.md.jinja
-copier-template/AGENTS.md
+copier-template/AGENTS.md.jinja
 copier-template/CONTRIBUTING.md
 copier-template/.gitattributes
 copier-template/contracts/layer-contract.yml
@@ -358,15 +358,15 @@ assert_contains "next_session_prompt.md" "git restore -- next_session_prompt.md"
 assert_contains "next_session_prompt.md" "KES crystallization flow" "session checkpoint should include KES flow"
 assert_contains "copier-template/diary/README.md.jinja" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README template should enforce descriptive filename convention"
 
-for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
+for doc in copier-template/README.md.jinja copier-template/AGENTS.md.jinja; do
   assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"
   assert_contains "$doc" "L1 -> L2" "generated L1 docs must allow L1 -> L2"
   assert_contains "$doc" "L1 -> L0" "generated L1 docs must forbid L1 -> L0"
   assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
 done
-assert_contains "copier-template/AGENTS.md" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
-assert_contains "copier-template/AGENTS.md" "scripts/rocs.sh" "generated L1 AGENTS should reference scripts/rocs.sh"
-assert_contains "copier-template/AGENTS.md" "diary/" "generated L1 AGENTS should require repo-local diary"
+assert_contains "copier-template/AGENTS.md.jinja" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
+assert_contains "copier-template/AGENTS.md.jinja" "scripts/rocs.sh" "generated L1 AGENTS should reference scripts/rocs.sh"
+assert_contains "copier-template/AGENTS.md.jinja" "diary/" "generated L1 AGENTS should require repo-local diary"
 assert_contains "copier-template/CONTRIBUTING.md" "scripts/rocs.sh --doctor" "generated L1 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "copier-template/CONTRIBUTING.md" "diary/" "generated L1 contributing guide should require repo-local diary"
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
@@ -376,7 +376,7 @@ assert_contains "copier-template/README.md.jinja" "Multi-pass template suffix po
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
 assert_contains "copier-template/README.md.jinja" "no automatic in-place migrator" "generated L1 README should document deterministic migration limitation"
 assert_contains "copier-template/README.md.jinja" "tpl-project-repo-file-contract.md" "generated L1 README should link canonical tpl-project-repo file contract"
-assert_contains "copier-template/AGENTS.md" "tpl-project-repo-file-contract.md" "generated L1 AGENTS should link canonical tpl-project-repo file contract"
+assert_contains "copier-template/AGENTS.md.jinja" "L2 Templates" "generated L1 AGENTS should document L2 templates"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
 

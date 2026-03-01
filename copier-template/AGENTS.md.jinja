@@ -1,7 +1,7 @@
-# AGENTS.md — Holding Company (holdingco)
+# AGENTS.md — {{ company_name }} ({{ company_slug }})
 
 ## Intent
-Coordinate Holding Company work across explicit lanes:
+Coordinate {{ company_name }} work across explicit lanes:
 - `owned/` (we operate)
 - `contrib/` (upstream-coupled)
 - `infra/` (platform/runbooks)
@@ -50,10 +50,10 @@ Coordinate Holding Company work across explicit lanes:
 ```
 
 ## Placement reminders
-- owned: `~/ai-society/holdingco/owned/<repo>`
-- contrib: `~/ai-society/holdingco/contrib/<upstream>/<repo>`
-- infra: `~/ai-society/holdingco/infra/<repo>`
-- agents: `~/ai-society/holdingco/agents/agent-<slug>`
+- owned: `~/ai-society/{{ company_slug }}/owned/<repo>`
+- contrib: `~/ai-society/{{ company_slug }}/contrib/<upstream>/<repo>`
+- infra: `~/ai-society/{{ company_slug }}/infra/<repo>`
+- agents: `~/ai-society/{{ company_slug }}/agents/agent-<slug>`
 
 ## Read order (high signal)
 1. `./docs/lane-policy-matrix.md` (if exists)

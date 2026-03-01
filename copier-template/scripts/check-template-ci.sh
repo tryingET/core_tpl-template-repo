@@ -223,7 +223,7 @@ assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L1 contributing gu
 assert_contains "AGENTS.md" "Deterministic tooling policy" "L1 AGENTS should document deterministic tooling policy"
 assert_contains "AGENTS.md" "scripts/rocs.sh" "L1 AGENTS should reference scripts/rocs.sh"
 assert_contains "AGENTS.md" "diary/" "L1 AGENTS should require repo-local diary"
-assert_contains "AGENTS.md" "tpl-project-repo-file-contract.md" "L1 AGENTS should link canonical tpl-project-repo file contract"
+assert_contains "AGENTS.md" "L2 Templates" "L1 AGENTS should document L2 templates"
 assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
 assert_contains "README.md" "Governance layering" "L1 README should describe governance layering"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"

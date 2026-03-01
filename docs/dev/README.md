@@ -58,63 +58,97 @@ Read [[docs/dev/README.md]] completely, then execute the relevant section for my
 
 ---
 
-## 3) Create a new L1 company template repo (L0 -> L1)
+## 3) Create a new L1 company repo (L0 -> L1)
 
 Run from `core/tpl-template-repo`:
 
 ```bash
-./scripts/new-l1-from-copier.sh /absolute/path/to/<company>-templates \
-  -d repo_slug=<company>-templates \
+./scripts/new-l1-from-copier.sh ~/ai-society/<company> \
+  -d repo_slug=<company> \
   -d company_slug=<company> \
   -d company_name="<Company Name>" \
   -d l1_org_docs_profile=rich \
-  -d l2_org_docs_default=compact \
   -d enable_community_pack=false \
   -d enable_release_pack=false \
   -d enable_vouch_gate=false \
   --defaults --overwrite
 ```
 
-Validate in generated L1:
+Then initialize git:
 
 ```bash
-cd /absolute/path/to/<company>-templates
+cd ~/ai-society/<company>
+git init
+git add .
+git commit -m "Init from L0"
 bash ./scripts/check-template-ci.sh
+```
+
+**L1 Structure:**
+```
+<company>/
+├── .git/                  ← company repo
+├── .gitignore             ← ignores owned/*, contrib/*, infra/*, agents/*
+├── .copier-answers.yml    ← L0 provenance
+├── AGENTS.md              ← company context (loaded by pi)
+├── scripts/               ← shared tooling
+│   ├── rocs.sh
+│   ├── docs-list.sh
+│   └── new-repo-from-copier.sh
+├── copier/                ← L2 templates
+│   ├── tpl-project-repo/
+│   ├── tpl-agent-repo/
+│   ├── tpl-org-repo/
+│   ├── tpl-monorepo/
+│   └── tpl-package/
+├── owned/                 ← L2 projects (each has own .git)
+├── contrib/               ← L2 upstream contributions
+├── infra/                 ← L2 infrastructure
+└── agents/                ← L2 AI agent repos
 ```
 
 ---
 
 ## 4) Create a new L2 repo (L1 -> L2)
 
-Run from your `<company>-templates` repository:
+Run from your company repository (e.g., `~/ai-society/softwareco`):
 
 ```bash
-# project
-./scripts/new-repo-from-copier.sh tpl-project-repo /path/to/<repo> \
+# project (in owned/)
+./scripts/new-repo-from-copier.sh tpl-project-repo ./owned/<repo> \
   -d repo_slug=<repo> --defaults --overwrite
 
-# agent
-./scripts/new-repo-from-copier.sh tpl-agent-repo /path/to/agent-<slug> \
+# agent (in agents/)
+./scripts/new-repo-from-copier.sh tpl-agent-repo ./agents/agent-<slug> \
   -d repo_slug=agent-<slug> --defaults --overwrite
 
-# org
-./scripts/new-repo-from-copier.sh tpl-org-repo /path/to/<org>-handbook \
+# org handbook (at company root)
+./scripts/new-repo-from-copier.sh tpl-org-repo ./<org>-handbook \
   -d repo_slug=<org>-handbook --defaults --overwrite
 
-# monorepo
-./scripts/new-repo-from-copier.sh tpl-monorepo /path/to/<monorepo> \
+# monorepo (at company root)
+./scripts/new-repo-from-copier.sh tpl-monorepo ./<monorepo> \
   -d repo_slug=<monorepo> -d language=python -d package_manager=uv \
   --defaults --overwrite
 
 # package (inside monorepo)
-./scripts/new-repo-from-copier.sh tpl-package /path/to/packages/<name> \
+./scripts/new-repo-from-copier.sh tpl-package ./<monorepo>/packages/<name> \
   -d package_name=<name> -d package_type=library -d language=python \
   --defaults --overwrite
 ```
 
+**L2 Placement:**
+| Type | Location | Has own .git? |
+|------|----------|---------------|
+| Project | `./owned/<repo>/` | Yes |
+| Agent | `./agents/agent-<slug>/` | Yes |
+| Org handbook | `./<org>-handbook/` | Yes |
+| Monorepo | `./<monorepo>/` | Yes |
+| Package | `./<monorepo>/packages/<name>/` | No (in monorepo) |
+
 ---
 
-## 5) Transition an existing L1 template repo
+## 5) Transition an existing L1 company repo
 
 Authoritative playbook:
 - `[[docs/l1-adoption-playbook.md]]`
@@ -123,7 +157,7 @@ Minimum deterministic flow:
 
 ```bash
 # from core/tpl-template-repo
-./scripts/preview-l1-diff.sh /absolute/path/to/<company>-templates
+./scripts/preview-l1-diff.sh ~/ai-society/<company>
 ```
 
 Then in target L1 repo (on branch):
