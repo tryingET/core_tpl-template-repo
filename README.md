@@ -6,6 +6,18 @@ First validated slice:
 - one L1 profile: `template-repo`
 - generated L1 repos include CI, hooks, contracts, and five L2 templates (`tpl-agent-repo`, `tpl-project-repo`, `tpl-monorepo`, `tpl-package`, `tpl-org-repo`)
 
+## Operator entrypoint (setup + transition)
+
+If you need one doc for "how do I create repos" and "how do I transition old repos":
+- `docs/dev/README.md`
+- wikilink: `[[docs/dev/README.md]]`
+
+## Canonical tpl-project-repo map
+
+For the detailed L0 -> L1 -> L2 file contract (deep review + what goes where):
+- `copier-template/docs/dev/tpl-project-repo-file-contract.md`
+- wikilink: `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]`
+
 ## Quickstart
 
 Generate an L1 repo from L0:
@@ -147,6 +159,7 @@ Forbidden edges:
 - Contributing guide: `CONTRIBUTING.md`
 - Release/compatibility policy: `docs/release-compatibility-policy.md`
 - L1 rollout playbook: `docs/l1-adoption-playbook.md`
+- L2 transition playbook: `docs/l2-transition-playbook.md`
 - Profile governance policy (internal vs public bundles): `docs/profile-governance-policy.md`
 - Supply-chain policy: `docs/supply-chain-policy.md`
 - Vouch `.td` primer: `docs/vouch-td-primer.md`
@@ -163,6 +176,6 @@ Forbidden edges:
 To reduce drift with richer template ecosystems:
 - generated **L1 template repositories** seed baseline folders: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`
 - generated **L1 template repositories** also seed git baseline files: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`
-- generated **L2 repositories** are archetype/profile-specific (from `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`) and do not all ship identical folder/git baselines; GitHub assets are profile-gated (`enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`)
+- generated **L2 repositories** are archetype/profile-specific (from `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-monorepo`, `tpl-package`) and do not all ship identical folder/git baselines; GitHub assets are profile-gated (`enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`)
 
 Use `fixtures/` plus `bash ./scripts/check-l0-fixtures.sh` for the exact rendered baseline contract.

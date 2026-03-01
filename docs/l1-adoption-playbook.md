@@ -1,5 +1,8 @@
 # L1 adoption playbook (from L0)
 
+Operator entrypoint: `docs/dev/README.md`
+Related L2 migration playbook: `docs/l2-transition-playbook.md`
+
 ## Goal
 Adopt L0 updates into existing L1 repos with minimal drift and explicit review.
 
