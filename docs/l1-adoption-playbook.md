@@ -14,13 +14,13 @@ Adopt L0 updates into existing L1 repos with minimal drift and explicit review.
 
 ## Preview diff (non-destructive)
 ```bash
-./scripts/preview-l1-diff.sh /absolute/path/to/holdingco-templates
-./scripts/preview-l1-diff.sh /absolute/path/to/softwareco-templates
+./scripts/preview-l1-diff.sh /absolute/path/to/holdingco
+./scripts/preview-l1-diff.sh /absolute/path/to/softwareco
 ```
 
 If the target repo is dirty, capture a stable comparison against committed state:
 ```bash
-git -C /absolute/path/to/holdingco-templates archive HEAD | tar -x -C /tmp/holdingco-head
+git -C /absolute/path/to/holdingco archive HEAD | tar -x -C /tmp/holdingco-head
 ```
 Then compare render output against that extracted snapshot.
 

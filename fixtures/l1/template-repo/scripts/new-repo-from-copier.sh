@@ -206,6 +206,25 @@ read_inherited_string() {
   ' "$answers_file"
 }
 
+infer_project_owner_handle() {
+  root="$1"
+
+  raw="$(git -C "$root" config --get user.username 2>/dev/null || true)"
+  if [ -z "$raw" ]; then
+    raw="$(git -C "$root" config --get user.name 2>/dev/null || true)"
+  fi
+  [ -n "$raw" ] || return 1
+
+  handle="$(
+    printf '%s' "$raw" \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed -E 's/[[:space:]]+/-/g; s/[^a-z0-9_.-]//g; s/^-+//; s/-+$//'
+  )"
+
+  [ -n "$handle" ] || return 1
+  printf '@%s\n' "$handle"
+}
+
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 answers_file="$repo_root/.copier-answers.yml"
 
@@ -234,6 +253,14 @@ if ! has_data_override company_name "$@"; then
   inherited_name="$(read_inherited_string "$answers_file" company_name || true)"
   if [ -n "$inherited_name" ]; then
     set -- -d "company_name=$inherited_name" "$@"
+  fi
+fi
+
+# Default project owner handle from local git config unless explicitly provided.
+if ! has_data_override project_owner_handle "$@"; then
+  inferred_owner="$(infer_project_owner_handle "$repo_root" || true)"
+  if [ -n "$inferred_owner" ]; then
+    set -- -d "project_owner_handle=$inferred_owner" "$@"
   fi
 fi
 

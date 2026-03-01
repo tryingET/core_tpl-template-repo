@@ -4,6 +4,13 @@
 
 ---
 
+## Current execution snapshot (2026-03-01)
+- [x] L0 canonical changes applied and validated (`bash ./scripts/check-l0.sh` passes).
+- [x] `tpl-owned-repo` removed from live softwareco L1 (`~/ai-society/softwareco/copier/`).
+- [x] softwareco L1 is now company-root (`~/ai-society/softwareco`) and refreshed from L0.
+- [ ] Recover softwareco lane repos (`owned/`, `contrib/`, `infra/`) from archive source.
+- [ ] Migrate healthco and holdingco using non-destructive staged migration script.
+
 ## Phase 1: L0 Template Changes
 
 ### 1.1 Update L1 copier template structure

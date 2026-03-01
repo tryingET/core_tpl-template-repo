@@ -23,8 +23,8 @@ For the detailed L0 -> L1 -> L2 file contract (deep review + what goes where):
 Generate an L1 repo from L0:
 
 ```bash
-./scripts/new-l1-from-copier.sh /tmp/holdingco-templates \
-  -d repo_slug=holdingco-templates \
+./scripts/new-l1-from-copier.sh /tmp/holdingco \
+  -d repo_slug=holdingco \
   -d l1_org_docs_profile=rich \
   -d l2_org_docs_default=compact \
   -d enable_community_pack=false \
@@ -153,8 +153,8 @@ Forbidden edges:
 
 - Preview L1 adoption diffs (non-destructive):
   ```bash
-  ./scripts/preview-l1-diff.sh /path/to/holdingco-templates
-  ./scripts/preview-l1-diff.sh /path/to/softwareco-templates
+  ./scripts/preview-l1-diff.sh /path/to/holdingco
+  ./scripts/preview-l1-diff.sh /path/to/softwareco
   ```
 - Contributing guide: `CONTRIBUTING.md`
 - Release/compatibility policy: `docs/release-compatibility-policy.md`

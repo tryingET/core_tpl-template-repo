@@ -4,7 +4,7 @@
 Template for an **agent repo**: one repo per agent, no hierarchy, work via proposals + merge requests.
 
 ## Guardrails
-- No secrets in git (use GitLab CI variables + 1Password references).
+- No secrets in git (use CI variables + local secret manager references).
 - Never push to `main`; open branches + MRs.
 - Treat `docs/_core/**` as immutable (vendored snapshot from `governance-kernel`; no submodules).
 

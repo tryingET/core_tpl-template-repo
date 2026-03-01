@@ -10,7 +10,7 @@ Migrate an existing L2 repository to the current template baseline without losin
 - Do not leave deferred work in ad-hoc TODOs; track in authoritative models.
 
 ## Preconditions
-- You have the correct L1 templates repo for your company.
+- You have the correct L1 company repo for your company (e.g. `~/ai-society/softwareco`).
 - Working tree is clean in target existing repo (or explicitly snapshot current HEAD).
 - You know the intended archetype (`tpl-project-repo`, `tpl-agent-repo`, `tpl-org-repo`, `tpl-monorepo`, `tpl-package`).
 
@@ -18,7 +18,7 @@ Migrate an existing L2 repository to the current template baseline without losin
 
 ### 1) Render clean baseline from L1
 
-From `<company>-templates`:
+From `<company>` (company root L1 repo):
 
 ```bash
 ./scripts/new-repo-from-copier.sh <template-name> /tmp/<repo>-template \

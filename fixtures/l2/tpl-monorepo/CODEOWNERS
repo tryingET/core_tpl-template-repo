@@ -3,14 +3,14 @@ docs/_core/** @core-owner
 docs/org_context/** @org-owners
 
 # Project delivery + governance
-docs/project/** @project-owners
-docs/system4d/** @project-owners
-docs/decisions/** @project-owners
-docs/dev/** @project-owners
-policy/** @project-owners
+docs/project/** @tryinget
+docs/system4d/** @tryinget
+docs/decisions/** @tryinget
+docs/dev/** @tryinget
+policy/** @tryinget
 
 # Code
-scripts/** @project-owners
-src/** @project-owners
-tests/** @project-owners
+scripts/** @tryinget
+src/** @tryinget
+tests/** @tryinget
 

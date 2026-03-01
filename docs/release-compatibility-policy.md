@@ -1,7 +1,7 @@
 # L0 release + compatibility policy
 
 ## Purpose
-Keep `tpl-template-repo` safe to evolve while existing L1 repos (`holdingco-templates`, `softwareco-templates`, future org templates) remain upgradable.
+Keep `tpl-template-repo` safe to evolve while existing L1 company repos (`holdingco`, `softwareco`, future org roots) remain upgradable.
 
 ## Versioning model
 - **Major**: contract-breaking changes for generated L1/L2 layout or policies.
@@ -26,7 +26,7 @@ A release is publishable only if:
 5. Confirm intended profile bundle in `docs/profile-governance-policy.md` (internal/public + trust/release posture).
 6. Run adoption preview against target L1 repos:
    ```bash
-   ./scripts/preview-l1-diff.sh /path/to/holdingco-templates
-   ./scripts/preview-l1-diff.sh /path/to/softwareco-templates
+   ./scripts/preview-l1-diff.sh /path/to/holdingco
+   ./scripts/preview-l1-diff.sh /path/to/softwareco
    ```
 7. Roll out via branch + MR in each L1 repo.

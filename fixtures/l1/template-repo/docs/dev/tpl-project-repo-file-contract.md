@@ -39,7 +39,7 @@ If another doc disagrees with this one, treat this doc as the source to reconcil
 | Layer | What lives here | Canonical path |
 |---|---|---|
 | **L0** | Authoring source of the project template | `core/tpl-template-repo/copier-template/copier/tpl-project-repo/` |
-| **L1** | Rendered template repository embedding the project template | `<company>-templates/copier/tpl-project-repo/` |
+| **L1** | Company root repository embedding the project template | `<company>/copier/tpl-project-repo/` |
 | **L2** | Instantiated project repository | `<company>/<repo>/` |
 
 Render chain:
@@ -77,11 +77,7 @@ Default L2 output is intentionally split into 6 domains:
 - `tools/rocs-cli/` (vendored deterministic runner source)
 
 ### E. CI surface
-- `.gitlab-ci.yml`
-- `gitlab/ci/rocs.yml`
 - `scripts/ci/smoke.sh`, `scripts/ci/full.sh`
-- `.gitlab/merge_request_templates/CHANGE.md`
-- `.gitlab/issue_templates/SLICE.md`
 
 ### F. Product-code placeholders
 - `src/.gitkeep`

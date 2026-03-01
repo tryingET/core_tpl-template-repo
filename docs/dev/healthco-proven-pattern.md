@@ -85,5 +85,5 @@ With KES (after TIPs):
 1. ✅ Document learnings (this file)
 2. ⏳ Create TIP-0001 (domain prompt packs)
 3. ⏳ Create TIP-0002 (learnings loop)
-4. ⏳ Apply to holdingco-templates (already has KES infrastructure)
+4. ⏳ Apply to holdingco company root L1 repo (already has KES infrastructure)
 5. ⏳ Escalate meta-TIPs to L0
