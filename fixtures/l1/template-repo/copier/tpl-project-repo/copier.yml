@@ -10,6 +10,9 @@ _exclude:
   - "**/__pycache__"
   - "**/*.pyc"
 
+_skip_if_exists:
+  - "next_session_prompt.md"
+
 company_slug:
   type: str
   default: holdingco

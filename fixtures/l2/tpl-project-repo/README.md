@@ -34,6 +34,7 @@ From an L1 templates repository:
 ```
 <project>/
 ├── AGENTS.md              # Project-specific instructions
+├── next_session_prompt.md # Active handoff for the next session
 ├── docs/
 │   ├── _core/             # Vendored governance (immutable)
 │   ├── org_context/       # Organization context summary
@@ -46,7 +47,6 @@ From an L1 templates repository:
 │   │   └── tactical_goals.md
 │   ├── decisions/         # ADR-style decision records
 │   ├── learnings/         # Captured learnings (TIP candidates)
-│   ├── dev/               # Development notes
 │   └── system4d/          # System 4D context
 ├── diary/                 # Repo-local session capture (KES raw input)
 ├── ontology/              # ROCS ontology

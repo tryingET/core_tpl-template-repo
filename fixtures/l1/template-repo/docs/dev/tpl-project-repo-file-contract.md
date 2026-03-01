@@ -63,7 +63,7 @@ Default L2 output is intentionally split into 6 domains:
 - `docs/org_context/` (org constraints snapshot)
 - `docs/project/` (purpose/mission/vision/model/goals)
 - `docs/system4d/` (container/compass/engine/fog)
-- `docs/dev/` (status + next steps)
+- `next_session_prompt.md` (single active handoff prompt; replaces status/next-steps split)
 - `docs/decisions/`, `docs/learnings/`
 
 ### C. Governance model
