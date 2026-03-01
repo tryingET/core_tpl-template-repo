@@ -247,21 +247,26 @@ After each work package:
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 
 - Work package executed this session:
-  - **WP9-REPO-INSTANTIATION**: created `softwareco/infra/workstation/` from `softwareco-templates` `tpl-project-repo` (`location=infra`, `language=bash`).
-  - **WP9-BACKUP-PLAN**: added `docs/project/backup_plan.md` with a 6-stage progressive rollout.
-  - **WP9-DS1621-CONNECTION**: added `scripts/backup/check-ds1621.sh` and `scripts/backup/restic-workstation-backup.sh` with non-secret env contract.
-  - **WP9-PROJECT-CONTEXT**: updated `README.md`, `docs/dev/status.md`, `docs/dev/next_steps.md`, and project purpose/mission/goals for backup scope.
+  - **WP-DOC-ENTRYPOINT**: authored `docs/dev/README.md` as the single setup + transition operator/agent entrypoint.
+  - **WP-L2-TRANSITION-PLAYBOOK**: authored `docs/l2-transition-playbook.md` and linked it from root `README.md` + `docs/l1-adoption-playbook.md`.
+  - **WP-TPL-PROJECT-CONTRACT**: completed deep-review and consolidated canonical file contract at `copier-template/docs/dev/tpl-project-repo-file-contract.md`.
+  - **WP-ANTI-DRIFT-HARDENING**: tightened guardrails/checks and removed generated Python cache/build artifacts from template sources.
 - Outcome:
-  - New workstation repo initialized and committed at `softwareco/infra/workstation`.
-  - Root commit: `8261ba6` (`WP9: scaffold workstation repo with DS1621 backup plan and scripts`).
-  - WP10 marked superseded for this workspace (moved to Steve environment).
-- Current priority:
-  - Continue ring1 deterministic-gate enforcement in governance-kernel (FCOS queue head).
+  - Setup + transition guidance is now centralized and linkable via wikilinks.
+  - L0 checks pass after sync (`bash ./scripts/check-l0.sh`).
+- Current priority (runtime-resolved):
+  - Continue ring1 deterministic-gate enforcement in governance-kernel from runnable queue head.
+- Next issue (runtime-resolved):
+  - Primary command: `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`
+  - Resolver command: `cd ~/ai-society/holdingco/governance-kernel && python3 scripts/rocs/fcos-scheduler.py runnable | jq -r '.[0].id // "none"'`
+  - Resolved at checkpoint update time: `FCOS-M4-02`
+- Anti-drift cadence policy:
+  - Loop-owned by `governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit` (this file is mirror-only context).
 - Blockers/risks:
-  - Legacy source path `softwareco/infra/infra-workstation-backup/` not present in this workspace snapshot.
-  - Live DS1621 connectivity requires local credentials/env setup (intentionally not committed).
+  - `just fcos-runnable` may fail in this workstation shell; use scheduler resolver command above when needed.
+  - Entry-point docs can drift if links change without guardrail updates.
 - Validation run:
-  - `cd ~/ai-society/softwareco/infra/workstation && sh -n scripts/backup/check-ds1621.sh scripts/backup/restic-workstation-backup.sh`
+  - `bash ./scripts/check-l0.sh`
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md` to revert session state
 - KES crystallization flow:
