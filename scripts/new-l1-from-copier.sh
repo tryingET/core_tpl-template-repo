@@ -23,7 +23,11 @@ Notes:
     - copier/tpl-project-repo/    (Project repos)
     - copier/tpl-monorepo/        (Monorepo workspaces)
     - copier/tpl-package/         (Packages inside monorepos)
-  - Place L2 projects in: owned/, contrib/, infra/, agents/
+  - Place L2 projects in: owned/, contrib/, infra/, agents/ (or custom lanes)
+  - Bootstrap lane roots before nesting child repos:
+      ./scripts/bootstrap-lane-root.sh <lane>
+      git add .gitignore <lane> && git commit -m "chore: bootstrap <lane> lane baseline"
+      ./scripts/bootstrap-lane-root.sh <lane> --init-lane-git
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - Wrapper runs Copier in quiet mode by default; set `COPIER_QUIET=0` to show Copier progress logs.
   - Set `-d l1_org_docs_profile=rich|compact` to choose L1 org docs depth.

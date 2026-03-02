@@ -17,6 +17,7 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
   - `copier/tpl-monorepo/` — Monorepo workspaces
   - `copier/tpl-package/` — Packages inside monorepos
 - Opinionated local hooks (`.githooks/`) and CI lane scripts (`scripts/ci/`).
+- Lane-root bootstrap helper: `scripts/bootstrap-lane-root.sh`.
 - Layer contract enforcement via `contracts/layer-contract.yml`.
 - Baseline structure in this generated L1 repo: `docs/`, `examples/`, `external/`, `ontology/`, `policy/`, `src/`, `tests/`.
 - Git hygiene in this L1 repo: `.github/`, `.githooks/`, `.gitignore`, `.gitattributes`.
@@ -78,6 +79,26 @@ Generate an L2 **package** (inside monorepos):
   -d language=python \
   --defaults --overwrite
 ```
+
+### Lane root bootstrap (baseline tracked, child repos ignored)
+
+Before nesting child repositories in a lane, bootstrap the lane root with a project-template control plane and lane-local ignore policy:
+
+```bash
+# Standard lane
+./scripts/bootstrap-lane-root.sh owned
+git add .gitignore owned
+git commit -m "chore: bootstrap owned lane baseline"
+./scripts/bootstrap-lane-root.sh owned --init-lane-git
+
+# Custom lane
+./scripts/bootstrap-lane-root.sh data
+git add .gitignore data
+git commit -m "chore: bootstrap data lane baseline"
+./scripts/bootstrap-lane-root.sh data --init-lane-git
+```
+
+This keeps lane baseline files versioned while nested child repos are ignored by default (`<lane>/.gitignore`).
 
 ### Transition existing L2 repos (scaffold-first)
 

@@ -84,27 +84,55 @@ git commit -m "Init from L0"
 bash ./scripts/check-template-ci.sh
 ```
 
+Bootstrap lane roots (recommended before nesting child repos):
+
+```bash
+# 1) Materialize baseline lane control-planes in parent repo
+for lane in owned contrib infra agents; do
+  ./scripts/bootstrap-lane-root.sh "$lane"
+done
+
+# 2) Commit lane baselines in parent repo
+git add .gitignore owned contrib infra agents
+git commit -m "chore: bootstrap lane root baselines"
+
+# 3) Initialize lane-root git repos
+for lane in owned contrib infra agents; do
+  ./scripts/bootstrap-lane-root.sh "$lane" --init-lane-git
+done
+```
+
+For custom lanes (example: `data`), use the same two-phase pattern:
+
+```bash
+./scripts/bootstrap-lane-root.sh data
+git add .gitignore data
+git commit -m "chore: bootstrap data lane baseline"
+./scripts/bootstrap-lane-root.sh data --init-lane-git
+```
+
 **L1 Structure:**
 ```
 <company>/
 ├── .git/                  ← company repo
-├── .gitignore             ← ignores owned/*, contrib/*, infra/*, agents/*
+├── .gitignore             ← lane policies (ignore child repos by default)
 ├── .copier-answers.yml    ← L0 provenance
 ├── AGENTS.md              ← company context (loaded by pi)
 ├── scripts/               ← shared tooling
 │   ├── rocs.sh
 │   ├── docs-list.sh
-│   └── new-repo-from-copier.sh
+│   ├── new-repo-from-copier.sh
+│   └── bootstrap-lane-root.sh
 ├── copier/                ← L2 templates
 │   ├── tpl-project-repo/
 │   ├── tpl-agent-repo/
 │   ├── tpl-org-repo/
 │   ├── tpl-monorepo/
 │   └── tpl-package/
-├── owned/                 ← L2 projects (each has own .git)
-├── contrib/               ← L2 upstream contributions
-├── infra/                 ← L2 infrastructure
-└── agents/                ← L2 AI agent repos
+├── owned/                 ← lane root (optional, bootstrap script)
+├── contrib/               ← lane root (optional, bootstrap script)
+├── infra/                 ← lane root (optional, bootstrap script)
+└── agents/                ← lane root (optional, bootstrap script)
 ```
 
 ---

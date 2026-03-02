@@ -13,6 +13,7 @@ __pycache__/
 # while ignoring future lane child repos by default.
 
 owned/*
+!owned/.gitignore
 !owned/.copier-answers.yml
 !owned/.gitlab-ci.yml
 !owned/.gitlab/
@@ -43,6 +44,7 @@ owned/*
 !owned/tools/**
 
 contrib/*
+!contrib/.gitignore
 !contrib/.copier-answers.yml
 !contrib/.gitlab-ci.yml
 !contrib/.gitlab/
@@ -73,6 +75,7 @@ contrib/*
 !contrib/tools/**
 
 infra/*
+!infra/.gitignore
 !infra/.copier-answers.yml
 !infra/.gitlab-ci.yml
 !infra/.gitlab/
@@ -106,6 +109,7 @@ infra/*
 # Keep current agents baseline tracked, ignore future child repos by default.
 
 agents/*
+!agents/.gitignore
 !agents/.copier-answers.yml
 !agents/.gitlab-ci.yml
 !agents/.gitlab/

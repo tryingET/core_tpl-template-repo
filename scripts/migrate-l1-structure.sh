@@ -11,6 +11,7 @@
 #   - Non-destructive: does NOT move/delete source folders.
 #   - Creates a staged target at ~/ai-society/<company>-stage
 #   - Copies lanes + extras with rsync (preserves nested .git repos)
+#   - Bootstraps lane-root baseline control planes + lane ignore policy
 #   - You swap manually after verification.
 
 set -euo pipefail
@@ -89,7 +90,18 @@ for lane in owned contrib infra agents; do
   say "  - $lane: $count top-level dirs"
 done
 
-say "Step 5: Copy additional company-root extras (except old templates and lanes)"
+say "Step 5: Bootstrap copied lane roots with baseline control-plane + ignore policy"
+for lane in owned contrib infra agents; do
+  if [[ -d "$stage_dir/$lane" ]]; then
+    (
+      cd "$stage_dir"
+      ./scripts/bootstrap-lane-root.sh "$lane" >/dev/null
+    )
+    say "  - $lane: baseline bootstrapped"
+  fi
+done
+
+say "Step 6: Copy additional company-root extras (except old templates and lanes)"
 shopt -s dotglob nullglob
 for entry in "$old_company_dir"/*; do
   base="$(basename "$entry")"
@@ -102,10 +114,10 @@ for entry in "$old_company_dir"/*; do
 done
 shopt -u dotglob nullglob
 
-say "Step 6: Enforce no orphan tpl-owned-repo in staged L1"
+say "Step 7: Enforce no orphan tpl-owned-repo in staged L1"
 rm -rf "$stage_dir/copier/tpl-owned-repo"
 
-say "Step 7: Validate staged repo"
+say "Step 8: Validate staged repo"
 if ! (cd "$stage_dir" && bash ./scripts/check-template-ci.sh >/dev/null); then
   die "staged repo failed check-template-ci.sh: $stage_dir"
 fi
@@ -118,6 +130,12 @@ say "Review commands:"
 say "  cd $stage_dir"
 say "  git status"
 say "  bash ./scripts/check-template-ci.sh"
+say ""
+say "After switch + parent commit, initialize lane-root git repos (optional but recommended):"
+say "  ./scripts/bootstrap-lane-root.sh owned --init-lane-git"
+say "  ./scripts/bootstrap-lane-root.sh contrib --init-lane-git"
+say "  ./scripts/bootstrap-lane-root.sh infra --init-lane-git"
+say "  ./scripts/bootstrap-lane-root.sh agents --init-lane-git"
 say ""
 say "When ready to switch (manual, explicit):"
 say "  mv $old_company_dir $workspace_root/${company_slug}-old"

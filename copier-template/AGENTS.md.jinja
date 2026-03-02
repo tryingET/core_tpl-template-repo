@@ -17,6 +17,7 @@ Coordinate {{ company_name }} work across explicit lanes:
 - Docs discovery: `./scripts/docs-list.sh --task "<task>" --top 8`
 - ROCS launcher: `./scripts/rocs.sh <rocs args...>`
 - New L2 repo: `./scripts/new-repo-from-copier.sh <template> <dest> -d repo_slug=<slug> --defaults`
+- Lane bootstrap: `./scripts/bootstrap-lane-root.sh <lane> [--init-lane-git]`
 
 ## Deterministic tooling policy (ROCS-first)
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
@@ -32,6 +33,31 @@ Coordinate {{ company_name }} work across explicit lanes:
 | `copier/tpl-org-repo/` | Organization handbooks | `<org>-handbook/` |
 | `copier/tpl-monorepo/` | Monorepo workspaces | `<monorepo>/` (packages + apps) |
 | `copier/tpl-package/` | Packages inside monorepos | `packages/<name>/` (NO .git) |
+
+## Lane root bootstrap (before nesting child repos)
+
+Use this two-phase sequence so lane roots track baseline control-plane files while child repos remain ignored:
+
+```bash
+# 1) Materialize lane baseline in the parent repo
+./scripts/bootstrap-lane-root.sh owned
+
+# 2) Commit lane baseline in parent repo
+git add .gitignore owned
+git commit -m "chore: bootstrap owned lane baseline"
+
+# 3) Initialize lane-root git repo
+./scripts/bootstrap-lane-root.sh owned --init-lane-git
+```
+
+For custom lanes (example: `data`), use the same flow:
+
+```bash
+./scripts/bootstrap-lane-root.sh data
+git add .gitignore data
+git commit -m "chore: bootstrap data lane baseline"
+./scripts/bootstrap-lane-root.sh data --init-lane-git
+```
 
 ## Creating L2 repos
 
