@@ -247,24 +247,25 @@ After each work package:
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 
 - Work package executed this session:
-  - **WP-DOC-ENTRYPOINT**: authored `docs/dev/README.md` as the single setup + transition operator/agent entrypoint.
-  - **WP-L2-TRANSITION-PLAYBOOK**: authored `docs/l2-transition-playbook.md` and linked it from root `README.md` + `docs/l1-adoption-playbook.md`.
-  - **WP-TPL-PROJECT-CONTRACT**: completed deep-review and consolidated canonical file contract at `copier-template/docs/dev/tpl-project-repo-file-contract.md`.
-  - **WP-ANTI-DRIFT-HARDENING**: tightened guardrails/checks and removed generated Python cache/build artifacts from template sources.
+  - **WP-LANE-BOOTSTRAP-HELPER**: added `scripts/bootstrap-lane-root.sh` to generated L1 repos for two-phase lane-root initialization (baseline first, lane-root git init second).
+  - **WP-LANE-DOCS-UPDATE**: updated generated L1 `AGENTS.md` + `README.md` and L0 operator entrypoint (`docs/dev/README.md`) with the lane bootstrap workflow.
+  - **WP-GUARDRAILS-AND-FIXTURES**: updated L0/L1 guardrails, install-hooks executable normalization, lane `.gitignore` invariants, and synchronized fixtures.
+  - **WP-MIGRATION-FLOW-HARDENING**: updated `scripts/migrate-l1-structure.sh` to bootstrap copied lanes in stage before validation.
 - Outcome:
-  - Setup + transition guidance is now centralized and linkable via wikilinks.
-  - L0 checks pass after sync (`bash ./scripts/check-l0.sh`).
+  - New L1 repos can keep lane baselines tracked while nested child repos remain ignored by lane-local `.gitignore`.
+  - Parent-repo embedded-repo warnings are avoided when lane roots are bootstrapped and committed before lane-root git init.
+  - Full deterministic validation passes (`bash ./scripts/check-l0.sh`).
 - Current priority (runtime-resolved):
-  - Continue ring1 deterministic-gate enforcement in governance-kernel from runnable queue head.
+  - Continue governance-kernel ring1 deterministic-gate work from the runnable queue head and keep this file mirror-only.
 - Next issue (runtime-resolved):
   - Primary command: `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`
-  - Resolver command: `cd ~/ai-society/holdingco/governance-kernel && python3 scripts/rocs/fcos-scheduler.py runnable | jq -r '.[0].id // "none"'`
-  - Resolved at checkpoint update time: `FCOS-M4-02`
+  - Resolver command (workstation fallback): `cd ~/ai-society/holdingco/governance-kernel && python3 scripts/rocs/fcos-scheduler.py runnable | jq -r '.[0].id // "none"'`
+  - Resolved at checkpoint update time (fallback resolver): `FCOS-M4-02`
 - Anti-drift cadence policy:
   - Loop-owned by `governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit` (this file is mirror-only context).
 - Blockers/risks:
-  - `just fcos-runnable` may fail in this workstation shell; use scheduler resolver command above when needed.
-  - Entry-point docs can drift if links change without guardrail updates.
+  - `just fcos-runnable` may fail in this workstation shell (`niri` session conflict); use scheduler resolver command above when needed.
+  - Lane bootstrap script expects parent repo to commit lane baseline before `--init-lane-git`.
 - Validation run:
   - `bash ./scripts/check-l0.sh`
 - Rollback path (mirror-only correction):
