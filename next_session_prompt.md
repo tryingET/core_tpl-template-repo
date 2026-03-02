@@ -1,282 +1,148 @@
 # next_session_prompt.md
 
 ## SESSION TRIGGER (AUTO-START)
-Reading this file is authorization to start work immediately.
+Reading this file is authorization to start immediately.
 Do not ask for permission to begin.
 
-## CURRENT MISSION: TEMPLATE ARCHITECTURE REFORM
+## CURRENT MISSION: HOLDINGCO ROOT TRANSITION (BACKUP-FIRST)
 
-We are reforming the template hierarchy to fix a broken chain and enable clean company-specific template derivation.
+Target company root:
+- `~/ai-society/holdingco`
 
-### Problem Discovered
+Transition goal:
+- Move from legacy `holdingco/holdingco-templates`-centric layout to company-root L1 layout.
+- Preserve nested child repos.
+- Apply lane-root baseline + lane `.gitignore` policy (the same pattern proven in recent lane bootstrap work).
 
-1. **Missing L0 parameter**: `core/tpl-template-repo/copier.yml` has no `company_slug` parameter
-2. **Hardcoded paths**: Company-specific paths (e.g., `holdingco/governance-kernel`) were manually hardcoded in L1 templates instead of templated
-3. **Broken chain**: `softwareco/tpl-*-repo/` templates have no `.copier-answers.yml` - they're manual orphans
-4. **Redundant archetype**: `tpl-individual-repo` is just `tpl-project-repo` with single maintainer - unnecessary
-5. **Confused dimensions**: "flavors" (owned/contrib/infra) conflated with "structure" (single/monorepo/package)
+---
 
-### Target Architecture
+## HARD PRECONDITION (NON-NEGOTIABLE): CREATE BACKUP FIRST
 
-```
-L0: core/tpl-template-repo/
-    └── copier/
-        ├── tpl-agent-repo/      # AI agents
-        ├── tpl-org-repo/        # Organization handbooks
-        ├── tpl-project-repo/    # Single-project repos
-        ├── tpl-monorepo/        # Monorepo repos (has packages/ apps/)
-        └── tpl-package/         # Package inside monorepo (no .git)
+There is currently no dedicated backup for this transition run.
+Create one before any migration/swap steps.
 
-L1: {company}/{company}-templates/
-    └── copier/  (same 5 templates, company paths baked in)
-
-L2: {company}/{archetype}/{name}/
-    └── Generated from L1 templates
-
-L3: (only inside monorepos)
-    {company}/owned/{monorepo}/packages/{name}/
-    {company}/owned/{monorepo}/apps/{name}/
-```
-
-### 5 Templates (Clear Purpose)
-
-| Template | Generates | Has .git | Use Case |
-|----------|-----------|----------|----------|
-| `tpl-agent-repo` | AI agent repo | ✅ | `agents/agent-triage/` |
-| `tpl-org-repo` | Org handbook | ✅ | `holdingco/org-handbook/` |
-| `tpl-project-repo` | Single-project repo | ✅ | `owned/agent-kernel/`, `infra/workstation/` |
-| `tpl-monorepo` | Monorepo workspace | ✅ | `owned/dspx/` |
-| `tpl-package` | Package inside monorepo | ❌ | `owned/dspx/packages/dspx-core/` |
-
-### Key Parameters
-
-```yaml
-# L0 copier.yml
-company_slug:
-  type: str
-  help: "Company slug (e.g., holdingco, softwareco, healthco)"
-
-company_name:
-  type: str
-  help: "Company display name (e.g., Holding Company)"
-
-# tpl-project-repo/copier.yml
-location:
-  default: owned
-  choices: [owned, contrib, infra]
-language:
-  default: python
-  choices: [python, node, typescript, rust, go, bash]
-enable_software_pack:
-  default: false
-
-# tpl-monorepo/copier.yml (NO language - deferred to packages)
-package_manager:
-  choices: [uv, npm, pnpm, cargo, go-mod]
-
-# tpl-package/copier.yml
-package_type:
-  choices: [library, app, service]
-language:
-  choices: [python, node, typescript, rust, go]
-```
-
-### Usage Examples
+### Required backup set
 
 ```bash
-# L0 → L1: Generate company templates
-./scripts/new-l1-from-copier.sh ~/ai-society/softwareco/softwareco-templates \
-  -d company_slug=softwareco \
-  -d company_name="Software Company" \
-  -d repo_slug=softwareco-templates \
-  --defaults --overwrite
+ts="$(date +%Y%m%d-%H%M%S)"
+backup_root="$HOME/ai-society/bak/${ts}-holdingco-pre-transition"
+mkdir -p "$backup_root"
 
-# L1 → L2: Create single-project repo
-copier tpl-project-repo softwareco/infra/workstation/ \
-  -d repo_slug=workstation \
-  -d language=bash
+# full snapshot
+rsync -a "$HOME/ai-society/holdingco/" "$backup_root/holdingco-full/"
 
-# L1 → L2: Create monorepo
-copier tpl-monorepo softwareco/owned/dspx/ \
-  -d repo_slug=dspx \
-  -d language=python \
-  -d package_manager=uv
+# explicit lane snapshots (if lanes exist)
+for lane in owned contrib infra agents; do
+  if [ -d "$HOME/ai-society/holdingco/$lane" ]; then
+    rsync -a "$HOME/ai-society/holdingco/$lane/" "$backup_root/${lane}-pre/"
+  fi
+done
 
-# L1 → L3: Add package to monorepo
-copier tpl-package softwareco/owned/dspx/packages/dspx-auth/ \
-  -d package_name=dspx-auth \
-  -d package_type=library \
-  -d language=python
+# git HEAD manifest for all repos under holdingco
+find "$HOME/ai-society/holdingco" -type d -name .git | while read -r gitdir; do
+  repo="${gitdir%/.git}"
+  head="$(git -C "$repo" rev-parse --short=12 HEAD 2>/dev/null || echo NO-HEAD)"
+  printf '%s %s\n' "$head" "$repo"
+done | sort > "$backup_root/pre-transition-git-heads.txt"
 ```
 
----
+### Required backup verification
+- Backup root exists and is non-empty.
+- `holdingco-full/` exists and is non-empty.
+- `pre-transition-git-heads.txt` exists and is non-empty.
+- Record `backup_root` in session checkpoint and migration notes.
 
-## WORK PACKAGES (IN ORDER)
-
-### WP1: Add company_slug to L0
-- [x] Add `company_slug` and `company_name` parameters to `core/tpl-template-repo/copier.yml`
-- [x] Create `{{ company_slug }}` variable for use in templates
-- [x] Update README with new parameter documentation
-
-### WP2: Template all company-specific paths
-- [x] Audit all hardcoded company paths in L0 templates
-- [x] Replace with `{{ company_slug }}` variables
-- [x] Key files updated:
-  - `copier-template/{{ _copier_conf.answers_file }}.jinja` - Added company fields
-  - `copier-template/copier/tpl-project-repo/copier.yml` - Added company params
-  - `copier-template/copier/tpl-org-repo/copier.yml` - Added company params
-  - `copier-template/copier/tpl-agent-repo/copier.yml` - Added company params
-  - `copier-template/copier/*/docs/_core/README.md.j2` - Templated paths
-  - `copier-template/scripts/new-repo-from-copier.sh` - Inherit company params
-  - `copier-template/governance/README.md.jinja` - Templated example path
-
-### WP3: Eliminate tpl-individual-repo
-- [x] Delete `core/tpl-template-repo/copier-template/copier/tpl-individual-repo/`
-- [x] Remove references from L0 copier.yml `_tasks` and `_message_after_copy`
-- [x] Update fixtures and tests
-- [x] Document that "individual" is just `tpl-project-repo` with single maintainer
-
-### WP4: Add tpl-monorepo archetype
-- [x] Create `copier-template/copier/tpl-monorepo/` based on `tpl-project-repo`
-- [x] Add monorepo-specific structure: `packages/`, `apps/`, workspace config
-- [x] Add `package_manager` and `language` parameters
-- [x] Update L0 copier.yml to include in archetype list
-- [x] Update guardrails and scripts to include tpl-monorepo
-
-### WP5: Add tpl-package archetype
-- [x] Create `copier-template/copier/tpl-package/`
-- [x] NO `.git`, NO `.github`, NO release tooling
-- [x] Has `package_type` parameter: library, app, service
-- [x] Has `language` parameter: python, node, typescript, rust, go
-- [x] Minimal structure: `src/`, `tests/`, `docs/`, `scripts/ci/`
-- [x] Update guardrails and scripts to include tpl-package
-
-### WP6: Regenerate holdingco-templates
-- [x] Run L0 → L1 with `company_slug=holdingco`
-- [x] Verify `.copier-answers.yml` has company_slug
-- [x] Verify paths are templated (not hardcoded)
-- [x] Run validation checks
-
-### WP7: Create softwareco-templates (proper L1)
-- [x] Run L0 → L1 with `company_slug=softwareco`
-- [x] Move content from orphan `softwareco/tpl-*-repo/` into `softwareco-templates/copier/`
-- [x] Delete orphan template folders
-- [x] Verify chain: L0 → L1 (softwareco-templates) → L2
-
-### WP8: Regenerate healthco-templates
-- [x] Run L0 → L1 with `company_slug=healthco`
-- [x] Verify alignment with new architecture
-
-### WP6.5: L2 Validation (holdingco)
-- [x] Greenfield: `holdingco/infra/template-test-bed/` from tpl-project-repo
-- [x] Brownfield: `holdingco/org-handbook/` migration from tpl-org-repo
-
-### WP9: Instantiate workstation backup repo
-- [x] Create `softwareco/infra/workstation/` from `tpl-project-repo`
-- [x] Move backup documentation from `softwareco/infra/infra-workstation-backup/` *(legacy path not present; baseline captured in new repo docs)*
-- [x] Add progressive backup plan (6 stages)
-- [x] Connect to DS1621 backup target *(connection scripts + env contract added)*
-
-### WP10: Migrate pi-extensions to monorepo *(superseded in this workspace)*
-- [x] Superseded: migration performed on Steve environment; not tracked/continued from this repository session
+If any check fails: stop.
 
 ---
 
-## READ-FIRST ALLOWLIST (ONLY THESE, HARD)
+## EXECUTION PLAN (AFTER BACKUP)
 
-1. This file (you're reading it)
-2. `copier.yml` - L0 parameter definitions
-3. `copier-template/` - Template source files
-4. `fixtures/l1/template-repo/` - Expected L1 output
-5. `scripts/new-l1-from-copier.sh` - L0 → L1 generation script
+From `~/ai-society/core/tpl-template-repo`:
 
-Do not read company-specific repos unless blocked and documented.
+1. Preflight
+   - `git status --short`
+   - `bash ./scripts/check-l0.sh`
 
----
+2. Run staged transition helper
+   - `./scripts/migrate-l1-structure.sh holdingco "Holding Company"`
 
-## EXECUTION MODE
+3. Validate stage
+   - `cd ~/ai-society/holdingco-stage`
+   - `git status --short`
+   - `bash ./scripts/check-template-ci.sh`
 
-1. **Pick next incomplete work package** from the list above
-2. **Read only what's needed** from allowlist
-3. **Implement end-to-end** for that work package
-4. **Validate** with `./scripts/check-l0-guardrails.sh` and `./scripts/check-l0-generation.sh`
-5. **Commit** with clear WP reference in message
-6. **Update this file** to mark WP complete
+4. Swap (manual + explicit, only after stage is green)
+   - `mv ~/ai-society/holdingco ~/ai-society/holdingco-old-<ts>`
+   - `mv ~/ai-society/holdingco-stage ~/ai-society/holdingco`
+
+5. In new `~/ai-society/holdingco` parent repo
+   - commit parent-lane bootstrap baseline first
+   - then initialize lane-root git repos:
+     - `./scripts/bootstrap-lane-root.sh owned --init-lane-git`
+     - `./scripts/bootstrap-lane-root.sh contrib --init-lane-git`
+     - `./scripts/bootstrap-lane-root.sh infra --init-lane-git`
+     - `./scripts/bootstrap-lane-root.sh agents --init-lane-git`
+
+6. Verify lane behavior
+   - lane roots track baseline files
+   - nested child repos remain ignored by lane `.gitignore`
+   - no embedded-repo warnings during normal parent staging (`git add -n .`)
 
 ---
 
 ## VALIDATION GATES
 
-After each work package:
-
-```bash
-# L0 guardrails
-./scripts/check-l0-guardrails.sh
-
-# L0 generation (sample)
-./scripts/check-l0-generation.sh
-
-# Template CI
-./scripts/check-template-ci.sh
-```
-
----
-
-## NAMING CONVENTIONS (FINAL)
-
-### Archetypes (what template generates)
-- `agent` → AI agent repo
-- `org` → Organization handbook
-- `project` → Single-project repo
-- `monorepo` → Workspace with packages/apps
-- `package` → Library/app inside monorepo
-
-### NOT archetypes (just folder locations)
-- `owned/` → Company-owned projects
-- `contrib/` → Upstream contributions
-- `infra/` → Infrastructure
-- `agents/` → AI agents
-
-### Dimensions (separate concerns)
-- **Location**: `owned/`, `contrib/`, `infra/` — where you instantiate
-- **Structure**: `project`, `monorepo`, `package` — what's inside
-- **Language**: `python`, `node`, `rust`, `go` — tooling
+- In `core/tpl-template-repo`:
+  - `bash ./scripts/check-l0.sh`
+- In staged/new `holdingco`:
+  - `bash ./scripts/check-template-ci.sh`
+- Post-swap lane smoke:
+  - `git -C owned status --ignored --short` (if lane exists)
+  - `git -C contrib status --ignored --short` (if lane exists)
+  - `git -C infra status --ignored --short` (if lane exists)
+  - `git -C agents status --ignored --short` (if lane exists)
 
 ---
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 
+- Backup root:
+  - `/home/tryinget/ai-society/bak/20260302-062823-holdingco-pre-transition`
+- Backup verification results:
+  - backup root exists + non-empty: ✅
+  - `holdingco-full/` exists + non-empty: ✅
+  - `pre-transition-git-heads.txt` exists + non-empty: ✅
 - Work package executed this session:
-  - **WP-LANE-BOOTSTRAP-HELPER**: added `scripts/bootstrap-lane-root.sh` to generated L1 repos for two-phase lane-root initialization (baseline first, lane-root git init second).
-  - **WP-LANE-DOCS-UPDATE**: updated generated L1 `AGENTS.md` + `README.md` and L0 operator entrypoint (`docs/dev/README.md`) with the lane bootstrap workflow.
-  - **WP-GUARDRAILS-AND-FIXTURES**: updated L0/L1 guardrails, install-hooks executable normalization, lane `.gitignore` invariants, and synchronized fixtures.
-  - **WP-MIGRATION-FLOW-HARDENING**: updated `scripts/migrate-l1-structure.sh` to bootstrap copied lanes in stage before validation.
+  - Holdingco transition (backup-first) via staged migration helper
 - Outcome:
-  - New L1 repos can keep lane baselines tracked while nested child repos remain ignored by lane-local `.gitignore`.
-  - Parent-repo embedded-repo warnings are avoided when lane roots are bootstrapped and committed before lane-root git init.
-  - Full deterministic validation passes (`bash ./scripts/check-l0.sh`).
+  - ✅ Completed end-to-end transition and swap to company-root L1 layout.
+  - ✅ New root at `~/ai-society/holdingco`; prior root moved to `/home/tryinget/ai-society/holdingco-old-20260302-062932`.
+  - ✅ Parent baseline committed on branch `chore/holdingco-l1-root-transition` (`c4e8109`).
+  - ✅ Lane roots (`owned`, `contrib`, `infra`, `agents`) initialized with lane-local git + ignore policy.
+  - ✅ Parent staging smoke clean (`git add -n .` -> no embedded-repo warnings).
 - Current priority (runtime-resolved):
-  - Continue governance-kernel ring1 deterministic-gate work from the runnable queue head and keep this file mirror-only.
+  - Continue governance-kernel deterministic queue flow; keep this file mirror-only.
 - Next issue (runtime-resolved):
   - Primary command: `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`
-  - Resolver command (workstation fallback): `cd ~/ai-society/holdingco/governance-kernel && python3 scripts/rocs/fcos-scheduler.py runnable | jq -r '.[0].id // "none"'`
-  - Resolved at checkpoint update time (fallback resolver): `FCOS-M4-02`
+  - Resolver command (fallback): `cd ~/ai-society/holdingco/governance-kernel && python3 scripts/rocs/fcos-scheduler.py runnable | jq -r '.[0].id // "none"'`
+  - Resolved at checkpoint update time: `FCOS-M4-02`.
 - Anti-drift cadence policy:
-  - Loop-owned by `governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit` (this file is mirror-only context).
+  - Loop-owned by `governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`.
 - Blockers/risks:
-  - `just fcos-runnable` may fail in this workstation shell (`niri` session conflict); use scheduler resolver command above when needed.
-  - Lane bootstrap script expects parent repo to commit lane baseline before `--init-lane-git`.
+  - Missing backup verification must block swap (satisfied this run).
 - Validation run:
-  - `bash ./scripts/check-l0.sh`
+  - `bash ./scripts/check-l0.sh` (pass)
+  - `bash ~/ai-society/holdingco/scripts/check-template-ci.sh` (pass)
+  - `git -C ~/ai-society/holdingco/{owned,contrib,infra,agents} status --ignored --short` (lane smoke pass)
 - Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md` to revert session state
+  - `git restore -- next_session_prompt.md`
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
-  - Crystallize to `docs/learnings/` if recurrent patterns
+  - Crystallize to `docs/learnings/`
   - Propagate meta patterns to `tips/meta/`
 
 ---
 
 ## END-OF-SESSION
-
 Run `/commit` (project-local template: `.pi/prompts/commit.md`).
