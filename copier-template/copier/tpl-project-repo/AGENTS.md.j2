@@ -11,6 +11,7 @@ Template for a delivery project repo (project context + code + tests).
 
 ## Deterministic tooling policy (ROCS-first)
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
+- Use `./scripts/preflight-repo-census.sh [scope]` for shallow multi-repo status checks.
 - For ontology/policy checks, use ROCS commands as the default execution path.
 - Use inline Python only as an explicit escape hatch when no deterministic command exists.
 

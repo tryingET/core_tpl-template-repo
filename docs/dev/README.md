@@ -38,7 +38,8 @@ If you or your agent only read one file, read this one.
 1. `[[docs/dev/README.md]]` (this file)
 2. `[[docs/l1-adoption-playbook.md]]` (L1 update flow)
 3. `[[docs/l2-transition-playbook.md]]` (L2 migration flow)
-4. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
+4. `[[docs/dev/single-file-propagation-playbook.md]]` (safe one-file rollout pattern)
+5. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
 
 ### Agent handoff line
 Use this exact prompt with your coding agent:
@@ -174,6 +175,8 @@ Run from your company repository (e.g., `~/ai-society/softwareco`):
 | Monorepo | `./<monorepo>/` | Yes |
 | Package | `./<monorepo>/packages/<name>/` | No (in monorepo) |
 
+Note: grouping/lane-root folders are not `tpl-package` targets. Keep grouping-root ignore policies in the parent/lane bootstrap flow.
+
 ---
 
 ## 5) Transition an existing L1 company repo
@@ -201,6 +204,8 @@ Authoritative playbook:
 - `[[docs/l2-transition-playbook.md]]`
 
 Important: there is currently **no in-place auto-migrator**. Use scaffold-first migration.
+
+For grouping/lane-root repos with nested child repos, follow the playbook’s dedicated special-case section (backup manifest, nested `.git` preservation, and control-plane merge policy for `README.md` / `AGENTS.md` / `next_session_prompt.md`).
 
 ---
 

@@ -26,6 +26,7 @@ Forbidden:
 ## Shared tooling
 - Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
 - Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
+- Repo census preflight: `./scripts/preflight-repo-census.sh [scope]`
 - ROCS command launcher (deterministic + portable): `./scripts/rocs.sh <rocs args...>`
 
 ## Deterministic tooling policy (ROCS-first)
