@@ -145,6 +145,7 @@ CONTRIBUTING.md
 contracts/layer-contract.yml
 contracts/provenance-seal.yml
 scripts/new-repo-from-copier.sh
+scripts/bootstrap-lane-root.sh
 scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
@@ -199,6 +200,7 @@ check_multi_pass_suffix_policy
 
 required_exec="
 scripts/new-repo-from-copier.sh
+scripts/bootstrap-lane-root.sh
 scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
@@ -223,7 +225,8 @@ assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L1 contributing gu
 assert_contains "AGENTS.md" "Deterministic tooling policy" "L1 AGENTS should document deterministic tooling policy"
 assert_contains "AGENTS.md" "scripts/rocs.sh" "L1 AGENTS should reference scripts/rocs.sh"
 assert_contains "AGENTS.md" "diary/" "L1 AGENTS should require repo-local diary"
-assert_contains "AGENTS.md" "tpl-project-repo-file-contract.md" "L1 AGENTS should link canonical tpl-project-repo file contract"
+assert_contains "AGENTS.md" "L2 Templates" "L1 AGENTS should document L2 templates"
+assert_contains "AGENTS.md" "bootstrap-lane-root.sh" "L1 AGENTS should document lane bootstrap helper"
 assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
 assert_contains "README.md" "Governance layering" "L1 README should describe governance layering"
 assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
@@ -235,6 +238,11 @@ assert_contains "README.md" "repo-local diary" "L1 README should document repo-l
 assert_contains "README.md" "no automatic in-place migrator" "L1 README should describe deterministic migration limitation"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 assert_contains "README.md" "tpl-project-repo-file-contract.md" "L1 README should link canonical tpl-project-repo file contract"
+assert_contains "README.md" "bootstrap-lane-root.sh" "L1 README should document lane bootstrap workflow"
+assert_contains ".gitignore" "!owned/.gitignore" "L1 parent .gitignore must unignore owned lane-root .gitignore"
+assert_contains ".gitignore" "!contrib/.gitignore" "L1 parent .gitignore must unignore contrib lane-root .gitignore"
+assert_contains ".gitignore" "!infra/.gitignore" "L1 parent .gitignore must unignore infra lane-root .gitignore"
+assert_contains ".gitignore" "!agents/.gitignore" "L1 parent .gitignore must unignore agents lane-root .gitignore"
 assert_contains "diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README should enforce descriptive filename convention"
 
 contract="contracts/layer-contract.yml"
@@ -270,6 +278,8 @@ assert_contains "scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper mus
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-monorepo" "L1 wrapper must list tpl-monorepo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-package" "L1 wrapper must list tpl-package template"
+assert_contains "scripts/bootstrap-lane-root.sh" "--init-lane-git" "lane bootstrap helper must support lane git initialization"
+assert_contains "scripts/bootstrap-lane-root.sh" "tpl-project-repo" "lane bootstrap helper must render tpl-project-repo baseline"
 
 expected_pin='COPIER_VERSION="${COPIER_VERSION:-9.11.1}"'
 expected_uvx='uvx --from "copier==${COPIER_VERSION}" copier'
@@ -300,6 +310,7 @@ assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must ru
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
 assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 assert_not_contains "scripts/install-hooks.sh" "copier/template-repo" "install-hooks must not reference removed legacy template-repo path"
+assert_contains "scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "install-hooks must normalize executable bit for lane bootstrap helper"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "install-hooks must include executable bit normalization for $tpl rocs wrapper"
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "install-hooks must include executable bit normalization for $tpl smoke lane"

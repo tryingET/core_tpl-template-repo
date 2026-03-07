@@ -38,7 +38,8 @@ If you or your agent only read one file, read this one.
 1. `[[docs/dev/README.md]]` (this file)
 2. `[[docs/l1-adoption-playbook.md]]` (L1 update flow)
 3. `[[docs/l2-transition-playbook.md]]` (L2 migration flow)
-4. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
+4. `[[docs/dev/single-file-propagation-playbook.md]]` (safe one-file rollout pattern)
+5. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
 
 ### Agent handoff line
 Use this exact prompt with your coding agent:
@@ -58,63 +59,127 @@ Read [[docs/dev/README.md]] completely, then execute the relevant section for my
 
 ---
 
-## 3) Create a new L1 company template repo (L0 -> L1)
+## 3) Create a new L1 company repo (L0 -> L1)
 
 Run from `core/tpl-template-repo`:
 
 ```bash
-./scripts/new-l1-from-copier.sh /absolute/path/to/<company>-templates \
-  -d repo_slug=<company>-templates \
+./scripts/new-l1-from-copier.sh ~/ai-society/<company> \
+  -d repo_slug=<company> \
   -d company_slug=<company> \
   -d company_name="<Company Name>" \
   -d l1_org_docs_profile=rich \
-  -d l2_org_docs_default=compact \
   -d enable_community_pack=false \
   -d enable_release_pack=false \
   -d enable_vouch_gate=false \
   --defaults --overwrite
 ```
 
-Validate in generated L1:
+Then initialize git:
 
 ```bash
-cd /absolute/path/to/<company>-templates
+cd ~/ai-society/<company>
+git init
+git add .
+git commit -m "Init from L0"
 bash ./scripts/check-template-ci.sh
+```
+
+Bootstrap lane roots (recommended before nesting child repos):
+
+```bash
+# 1) Materialize baseline lane control-planes in parent repo
+for lane in owned contrib infra agents; do
+  ./scripts/bootstrap-lane-root.sh "$lane"
+done
+
+# 2) Commit lane baselines in parent repo
+git add .gitignore owned contrib infra agents
+git commit -m "chore: bootstrap lane root baselines"
+
+# 3) Initialize lane-root git repos
+for lane in owned contrib infra agents; do
+  ./scripts/bootstrap-lane-root.sh "$lane" --init-lane-git
+done
+```
+
+For custom lanes (example: `data`), use the same two-phase pattern:
+
+```bash
+./scripts/bootstrap-lane-root.sh data
+git add .gitignore data
+git commit -m "chore: bootstrap data lane baseline"
+./scripts/bootstrap-lane-root.sh data --init-lane-git
+```
+
+**L1 Structure:**
+```
+<company>/
+├── .git/                  ← company repo
+├── .gitignore             ← lane policies (ignore child repos by default)
+├── .copier-answers.yml    ← L0 provenance
+├── AGENTS.md              ← company context (loaded by pi)
+├── scripts/               ← shared tooling
+│   ├── rocs.sh
+│   ├── docs-list.sh
+│   ├── new-repo-from-copier.sh
+│   └── bootstrap-lane-root.sh
+├── copier/                ← L2 templates
+│   ├── tpl-project-repo/
+│   ├── tpl-agent-repo/
+│   ├── tpl-org-repo/
+│   ├── tpl-monorepo/
+│   └── tpl-package/
+├── owned/                 ← lane root (optional, bootstrap script)
+├── contrib/               ← lane root (optional, bootstrap script)
+├── infra/                 ← lane root (optional, bootstrap script)
+└── agents/                ← lane root (optional, bootstrap script)
 ```
 
 ---
 
 ## 4) Create a new L2 repo (L1 -> L2)
 
-Run from your `<company>-templates` repository:
+Run from your company repository (e.g., `~/ai-society/softwareco`):
 
 ```bash
-# project
-./scripts/new-repo-from-copier.sh tpl-project-repo /path/to/<repo> \
+# project (in owned/)
+./scripts/new-repo-from-copier.sh tpl-project-repo ./owned/<repo> \
   -d repo_slug=<repo> --defaults --overwrite
 
-# agent
-./scripts/new-repo-from-copier.sh tpl-agent-repo /path/to/agent-<slug> \
+# agent (in agents/)
+./scripts/new-repo-from-copier.sh tpl-agent-repo ./agents/agent-<slug> \
   -d repo_slug=agent-<slug> --defaults --overwrite
 
-# org
-./scripts/new-repo-from-copier.sh tpl-org-repo /path/to/<org>-handbook \
+# org handbook (at company root)
+./scripts/new-repo-from-copier.sh tpl-org-repo ./<org>-handbook \
   -d repo_slug=<org>-handbook --defaults --overwrite
 
-# monorepo
-./scripts/new-repo-from-copier.sh tpl-monorepo /path/to/<monorepo> \
+# monorepo (at company root)
+./scripts/new-repo-from-copier.sh tpl-monorepo ./<monorepo> \
   -d repo_slug=<monorepo> -d language=python -d package_manager=uv \
   --defaults --overwrite
 
 # package (inside monorepo)
-./scripts/new-repo-from-copier.sh tpl-package /path/to/packages/<name> \
+./scripts/new-repo-from-copier.sh tpl-package ./<monorepo>/packages/<name> \
   -d package_name=<name> -d package_type=library -d language=python \
   --defaults --overwrite
 ```
 
+**L2 Placement:**
+| Type | Location | Has own .git? |
+|------|----------|---------------|
+| Project | `./owned/<repo>/` | Yes |
+| Agent | `./agents/agent-<slug>/` | Yes |
+| Org handbook | `./<org>-handbook/` | Yes |
+| Monorepo | `./<monorepo>/` | Yes |
+| Package | `./<monorepo>/packages/<name>/` | No (in monorepo) |
+
+Note: grouping/lane-root folders are not `tpl-package` targets. Keep grouping-root ignore policies in the parent/lane bootstrap flow.
+
 ---
 
-## 5) Transition an existing L1 template repo
+## 5) Transition an existing L1 company repo
 
 Authoritative playbook:
 - `[[docs/l1-adoption-playbook.md]]`
@@ -123,7 +188,7 @@ Minimum deterministic flow:
 
 ```bash
 # from core/tpl-template-repo
-./scripts/preview-l1-diff.sh /absolute/path/to/<company>-templates
+./scripts/preview-l1-diff.sh ~/ai-society/<company>
 ```
 
 Then in target L1 repo (on branch):
@@ -139,6 +204,8 @@ Authoritative playbook:
 - `[[docs/l2-transition-playbook.md]]`
 
 Important: there is currently **no in-place auto-migrator**. Use scaffold-first migration.
+
+For grouping/lane-root repos with nested child repos, follow the playbook’s dedicated special-case section (backup manifest, nested `.git` preservation, and control-plane merge policy for `README.md` / `AGENTS.md` / `next_session_prompt.md`).
 
 ---
 

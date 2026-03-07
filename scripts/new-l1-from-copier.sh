@@ -6,8 +6,10 @@ usage() {
 usage: new-l1-from-copier.sh <dest-dir> [copier args...]
 
 Example:
-  ./scripts/new-l1-from-copier.sh /tmp/holdingco-templates \
-    -d repo_slug=holdingco-templates \
+  ./scripts/new-l1-from-copier.sh ~/ai-society/softwareco \
+    -d repo_slug=softwareco \
+    -d company_slug=softwareco \
+    -d company_name="Software Company" \
     -d l1_org_docs_profile=rich \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
@@ -15,10 +17,17 @@ Example:
     --defaults --overwrite
 
 Notes:
-  - Generates L1 with all embedded templates:
+  - Generates L1 company repo with embedded L2 templates:
     - copier/tpl-agent-repo/      (AI agent repos)
     - copier/tpl-org-repo/        (Organization handbooks)
     - copier/tpl-project-repo/    (Project repos)
+    - copier/tpl-monorepo/        (Monorepo workspaces)
+    - copier/tpl-package/         (Packages inside monorepos)
+  - Place L2 projects in: owned/, contrib/, infra/, agents/ (or custom lanes)
+  - Bootstrap lane roots before nesting child repos:
+      ./scripts/bootstrap-lane-root.sh <lane>
+      git add .gitignore <lane> && git commit -m "chore: bootstrap <lane> lane baseline"
+      ./scripts/bootstrap-lane-root.sh <lane> --init-lane-git
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - Wrapper runs Copier in quiet mode by default; set `COPIER_QUIET=0` to show Copier progress logs.
   - Set `-d l1_org_docs_profile=rich|compact` to choose L1 org docs depth.

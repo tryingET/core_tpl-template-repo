@@ -11,7 +11,7 @@ kernel_ontology_ref: <gitlab:org/ontology-kernel@v0.1.0>
 language: python
 location: owned
 org_owner_handle: '@org-owners'
-project_owner_handle: '@project-owners'
+project_owner_handle: '@tryinget'
 repo_slug: fixture-product-repo
 
 

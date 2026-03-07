@@ -15,6 +15,7 @@ need_cmd git
 
 chmod +x \
   "$repo_root/scripts/new-repo-from-copier.sh" \
+  "$repo_root/scripts/bootstrap-lane-root.sh" \
   "$repo_root/scripts/check-template-ci.sh" \
   "$repo_root/scripts/install-hooks.sh" \
   "$repo_root/scripts/ci/smoke.sh" \

@@ -1,7 +1,7 @@
 # L0 slice plan — tpl-template-repo
 
 ## 1) Abductive pass (observed state from existing L1 repos)
-From `holdingco-templates` and `softwareco-templates`, the stable baseline patterns are:
+From `holdingco` and `softwareco` company-root L1 repos, the stable baseline patterns are:
 - `scripts/check-template-ci.sh` exists and validates template invariants by rendering a sample.
 - `scripts/new-repo-from-copier.sh` wraps Copier invocation and standardizes answers file handling.
 - `.github/workflows/template-check.yml` runs template checks on PRs and pushes.

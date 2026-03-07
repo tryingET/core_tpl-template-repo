@@ -1,91 +1,106 @@
-# AGENTS.md — L1 template repo
+# AGENTS.md — Holding Company (holdingco)
 
 ## Intent
-Provide one stable, guarded template surface that generates compliant L2 repositories and participate in KES (Knowledge Evolution System).
+Coordinate Holding Company work across explicit lanes:
+- `owned/` (we operate)
+- `contrib/` (upstream-coupled)
+- `infra/` (platform/runbooks)
+- `agents/` (AI agent repos)
 
-## Templates Provided
+## Guardrails
+- No direct pushes to `main`; branch + MR workflow.
+- Pick lane first, then follow lane policy and template contract.
+- No secrets in git.
+- Keep `.copier-answers.yml` committed in all repos.
+
+## Shared tooling
+- Docs discovery: `./scripts/docs-list.sh --task "<task>" --top 8`
+- ROCS launcher: `./scripts/rocs.sh <rocs args...>`
+- New L2 repo: `./scripts/new-repo-from-copier.sh <template> <dest> -d repo_slug=<slug> --defaults`
+- Lane bootstrap: `./scripts/bootstrap-lane-root.sh <lane> [--init-lane-git]`
+
+## Deterministic tooling policy (ROCS-first)
+- Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
+- For ontology/policy checks, use ROCS commands as the default execution path.
+- Use inline Python only as an explicit escape hatch when no deterministic command exists.
+
+## L2 Templates (in copier/)
 
 | Template | Purpose | Generates |
 |----------|---------|-----------|
-| `copier/tpl-agent-repo/` | AI agent repositories | `agent-<slug>/` |
-| `copier/tpl-project-repo/` | Delivery projects | `<project>/` |
+| `copier/tpl-project-repo/` | Delivery projects | `owned/<project>/` |
+| `copier/tpl-agent-repo/` | AI agent repositories | `agents/agent-<slug>/` |
+| `copier/tpl-org-repo/` | Organization handbooks | `<org>-handbook/` |
 | `copier/tpl-monorepo/` | Monorepo workspaces | `<monorepo>/` (packages + apps) |
 | `copier/tpl-package/` | Packages inside monorepos | `packages/<name>/` (NO .git) |
-| `copier/tpl-org-repo/` | Organization handbooks | `<org>-handbook/` |
 
-## Guardrails
-- No secrets in git.
-- Keep `.copier-answers.yml` committed.
-- Run `./scripts/check-template-ci.sh` before merge.
-- Keep `contracts/layer-contract.yml` in sync with README recursion policy.
-- Preserve baseline structure folders and git baseline files unless intentionally changed by policy.
-- Treat `l1_org_docs_profile` as a profile decision (default rich; compact allowed for lightweight internal template lines).
-- Treat `l2_org_docs_default` as a profile decision (default compact; rich when L2 repos should carry full org docs).
-- Keep L2 template selection explicit (`tpl-project-repo|tpl-agent-repo|tpl-org-repo|tpl-monorepo|tpl-package`) and avoid changing baseline semantics without updating checks/fixtures.
-- Keep L2 governance layering explicit:
-  - `tpl-project-repo`: `governance/work-items.*` + `docs/project/` + `docs/system4d/`
-  - `tpl-org-repo`: governance primary in `docs/org/` + `governance/`
-  - `tpl-agent-repo`: local persona/system governance
-  - `tpl-monorepo`: repo-level delivery governance + package/app boundaries
-  - `tpl-package`: package-local governance inside monorepo boundaries
-- Treat `docs/dev/tpl-project-repo-file-contract.md` as the canonical project-template file map.
-- Treat `enable_community_pack` as a profile decision (default disabled, enable for public/community-facing contribution surfaces).
-- Treat `enable_release_pack` as a profile decision (default disabled, enable where release automation is required).
-- Treat `enable_vouch_gate` as a profile decision (default disabled, enable for trust-gated/public contribution surfaces).
+## Lane root bootstrap (before nesting child repos)
 
-## KES Infrastructure (Knowledge Evolution System)
+Use this two-phase sequence so lane roots track baseline control-plane files while child repos remain ignored:
 
-This L1 participates in KES for learning propagation:
+```bash
+# 1) Materialize lane baseline in the parent repo
+./scripts/bootstrap-lane-root.sh owned
 
-```
-tips/
-├── _templates/tip.yml     # TIP genome template
-├── domain/                # Domain-specific TIPs (stay local)
-└── meta/                  # Meta TIPs (escalate to L0)
+# 2) Commit lane baseline in parent repo
+git add .gitignore owned
+git commit -m "chore: bootstrap owned lane baseline"
 
-governance/
-└── README.md              # TIP review authority and consent model
-
-metrics/
-└── README.md              # Template effectiveness tracking
+# 3) Initialize lane-root git repo
+./scripts/bootstrap-lane-root.sh owned --init-lane-git
 ```
 
-### TIP Flow
+For custom lanes (example: `data`), use the same flow:
+
+```bash
+./scripts/bootstrap-lane-root.sh data
+git add .gitignore data
+git commit -m "chore: bootstrap data lane baseline"
+./scripts/bootstrap-lane-root.sh data --init-lane-git
+```
+
+## Creating L2 repos
+
+```bash
+# Project
+./scripts/new-repo-from-copier.sh tpl-project-repo ./owned/<project> \
+  -d repo_slug=<project> --defaults --overwrite
+
+# Agent
+./scripts/new-repo-from-copier.sh tpl-agent-repo ./agents/agent-<slug> \
+  -d repo_slug=agent-<slug> --defaults --overwrite
+
+# Org handbook
+./scripts/new-repo-from-copier.sh tpl-org-repo ./<org>-handbook \
+  -d repo_slug=<org>-handbook --defaults --overwrite
+```
+
+## Placement reminders
+- owned: `~/ai-society/holdingco/owned/<repo>`
+- contrib: `~/ai-society/holdingco/contrib/<upstream>/<repo>`
+- infra: `~/ai-society/holdingco/infra/<repo>`
+- agents: `~/ai-society/holdingco/agents/agent-<slug>`
+
+## Read order (high signal)
+1. `./docs/lane-policy-matrix.md` (if exists)
+2. `./docs/repo-placement-policy.md` (if exists)
+3. `./docs/archetype-lane-crosswalk.md` (if exists)
+
+## Knowledge Crystallization Flow
 
 ```
-L2 learns → TIP proposed → L1 review → merge → propagate → L0 (if meta)
+Session → diary/ (raw) → docs/learnings/ (crystallized) → TIPs (propagated)
 ```
 
-- **Domain TIPs**: Stay in this L1
-- **Meta TIPs**: Escalate to `core/tpl-template-repo` (L0)
-- **Infrastructure TIPs**: Escalate to L0
-
-## Diary policy (repo-local, mandatory)
-
-- Keep raw session capture in `./diary/YYYY-MM-DD--type-scope-summary.md` for this repo.
-- Every generated L2 archetype must include the same root diary contract at `./diary/README.md`.
-- Structural scope for KES diary parity: `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`.
-
-### Read Order for TIPs
-
-1. `tips/README.md` — TIP process overview
-2. `tips/_templates/tip.yml` — TIP structure
-3. `governance/README.md` — Review authority
-
-## Shared tooling
-- Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
-- Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
-- ROCS command launcher (deterministic + portable): `./scripts/rocs.sh <rocs args...>`
-
-## Deterministic tooling policy (ROCS-first)
-- Prefer deterministic wrappers (`./scripts/rocs.sh`, repo `scripts/*`) over ad-hoc inline scripts.
-- For ontology/policy checks, run ROCS before custom Python one-offs.
-- Use inline Python only as an explicit escape hatch when no deterministic command exists.
+1. During work: Capture in project's `diary/YYYY-MM-DD--type-scope-summary.md`
+2. End of session: Extract patterns, decisions, learnings
+3. Weekly: Promote to `docs/learnings/` and `docs/decisions/`
+4. When pattern generalizes: Propose TIP to this L1
 
 ## Recursion policy
 Allowed:
-- `L0 -> L1`
-- `L1 -> L2`
+- `L0 -> L1` (this repo)
+- `L1 -> L2` (projects in owned/, contrib/, infra/, agents/)
 
 Forbidden:
 - `L1 -> L0`

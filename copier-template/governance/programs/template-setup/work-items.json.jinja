@@ -44,10 +44,10 @@
           "depends_on": ["{{ repo_slug|upper|replace('-','')|truncate(8,end='') }}-M1-01"],
           "labels": ["program::template-setup", "milestone::m1"],
           "tasks": [
-            {"text": "Generate tpl-owned-repo from template", "done": false},
-            {"text": "Generate tpl-contrib-repo from template", "done": false},
-            {"text": "Generate tpl-infra-repo from template", "done": false},
-            {"text": "Wire CI/CD for each repo", "done": false}
+            {"text": "Generate owned project from tpl-project-repo", "done": false},
+            {"text": "Generate contrib project from tpl-project-repo", "done": false},
+            {"text": "Generate agent repo from tpl-agent-repo", "done": false},
+            {"text": "Wire CI/CD for each generated repo", "done": false}
           ],
           "dod": "All company L2 repos bootstrapped and passing CI",
           "validation": [],

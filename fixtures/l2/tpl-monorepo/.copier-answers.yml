@@ -10,5 +10,5 @@ kernel_ontology_ref: '<gitlab:org/ontology-kernel@v0.1.0>'
 company_ontology_ref: '<gitlab:org/ontology@v0.1.0>'
 core_owner_handle: '@core-owner'
 org_owner_handle: '@org-owners'
-project_owner_handle: '@project-owners'
+project_owner_handle: '@tryinget'
 template_source_sha: __VOLATILE_TEMPLATE_SOURCE_SHA__

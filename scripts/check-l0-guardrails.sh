@@ -103,7 +103,7 @@ docs/feature-matrix-l0-l1-l2-vs-pi-template.md
 docs/solo-builder-operating-cadence.md
 docs/dev/README.md
 copier-template/README.md.jinja
-copier-template/AGENTS.md
+copier-template/AGENTS.md.jinja
 copier-template/CONTRIBUTING.md
 copier-template/.gitattributes
 copier-template/contracts/layer-contract.yml
@@ -142,6 +142,7 @@ copier-template/src/.gitkeep
 copier-template/tests/.gitkeep
 copier-template/diary/README.md.jinja
 copier-template/scripts/new-repo-from-copier.sh
+copier-template/scripts/bootstrap-lane-root.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
@@ -164,6 +165,7 @@ scripts/lib/fixture-normalization.sh
 fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
 fixtures/l1/template-repo/diary/README.md
+fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 fixtures/l1/template-repo/scripts/lib/suffix-policy.sh
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
@@ -217,6 +219,7 @@ scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
 copier-template/scripts/new-repo-from-copier.sh
+copier-template/scripts/bootstrap-lane-root.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
@@ -226,6 +229,7 @@ copier-template/scripts/release/check.sh
 copier-template/scripts/release/publish.sh
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
+fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 "
 
 while IFS= read -r path; do
@@ -276,6 +280,7 @@ assert_contains "scripts/rocs.sh" "--doctor" "L0 ROCS wrapper should expose doct
 assert_contains "scripts/rocs.sh" "deterministic resolution order" "L0 ROCS wrapper should document resolution order"
 assert_contains "scripts/new-l1-from-copier.sh" "COPIER_QUIET" "L0 L1 render wrapper must expose Copier quiet-mode toggle"
 assert_contains "scripts/new-l1-from-copier.sh" "--quiet" "L0 L1 render wrapper must default Copier execution to quiet mode"
+assert_contains "scripts/new-l1-from-copier.sh" "bootstrap-lane-root.sh" "L0 L1 render wrapper docs should include lane bootstrap workflow"
 assert_contains "scripts/preview-l1-diff.sh" '"$repo_root/scripts/new-l1-from-copier.sh" "$render_dir"' "preview-l1-diff must call new-l1 wrapper with render dir as first arg"
 assert_contains "scripts/preview-l1-diff.sh" ".copier-answers.yml" "preview-l1-diff should infer repo_slug from target answers when available"
 assert_contains "scripts/preview-l1-diff.sh" "repo_slug_from_answers" "preview-l1-diff should parse repo_slug from target answers file"
@@ -290,6 +295,8 @@ assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_VERSIO
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'uvx --from "copier==${COPIER_VERSION}" copier' "L1 wrapper must include pinned uvx invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'uv tool run --from "copier==${COPIER_VERSION}" copier' "L1 wrapper must include pinned uv tool invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "warning: uvx/uv not found; falling back to unpinned copier on PATH" "L1 wrapper must surface unpinned fallback warning"
+assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "--init-lane-git" "L1 lane bootstrap helper must support lane git initialization"
+assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "tpl-project-repo" "L1 lane bootstrap helper must render tpl-project-repo baseline"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must pin Copier version" "L1 template CI must enforce copier pinning"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
@@ -297,6 +304,7 @@ assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution orde
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 assert_contains "copier-template/.github/workflows/ci.yml" "Setup uv (full lane)" "L1 CI workflow should provision uv in the full lane"
 assert_not_contains "copier-template/scripts/install-hooks.sh" "copier/template-repo" "L1 install-hooks must not reference removed legacy template-repo path"
+assert_contains "copier-template/scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "L1 install-hooks should normalize executable bit for lane bootstrap helper"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "L1 install-hooks should normalize executable bits for $tpl smoke lane"
@@ -340,6 +348,7 @@ assert_contains "README.md" "l2-transition-playbook.md" "README should link L2 t
 assert_contains "README.md" "tpl-project-repo-file-contract.md" "README should link the canonical tpl-project-repo file contract"
 assert_contains "docs/dev/README.md" "Agent handoff line" "operator entrypoint should include explicit agent handoff guidance"
 assert_contains "docs/dev/README.md" "docs/l2-transition-playbook.md" "operator entrypoint should link L2 transition playbook"
+assert_contains "docs/dev/README.md" "bootstrap-lane-root.sh" "operator entrypoint should document lane bootstrap workflow"
 assert_contains "docs/dev/README.md" "no in-place auto-migrator" "operator entrypoint should clarify migration limitation"
 assert_contains "docs/l1-adoption-playbook.md" "docs/dev/README.md" "L1 adoption playbook should link operator entrypoint"
 assert_contains "docs/l1-adoption-playbook.md" "docs/l2-transition-playbook.md" "L1 adoption playbook should link L2 migration playbook"
@@ -358,15 +367,15 @@ assert_contains "next_session_prompt.md" "git restore -- next_session_prompt.md"
 assert_contains "next_session_prompt.md" "KES crystallization flow" "session checkpoint should include KES flow"
 assert_contains "copier-template/diary/README.md.jinja" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README template should enforce descriptive filename convention"
 
-for doc in copier-template/README.md.jinja copier-template/AGENTS.md; do
+for doc in copier-template/README.md.jinja copier-template/AGENTS.md.jinja; do
   assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"
   assert_contains "$doc" "L1 -> L2" "generated L1 docs must allow L1 -> L2"
   assert_contains "$doc" "L1 -> L0" "generated L1 docs must forbid L1 -> L0"
   assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
 done
-assert_contains "copier-template/AGENTS.md" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
-assert_contains "copier-template/AGENTS.md" "scripts/rocs.sh" "generated L1 AGENTS should reference scripts/rocs.sh"
-assert_contains "copier-template/AGENTS.md" "diary/" "generated L1 AGENTS should require repo-local diary"
+assert_contains "copier-template/AGENTS.md.jinja" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
+assert_contains "copier-template/AGENTS.md.jinja" "scripts/rocs.sh" "generated L1 AGENTS should reference scripts/rocs.sh"
+assert_contains "copier-template/AGENTS.md.jinja" "diary/" "generated L1 AGENTS should require repo-local diary"
 assert_contains "copier-template/CONTRIBUTING.md" "scripts/rocs.sh --doctor" "generated L1 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "copier-template/CONTRIBUTING.md" "diary/" "generated L1 contributing guide should require repo-local diary"
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
@@ -376,7 +385,9 @@ assert_contains "copier-template/README.md.jinja" "Multi-pass template suffix po
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
 assert_contains "copier-template/README.md.jinja" "no automatic in-place migrator" "generated L1 README should document deterministic migration limitation"
 assert_contains "copier-template/README.md.jinja" "tpl-project-repo-file-contract.md" "generated L1 README should link canonical tpl-project-repo file contract"
-assert_contains "copier-template/AGENTS.md" "tpl-project-repo-file-contract.md" "generated L1 AGENTS should link canonical tpl-project-repo file contract"
+assert_contains "copier-template/README.md.jinja" "bootstrap-lane-root.sh" "generated L1 README should document lane bootstrap workflow"
+assert_contains "copier-template/AGENTS.md.jinja" "L2 Templates" "generated L1 AGENTS should document L2 templates"
+assert_contains "copier-template/AGENTS.md.jinja" "bootstrap-lane-root.sh" "generated L1 AGENTS should document lane bootstrap helper"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
 
@@ -393,6 +404,10 @@ assert_contains "copier-template/.github/workflows/vouch-check-pr.yml.jinja" "mi
 assert_contains "copier-template/.github/workflows/vouch-manage.yml.jinja" "mitchellh/vouch/action/manage-by-issue@5713ce1baedf75e2f830afa3dac813a9c48bff12" "L1 vouch-manage workflow should pin action SHA"
 assert_contains "copier-template/.github/workflows/release-please.yml" "googleapis/release-please-action@v4" "L1 release-please workflow should invoke release-please action"
 assert_contains "copier-template/.github/workflows/publish.yml" "softprops/action-gh-release@v2" "L1 publish workflow should upload release artifacts"
+assert_contains "copier-template/.gitignore" "!owned/.gitignore" "L1 parent .gitignore must unignore owned lane-root .gitignore"
+assert_contains "copier-template/.gitignore" "!contrib/.gitignore" "L1 parent .gitignore must unignore contrib lane-root .gitignore"
+assert_contains "copier-template/.gitignore" "!infra/.gitignore" "L1 parent .gitignore must unignore infra lane-root .gitignore"
+assert_contains "copier-template/.gitignore" "!agents/.gitignore" "L1 parent .gitignore must unignore agents lane-root .gitignore"
 
 # Ensure legacy template-repo is removed from generated L1
 assert_absent "copier-template/copier/template-repo"

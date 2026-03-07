@@ -19,8 +19,8 @@ company_name:
 
 repo_slug:
   type: str
-  default: template-repo-sample
-  help: "Slug for the generated L1 template repository."
+  default: "{{ company_slug }}"
+  help: "Slug for the generated company repository (defaults to company_slug)."
 
 maintainer_handle:
   type: str
@@ -93,39 +93,39 @@ _tasks:
     fi
 
 _message_after_copy: |
-  L1 template repository scaffolded at {{ _copier_conf.dst_path }}
+  L1 company repository scaffolded at {{ _copier_conf.dst_path }}
 
   Company: {{ company_name }} ({{ company_slug }})
   Repository: {{ repo_slug }}
 
-  Embedded templates:
+  Structure:
+    - AGENTS.md              (company-level context, loaded by pi)
+    - scripts/               (shared tooling: rocs.sh, docs-list.sh, new-repo-from-copier.sh)
+    - copier/                (L2 templates)
+    - owned/                 (L2 projects we operate - gitignored, each has own .git)
+    - contrib/               (L2 upstream contributions - gitignored)
+    - infra/                 (L2 infrastructure - gitignored)
+    - agents/                (L2 AI agent repos - gitignored)
+
+  Embedded L2 templates:
+    - copier/tpl-project-repo/    (Delivery projects)
     - copier/tpl-agent-repo/      (AI agent repos)
     - copier/tpl-org-repo/        (Organization handbooks)
-    - copier/tpl-project-repo/    (Project repos)
     - copier/tpl-monorepo/        (Monorepo workspaces)
     - copier/tpl-package/         (Packages inside monorepos)
 
   Next steps:
-    - run: bash ./scripts/check-template-ci.sh
-    - generate an L2 agent:
-      ./scripts/new-repo-from-copier.sh tpl-agent-repo /tmp/my-agent \
-        -d repo_slug=my-agent --defaults --overwrite
-    - generate an L2 project:
-      ./scripts/new-repo-from-copier.sh tpl-project-repo /tmp/my-project \
+    - Initialize git: git init && git add . && git commit -m "Init from L0"
+    - Run: bash ./scripts/check-template-ci.sh
+    - Create L2 project:
+      ./scripts/new-repo-from-copier.sh tpl-project-repo ./owned/my-project \
         -d repo_slug=my-project --defaults --overwrite
-    - generate an L2 org handbook:
-      ./scripts/new-repo-from-copier.sh tpl-org-repo /tmp/my-org \
-        -d repo_slug=my-org --defaults --overwrite
-    - generate an L2 monorepo:
-      ./scripts/new-repo-from-copier.sh tpl-monorepo /tmp/my-monorepo \
-        -d repo_slug=my-monorepo -d language=python -d package_manager=uv \
-        --defaults --overwrite
-    - generate an L2 package:
-      ./scripts/new-repo-from-copier.sh tpl-package /tmp/packages/my-lib \
-        -d package_name=my-lib -d package_type=library -d language=python \
-        --defaults --overwrite
-    - project-template contract:
-      docs/dev/tpl-project-repo-file-contract.md
+    - Create L2 agent:
+      ./scripts/new-repo-from-copier.sh tpl-agent-repo ./agents/agent-myagent \
+        -d repo_slug=agent-myagent --defaults --overwrite
+    - Create L2 org handbook:
+      ./scripts/new-repo-from-copier.sh tpl-org-repo ./myorg-handbook \
+        -d repo_slug=myorg-handbook --defaults --overwrite
 
   Organization docs profile (L1):
     - currently {{ l1_org_docs_profile }}
