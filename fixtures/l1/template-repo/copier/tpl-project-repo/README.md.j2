@@ -117,6 +117,7 @@ From an L1 templates repository:
 
 - `repo_slug`: Project identifier
 - `project_owner_handle`: CODEOWNERS entry for project paths
+  - if not passed explicitly, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config
 - `org_owner_handle`: CODEOWNERS entry for org paths
 - `kernel_ontology_ref`: ROCS core ontology reference
 - `company_ontology_ref`: ROCS company ontology reference

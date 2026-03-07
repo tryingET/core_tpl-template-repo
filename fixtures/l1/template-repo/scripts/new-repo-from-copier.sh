@@ -209,12 +209,22 @@ read_inherited_string() {
 infer_project_owner_handle() {
   root="$1"
 
-  raw="$(git -C "$root" config --get user.username 2>/dev/null || true)"
+  raw="${PROJECT_OWNER_HANDLE:-}"
+  if [ -z "$raw" ]; then
+    raw="${PI_PROJECT_OWNER_HANDLE:-}"
+  fi
+  if [ -z "$raw" ]; then
+    raw="${GITHUB_ACTOR:-}"
+  fi
+  if [ -z "$raw" ]; then
+    raw="$(git -C "$root" config --get user.username 2>/dev/null || true)"
+  fi
   if [ -z "$raw" ]; then
     raw="$(git -C "$root" config --get user.name 2>/dev/null || true)"
   fi
   [ -n "$raw" ] || return 1
 
+  raw="${raw#@}"
   handle="$(
     printf '%s' "$raw" \
       | tr '[:upper:]' '[:lower:]' \

@@ -51,6 +51,8 @@ Generate an L2 **project** repository:
   --defaults --overwrite
 ```
 
+If `project_owner_handle` is omitted, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config.
+
 Generate an L2 **org** handbook:
 
 ```bash
