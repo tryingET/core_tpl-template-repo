@@ -31,6 +31,13 @@ governance/      # Work items, policies
 - Languages: Defined per-package in `packages/` and `apps/` (via tpl-package)
 - Workspace config at root; packages inherit workspace settings.
 
+## Agent/operator prompts
+- Repo-local commit workflow prompt lives at `.pi/prompts/commit.md`.
+- Use monorepo-aware conventional commit scopes:
+  - package-local changes -> package name
+  - app-local changes -> app name
+  - root-level changes -> `root`, `monorepo`, `ci`, `docs`, or `release`
+
 ## Knowledge Crystallization Flow
 
 ```
