@@ -3,6 +3,23 @@ set -eu
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 workspace_root="${AI_SOCIETY_WORKSPACE:-$HOME/ai-society}"
+quiet_success=0
+
+if [ "${1:-}" = "--quiet-success" ]; then
+  quiet_success=1
+  shift
+fi
+
+contains_help_arg() {
+  for arg in "$@"; do
+    case "$arg" in
+      -h|--help)
+        return 0
+        ;;
+    esac
+  done
+  return 1
+}
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -63,4 +80,24 @@ docs_list_script="$(resolve_docs_list_script || true)"
   exit 2
 }
 
-exec node "$docs_list_script" "$@"
+if [ "$quiet_success" -ne 1 ] || contains_help_arg "$@"; then
+  exec node "$docs_list_script" "$@"
+fi
+
+need_cmd mktemp
+output_file="$(mktemp)"
+cleanup() {
+  rm -f "$output_file"
+}
+trap cleanup EXIT INT TERM HUP
+
+if node "$docs_list_script" "$@" >"$output_file" 2>&1; then
+  cleanup
+  trap - EXIT INT TERM HUP
+  printf 'ok: docs-list\n'
+  exit 0
+fi
+
+status=$?
+cat "$output_file" >&2
+exit "$status"
