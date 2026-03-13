@@ -36,10 +36,11 @@ If you or your agent only read one file, read this one.
 
 ### Minimal read order
 1. `[[docs/dev/README.md]]` (this file)
-2. `[[docs/l1-adoption-playbook.md]]` (L1 update flow)
-3. `[[docs/l2-transition-playbook.md]]` (L2 migration flow)
-4. `[[docs/dev/single-file-propagation-playbook.md]]` (safe one-file rollout pattern)
-5. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
+2. `[[docs/dev/architecture/layer-taxonomy-and-propagation-architecture.md]]` (what L0/L1/L2/L3 actually mean)
+3. `[[docs/l1-adoption-playbook.md]]` (L1 update flow)
+4. `[[docs/l2-transition-playbook.md]]` (L2 migration flow)
+5. `[[docs/dev/single-file-propagation-playbook.md]]` (safe one-file rollout pattern)
+6. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
 
 ### Agent handoff line
 Use this exact prompt with your coding agent:
