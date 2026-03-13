@@ -469,6 +469,10 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
   assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
   if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+    assert_contains "$l2_dir/AGENTS.md" "policy/stack-lane.json" "generated $tpl AGENTS should point to the pinned stack contract"
+    assert_contains "$l2_dir/AGENTS.md" "docs/tech-stack.local.md" "generated $tpl AGENTS should point to the local stack override doc"
+  fi
+  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
     assert_contains "$l2_dir/README.md" "Agent Kernel work-items flow" "generated $tpl README should document the AK work-items workflow"
     assert_contains "$l2_dir/governance/README.md" "work-items export" "generated $tpl governance README should document projection export"
   fi
@@ -523,6 +527,8 @@ assert_exec "$l2_dir/scripts/rocs.sh"
 assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"
 assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated $tpl AGENTS should reference scripts/rocs.sh"
 assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
+assert_contains "$l2_dir/AGENTS.md" "policy/stack-lane.json" "generated $tpl AGENTS should point to the pinned stack contract"
+assert_contains "$l2_dir/AGENTS.md" "docs/tech-stack.local.md" "generated $tpl AGENTS should point to the local stack override doc"
 assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
 
 # tpl-package idempotency check (no git required)
@@ -543,7 +549,10 @@ assert_file "$elixir_project_dir/mix.exs"
 assert_file "$elixir_project_dir/policy/stack-lane.json"
 assert_file "$elixir_project_dir/docs/tech-stack.local.md"
 assert_contains "$elixir_project_dir/policy/stack-lane.json" '"lane": "elixir"' "generated elixir project should pin the elixir stack lane"
-assert_contains "$elixir_project_dir/docs/tech-stack.local.md" "tech-stack-core show elixir --prefer-repo" "generated elixir project should reference the elixir lane command"
+assert_contains "$elixir_project_dir/policy/stack-lane.json" '"ref": "workspace-local-unpinned"' "generated elixir project should record honest workspace-local provenance"
+assert_not_contains "$elixir_project_dir/policy/stack-lane.json" "--prefer-repo" "generated elixir project should not pin repo-preferred lane resolution"
+assert_contains "$elixir_project_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir project should point operators to the pinned lane command"
+assert_not_contains "$elixir_project_dir/docs/tech-stack.local.md" "--prefer-repo" "generated elixir project docs should not hardcode repo-preferred lane resolution"
 if command -v ak >/dev/null 2>&1; then
   (
     cd "$elixir_project_dir"
@@ -560,7 +569,10 @@ elixir_package_dir="$tmp_root/tpl-package-elixir"
 assert_file "$elixir_package_dir/policy/stack-lane.json"
 assert_file "$elixir_package_dir/docs/tech-stack.local.md"
 assert_contains "$elixir_package_dir/policy/stack-lane.json" '"lane": "elixir"' "generated elixir package should pin the elixir stack lane"
-assert_contains "$elixir_package_dir/docs/tech-stack.local.md" "tech-stack-core show elixir --prefer-repo" "generated elixir package should reference the elixir lane command"
+assert_contains "$elixir_package_dir/policy/stack-lane.json" '"ref": "workspace-local-unpinned"' "generated elixir package should record honest workspace-local provenance"
+assert_not_contains "$elixir_package_dir/policy/stack-lane.json" "--prefer-repo" "generated elixir package should not pin repo-preferred lane resolution"
+assert_contains "$elixir_package_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir package should point operators to the pinned lane command"
+assert_not_contains "$elixir_package_dir/docs/tech-stack.local.md" "--prefer-repo" "generated elixir package docs should not hardcode repo-preferred lane resolution"
 
 # Detailed check for tpl-project-repo (primary template)
 l2_dir="$tmp_root/tpl-project-repo"

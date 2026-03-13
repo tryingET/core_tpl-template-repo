@@ -45,6 +45,7 @@ When an operator or agent needs stack guidance, use this order:
 
 - Generated repos currently resolve `tech-stack-core` from a workspace-local checkout.
 - Record that honestly in `policy/stack-lane.json` as `ref: workspace-local-unpinned` until a real released ref is pinned.
+- Prefer `uv tool -n run --from ...` for that workspace-local command so uv does not silently reuse a stale cached build.
 - Do **not** append `--prefer-repo` unless the generated repo actually ships trusted local `lanes/` overrides.
 
 ## Layer rules

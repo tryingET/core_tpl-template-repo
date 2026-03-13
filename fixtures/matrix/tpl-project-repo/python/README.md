@@ -35,7 +35,7 @@ uv run ruff check .  # Lint
 Explicit stack contract surface:
 - `policy/stack-lane.json`
 - `docs/tech-stack.local.md`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show py --prefer-repo`
+- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
 
 ## Usage
 

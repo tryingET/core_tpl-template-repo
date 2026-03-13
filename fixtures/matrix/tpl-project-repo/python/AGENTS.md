@@ -18,9 +18,9 @@ Template for a delivery project repo (project context + code + tests).
 
 ## Stack contract
 - If this repo ships a language-specific software pack, keep the stack contract explicit:
-  - `policy/stack-lane.json` pins the upstream `tech-stack-core` lane
-  - `docs/tech-stack.local.md` records repo-local overrides
-  - prefer `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show <lane> --prefer-repo` when consulting the upstream lane
+  - `policy/stack-lane.json` pins the upstream `tech-stack-core` lane and the executable retrieval command
+  - `docs/tech-stack.local.md` records repo-local overrides on top of that lane
+  - consult `policy/stack-lane.json` before invoking `tech-stack-core` directly; do not assume repo-local `lanes/` overrides exist
 
 ## Knowledge Crystallization Flow
 

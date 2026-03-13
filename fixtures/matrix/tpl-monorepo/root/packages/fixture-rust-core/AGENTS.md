@@ -15,9 +15,9 @@ Package inside monorepo: library (rust)
 
 ## Stack contract
 - When this package language maps to a shared `tech-stack-core` lane, keep it explicit:
-  - `policy/stack-lane.json` pins the upstream lane
-  - `docs/tech-stack.local.md` records package-local overrides
-  - prefer `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show <lane> --prefer-repo` when consulting upstream lane docs
+  - `policy/stack-lane.json` pins the upstream lane and the executable retrieval command
+  - `docs/tech-stack.local.md` records package-local overrides on top of that lane
+  - consult `policy/stack-lane.json` before invoking `tech-stack-core` directly; do not assume package-local `lanes/` overrides exist
 
 ## Structure
 ```

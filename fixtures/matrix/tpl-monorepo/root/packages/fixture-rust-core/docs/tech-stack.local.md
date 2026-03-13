@@ -14,11 +14,18 @@ system4d:
 
 Primary lane:
 
-- `tech-stack-core show rust --prefer-repo`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show rust --prefer-repo`
+- `rust`
+- executable upstream retrieval lives in `policy/stack-lane.json` -> `tech_stack_core.command`
 
 Executable contract surface:
 
 - `policy/stack-lane.json` pins the upstream lane and retrieval command.
 - `docs/tech-stack.local.md` records package-local deltas.
-- Package or monorepo validation should at least verify the pinned lane metadata.
+- Package or monorepo validation should at least verify the pinned lane metadata and may smoke the pinned command when available.
+
+Package-local emphasis:
+
+- This file is the local override layer on top of the upstream lane.
+- Keep package docs and package-level scripts aligned with the pinned lane.
+- Prefer monorepo/package deterministic wrappers before ad-hoc commands.
+- Update this file when local practice intentionally diverges from the upstream lane.

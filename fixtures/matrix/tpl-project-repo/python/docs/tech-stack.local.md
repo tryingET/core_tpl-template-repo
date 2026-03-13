@@ -14,17 +14,18 @@ system4d:
 
 Primary lane:
 
-- `tech-stack-core show py --prefer-repo`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show py --prefer-repo`
+- `py`
+- executable upstream retrieval lives in `policy/stack-lane.json` -> `tech_stack_core.command`
 
 Executable contract surface:
 
 - `policy/stack-lane.json` pins the upstream lane and retrieval command.
 - `docs/tech-stack.local.md` records repo-local deltas.
-- Repo validation should at least verify the pinned lane metadata.
+- Repo validation should at least verify the pinned lane metadata and may smoke the pinned command when available.
 
 Repo-local emphasis:
 
+- This file is the local override layer on top of the upstream lane.
 - Keep workflow scripts and docs aligned with the pinned lane.
 - Prefer local deterministic wrappers before ad-hoc commands.
 - Update this file when local practice intentionally diverges from the upstream lane.

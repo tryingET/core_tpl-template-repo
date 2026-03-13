@@ -40,7 +40,7 @@ uv run ruff check .  # Lint
 Explicit stack contract surface:
 - `policy/stack-lane.json`
 - `docs/tech-stack.local.md`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show py --prefer-repo`
+- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
 {%- elif language in ["node", "typescript"] %}
 
 {{ "TypeScript" if language == "typescript" else "Node" }} project scaffolded with:
@@ -57,7 +57,7 @@ npm test             # Run tests
 Explicit stack contract surface:
 - `policy/stack-lane.json`
 - `docs/tech-stack.local.md`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show ts --prefer-repo`
+- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
 {%- elif language == "rust" %}
 
 Rust project scaffolded with:
@@ -71,7 +71,7 @@ cargo test           # Run tests
 Explicit stack contract surface:
 - `policy/stack-lane.json`
 - `docs/tech-stack.local.md`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show rust --prefer-repo`
+- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
 {%- elif language == "go" %}
 
 Go project scaffolded with:
@@ -85,7 +85,7 @@ go test ./...        # Run tests
 Explicit stack contract surface:
 - `policy/stack-lane.json`
 - `docs/tech-stack.local.md`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show go --prefer-repo`
+- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
 {%- elif language == "elixir" %}
 
 Elixir project scaffolded with:
@@ -100,7 +100,7 @@ mix format           # Format code
 Explicit stack contract surface:
 - `policy/stack-lane.json`
 - `docs/tech-stack.local.md`
-- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show elixir --prefer-repo`
+- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
 {%- endif %}
 {%- endif %}
 

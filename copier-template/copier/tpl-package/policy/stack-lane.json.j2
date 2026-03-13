@@ -6,7 +6,7 @@
     "lane": "{{ "py" if language == "python" else "go" if language == "go" else "rust" if language == "rust" else "elixir" if language == "elixir" else "ts" }}",
     "repository": "https://github.com/lightningralf/tech-stack-core",
     "ref": "workspace-local-unpinned",
-    "command": "uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show {{ "py" if language == "python" else "go" if language == "go" else "rust" if language == "rust" else "elixir" if language == "elixir" else "ts" }}"
+    "command": "uv tool -n run --from ~/ai-society/core/tech-stack-core tech-stack-core show {{ "py" if language == "python" else "go" if language == "go" else "rust" if language == "rust" else "elixir" if language == "elixir" else "ts" }}"
   }
 }
 {%- endif -%}

@@ -15,12 +15,19 @@ system4d:
 
 Primary lane:
 
-- `{%- if language == "python" -%}tech-stack-core show py --prefer-repo{%- elif language in ["node", "typescript"] -%}tech-stack-core show ts --prefer-repo{%- elif language == "go" -%}tech-stack-core show go --prefer-repo{%- elif language == "rust" -%}tech-stack-core show rust --prefer-repo{%- elif language == "elixir" -%}tech-stack-core show elixir --prefer-repo{%- endif -%}`
-- `uv tool run --from ~/ai-society/core/tech-stack-core {% if language == "python" %}tech-stack-core show py --prefer-repo{% elif language in ["node", "typescript"] %}tech-stack-core show ts --prefer-repo{% elif language == "go" %}tech-stack-core show go --prefer-repo{% elif language == "rust" %}tech-stack-core show rust --prefer-repo{% elif language == "elixir" %}tech-stack-core show elixir --prefer-repo{% endif %}`
+- `{%- if language == "python" -%}py{%- elif language in ["node", "typescript"] -%}ts{%- elif language == "go" -%}go{%- elif language == "rust" -%}rust{%- elif language == "elixir" -%}elixir{%- endif -%}`
+- executable upstream retrieval lives in `policy/stack-lane.json` -> `tech_stack_core.command`
 
 Executable contract surface:
 
 - `policy/stack-lane.json` pins the upstream lane and retrieval command.
 - `docs/tech-stack.local.md` records package-local deltas.
-- Package or monorepo validation should at least verify the pinned lane metadata.
+- Package or monorepo validation should at least verify the pinned lane metadata and may smoke the pinned command when available.
+
+Package-local emphasis:
+
+- This file is the local override layer on top of the upstream lane.
+- Keep package docs and package-level scripts aligned with the pinned lane.
+- Prefer monorepo/package deterministic wrappers before ad-hoc commands.
+- Update this file when local practice intentionally diverges from the upstream lane.
 {%- endif -%}

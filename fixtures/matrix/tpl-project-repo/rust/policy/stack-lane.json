@@ -4,7 +4,7 @@
     "tool": "tech-stack-core",
     "lane": "rust",
     "repository": "https://github.com/lightningralf/tech-stack-core",
-    "ref": "local-path",
-    "command": "uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show rust --prefer-repo"
+    "ref": "workspace-local-unpinned",
+    "command": "uv tool -n run --from ~/ai-society/core/tech-stack-core tech-stack-core show rust"
   }
 }

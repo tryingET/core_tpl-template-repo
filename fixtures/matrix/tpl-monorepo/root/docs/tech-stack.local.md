@@ -27,4 +27,4 @@ Practical rule:
 
 - Use root commands for monorepo-wide validation.
 - Use package/app local checks for language-specific validation.
-- Prefer `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show <lane> --prefer-repo` when consulting upstream lane docs.
+- Use each package/app `policy/stack-lane.json` as the source of truth for the pinned upstream lane command; root docs should not hardcode package lane commands.

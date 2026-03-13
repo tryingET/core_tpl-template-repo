@@ -21,14 +21,32 @@ When a repo or package maps to a shared `tech-stack-core` lane, prefer this expl
 
 1. `policy/stack-lane.json`
    - pins the upstream lane name
-   - records the retrieval command
-   - is the machine-readable contract
+   - records the executable retrieval command
+   - records how that command resolves the upstream lane provenance
+   - is the machine-readable source of truth
 2. `docs/tech-stack.local.md`
    - records repo/package-local deltas on top of the upstream lane
    - is the human-readable local override
 3. validation scripts
    - must at least verify pinned lane metadata
-   - may optionally smoke the `tech-stack-core` CLI when available
+   - should smoke the pinned `tech_stack_core.command` when the local workspace can resolve `tech-stack-core`
+
+## Read / consult order
+
+When an operator or agent needs stack guidance, use this order:
+
+1. `policy/stack-lane.json`
+   - source of truth for lane identity + executable upstream retrieval
+2. `docs/tech-stack.local.md`
+   - source of truth for repo/package-local deltas
+3. upstream lane output returned by `policy/stack-lane.json` -> `tech_stack_core.command`
+
+## Retrieval rule
+
+- Generated repos currently resolve `tech-stack-core` from a workspace-local checkout.
+- Record that honestly in `policy/stack-lane.json` as `ref: workspace-local-unpinned` until a real released ref is pinned.
+- Prefer `uv tool -n run --from ...` for that workspace-local command so uv does not silently reuse a stale cached build.
+- Do **not** append `--prefer-repo` unless the generated repo actually ships trusted local `lanes/` overrides.
 
 ## Layer rules
 
