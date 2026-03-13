@@ -1,31 +1,22 @@
-# Decisions
+---
+summary: "How to record agent-repo decisions and proposal-stage RFCs."
+read_when:
+  - "When making a durable agent-repo decision."
+  - "When drafting a proposal that still needs review before becoming a decision."
+---
 
-Record significant decisions about agent behavior, context, and configuration.
+# Decisions and RFCs
 
-## Format
+- Use **ADRs** for durable accepted decisions about agent behavior, context, contracts, and configuration.
+- Use **RFCs** for proposal-stage changes that still need option analysis, review, or rollout discussion.
+- Prefer the core ADR template from `governance-kernel` (`docs/core/system4d/TEMPLATE-ADR.md`).
+- Prefer the core RFC template from `governance-kernel` (`docs/core/system4d/TEMPLATE-RFC.md`).
 
-ADR-style (Architecture Decision Records) adapted for agents.
+## Agent-repo note
 
-## Template
-
-```markdown
-# D-NNNN: [Title]
-
-## Status
-Proposed | Accepted | Deprecated | Superseded
-
-## Context
-What is the issue being addressed?
-
-## Decision
-What is the change being proposed/made?
-
-## Consequences
-What becomes easier? What becomes harder?
-```
-
-## Examples
-
-- D-0001: Use structured prompts for all activities
-- D-0002: Store learnings in docs/learnings/ not scattered notes
-- D-0003: Escalate meta-patterns via TIPs
+If you keep a short `D-NNNN` naming scheme for local decisions, keep the content aligned with the core ADR structure:
+- context / problem
+- decision
+- alternatives
+- consequences
+- validation / rollout notes
