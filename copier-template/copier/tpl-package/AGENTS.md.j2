@@ -13,16 +13,25 @@ Package inside monorepo: {{ package_type }} ({{ language }})
 - Run ROCS commands from monorepo root: `../../scripts/rocs.sh <args...>`
 - For ontology/policy checks, use ROCS commands as the default execution path.
 
+## Stack contract
+- When this package language maps to a shared `tech-stack-core` lane, keep it explicit:
+  - `policy/stack-lane.json` pins the upstream lane and the executable retrieval command
+  - `docs/tech-stack.local.md` records package-local overrides on top of that lane
+  - consult `policy/stack-lane.json` before invoking `tech-stack-core` directly; do not assume package-local `lanes/` overrides exist
+
 ## Structure
 ```
 src/              # Source code
 tests/            # Test files
 docs/             # Package docs
-pyproject.toml    # Python (if language=python)
-package.json      # Node (if language=node|typescript)
-Cargo.toml        # Rust (if language=rust)
-go.mod            # Go (if language=go)
 ```
+
+Common language-specific files you may add as the package matures:
+- `pyproject.toml` — Python
+- `package.json` — Node / TypeScript
+- `Cargo.toml` — Rust
+- `go.mod` — Go
+- `mix.exs` — Elixir
 
 ## Recursion policy
 This is L3 (inside monorepo L2).

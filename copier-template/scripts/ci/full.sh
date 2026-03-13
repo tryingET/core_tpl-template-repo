@@ -15,11 +15,8 @@ esac
 
 "$repo_root/scripts/ci/smoke.sh"
 
-if [ -f "$repo_root/governance/work-items.json" ] && [ -f "$repo_root/crates/ak-cli/Cargo.toml" ] && command -v cargo >/dev/null 2>&1; then
-  (
-    cd "$repo_root"
-    cargo run --quiet --bin ak -- work-items check --repo "$repo_root" --path "./governance/work-items.json"
-  )
+if [ -f "$repo_root/governance/work-items.json" ]; then
+  "$repo_root/scripts/ak.sh" work-items check --repo "$repo_root" --path "./governance/work-items.json"
 fi
 
 if [ "$deep" -eq 1 ]; then

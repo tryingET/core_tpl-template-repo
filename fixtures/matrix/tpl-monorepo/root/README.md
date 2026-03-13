@@ -1,0 +1,101 @@
+# fixture-monorepo-matrix
+
+Holding Company monorepo workspace.
+
+## Structure
+
+```
+packages/        # Reusable libraries
+apps/            # Deployable services/applications
+docs/            # Documentation
+ontology/        # ROCS ontology
+governance/      # AK work-items projection, policies
+scripts/         # CI/utility scripts
+```
+
+## Package Manager
+
+- **uv** — workspace package management
+- Languages — defined per-package (see `packages/` and `apps/`)
+
+## Quick Commands
+
+```bash
+# Agent Kernel tooling
+./scripts/ak.sh --doctor
+./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+
+# ROCS tooling
+./scripts/rocs.sh --doctor
+./scripts/rocs.sh version
+
+# CI lanes
+./scripts/ci/smoke.sh
+./scripts/ci/full.sh
+```
+
+## Agent Kernel work-items flow
+
+Repo-local deferred work is **AK-first**.
+`governance/work-items.json` is a deterministic checked-in projection/mirror, not the live operational authority.
+
+```bash
+# One-time legacy JSON bootstrap into AK
+./scripts/ak.sh work-items import --repo . --path governance/work-items.json
+
+# Refresh projection from AK after work-items change
+./scripts/ak.sh work-items export --repo . --path governance/work-items.json
+
+# CI/local drift gate
+./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+```
+
+`./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so the projection stays reproducible even if the checkout directory name differs from `repo_slug`.
+
+## ROCS command flow
+
+1. `./scripts/rocs.sh --doctor` — verify ROCS environment
+2. `./scripts/rocs.sh validate --repo .` — validate ontology
+3. `./scripts/rocs.sh lint --repo .` — lint governance files
+
+## Adding Packages
+
+Use `tpl-package` from your L1 templates to add packages:
+
+```bash
+# From L1 templates repo
+./scripts/new-repo-from-copier.sh tpl-package /path/to/monorepo/packages/<name> \
+  -d package_name=<name> \
+  -d package_type=library \
+  -d language=<python|node|typescript|rust|go|elixir> \
+  --defaults --overwrite
+```
+
+## Adding Apps
+
+```bash
+# From L1 templates repo
+./scripts/new-repo-from-copier.sh tpl-package /path/to/monorepo/apps/<name> \
+  -d package_name=<name> \
+  -d package_type=app \
+  -d language=<python|node|typescript|rust|go|elixir> \
+  --defaults --overwrite
+```
+
+## Governance
+
+- Work-items projection: `governance/work-items.json` (AK-backed; use `./scripts/ak.sh`)
+- Projection schema: `governance/work-items.cue`
+- Policies: `policy/`
+- Ontology: `ontology/`
+- Repo-local stack note: `docs/tech-stack.local.md`
+- Package/app stack contracts live inside generated members (for example `policy/stack-lane.json` and `docs/tech-stack.local.md` from `tpl-package`)
+
+## Diary
+
+Capture sessions in `diary/YYYY-MM-DD--type-scope-summary.md`.
+
+## Recursion Policy
+
+- **Allowed**: L1 → L2 (this monorepo), L2 → L3 (packages/apps)
+- **Forbidden**: L2 → L1, L1 → L0

@@ -14,17 +14,27 @@ Do not ask for permission to start.
 ## ANTI-STALE RULES (HARD)
 - Keep this file short and current.
 - Keep only the active handoff window (not a history log).
+- Do **not** mirror low-level live state that is directly queryable from a DB, CLI, CI, or runtime script.
+- If state can be queried, point to the command instead of restating the result.
 - Move finished session narrative to `diary/`.
 - Crystallize durable patterns in `docs/learnings/` and decisions in `docs/decisions/`.
-- Track deferred work in `governance/work-items.json` (not in ad-hoc TODO notes).
+- Track deferred work in Agent Kernel and keep `governance/work-items.json` as the checked-in projection (not in ad-hoc TODO notes).
 
 ## SOURCE-OF-TRUTH MAP
 - Repo operating contract: `AGENTS.md`
 - Mission and goals: `docs/project/`
-- Active/deferred work contract: `governance/work-items.json`
+- Active/deferred work authority: Agent Kernel work-items state
+- Checked-in work-items projection: `governance/work-items.json`
 - Prior decisions: `docs/decisions/`
 - Crystallized learnings: `docs/learnings/`
 - Raw session capture: `diary/`
+- Queryable live state: runtime commands / DB / CI outputs (reference commands, do not copy snapshots)
+
+## WORK-ITEMS COMMANDS
+- Diagnose AK resolution: `./scripts/ak.sh --doctor`
+- Check projection drift: `./scripts/ak.sh work-items check --repo . --path governance/work-items.json`
+- Refresh projection from AK: `./scripts/ak.sh work-items export --repo . --path governance/work-items.json`
+- Legacy JSON bootstrap only: `./scripts/ak.sh work-items import --repo . --path governance/work-items.json`
 
 ## SESSION PREFLIGHT (FILL BEFORE EXECUTION)
 - Objective (one sentence):
@@ -35,17 +45,17 @@ Do not ask for permission to start.
 ## READ-FIRST ALLOWLIST (STARTUP BUDGET)
 1. `AGENTS.md`
 2. `README.md`
-3. `governance/work-items.json`
+3. `governance/work-items.json` (projection only; query AK if you need live state)
 4. `docs/project/mission.md`
 5. `docs/project/tactical_goals.md`
 6. Most recent `diary/YYYY-MM-DD--type-scope-summary.md`
 
 ## EXECUTION MODE (ONE SESSION = ONE SLICE)
-1. Pick one highest-leverage actionable slice from `governance/work-items.json`.
+1. Pick one highest-leverage actionable slice from the AK-backed backlog/projection.
 2. Implement end-to-end on a branch.
 3. Validate:
    - `./scripts/ci/smoke.sh`
-   - `./scripts/ci/full.sh` (when CI/policy/ontology/contracts changed)
+   - `./scripts/ci/full.sh` (when CI/policy/ontology/contracts/work-items changed)
 4. Update source-of-truth artifacts before commit.
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
@@ -53,7 +63,7 @@ Do not ask for permission to start.
 - Outcome:
 - Files changed:
 - Validation commands + results:
-- Deferred tasks updated in `governance/work-items.json`:
+- Deferred tasks updated in AK + `governance/work-items.json` exported:
 - Next-session starting point:
 
 ## END-OF-SESSION

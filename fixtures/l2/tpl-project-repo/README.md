@@ -14,6 +14,7 @@ Project repository with:
 - Organization context (`docs/org_context/`)
 - Decision records (`docs/decisions/`)
 - Learnings capture (`docs/learnings/`)
+- Repo-local work-items projection (`governance/work-items.json`)
 - Ontology support (`ontology/`)
 - ROCS tooling (`tools/rocs-cli/`)
 - CI baseline (`scripts/ci/`)
@@ -28,6 +29,38 @@ From an L1 templates repository:
   -d project_owner_handle=@<owner> \
   --defaults --overwrite
 ```
+
+## Agent Kernel work-items flow
+
+Repo-local deferred work is **AK-first**.
+`governance/work-items.json` is a deterministic checked-in projection/mirror for review and interoperability, not the live operational authority.
+
+Use the repo-local wrapper so AK resolution stays explicit and reproducible:
+
+```bash
+./scripts/ak.sh --doctor
+./scripts/ak.sh --which
+```
+
+Legacy JSON-first bootstrap (one-time migration into AK):
+
+```bash
+./scripts/ak.sh work-items import --repo . --path governance/work-items.json
+```
+
+Refresh the checked-in projection after AK state changes:
+
+```bash
+./scripts/ak.sh work-items export --repo . --path governance/work-items.json
+```
+
+Fail on projection drift locally/CI:
+
+```bash
+./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+```
+
+`./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so projection behavior stays reproducible even if the checkout directory name differs from `repo_slug`.
 
 ## Structure
 
@@ -48,13 +81,19 @@ From an L1 templates repository:
 │   ├── decisions/         # ADR-style decision records
 │   ├── learnings/         # Captured learnings (TIP candidates)
 │   └── system4d/          # System 4D context
+├── governance/
+│   ├── README.md          # AK-first workflow and projection rules
+│   ├── work-items.cue     # Projection schema contract
+│   └── work-items.json    # Checked-in AK projection/mirror
 ├── diary/                 # Repo-local session capture (KES raw input)
 ├── ontology/              # ROCS ontology
 │   └── src/system4d.yaml
 ├── tools/rocs-cli/        # ROCS validation tooling
 ├── src/                   # Source code
 ├── tests/                 # Test suite
-└── scripts/ci/            # CI scripts
+└── scripts/
+    ├── ak.sh             # Deterministic AK launcher
+    └── ci/               # CI scripts
 ```
 
 ## Customization

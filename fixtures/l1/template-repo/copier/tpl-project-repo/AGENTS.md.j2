@@ -7,13 +7,20 @@ Template for a delivery project repo (project context + code + tests).
 - No secrets in git.
 - Never push to `main`; MRs only.
 - Treat `docs/_core/**` as immutable.
-- Track deferred work in `governance/work-items.json` (avoid ad-hoc TODO comments).
+- Track deferred work in Agent Kernel; keep `governance/work-items.json` as the exported projection via `./scripts/ak.sh` (avoid ad-hoc TODO comments and manual JSON authority confusion).
 
 ## Deterministic tooling policy (ROCS-first)
+- Prefer `./scripts/ak.sh work-items <import|export|check> ...` for repo-local work-items projection operations.
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
 - Use `./scripts/preflight-repo-census.sh [scope]` for shallow multi-repo status checks.
 - For ontology/policy checks, use ROCS commands as the default execution path.
 - Use inline Python only as an explicit escape hatch when no deterministic command exists.
+
+## Stack contract
+- If this repo ships a language-specific software pack, keep the stack contract explicit:
+  - `policy/stack-lane.json` pins the upstream `tech-stack-core` lane
+  - `docs/tech-stack.local.md` records repo-local overrides
+  - prefer `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show <lane> --prefer-repo` when consulting the upstream lane
 
 ## Knowledge Crystallization Flow
 

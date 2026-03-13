@@ -56,11 +56,19 @@ expected_l1="$repo_root/fixtures/l1/template-repo"
 expected_l2_project="$repo_root/fixtures/l2/tpl-project-repo"
 expected_l2_monorepo="$repo_root/fixtures/l2/tpl-monorepo"
 expected_l2_package="$repo_root/fixtures/l2/tpl-package"
+expected_matrix_project_python="$repo_root/fixtures/matrix/tpl-project-repo/python"
+expected_matrix_project_rust="$repo_root/fixtures/matrix/tpl-project-repo/rust"
+expected_matrix_project_elixir="$repo_root/fixtures/matrix/tpl-project-repo/elixir"
+expected_matrix_monorepo_root="$repo_root/fixtures/matrix/tpl-monorepo/root"
 
 [ -d "$expected_l1" ] || fail "missing fixture directory: $expected_l1"
 [ -d "$expected_l2_project" ] || fail "missing fixture directory: $expected_l2_project"
 [ -d "$expected_l2_monorepo" ] || fail "missing fixture directory: $expected_l2_monorepo"
 [ -d "$expected_l2_package" ] || fail "missing fixture directory: $expected_l2_package"
+[ -d "$expected_matrix_project_python" ] || fail "missing fixture directory: $expected_matrix_project_python"
+[ -d "$expected_matrix_project_rust" ] || fail "missing fixture directory: $expected_matrix_project_rust"
+[ -d "$expected_matrix_project_elixir" ] || fail "missing fixture directory: $expected_matrix_project_elixir"
+[ -d "$expected_matrix_monorepo_root" ] || fail "missing fixture directory: $expected_matrix_monorepo_root"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
@@ -69,6 +77,10 @@ actual_l1="$tmp_root/l1-template-repo"
 actual_l2_project="$tmp_root/l2-tpl-project-repo"
 actual_l2_monorepo="$tmp_root/l2-tpl-monorepo"
 actual_l2_package="$tmp_root/l2-tpl-package"
+actual_matrix_project_python="$tmp_root/matrix-tpl-project-repo-python"
+actual_matrix_project_rust="$tmp_root/matrix-tpl-project-repo-rust"
+actual_matrix_project_elixir="$tmp_root/matrix-tpl-project-repo-elixir"
+actual_matrix_monorepo_root="$tmp_root/matrix-tpl-monorepo-root"
 
 run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
   -d repo_slug=fixture-template-repo \
@@ -83,6 +95,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 (
   cd "$actual_l1"
+
   run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_l2_project" \
     -d repo_slug=fixture-product-repo \
     -d enable_community_pack=false \
@@ -92,7 +105,6 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
   run_step ./scripts/new-repo-from-copier.sh tpl-monorepo "$actual_l2_monorepo" \
     -d repo_slug=fixture-monorepo \
-    -d language=python \
     -d package_manager=uv \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
@@ -103,6 +115,65 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
     -d package_name=fixture-core \
     -d package_type=library \
     -d language=python \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_python" \
+    -d repo_slug=fixture-project-python \
+    -d language=python \
+    -d enable_software_pack=true \
+    -d enable_community_pack=false \
+    -d enable_release_pack=false \
+    -d enable_vouch_gate=false \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_rust" \
+    -d repo_slug=fixture-project-rust \
+    -d language=rust \
+    -d enable_software_pack=true \
+    -d enable_community_pack=false \
+    -d enable_release_pack=false \
+    -d enable_vouch_gate=false \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_elixir" \
+    -d repo_slug=fixture-project-elixir \
+    -d language=elixir \
+    -d enable_software_pack=true \
+    -d enable_community_pack=false \
+    -d enable_release_pack=false \
+    -d enable_vouch_gate=false \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-monorepo "$actual_matrix_monorepo_root" \
+    -d repo_slug=fixture-monorepo-matrix \
+    -d package_manager=uv \
+    -d enable_community_pack=false \
+    -d enable_release_pack=false \
+    -d enable_vouch_gate=false \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-package "$actual_matrix_monorepo_root/packages/fixture-py-core" \
+    -d package_name=fixture-py-core \
+    -d package_type=library \
+    -d language=python \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-package "$actual_matrix_monorepo_root/packages/fixture-ts-core" \
+    -d package_name=fixture-ts-core \
+    -d package_type=library \
+    -d language=typescript \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-package "$actual_matrix_monorepo_root/packages/fixture-rust-core" \
+    -d package_name=fixture-rust-core \
+    -d package_type=library \
+    -d language=rust \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-package "$actual_matrix_monorepo_root/packages/fixture-elixir-core" \
+    -d package_name=fixture-elixir-core \
+    -d package_type=library \
+    -d language=elixir \
     --defaults --overwrite
 )
 
@@ -146,6 +217,14 @@ compare_expected_l2_monorepo="$tmp_root/compare/expected-l2-monorepo"
 compare_actual_l2_monorepo="$tmp_root/compare/actual-l2-monorepo"
 compare_expected_l2_package="$tmp_root/compare/expected-l2-package"
 compare_actual_l2_package="$tmp_root/compare/actual-l2-package"
+compare_expected_matrix_project_python="$tmp_root/compare/expected-matrix-project-python"
+compare_actual_matrix_project_python="$tmp_root/compare/actual-matrix-project-python"
+compare_expected_matrix_project_rust="$tmp_root/compare/expected-matrix-project-rust"
+compare_actual_matrix_project_rust="$tmp_root/compare/actual-matrix-project-rust"
+compare_expected_matrix_project_elixir="$tmp_root/compare/expected-matrix-project-elixir"
+compare_actual_matrix_project_elixir="$tmp_root/compare/actual-matrix-project-elixir"
+compare_expected_matrix_monorepo_root="$tmp_root/compare/expected-matrix-monorepo-root"
+compare_actual_matrix_monorepo_root="$tmp_root/compare/actual-matrix-monorepo-root"
 
 prepare_compare_tree "$expected_l1" "$compare_expected_l1"
 prepare_compare_tree "$actual_l1" "$compare_actual_l1"
@@ -155,10 +234,22 @@ prepare_compare_tree "$expected_l2_monorepo" "$compare_expected_l2_monorepo"
 prepare_compare_tree "$actual_l2_monorepo" "$compare_actual_l2_monorepo"
 prepare_compare_tree "$expected_l2_package" "$compare_expected_l2_package"
 prepare_compare_tree "$actual_l2_package" "$compare_actual_l2_package"
+prepare_compare_tree "$expected_matrix_project_python" "$compare_expected_matrix_project_python"
+prepare_compare_tree "$actual_matrix_project_python" "$compare_actual_matrix_project_python"
+prepare_compare_tree "$expected_matrix_project_rust" "$compare_expected_matrix_project_rust"
+prepare_compare_tree "$actual_matrix_project_rust" "$compare_actual_matrix_project_rust"
+prepare_compare_tree "$expected_matrix_project_elixir" "$compare_expected_matrix_project_elixir"
+prepare_compare_tree "$actual_matrix_project_elixir" "$compare_actual_matrix_project_elixir"
+prepare_compare_tree "$expected_matrix_monorepo_root" "$compare_expected_matrix_monorepo_root"
+prepare_compare_tree "$actual_matrix_monorepo_root" "$compare_actual_matrix_monorepo_root"
 
 compare_tree "$compare_expected_l1" "$compare_actual_l1" "L1 fixture"
 compare_tree "$compare_expected_l2_project" "$compare_actual_l2_project" "L2 project fixture"
 compare_tree "$compare_expected_l2_monorepo" "$compare_actual_l2_monorepo" "L2 monorepo fixture"
 compare_tree "$compare_expected_l2_package" "$compare_actual_l2_package" "L2 package fixture"
+compare_tree "$compare_expected_matrix_project_python" "$compare_actual_matrix_project_python" "project-language matrix python"
+compare_tree "$compare_expected_matrix_project_rust" "$compare_actual_matrix_project_rust" "project-language matrix rust"
+compare_tree "$compare_expected_matrix_project_elixir" "$compare_actual_matrix_project_elixir" "project-language matrix elixir"
+compare_tree "$compare_expected_matrix_monorepo_root" "$compare_actual_matrix_monorepo_root" "monorepo-language matrix root"
 
 echo "ok: l0 fixtures"

@@ -16,21 +16,26 @@ need_cmd git
 chmod +x \
   "$repo_root/scripts/new-repo-from-copier.sh" \
   "$repo_root/scripts/bootstrap-lane-root.sh" \
+  "$repo_root/scripts/ak.sh" \
   "$repo_root/scripts/check-template-ci.sh" \
   "$repo_root/scripts/install-hooks.sh" \
   "$repo_root/scripts/ci/smoke.sh" \
   "$repo_root/scripts/ci/full.sh" \
   "$repo_root/.githooks/pre-commit" \
   "$repo_root/.githooks/pre-push" \
+  "$repo_root/copier/tpl-agent-repo/scripts/ak.sh" \
   "$repo_root/copier/tpl-agent-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-agent-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-agent-repo/scripts/ci/full.sh" \
+  "$repo_root/copier/tpl-org-repo/scripts/ak.sh" \
   "$repo_root/copier/tpl-org-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-org-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-org-repo/scripts/ci/full.sh" \
+  "$repo_root/copier/tpl-project-repo/scripts/ak.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/full.sh" \
+  "$repo_root/copier/tpl-monorepo/scripts/ak.sh" \
   "$repo_root/copier/tpl-monorepo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-monorepo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-monorepo/scripts/ci/full.sh" \

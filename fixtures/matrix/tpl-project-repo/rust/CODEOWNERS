@@ -1,0 +1,16 @@
+# Location: owned
+# Language: rust# Core + org context snapshots
+docs/_core/** @core-owner
+docs/org_context/** @org-owners
+
+# Project delivery + governance
+docs/project/** @holdingco-owners
+docs/system4d/** @holdingco-owners
+docs/decisions/** @holdingco-owners
+docs/dev/** @holdingco-owners
+policy/** @holdingco-owners
+
+# Code
+scripts/** @holdingco-owners
+src/** @holdingco-owners
+tests/** @holdingco-owners

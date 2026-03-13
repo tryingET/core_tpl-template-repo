@@ -38,6 +38,7 @@ language:
     - typescript
     - rust
     - go
+    - elixir
   help: "Primary language for the package"
 
 package_description:

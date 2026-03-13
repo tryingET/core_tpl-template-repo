@@ -1,0 +1,9 @@
+[package]
+name = "fixture_project_rust"
+version = "0.1.0"
+edition = "2021"
+description = "Holding Company project"
+
+[dependencies]
+
+[dev-dependencies]

@@ -17,6 +17,7 @@ Project repository with:
 - Organization context (`docs/org_context/`)
 - Decision records (`docs/decisions/`)
 - Learnings capture (`docs/learnings/`)
+- Repo-local work-items projection (`governance/work-items.json`)
 - Ontology support (`ontology/`)
 - ROCS tooling (`tools/rocs-cli/`)
 - CI baseline (`scripts/ci/`)
@@ -36,7 +37,10 @@ uv run pytest        # Run tests
 uv run ruff check .  # Lint
 ```
 
-See: `~/ai-society/core/tech-stack-core/lanes/tech-stack-py.md`
+Explicit stack contract surface:
+- `policy/stack-lane.json`
+- `docs/tech-stack.local.md`
+- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show py --prefer-repo`
 {%- elif language in ["node", "typescript"] %}
 
 {{ "TypeScript" if language == "typescript" else "Node" }} project scaffolded with:
@@ -50,7 +54,10 @@ npm install          # Install dependencies
 npm test             # Run tests
 ```
 
-See: `~/ai-society/core/tech-stack-core/lanes/tech-stack-{{ "ts" if language == "typescript" else "pi-ts" }}.md`
+Explicit stack contract surface:
+- `policy/stack-lane.json`
+- `docs/tech-stack.local.md`
+- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show ts --prefer-repo`
 {%- elif language == "rust" %}
 
 Rust project scaffolded with:
@@ -60,6 +67,11 @@ Rust project scaffolded with:
 cargo build          # Build
 cargo test           # Run tests
 ```
+
+Explicit stack contract surface:
+- `policy/stack-lane.json`
+- `docs/tech-stack.local.md`
+- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show rust --prefer-repo`
 {%- elif language == "go" %}
 
 Go project scaffolded with:
@@ -70,7 +82,25 @@ go build ./...       # Build
 go test ./...        # Run tests
 ```
 
-See: `~/ai-society/core/tech-stack-core/lanes/tech-stack-go.md`
+Explicit stack contract surface:
+- `policy/stack-lane.json`
+- `docs/tech-stack.local.md`
+- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show go --prefer-repo`
+{%- elif language == "elixir" %}
+
+Elixir project scaffolded with:
+- `mix.exs` — Mix project configuration
+
+```bash
+mix deps.get         # Install dependencies
+mix test             # Run tests
+mix format           # Format code
+```
+
+Explicit stack contract surface:
+- `policy/stack-lane.json`
+- `docs/tech-stack.local.md`
+- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show elixir --prefer-repo`
 {%- endif %}
 {%- endif %}
 
@@ -84,6 +114,38 @@ From an L1 templates repository:
   -d project_owner_handle=@<owner> \
   --defaults --overwrite
 ```
+
+## Agent Kernel work-items flow
+
+Repo-local deferred work is **AK-first**.
+`governance/work-items.json` is a deterministic checked-in projection/mirror for review and interoperability, not the live operational authority.
+
+Use the repo-local wrapper so AK resolution stays explicit and reproducible:
+
+```bash
+./scripts/ak.sh --doctor
+./scripts/ak.sh --which
+```
+
+Legacy JSON-first bootstrap (one-time migration into AK):
+
+```bash
+./scripts/ak.sh work-items import --repo . --path governance/work-items.json
+```
+
+Refresh the checked-in projection after AK state changes:
+
+```bash
+./scripts/ak.sh work-items export --repo . --path governance/work-items.json
+```
+
+Fail on projection drift locally/CI:
+
+```bash
+./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+```
+
+`./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so projection behavior stays reproducible even if the checkout directory name differs from `repo_slug`.
 
 ## Structure
 
@@ -104,13 +166,19 @@ From an L1 templates repository:
 │   ├── decisions/         # ADR-style decision records
 │   ├── learnings/         # Captured learnings (TIP candidates)
 │   └── system4d/          # System 4D context
+├── governance/
+│   ├── README.md          # AK-first workflow and projection rules
+│   ├── work-items.cue     # Projection schema contract
+│   └── work-items.json    # Checked-in AK projection/mirror
 ├── diary/                 # Repo-local session capture (KES raw input)
 ├── ontology/              # ROCS ontology
 │   └── src/system4d.yaml
 ├── tools/rocs-cli/        # ROCS validation tooling
 ├── src/                   # Source code
 ├── tests/                 # Test suite
-└── scripts/ci/            # CI scripts
+└── scripts/
+    ├── ak.sh             # Deterministic AK launcher
+    └── ci/               # CI scripts
 ```
 
 ## Customization

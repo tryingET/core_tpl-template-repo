@@ -50,7 +50,7 @@ Render chain:
 
 ## 1) tpl-project-repo output inventory (default, software pack off)
 
-Default L2 output is intentionally split into 6 domains:
+Default L2 output is intentionally split into 7 domains:
 
 ### A. Repo control plane (must exist)
 - `.copier-answers.yml` (render provenance)
@@ -63,13 +63,32 @@ Default L2 output is intentionally split into 6 domains:
 - `docs/org_context/` (org constraints snapshot)
 - `docs/project/` (purpose/mission/vision/model/goals)
 - `docs/system4d/` (container/compass/engine/fog)
-- `next_session_prompt.md` (single active handoff prompt; replaces status/next-steps split)
+- `next_session_prompt.md` (single active handoff prompt; replaces status/next-steps split and must not mirror queryable runtime state)
 - `docs/decisions/`, `docs/learnings/`
 
 ### C. Governance model
-- `governance/work-items.cue` (validation contract)
-- `governance/work-items.json` (seed planning model)
-- `governance/README.md` (usage + boundaries)
+- `governance/work-items.cue` (checked-in projection contract)
+- `governance/work-items.json` (deterministic checked-in AK projection/mirror; not the live authority)
+- `governance/README.md` (AK-first workflow + projection boundaries)
+- `policy/stack-lane.json` (conditional: emitted when the selected language maps to a shared `tech-stack-core` lane)
+
+### D. Stack contract
+- `docs/tech-stack.local.md` (conditional: repo-local override on top of the shared lane)
+
+### E. Ontology + validation toolchain
+- `ontology/manifest.yaml`, `ontology/src/**`
+- `scripts/rocs.sh`
+- `tools/rocs-cli/` (vendored deterministic runner source)
+
+### F. CI surface
+- `scripts/ak.sh` (deterministic AK launcher for repo-local work-items projection)
+- `scripts/ci/smoke.sh`, `scripts/ci/full.sh`
+
+### G. Product-code placeholders
+- `src/.gitkeep`
+- `tests/.gitkeep`
+- `policy/.gitkeep`
+- `scripts/.gitkeep`
 
 ### D. Ontology + validation toolchain
 - `ontology/manifest.yaml`, `ontology/src/**`
@@ -92,6 +111,7 @@ Enabled only when `enable_software_pack=true`:
 - TypeScript: `package.json`, `tsconfig.json`
 - Rust: `Cargo.toml`
 - Go: `go.mod`
+- Elixir: `mix.exs`
 
 ---
 

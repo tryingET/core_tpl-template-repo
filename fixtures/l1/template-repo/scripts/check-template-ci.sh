@@ -146,6 +146,7 @@ contracts/layer-contract.yml
 contracts/provenance-seal.yml
 scripts/new-repo-from-copier.sh
 scripts/bootstrap-lane-root.sh
+scripts/ak.sh
 scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
@@ -181,6 +182,10 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_file "copier/$tpl/copier.yml"
   assert_file "copier/$tpl/AGENTS.md.j2"
   assert_file "copier/$tpl/CODEOWNERS.j2"
+  if [ "$tpl" != "tpl-package" ]; then
+    assert_file "copier/$tpl/scripts/ak.sh"
+    assert_exec "copier/$tpl/scripts/ak.sh"
+  fi
   assert_file "copier/$tpl/scripts/rocs.sh.j2"
   assert_exec "copier/$tpl/scripts/rocs.sh.j2"
   assert_file "copier/$tpl/scripts/ci/smoke.sh"
@@ -192,8 +197,21 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_contains "copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
   assert_contains "copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
   assert_contains "copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
+  if [ "$tpl" != "tpl-package" ]; then
+    assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
+    assert_not_contains "copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
+  fi
   assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
+for tpl in tpl-project-repo tpl-monorepo; do
+  assert_file "copier/$tpl/governance/work-items.cue"
+  assert_file "copier/$tpl/governance/work-items.json.j2"
+  assert_contains "copier/$tpl/README.md.j2" "Agent Kernel work-items flow" "L2 template $tpl README should document the AK work-items workflow"
+  assert_contains "copier/$tpl/governance/README.md" "work-items export" "L2 template $tpl governance README should document projection export"
+  assert_contains "copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
+  assert_contains "copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
+done
+assert_contains "copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
 
 check_multi_pass_suffix_policy
@@ -201,6 +219,7 @@ check_multi_pass_suffix_policy
 required_exec="
 scripts/new-repo-from-copier.sh
 scripts/bootstrap-lane-root.sh
+scripts/ak.sh
 scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
@@ -223,6 +242,7 @@ done
 assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
 assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L1 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "AGENTS.md" "Deterministic tooling policy" "L1 AGENTS should document deterministic tooling policy"
+assert_contains "AGENTS.md" "scripts/ak.sh" "L1 AGENTS should reference scripts/ak.sh when repo-local work-items projection is in scope"
 assert_contains "AGENTS.md" "scripts/rocs.sh" "L1 AGENTS should reference scripts/rocs.sh"
 assert_contains "AGENTS.md" "diary/" "L1 AGENTS should require repo-local diary"
 assert_contains "AGENTS.md" "L2 Templates" "L1 AGENTS should document L2 templates"
@@ -233,6 +253,7 @@ assert_contains "README.md" "Community profile" "L1 README should describe commu
 assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
 assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
 assert_contains "README.md" "Deterministic ROCS launcher" "L1 README should document deterministic ROCS launcher"
+assert_contains "README.md" "Deterministic Agent Kernel launcher" "L1 README should document deterministic Agent Kernel launcher"
 assert_contains "README.md" "Multi-pass template suffix policy" "L1 README should document multi-pass suffix policy"
 assert_contains "README.md" "repo-local diary" "L1 README should document repo-local diary contract"
 assert_contains "README.md" "no automatic in-place migrator" "L1 README should describe deterministic migration limitation"
@@ -296,6 +317,8 @@ assert_contains "scripts/new-repo-from-copier.sh" "$fallback_warning" "L1 wrappe
 assert_not_contains "scripts/new-repo-from-copier.sh" "uvx copier" "L1 wrapper must not call unpinned uvx copier"
 assert_line_precedes "scripts/new-repo-from-copier.sh" "$uvx_guard" "$uv_guard" "L1 wrapper must prefer uvx before uv tool run"
 assert_line_precedes "scripts/new-repo-from-copier.sh" "$uv_guard" "$copier_guard" "L1 wrapper must prefer pinned runtimes before unpinned copier"
+assert_contains "scripts/ak.sh" "deterministic resolution order" "L1 AK wrapper should document deterministic resolution order"
+assert_contains "scripts/ak.sh" "work-items check" "L1 AK wrapper should document work-items projection commands"
 
 workflow=".github/workflows/template-check.yml"
 assert_contains "$workflow" "pull_request:" "template-check workflow must run on pull requests"
@@ -308,10 +331,16 @@ assert_contains "$ci_workflow" "Run full lane" "ci workflow must expose full lan
 
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
+assert_contains "scripts/ci/full.sh" "scripts/ak.sh" "L1 full CI should use scripts/ak.sh for work-items projection checks"
+assert_not_contains "scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L1 full CI must not gate AK checks on vendored ak-cli"
 assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 assert_not_contains "scripts/install-hooks.sh" "copier/template-repo" "install-hooks must not reference removed legacy template-repo path"
 assert_contains "scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "install-hooks must normalize executable bit for lane bootstrap helper"
+assert_contains "scripts/install-hooks.sh" "scripts/ak.sh" "install-hooks must normalize executable bit for the L1 AK wrapper"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
+  if [ "$tpl" != "tpl-package" ]; then
+    assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ak.sh" "install-hooks must include executable bit normalization for $tpl AK wrapper"
+  fi
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "install-hooks must include executable bit normalization for $tpl rocs wrapper"
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "install-hooks must include executable bit normalization for $tpl smoke lane"
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "install-hooks must include executable bit normalization for $tpl full lane"
@@ -422,17 +451,27 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   assert_file "$l2_dir/.copier-answers.yml"
   assert_file "$l2_dir/AGENTS.md"
   assert_file "$l2_dir/CODEOWNERS"
+  assert_file "$l2_dir/scripts/ak.sh"
   assert_file "$l2_dir/scripts/rocs.sh"
   assert_file "$l2_dir/scripts/ci/smoke.sh"
   assert_file "$l2_dir/scripts/ci/full.sh"
   assert_file "$l2_dir/diary/README.md"
+  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+    assert_file "$l2_dir/governance/work-items.cue"
+    assert_file "$l2_dir/governance/work-items.json"
+  fi
   assert_contains "$l2_dir/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "generated $tpl diary README should enforce descriptive filename convention"
   assert_not_dir "$l2_dir/docs/diary"
+  assert_exec "$l2_dir/scripts/ak.sh"
   assert_exec "$l2_dir/scripts/rocs.sh"
   assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"
   assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated $tpl AGENTS should reference scripts/rocs.sh"
   assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
   assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
+  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+    assert_contains "$l2_dir/README.md" "Agent Kernel work-items flow" "generated $tpl README should document the AK work-items workflow"
+    assert_contains "$l2_dir/governance/README.md" "work-items export" "generated $tpl governance README should document projection export"
+  fi
 
   # Initialize git for smoke + idempotency test (smoke requires git repo)
   (
@@ -443,6 +482,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
     git add . >/dev/null
     git commit -m "initial L2 render" >/dev/null
     ./scripts/ci/smoke.sh >/dev/null
+    if command -v ak >/dev/null 2>&1 && { [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; }; then
+      ./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
+    fi
   )
 
   ./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
@@ -489,6 +531,36 @@ assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README s
   -d package_type=library \
   -d language=python \
   --defaults --overwrite >/dev/null
+
+# Elixir stack-contract smoke for project + package templates.
+elixir_project_dir="$tmp_root/tpl-project-repo-elixir"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$elixir_project_dir" \
+  -d repo_slug=fixture-project-elixir \
+  -d language=elixir \
+  -d enable_software_pack=true \
+  --defaults --overwrite >/dev/null
+assert_file "$elixir_project_dir/mix.exs"
+assert_file "$elixir_project_dir/policy/stack-lane.json"
+assert_file "$elixir_project_dir/docs/tech-stack.local.md"
+assert_contains "$elixir_project_dir/policy/stack-lane.json" '"lane": "elixir"' "generated elixir project should pin the elixir stack lane"
+assert_contains "$elixir_project_dir/docs/tech-stack.local.md" "tech-stack-core show elixir --prefer-repo" "generated elixir project should reference the elixir lane command"
+if command -v ak >/dev/null 2>&1; then
+  (
+    cd "$elixir_project_dir"
+    ./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
+  )
+fi
+
+elixir_package_dir="$tmp_root/tpl-package-elixir"
+./scripts/new-repo-from-copier.sh tpl-package "$elixir_package_dir" \
+  -d package_name=fixture-elixir-core \
+  -d package_type=library \
+  -d language=elixir \
+  --defaults --overwrite >/dev/null
+assert_file "$elixir_package_dir/policy/stack-lane.json"
+assert_file "$elixir_package_dir/docs/tech-stack.local.md"
+assert_contains "$elixir_package_dir/policy/stack-lane.json" '"lane": "elixir"' "generated elixir package should pin the elixir stack lane"
+assert_contains "$elixir_package_dir/docs/tech-stack.local.md" "tech-stack-core show elixir --prefer-repo" "generated elixir package should reference the elixir lane command"
 
 # Detailed check for tpl-project-repo (primary template)
 l2_dir="$tmp_root/tpl-project-repo"

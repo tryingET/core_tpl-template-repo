@@ -11,6 +11,8 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Treat `enable_community_pack` as profile policy (default disabled, enable for public/community-facing repos).
 - Treat `enable_release_pack` as profile policy (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as profile policy (default disabled, enable for trust-gated/public repos).
+- Keep generated repo-local task/issue/work-item surfaces AK-first: Agent Kernel is authoritative, while checked-in files such as `governance/work-items.json` are deterministic projections/mirrors.
+- When templates ship repo-local work-items, prefer deterministic wrappers (for example generated `./scripts/ak.sh`) and never reintroduce silent CI skips for projection drift checks.
 - No secrets in git.
 
 ## Recursion policy (explicit)
@@ -28,6 +30,7 @@ Forbidden:
 - Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
 - Repo census preflight: `./scripts/preflight-repo-census.sh [scope]`
 - ROCS command launcher (deterministic + portable): `./scripts/rocs.sh <rocs args...>`
+- Tech-stack contract authoring (when stack guidance is in scope): generated repos should treat `policy/stack-lane.json` as the source of truth for the pinned upstream lane command and `docs/tech-stack.local.md` as the local override; do not emit `--prefer-repo` unless a repo ships trusted local `lanes/`
 
 ## Deterministic tooling policy (ROCS-first)
 - Prefer deterministic wrappers (`./scripts/rocs.sh`, repo `scripts/*`) over ad-hoc inline scripts.

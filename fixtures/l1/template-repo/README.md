@@ -136,6 +136,14 @@ Deterministic ROCS launcher (use before ad-hoc scripting):
 ./scripts/rocs.sh version
 ```
 
+Deterministic Agent Kernel launcher (for repos that ship `governance/work-items.json`):
+
+```bash
+./scripts/ak.sh --doctor
+./scripts/ak.sh --which
+./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+```
+
 ## Multi-pass template suffix policy (`.jinja` vs `.j2`)
 
 This L1 template repo has two template boundaries:
@@ -202,10 +210,10 @@ See `tips/README.md` for TIP process.
 ## Governance layering
 
 L2 governance is archetype-dependent:
-- `tpl-project-repo`: `governance/work-items.*` + `docs/project/` + `docs/system4d/`.
+- `tpl-project-repo`: AK-first repo-local work-items projection in `governance/work-items.*` + `docs/project/` + `docs/system4d/`.
 - `tpl-org-repo`: governance-primary docs in `docs/org/` + `governance/`.
 - `tpl-agent-repo`: lightweight local governance in persona/system docs.
-- `tpl-monorepo`: repo-level delivery governance with package/app decomposition.
+- `tpl-monorepo`: AK-first repo-level work-items projection with package/app decomposition.
 - `tpl-package`: package-local governance and quality controls inside a monorepo.
 
 For `tpl-project-repo`, the canonical file-by-file contract is:

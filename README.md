@@ -18,6 +18,15 @@ For the detailed L0 -> L1 -> L2 file contract (deep review + what goes where):
 - `copier-template/docs/dev/tpl-project-repo-file-contract.md`
 - wikilink: `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]`
 
+Repo-local work-items in generated `tpl-project-repo` / `tpl-monorepo` repos are now AK-first:
+`governance/work-items.json` is a deterministic checked-in projection/mirror, and generated repos use repo-local `scripts/ak.sh` wrappers for `ak work-items import|export|check`.
+
+## Canonical tech-stack contract map
+
+For how `tech-stack-core` lane metadata and local overrides propagate through generated repos:
+- `copier-template/docs/dev/tech-stack-contract.md`
+- wikilink: `[[copier-template/docs/dev/tech-stack-contract.md]]`
+
 ## Quickstart
 
 Generate an L1 repo from L0:

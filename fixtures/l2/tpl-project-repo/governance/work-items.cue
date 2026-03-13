@@ -1,8 +1,7 @@
 package workitems
 
-// Work-items schema for L2 (project-level) planning.
-// Scope: single repository.
-// Operational status: non-operational (planning artifact only).
+// Deterministic compatibility projection for repo-local Agent Kernel work-items.
+// Operational authority lives in AK; governance/work-items.json is a checked-in mirror.
 
 #State: "triage" | "queued" | "doing" | "review" | "done"
 

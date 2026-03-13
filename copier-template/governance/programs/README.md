@@ -12,10 +12,13 @@ This folder contains programs specific to this company's template setup and comp
 | Validation | ✓ CUE schema |
 | Operational | ✗ No scheduler support |
 
-The scheduler only operates on L0 (FCOS) work-items. L1 work-items are for:
-- Planning and tracking company-level work
-- Coordinating across L2 repos
-- Documenting decisions and progress
+The scheduler only operates on L0 (FCOS) work-items.
+L1 programs are for:
+- planning and tracking company-level work
+- coordinating across L2 repos
+- documenting decisions and progress
+
+Repo-local L2 work-items are now AK-first: Agent Kernel is authoritative and `repo/governance/work-items.json` is only the checked-in projection.
 
 ## Structure
 
@@ -66,14 +69,14 @@ triage → queued → doing → review → done
 
 ## Hierarchy Context
 
-| Level | Scope | Operational? |
-|-------|-------|--------------|
-| L0 | Cross-company | Yes (scheduler) |
+| Level | Scope | Authority |
+|-------|-------|-----------|
+| L0 | Cross-company | Yes (scheduler / FCOS) |
 | **L1** | **Company (this folder)** | **Planning only** |
-| L2 | Project | Planning only |
+| L2 | Project / monorepo | AK authoritative; JSON projection only |
 
 ## Related
 
 - L0 Programs: `governance-kernel/governance/programs/`
-- L2 Work Items: `repo/governance/work-items.json`
+- L2 Work Items Projection: `repo/governance/work-items.json`
 - State Machine: `governance-kernel/governance/fcos/state-machine.yaml`

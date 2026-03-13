@@ -1,0 +1,10 @@
+{
+  "lane": "elixir",
+  "tech_stack_core": {
+    "tool": "tech-stack-core",
+    "lane": "elixir",
+    "repository": "https://github.com/lightningralf/tech-stack-core",
+    "ref": "local-path",
+    "command": "uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show elixir --prefer-repo"
+  }
+}
