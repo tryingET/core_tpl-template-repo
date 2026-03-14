@@ -4,10 +4,10 @@
 Reading this file is authorization to start immediately.
 Do not ask for permission to begin.
 
-## CURRENT MISSION: KEEP L0 AK-FIRST AND TRUTHFUL
+## CURRENT MISSION: FOLLOW THE RUNTIME-RESOLVED FCOS QUEUE FOR THE NEXT L0 SLICE
 
-This repo maintains the L0 template that seeds L1/L2 repositories.
-Current priority is to preserve the new AK-first authority model for repo-local work-items and prevent regressions back to silent JSON-first behavior.
+This repo currently has no known blocking local follow-up after the AK-first work-items slice and the ontology-lsp architecture archaeology/crystallization pass.
+Choose the next repo-local slice from the runtime-resolved FCOS queue rather than from stale hardcoded issue IDs.
 
 ## RUNTIME-RESOLVED PRIORITY / NEXT ISSUE
 
@@ -15,43 +15,36 @@ Current priority is to preserve the new AK-first authority model for repo-local 
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`
 - Next issue resolver (same command, mirror-only):
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
-- Resolved at checkpoint update time:
-  - `FCOS-M4-03`
 - Anti-drift cadence policy:
   - loop-owned via `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`
 
 ## READ-FIRST ALLOWLIST
 1. `AGENTS.md`
 2. `README.md`
-3. `copier-template/docs/dev/tpl-project-repo-file-contract.md`
-4. `copier-template/scripts/ak.sh`
-5. `copier-template/copier/tpl-project-repo/governance/README.md`
+3. `docs/learnings/2026-03-13-stable-core-thin-adapters-for-multi-surface-systems.md`
+4. `docs/learnings/2026-03-13-recurring-operation-languages-should-become-explicit.md`
+5. `tips/meta/tip-0010-stable-core-thin-adapters-for-multi-surface-systems.md`
 6. latest `diary/YYYY-MM-DD--type-scope-summary.md`
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Make dormant AK work-items integration alive at L0 and distribute the AK authority model via AGENTS layering.
+  - Archaeology pass over ontology-lsp to crystallize reusable architecture guidance for stable cores, thin adapters, ports, and DSL/formalization placement.
 - Outcome:
-  - Added deterministic repo-local `scripts/ak.sh` wrapper strategy for L1/L2 surfaces.
-  - Switched template CI from vendored-`crates/ak-cli` gating to AK-first drift checks with explicit failure when AK is unavailable.
-  - Rewrote project/monorepo work-items docs so AK is authoritative and `governance/work-items.json` is the checked-in projection.
-  - Added monorepo work-items projection files to make that archetype truthful.
-  - Added guardrails preventing regression to silent AK skip behavior.
-  - Updated workspace and repo AGENTS policy so AK authority is ambiently distributed from parent context.
+  - Captured ontology-lsp archaeology in repo-local diary.
+  - Added a crystallized learning for the main architecture pattern: stable core + thin adapters + ports at real seams.
+  - Added a linked crystallized learning for the DSL/formalization sub-pattern inside the stable core.
+  - Added `TIP-0010` so the architecture rule can propagate across future AI Society repos.
+  - Kept the main architecture learning DRY by linking to the DSL learning instead of duplicating it.
 - Validation run:
-  - `bash ./scripts/check-l0-guardrails.sh` (pass)
-  - `bash ./scripts/check-l0-generation.sh` (pass)
-  - `bash ./scripts/check-l0-fixtures.sh` (pass)
   - `bash ./scripts/check-l0.sh` (pass)
 - Files of interest:
-  - `copier-template/scripts/ak.sh`
-  - `copier-template/copier/tpl-project-repo/**`
-  - `copier-template/copier/tpl-monorepo/**`
-  - `copier-template/scripts/check-template-ci.sh`
-  - `scripts/check-l0-guardrails.sh`
-  - `/home/tryinget/ai-society/AGENTS.md`
+  - `docs/learnings/2026-03-13-stable-core-thin-adapters-for-multi-surface-systems.md`
+  - `docs/learnings/2026-03-13-recurring-operation-languages-should-become-explicit.md`
+  - `tips/meta/tip-0010-stable-core-thin-adapters-for-multi-surface-systems.md`
+  - `diary/2026-03-13--research-ontology-lsp-adapter-architecture-archaeology.md`
+  - `diary/2026-03-13--docs-dsl-learning-linkage.md`
 - Blockers / follow-up:
-  - Workspace root `~/ai-society` is a separate dirty repo; commit parent-level AGENTS changes separately from `core/tpl-template-repo` work.
+  - No blocking repo-local follow-up known; use the runtime-resolved FCOS queue to choose the next slice.
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md`
 - KES crystallization flow:
