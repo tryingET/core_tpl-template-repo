@@ -120,6 +120,7 @@ run_check() {
 failed=0
 
 run_check "check-l0-guardrails" "$repo_root/scripts/check-l0-guardrails.sh" || failed=$((failed + 1))
+run_check "check-doc-references" "$repo_root/scripts/check-doc-references.sh" || failed=$((failed + 1))
 run_check "check-session-checkpoint" "$repo_root/scripts/check-session-checkpoint.sh" || failed=$((failed + 1))
 run_check "check-supply-chain" "$repo_root/scripts/check-supply-chain.sh" || failed=$((failed + 1))
 run_check "check-l0-generation" "$repo_root/scripts/check-l0-generation.sh" || failed=$((failed + 1))

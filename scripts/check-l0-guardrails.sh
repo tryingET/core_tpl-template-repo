@@ -223,6 +223,9 @@ for tpl in tpl-project-repo tpl-monorepo; do
   assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
 done
 assert_contains "copier-template/copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
+assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py" "def _safe_cache_component" "tpl-project-repo GitLab cache helper should sanitize cache path components"
+assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py" "safe_ref = _safe_cache_component(ref, label=\"ref\")" "tpl-project-repo GitLab cache path should sanitize ref names"
+assert_contains "fixtures/l2/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py" "def _safe_cache_component" "fixture tpl-project-repo GitLab cache helper should stay synchronized"
 
 check_multi_pass_suffix_policy
 
@@ -287,6 +290,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
   assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
   assert_contains "copier-template/copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
+  if [ "$tpl" = "tpl-project-repo" ]; then
+    assert_file "copier-template/copier/$tpl/scripts/ci/fast.sh"
+  fi
   if [ "$tpl" != "tpl-package" ]; then
     assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
     assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
@@ -336,6 +342,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   fi
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "L1 install-hooks should normalize executable bits for $tpl smoke lane"
+  if [ "$tpl" = "tpl-project-repo" ]; then
+    assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/fast.sh" "L1 install-hooks should normalize executable bits for $tpl fast lane"
+  fi
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "L1 install-hooks should normalize executable bits for $tpl full lane"
 done
 assert_not_contains "copier-template/scripts/ci/smoke.sh" "copier/template-repo/copier.yml" "L1 smoke lane must not lint removed legacy template-repo path"

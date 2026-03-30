@@ -34,6 +34,7 @@ chmod +x \
   "$repo_root/copier/tpl-project-repo/scripts/ak.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/smoke.sh" \
+  "$repo_root/copier/tpl-project-repo/scripts/ci/fast.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/full.sh" \
   "$repo_root/copier/tpl-monorepo/scripts/ak.sh" \
   "$repo_root/copier/tpl-monorepo/scripts/rocs.sh.j2" \

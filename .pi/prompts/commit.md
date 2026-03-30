@@ -61,6 +61,16 @@ Keep updates concise and factual.
   - **Model/Projection Sync** (if applicable)
   - **Lease/Lock Sync** (if issue claim/release was used)
 - If invocation arguments include an FCOS issue id (e.g. `FCOS-M1-03`), include it in commit body.
+- After each successful commit, capture the created commit SHA and prefer `~/ai-society/core/agent-scripts/scripts/git-note-provenance.sh` to attach a YAML git note on `refs/notes/ai-society/provenance` with:
+  - `kind: ai-society/commit-provenance/v1`
+  - `tool: /commit`
+  - `intent`
+  - exact `files`
+  - `validation.fast_gate` with the scoped validation command and result for that logical commit
+  - `validation.full_gate` with the final repo validation command and `status: pending` until it finishes
+  - optional short `group.rationale`
+  - optional `links.task_ids`, `links.evidence_ids`, and `links.diary` only when they are explicit and real
+- Keep the final success report concise: list commit `sha` + subject and whether provenance notes were attached. Detailed successful-commit metadata belongs in the git note, not the chat response.
 
 ## 3) Validation policy
 - Prefer scoped checks per logical commit.
@@ -75,5 +85,6 @@ Keep updates concise and factual.
   - when moving/operating in blocking enforcement stages:
     - `cd "$GK_ROOT" && bash scripts/rocs/check-model-language-conformance.sh`
 - Run full repo validation once after final logical commit (or before push).
+- After the final repo validation finishes, rewrite each created commit note with `~/ai-society/core/agent-scripts/scripts/git-note-provenance.sh` so `validation.full_gate` records the final command and result.
 
 $ARGUMENTS

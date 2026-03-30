@@ -189,6 +189,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_file "copier/$tpl/scripts/rocs.sh.j2"
   assert_exec "copier/$tpl/scripts/rocs.sh.j2"
   assert_file "copier/$tpl/scripts/ci/smoke.sh"
+  if [ "$tpl" = "tpl-project-repo" ]; then
+    assert_file "copier/$tpl/scripts/ci/fast.sh"
+  fi
   assert_file "copier/$tpl/scripts/ci/full.sh"
   assert_file "copier/$tpl/diary/README.md"
   assert_contains "copier/$tpl/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 template $tpl diary README should enforce descriptive filename convention"
@@ -343,6 +346,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   fi
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "install-hooks must include executable bit normalization for $tpl rocs wrapper"
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "install-hooks must include executable bit normalization for $tpl smoke lane"
+  if [ "$tpl" = "tpl-project-repo" ]; then
+    assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/fast.sh" "install-hooks must include executable bit normalization for $tpl fast lane"
+  fi
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "install-hooks must include executable bit normalization for $tpl full lane"
 done
 assert_not_contains "scripts/ci/smoke.sh" "copier/template-repo/copier.yml" "L1 smoke lane must not lint removed legacy template-repo path"
@@ -441,6 +447,24 @@ fi
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
+ak_db=""
+if command -v ak >/dev/null 2>&1; then
+  ak_db="$tmp_root/check-template-ci.ak.db"
+  ak -d "$ak_db" init >/dev/null
+  export AK_DB="$ak_db"
+fi
+
+ensure_registered_repo() {
+  repo_path="$1"
+  [ -n "$ak_db" ] || return 0
+
+  if ak -d "$ak_db" repo show "$repo_path" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  ak -d "$ak_db" repo register "$repo_path" --company templateci >/dev/null
+}
+
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   l2_dir="$tmp_root/$tpl"
   ./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
@@ -486,7 +510,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
     git add . >/dev/null
     git commit -m "initial L2 render" >/dev/null
     ./scripts/ci/smoke.sh >/dev/null
-    if command -v ak >/dev/null 2>&1 && { [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; }; then
+    if [ -n "$ak_db" ] && { [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; }; then
+      ensure_registered_repo "$l2_dir"
       ./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
     fi
   )
@@ -553,7 +578,8 @@ assert_contains "$elixir_project_dir/policy/stack-lane.json" '"ref": "workspace-
 assert_not_contains "$elixir_project_dir/policy/stack-lane.json" "--prefer-repo" "generated elixir project should not pin repo-preferred lane resolution"
 assert_contains "$elixir_project_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir project should point operators to the pinned lane command"
 assert_not_contains "$elixir_project_dir/docs/tech-stack.local.md" "--prefer-repo" "generated elixir project docs should not hardcode repo-preferred lane resolution"
-if command -v ak >/dev/null 2>&1; then
+if [ -n "$ak_db" ]; then
+  ensure_registered_repo "$elixir_project_dir"
   (
     cd "$elixir_project_dir"
     ./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null

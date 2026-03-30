@@ -60,6 +60,15 @@ Fail on projection drift locally/CI:
 ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
 ```
 
+## Validation
+
+Use the staged CI lanes:
+
+```bash
+./scripts/ci/fast.sh   # cheap local guardrail lane
+./scripts/ci/full.sh   # explicit full lane; runs fast first, then work-items + ROCS checks in parallel when both apply
+```
+
 `./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so projection behavior stays reproducible even if the checkout directory name differs from `repo_slug`.
 
 ## Structure

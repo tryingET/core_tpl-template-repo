@@ -54,8 +54,8 @@ Do not ask for permission to start.
 1. Pick one highest-leverage actionable slice from the AK-backed backlog/projection.
 2. Implement end-to-end on a branch.
 3. Validate:
-   - `./scripts/ci/smoke.sh`
-   - `./scripts/ci/full.sh` (when CI/policy/ontology/contracts/work-items changed)
+   - `./scripts/ci/fast.sh`
+   - `./scripts/ci/full.sh` (when CI/policy/ontology/contracts/work-items changed; it runs `fast.sh` first, then heavier checks)
 4. Update source-of-truth artifacts before commit.
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)

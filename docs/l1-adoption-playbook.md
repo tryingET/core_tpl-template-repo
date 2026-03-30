@@ -1,7 +1,7 @@
 # L1 adoption playbook (from L0)
 
-Operator entrypoint: `docs/dev/README.md`
-Related L2 migration playbook: `docs/l2-transition-playbook.md`
+Operator entrypoint: docs/dev/README.md (relative from here: `./dev/README.md`)
+Related L2 migration playbook: docs/l2-transition-playbook.md (relative from here: `./l2-transition-playbook.md`)
 
 ## Goal
 Adopt L0 updates into existing L1 repos with minimal drift and explicit review.
@@ -9,7 +9,7 @@ Adopt L0 updates into existing L1 repos with minimal drift and explicit review.
 ## Preconditions
 - L0 checks pass: `bash ./scripts/check-l0.sh`
 - Target L1 repo has a clean working tree (or explicitly snapshot `HEAD` for comparison if local edits are present).
-- Profile intent is chosen up front via `docs/profile-governance-policy.md` (internal vs public bundle).
+- Profile intent is chosen up front via `./profile-governance-policy.md` (internal vs public bundle).
 - Changes flow via branch + MR (no direct push to `main`).
 
 ## Preview diff (non-destructive)
@@ -35,6 +35,6 @@ Then compare render output against that extracted snapshot.
 5. Open MR with recursion + contract notes.
 
 ## Drift controls
-- Keep `contracts/layer-contract.yml` untouched unless intentionally changing policy.
+- Keep contracts/layer-contract.yml untouched unless intentionally changing policy (relative from here: `../contracts/layer-contract.yml`).
 - Keep generated `.copier-answers.yml` committed.
 - Never add nested Copier runs in template `_tasks`.

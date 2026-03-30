@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import os
+import re
 import shutil
 import tarfile
 import tempfile
@@ -9,6 +11,13 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 from rocs_cli.cache import cache_dir
+
+
+def _safe_cache_component(value: str, *, label: str) -> str:
+    normalized = value.strip()
+    slug = re.sub(r"[^A-Za-z0-9._-]+", "-", normalized).strip(".-") or label
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:12]
+    return f"{slug[:80]}-{digest}"
 
 
 def load_env_file(path: Path, *, override: bool = False) -> None:
@@ -57,8 +66,8 @@ def fetch_repo_archive(project_path: str, ref: str, *, base_url: str, headers: d
     if not base_url:
         raise SystemExit("missing GitLab base url (set ROCS_GITLAB_BASE_URL or GITLAB_BASE_URL)")
 
-    safe_project = project_path.replace("/", "__")
-    safe_ref = ref.replace("/", "__")
+    safe_project = _safe_cache_component(project_path, label="project")
+    safe_ref = _safe_cache_component(ref, label="ref")
     dest = cache_dir() / "gitlab" / safe_project / safe_ref
     if dest.exists():
         return dest

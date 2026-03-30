@@ -17,6 +17,7 @@ If you are migrating a legacy JSON-first repo, import once, then continue from A
 
 This template ships the empty projection that matches a fresh AK export for this repo identity.
 That keeps `./scripts/ci/full.sh` honest: if `ak` is available, CI can validate drift immediately instead of silently skipping the check.
+Use `./scripts/ci/fast.sh` for the cheap local baseline and `./scripts/ci/full.sh` for the explicit full lane.
 
 ## Workflow
 

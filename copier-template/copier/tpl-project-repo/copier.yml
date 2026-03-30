@@ -100,7 +100,7 @@ project_owner_handle:
 # infra -> typically @infra-team, release_pack=false
 
 _tasks:
-  - "chmod +x scripts/ci/smoke.sh scripts/ci/full.sh scripts/ak.sh scripts/rocs.sh 2>/dev/null || true"
+  - "chmod +x scripts/ci/smoke.sh scripts/ci/fast.sh scripts/ci/full.sh scripts/ak.sh scripts/rocs.sh 2>/dev/null || true"
   # Clean up empty/unused software pack files
   - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'python' ]; then rm -f pyproject.toml uv.lock 2>/dev/null; fi"
   - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'node' ]; then rm -f package.json package-lock.json 2>/dev/null; fi"

@@ -19,7 +19,7 @@ For the detailed L0 -> L1 -> L2 file contract (deep review + what goes where):
 - wikilink: `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]`
 
 Repo-local work-items in generated `tpl-project-repo` / `tpl-monorepo` repos are now AK-first:
-`governance/work-items.json` is a deterministic checked-in projection/mirror, and generated repos use repo-local `scripts/ak.sh` wrappers for `ak work-items import|export|check`.
+the generated work-items JSON file is a deterministic checked-in projection/mirror, and generated repos use repo-local `scripts/ak.sh` wrappers for `ak work-items import|export|check`.
 
 ## Canonical tech-stack contract map
 

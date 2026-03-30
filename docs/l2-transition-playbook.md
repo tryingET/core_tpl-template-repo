@@ -112,6 +112,6 @@ git reset --hard <migration-branch-start-sha>
 - Re-templating grouping roots without backup manifests or nested `.git` preservation.
 
 ## Related
-- Operator entrypoint: `docs/dev/README.md`
-- L1 update playbook: `docs/l1-adoption-playbook.md`
-- tpl-project detailed contract: `copier-template/docs/dev/tpl-project-repo-file-contract.md`
+- Operator entrypoint: `./dev/README.md`
+- L1 update playbook: `./l1-adoption-playbook.md`
+- tpl-project detailed contract: `../copier-template/docs/dev/tpl-project-repo-file-contract.md`
