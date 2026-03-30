@@ -16,7 +16,7 @@ Choose the next repo-local slice from the runtime-resolved FCOS queue rather tha
 - Next issue resolver (same command, mirror-only):
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Last synced runtime-resolved FCOS issue id (mirror-only, rerun the resolver instead of trusting this line):
-  - `FCOS-M35-01`
+  - `FCOS-M36-02`
 - Anti-drift cadence policy:
   - loop-owned via `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`
 
@@ -30,26 +30,20 @@ Choose the next repo-local slice from the runtime-resolved FCOS queue rather tha
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Finished the in-progress tpl-project validation/workflow hardening already present in the checkout: added the doc-reference gate, taught tpl-project repos a `fast` + `full` CI lane split, and fixed generated-template validation to use a temporary AK DB/registration flow for work-items checks.
+  - Re-ran the runtime-resolved FCOS queue lookup and checked the next tpl-template-repo candidates before touching code.
 - Outcome:
-  - Repo-level docs now carry corrected tracked relative links and `scripts/check-doc-references.sh` is part of `scripts/check-l0.sh`.
-  - tpl-project template/docs/prompts/fixtures now teach `./scripts/ci/fast.sh` as the cheap guardrail lane and `./scripts/ci/full.sh` as the heavier lane that runs `fast.sh` first.
-  - Generated L1 template CI now bootstraps a temp AK DB and registers generated repos before running `work-items check`, so L0 generation validation passes without depending on live workspace repo registration.
-  - Removed a stray embedded `__pycache__` artifact and re-synced fixtures.
+  - `just fcos-runnable` currently resolves to `FCOS-M36-02` in `softwareco/owned/agent-kernel`, so there is no runnable repo-local L0 slice in `core/tpl-template-repo` right now.
+  - The next tpl-template-repo issue in the canonical model is `FCOS-M36-04`, but it remains blocked by `FCOS-M36-02` and `FCOS-M36-03`; `FCOS-M36-06` remains downstream of `FCOS-M36-04` and `FCOS-M36-05`.
+  - This session therefore stayed mirror-only: refreshed the handoff prompt and captured the queue state in a repo diary entry instead of starting a blocked implementation slice.
 - Validation run:
-  - `bash ./scripts/sync-l0-fixtures.sh` (pass)
+  - `bash ./scripts/check-session-checkpoint.sh` (pass)
   - `bash ./scripts/check-l0.sh` (pass)
 - Files of interest:
-  - `scripts/check-doc-references.sh`
-  - `scripts/check-l0.sh`
-  - `docs/l1-adoption-playbook.md`
-  - `docs/l2-transition-playbook.md`
-  - `copier-template/copier/tpl-project-repo/scripts/ci/fast.sh`
-  - `copier-template/copier/tpl-project-repo/scripts/ci/full.sh`
-  - `copier-template/scripts/check-template-ci.sh`
-  - `diary/2026-03-30--chore-tpl-project-validation-lanes-and-doc-refs.md`
+  - `next_session_prompt.md`
+  - `diary/2026-03-30--ops-runtime-fcos-queue-sync.md`
 - Blockers / follow-up:
-  - No blocking local follow-up from this slice is known; return to the runtime-resolved FCOS queue for the next repo-local slice.
+  - Wait for `FCOS-M36-02` / `FCOS-M36-03` to unblock `FCOS-M36-04` before starting the next tpl-template-repo implementation slice.
+  - After `FCOS-M36-04` lands, reevaluate `FCOS-M36-06` with the runtime resolver instead of trusting this mirror.
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md`
 - KES crystallization flow:
