@@ -76,6 +76,17 @@ Fail on projection drift locally/CI:
 ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
 ```
 
+## Optional explicit task-scope snapshots
+
+When a repo-local AK task carries explicit scope, author/update that scope in AK and keep repo copies as frozen exports only:
+
+```bash
+./scripts/ak.sh task scope show <AK-ID>
+mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <AK-ID> > governance/task-scopes/AK-<AK-ID>.snapshot.json
+```
+
+Treat `governance/task-scopes/AK-<AK-ID>.snapshot.json` as repo-consumption artifacts for operators/agents/CI, not as hand-authored authority.
+
 ## Validation
 
 Use the staged CI lanes:
@@ -108,6 +119,7 @@ Use the staged CI lanes:
 │   └── system4d/          # System 4D context
 ├── governance/
 │   ├── README.md          # AK-first workflow and projection rules
+│   ├── task-scopes/       # Optional frozen AK task-scope snapshots
 │   ├── work-items.cue     # Projection schema contract
 │   └── work-items.json    # Checked-in AK projection/mirror
 ├── diary/                 # Repo-local session capture (KES raw input)

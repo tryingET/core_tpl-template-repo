@@ -8,9 +8,11 @@ Package inside monorepo: library (elixir)
 - NO `.git` — managed by parent monorepo.
 - NO `.github` — CI runs from monorepo root.
 - NO release tooling — released from monorepo root.
+- Deferred work and explicit task scope live at the monorepo root; do not create standalone AK/task-scope state in this member.
 
 ## Deterministic tooling policy (ROCS-first)
 - Run ROCS commands from monorepo root: `../../scripts/rocs.sh <args...>`
+- When package work needs AK context, run it from the monorepo root: `../../scripts/ak.sh <args...>`
 - For ontology/policy checks, use ROCS commands as the default execution path.
 
 ## Stack contract

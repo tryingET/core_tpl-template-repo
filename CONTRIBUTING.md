@@ -18,7 +18,10 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    ```bash
    ./scripts/rocs.sh --doctor
    ./scripts/rocs.sh --which
+   ./scripts/ak.sh --doctor
+   ./scripts/ak.sh --which
    ```
+   Use `./scripts/ak.sh` when template work touches repo-local AK tasks or the task-scope snapshot contract.
 5. Capture session notes in `./diary/` (repo-local KES rule), then crystallize durable patterns into `docs/learnings/` and `tips/meta/`.
 6. Update docs when behavior changes.
 7. Open a PR with validation output.

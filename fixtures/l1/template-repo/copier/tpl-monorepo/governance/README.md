@@ -40,6 +40,15 @@ Check that the committed projection matches AK (used by `./scripts/ci/full.sh`):
 ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
 ```
 
+## Optional explicit task-scope snapshots
+
+When a monorepo AK task needs explicit scope:
+
+- author/update it in AK via `./scripts/ak.sh task scope show|set|update ...`
+- keep repo-side copies under `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as frozen exports
+- refresh a checked-in snapshot with `mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- keep package/app consumers pointed at the monorepo-root snapshot instead of inventing per-member task-scope files
+
 Optional schema-only validation:
 
 ```bash
@@ -64,4 +73,5 @@ triage → queued → doing → review → done
 
 - Do not leave deferred work as ad-hoc TODO comments or scattered markdown notes.
 - Do not repair operational drift by hand-editing `governance/work-items.json` and pretending the JSON is authoritative.
+- Do not hand-author `governance/task-scopes/AK-*.snapshot.json` as if it were the live task-scope source of truth.
 - For legacy/manual JSON slices, import to AK and then export the projection back out.

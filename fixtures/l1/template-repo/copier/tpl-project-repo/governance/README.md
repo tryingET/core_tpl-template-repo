@@ -48,6 +48,15 @@ Check that the committed projection matches AK (used by `./scripts/ci/full.sh`):
 
 `./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so the projection stays reproducible even when the checkout folder name differs from the repo slug.
 
+## Optional explicit task-scope snapshots
+
+When a repo-local AK task needs explicit scope:
+
+- author/update the scope in AK via `./scripts/ak.sh task scope show|set|update ...`
+- keep repo-side copies under `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as frozen exports
+- refresh a checked-in snapshot with `mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- treat any hand-authored `governance/task-scopes/AK-*.json` file that is not an AK export as transitional scaffolding, not authoritative truth
+
 ## Projection contract
 
 Core fields:
@@ -77,4 +86,5 @@ cue vet governance/work-items.json governance/work-items.cue
 
 - Do not leave deferred work as ad-hoc TODO comments or scattered markdown notes.
 - Do not repair operational drift by hand-editing `governance/work-items.json` and pretending the JSON is authoritative.
+- Do not hand-author `governance/task-scopes/AK-*.snapshot.json` as if it were the live task-scope source of truth.
 - For legacy/manual JSON slices, import to AK and then export the projection back out.

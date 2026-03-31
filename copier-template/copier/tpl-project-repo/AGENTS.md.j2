@@ -8,6 +8,7 @@ Template for a delivery project repo (project context + code + tests).
 - Never push to `main`; MRs only.
 - Treat `docs/_core/**` as immutable.
 - Track deferred work in Agent Kernel; keep `governance/work-items.json` as the exported projection via `./scripts/ak.sh` (avoid ad-hoc TODO comments and manual JSON authority confusion).
+- When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots via `./scripts/ak.sh task scope show|export ...`; treat `governance/task-scopes/AK-*.snapshot.json` as AK exports, not hand-authored truth.
 
 ## Deterministic tooling policy (ROCS-first)
 - Prefer `./scripts/ak.sh work-items <import|export|check> ...` for repo-local work-items projection operations.

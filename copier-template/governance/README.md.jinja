@@ -52,6 +52,16 @@ Generated `tpl-project-repo` and `tpl-monorepo` repos treat repo-local work-item
 - `./scripts/ak.sh work-items export` refreshes the checked-in projection
 - `./scripts/ak.sh work-items check` is the drift gate used by repo CI
 
+## Repo-local task-scope snapshots (AK-authored)
+
+When a generated repo opts into explicit AK task scope:
+
+- AK remains the authoring surface via `./scripts/ak.sh task scope show|set|update ...`
+- repo-side consumers use frozen exports under `governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- `./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json` refreshes the checked-in snapshot
+- missing snapshots remain acceptable while a task still inherits repo-default scope
+- any hand-authored `governance/task-scopes/AK-*.json` file that is not an AK export is transitional scaffolding, not authoritative truth
+
 ## Validation
 
 Validate company-level program work-items against schema:

@@ -6,8 +6,8 @@ Do not ask for permission to begin.
 
 ## CURRENT MISSION: FOLLOW THE RUNTIME-RESOLVED FCOS QUEUE FOR THE NEXT L0 SLICE
 
-This repo currently has no known blocking local follow-up after the AK-first work-items slice and the ontology-lsp architecture archaeology/crystallization pass.
-Choose the next repo-local slice from the runtime-resolved FCOS queue rather than from stale hardcoded issue IDs.
+The runtime-resolved FCOS head is back on `core/tpl-template-repo` for `FCOS-M36-04`.
+Continue the remaining repo-local slice chain for that issue via AK rather than trusting stale mirror notes or older blocked-state assumptions.
 
 ## RUNTIME-RESOLVED PRIORITY / NEXT ISSUE
 
@@ -16,7 +16,7 @@ Choose the next repo-local slice from the runtime-resolved FCOS queue rather tha
 - Next issue resolver (same command, mirror-only):
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Last synced runtime-resolved FCOS issue id (mirror-only, rerun the resolver instead of trusting this line):
-  - `FCOS-M36-02`
+  - `FCOS-M36-04`
 - Anti-drift cadence policy:
   - loop-owned via `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`
 
@@ -30,20 +30,24 @@ Choose the next repo-local slice from the runtime-resolved FCOS queue rather tha
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Re-ran the runtime-resolved FCOS queue lookup and checked the next tpl-template-repo candidates before touching code.
+  - Re-ran the runtime-resolved FCOS queue lookup, claimed `AK-547`, and propagated the AK-native task-scope flow into the descendant `tpl-project-repo`, `tpl-monorepo`, and `tpl-package` template surfaces.
 - Outcome:
-  - `just fcos-runnable` currently resolves to `FCOS-M36-02` in `softwareco/owned/agent-kernel`, so there is no runnable repo-local L0 slice in `core/tpl-template-repo` right now.
-  - The next tpl-template-repo issue in the canonical model is `FCOS-M36-04`, but it remains blocked by `FCOS-M36-02` and `FCOS-M36-03`; `FCOS-M36-06` remains downstream of `FCOS-M36-04` and `FCOS-M36-05`.
-  - This session therefore stayed mirror-only: refreshed the handoff prompt and captured the queue state in a repo diary entry instead of starting a blocked implementation slice.
+  - `just fcos-runnable` now resolves to `FCOS-M36-04` for `core/tpl-template-repo`, so the repo-local slice was runnable again.
+  - `AK-547` completed by updating descendant template docs/prompts/governance guidance to treat explicit task scope as AK-authored and repo-side snapshots as frozen exports.
+  - Re-synced the L1/L2/matrix fixtures so the propagated descendant surfaces stay in lockstep with the L0 source.
+  - `AK-548` is now the immediate repo-local follow-up for the remaining `FCOS-M36-04` regression-tightening slice.
 - Validation run:
-  - `bash ./scripts/check-session-checkpoint.sh` (pass)
   - `bash ./scripts/check-l0.sh` (pass)
+  - `bash ./scripts/check-session-checkpoint.sh` (pass)
 - Files of interest:
   - `next_session_prompt.md`
-  - `diary/2026-03-30--ops-runtime-fcos-queue-sync.md`
+  - `copier-template/copier/tpl-project-repo/`
+  - `copier-template/copier/tpl-monorepo/`
+  - `copier-template/copier/tpl-package/`
+  - `diary/2026-03-30--feat-ak-task-scope-descendant-propagation.md`
 - Blockers / follow-up:
-  - Wait for `FCOS-M36-02` / `FCOS-M36-03` to unblock `FCOS-M36-04` before starting the next tpl-template-repo implementation slice.
-  - After `FCOS-M36-04` lands, reevaluate `FCOS-M36-06` with the runtime resolver instead of trusting this mirror.
+  - Claim and complete `AK-548` to tighten regression checks around the new descendant task-scope adoption surface.
+  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting any non-`FCOS-M36-04` local slice.
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md`
 - KES crystallization flow:

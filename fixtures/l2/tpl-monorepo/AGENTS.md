@@ -10,7 +10,7 @@ apps/            # Deployable services/applications
 tools/           # Shared tooling (if any)
 docs/            # Documentation
 ontology/        # ROCS ontology
-governance/      # AK work-items projection, policies
+governance/      # AK work-items projection, optional task-scope snapshots, policies
 ```
 
 ## Guardrails
@@ -20,9 +20,11 @@ governance/      # AK work-items projection, policies
 - Packages in `packages/` have NO `.git` (managed by monorepo).
 - Apps in `apps/` have NO `.git` (managed by monorepo).
 - If this repo ships `governance/work-items.json`, treat it as an AK projection via `./scripts/ak.sh`, not as the live authority.
+- When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots at the monorepo root; packages/apps do not create standalone AK task-scope files.
 
 ## Deterministic tooling policy (ROCS-first)
 - Prefer `./scripts/ak.sh work-items <import|export|check> ...` for repo-local work-items projection operations.
+- Prefer `./scripts/ak.sh task scope show|export ...` when explicit task scope is part of the slice.
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
 - Use `./scripts/preflight-repo-census.sh [scope]` for shallow multi-repo status checks.
 - For ontology/policy checks, use ROCS commands as the default execution path.
