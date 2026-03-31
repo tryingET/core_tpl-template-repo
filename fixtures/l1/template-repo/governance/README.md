@@ -59,6 +59,7 @@ When a generated repo opts into explicit AK task scope:
 - AK remains the authoring surface via `./scripts/ak.sh task scope show|set|update ...`
 - repo-side consumers use frozen exports under `governance/task-scopes/AK-<TASK-ID>.snapshot.json`
 - `./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json` refreshes the checked-in snapshot
+- `./scripts/check-task-scope-snapshots.sh` verifies checked-in snapshots against live AK state and repo ownership when snapshots are present
 - missing snapshots remain acceptable while a task still inherits repo-default scope
 - any hand-authored `governance/task-scopes/AK-*.json` file that is not an AK export is transitional scaffolding, not authoritative truth
 
@@ -68,6 +69,12 @@ Validate company-level program work-items against schema:
 
 ```bash
 cue vet governance/programs/*/work-items.json governance/model-languages/contract/work-items.cue
+```
+
+Validate repo-local task-scope snapshots when they are checked in:
+
+```bash
+./scripts/check-task-scope-snapshots.sh
 ```
 
 ## TIP Review Process

@@ -17,6 +17,7 @@ chmod +x \
   "$repo_root/scripts/new-repo-from-copier.sh" \
   "$repo_root/scripts/bootstrap-lane-root.sh" \
   "$repo_root/scripts/ak.sh" \
+  "$repo_root/scripts/check-task-scope-snapshots.sh" \
   "$repo_root/scripts/check-template-ci.sh" \
   "$repo_root/scripts/install-hooks.sh" \
   "$repo_root/scripts/ci/smoke.sh" \
@@ -32,11 +33,13 @@ chmod +x \
   "$repo_root/copier/tpl-org-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-org-repo/scripts/ci/full.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/ak.sh" \
+  "$repo_root/copier/tpl-project-repo/scripts/check-task-scope-snapshots.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/fast.sh" \
   "$repo_root/copier/tpl-project-repo/scripts/ci/full.sh" \
   "$repo_root/copier/tpl-monorepo/scripts/ak.sh" \
+  "$repo_root/copier/tpl-monorepo/scripts/check-task-scope-snapshots.sh" \
   "$repo_root/copier/tpl-monorepo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-monorepo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-monorepo/scripts/ci/full.sh" \

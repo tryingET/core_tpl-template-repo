@@ -19,7 +19,13 @@ trap cleanup EXIT INT TERM
 
 run_work_items() {
   if [ -f "./governance/work-items.json" ]; then
-    ./scripts/ak.sh work-items check --repo "$repo_root" --path "./governance/work-items.json"
+    ./scripts/ak.sh work-items check --repo . --path "./governance/work-items.json"
+  fi
+}
+
+run_task_scope_snapshots() {
+  if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then
+    ./scripts/check-task-scope-snapshots.sh
   fi
 }
 
@@ -31,33 +37,50 @@ run_rocs() {
   fi
 }
 
-say "==> work-items + rocs (parallel when both apply)"
+say "==> work-items + task-scope snapshots + rocs (parallel when they apply)"
 (
   run_work_items >"$log_dir/work-items.log" 2>&1
 ) &
 work_items_pid=$!
+(
+  run_task_scope_snapshots >"$log_dir/task-scopes.log" 2>&1
+) &
+task_scopes_pid=$!
 (
   run_rocs >"$log_dir/rocs.log" 2>&1
 ) &
 rocs_pid=$!
 
 work_items_status=0
+task_scopes_status=0
 rocs_status=0
-if ! wait "$work_items_pid"; then
+if wait "$work_items_pid"; then
+  work_items_status=0
+else
   work_items_status=$?
 fi
-if ! wait "$rocs_pid"; then
+if wait "$task_scopes_pid"; then
+  task_scopes_status=0
+else
+  task_scopes_status=$?
+fi
+if wait "$rocs_pid"; then
+  rocs_status=0
+else
   rocs_status=$?
 fi
 
 say "--- work-items output ---"
 cat "$log_dir/work-items.log"
+say "--- task-scope output ---"
+cat "$log_dir/task-scopes.log"
 say "--- rocs output ---"
 cat "$log_dir/rocs.log"
 
-if [ "$work_items_status" -ne 0 ] || [ "$rocs_status" -ne 0 ]; then
+if [ "$work_items_status" -ne 0 ] || [ "$task_scopes_status" -ne 0 ] || [ "$rocs_status" -ne 0 ]; then
   err "error: full.sh failed"
   [ "$work_items_status" -eq 0 ] || err "- work-items exit=$work_items_status"
+  [ "$task_scopes_status" -eq 0 ] || err "- task-scope snapshots exit=$task_scopes_status"
   [ "$rocs_status" -eq 0 ] || err "- rocs exit=$rocs_status"
   exit 1
 fi

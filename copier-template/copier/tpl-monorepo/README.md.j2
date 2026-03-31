@@ -61,7 +61,7 @@ If a monorepo AK task carries explicit scope, author/update that scope in AK and
 mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <AK-ID> > governance/task-scopes/AK-<AK-ID>.snapshot.json
 ```
 
-Packages/apps consume the monorepo-root snapshot; they do not author standalone AK task-scope files.
+Packages/apps consume the monorepo-root snapshot; they do not author standalone AK task-scope files. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
 
 ## ROCS command flow
 

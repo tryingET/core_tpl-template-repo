@@ -16,7 +16,11 @@ esac
 "$repo_root/scripts/ci/smoke.sh"
 
 if [ -f "$repo_root/governance/work-items.json" ]; then
-  "$repo_root/scripts/ak.sh" work-items check --repo "$repo_root" --path "./governance/work-items.json"
+  "$repo_root/scripts/ak.sh" work-items check --repo . --path "./governance/work-items.json"
+fi
+
+if [ -f "$repo_root/scripts/check-task-scope-snapshots.sh" ]; then
+  "$repo_root/scripts/check-task-scope-snapshots.sh"
 fi
 
 if [ "$deep" -eq 1 ]; then

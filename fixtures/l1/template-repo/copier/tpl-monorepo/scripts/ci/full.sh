@@ -9,7 +9,11 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "error: not a
 cd "$repo_root"
 
 if [ -f "./governance/work-items.json" ]; then
-  ./scripts/ak.sh work-items check --repo "$repo_root" --path "./governance/work-items.json"
+  ./scripts/ak.sh work-items check --repo . --path "./governance/work-items.json"
+fi
+
+if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then
+  ./scripts/check-task-scope-snapshots.sh
 fi
 
 if [ -x "./scripts/rocs.sh" ] && [ -f "./ontology/manifest.yaml" ]; then

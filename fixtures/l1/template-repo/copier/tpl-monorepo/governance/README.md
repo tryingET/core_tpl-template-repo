@@ -47,6 +47,7 @@ When a monorepo AK task needs explicit scope:
 - author/update it in AK via `./scripts/ak.sh task scope show|set|update ...`
 - keep repo-side copies under `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as frozen exports
 - refresh a checked-in snapshot with `mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- verify checked-in snapshots with `./scripts/check-task-scope-snapshots.sh` before commit or in CI
 - keep package/app consumers pointed at the monorepo-root snapshot instead of inventing per-member task-scope files
 
 Optional schema-only validation:

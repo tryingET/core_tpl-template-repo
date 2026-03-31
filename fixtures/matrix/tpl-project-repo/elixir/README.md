@@ -86,15 +86,16 @@ When a repo-local AK task carries explicit scope, author/update that scope in AK
 mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <AK-ID> > governance/task-scopes/AK-<AK-ID>.snapshot.json
 ```
 
-Treat `governance/task-scopes/AK-<AK-ID>.snapshot.json` as repo-consumption artifacts for operators/agents/CI, not as hand-authored authority.
+Treat `governance/task-scopes/AK-<AK-ID>.snapshot.json` as repo-consumption artifacts for operators/agents/CI, not as hand-authored authority. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
 
 ## Validation
 
 Use the staged CI lanes:
 
 ```bash
-./scripts/ci/fast.sh   # cheap local guardrail lane
-./scripts/ci/full.sh   # explicit full lane; runs fast first, then work-items + ROCS checks in parallel when both apply
+./scripts/ci/fast.sh                    # cheap local guardrail lane
+./scripts/check-task-scope-snapshots.sh # verify checked-in AK task-scope snapshots when present
+./scripts/ci/full.sh                    # explicit full lane; runs fast first, then work-items + task-scope + ROCS checks in parallel when they apply
 ```
 
 `./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so projection behavior stays reproducible even if the checkout directory name differs from `repo_slug`.

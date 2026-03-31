@@ -144,6 +144,7 @@ copier-template/diary/README.md.jinja
 copier-template/scripts/new-repo-from-copier.sh
 copier-template/scripts/bootstrap-lane-root.sh
 copier-template/scripts/ak.sh
+copier-template/scripts/check-task-scope-snapshots.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
@@ -205,6 +206,10 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
     assert_file "copier-template/copier/$tpl/scripts/ak.sh"
     assert_exec "copier-template/copier/$tpl/scripts/ak.sh"
   fi
+  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+    assert_file "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
+    assert_exec "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
+  fi
   assert_file "copier-template/copier/$tpl/scripts/rocs.sh.j2"
   assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
   assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
@@ -248,6 +253,7 @@ scripts/sync-l0-fixtures.sh
 copier-template/scripts/new-repo-from-copier.sh
 copier-template/scripts/bootstrap-lane-root.sh
 copier-template/scripts/ak.sh
+copier-template/scripts/check-task-scope-snapshots.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
@@ -306,6 +312,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
     assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
     assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
   fi
+  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+    assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
+  fi
   assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
 assert_not_contains "copier-template/copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
@@ -336,18 +345,24 @@ assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must 
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
 assert_contains "copier-template/scripts/ak.sh" "deterministic resolution order" "L1 AK wrapper should document deterministic resolution order"
 assert_contains "copier-template/scripts/ak.sh" "work-items check" "L1 AK wrapper should document work-items projection commands"
+assert_contains "copier-template/scripts/check-task-scope-snapshots.sh" "task-scope snapshots" "L1 task-scope checker should explain its validation target"
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
 assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/ak.sh" "L1 full CI should use scripts/ak.sh for work-items projection checks"
+assert_contains "copier-template/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L1 full CI should enforce task-scope snapshot checks"
 assert_not_contains "copier-template/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L1 full CI must not gate AK checks on vendored ak-cli"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 assert_contains "copier-template/.github/workflows/ci.yml" "Setup uv (full lane)" "L1 CI workflow should provision uv in the full lane"
 assert_not_contains "copier-template/scripts/install-hooks.sh" "copier/template-repo" "L1 install-hooks must not reference removed legacy template-repo path"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "L1 install-hooks should normalize executable bit for lane bootstrap helper"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/ak.sh" "L1 install-hooks should normalize executable bit for the L1 AK wrapper"
+assert_contains "copier-template/scripts/install-hooks.sh" "scripts/check-task-scope-snapshots.sh" "L1 install-hooks should normalize executable bit for the L1 task-scope checker"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   if [ "$tpl" != "tpl-package" ]; then
     assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ak.sh" "L1 install-hooks should normalize executable bits for $tpl AK wrapper"
+  fi
+  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+    assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/check-task-scope-snapshots.sh" "L1 install-hooks should normalize executable bits for $tpl task-scope checker"
   fi
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "L1 install-hooks should normalize executable bits for $tpl smoke lane"
@@ -429,6 +444,7 @@ assert_contains "copier-template/README.md.jinja" "Organization docs profile" "g
 assert_contains "copier-template/README.md.jinja" "archetype/profile-specific" "generated L1 README should clarify archetype/profile-specific L2 baselines"
 assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" "generated L1 README should describe deterministic ROCS launcher"
 assert_contains "copier-template/README.md.jinja" "Deterministic Agent Kernel launcher" "generated L1 README should describe deterministic Agent Kernel launcher"
+assert_contains "copier-template/README.md.jinja" "check-task-scope-snapshots.sh" "generated L1 README should document task-scope snapshot validation"
 assert_contains "copier-template/README.md.jinja" "Multi-pass template suffix policy" "generated L1 README should describe multi-pass suffix policy"
 assert_contains "copier-template/README.md.jinja" "repo-local diary" "generated L1 README should describe repo-local diary contract"
 assert_contains "copier-template/README.md.jinja" "no automatic in-place migrator" "generated L1 README should document deterministic migration limitation"
@@ -440,8 +456,10 @@ assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-sc
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/README.md" "governance/task-scopes/AK-<AK-ID>.snapshot.json" "tpl-project-repo fixture README should stay aligned with AK task-scope snapshot guidance"
 assert_contains "fixtures/l2/tpl-project-repo/governance/README.md" "transitional scaffolding" "tpl-project-repo fixture governance README should keep non-authoritative task-scope wording"
+assert_contains "fixtures/l2/tpl-project-repo/README.md" "check-task-scope-snapshots.sh" "tpl-project-repo fixture README should document task-scope snapshot validation"
 assert_contains "fixtures/l2/tpl-monorepo/README.md" "Packages/apps consume the monorepo-root snapshot" "tpl-monorepo fixture README should keep member task-scope authority at the root"
 assert_contains "fixtures/l2/tpl-monorepo/governance/README.md" "monorepo-root snapshot" "tpl-monorepo fixture governance README should keep package/app consumers pointed at the root snapshot"
+assert_contains "fixtures/l2/tpl-monorepo/README.md" "check-task-scope-snapshots.sh" "tpl-monorepo fixture README should document task-scope snapshot validation"
 assert_contains "fixtures/l2/tpl-package/README.md" "inherit deferred-work and explicit task-scope authority from the parent monorepo root" "tpl-package fixture README should point task-scope authority back to the monorepo root"
 assert_contains "fixtures/l2/tpl-package/AGENTS.md" "Deferred work and explicit task scope live at the monorepo root" "tpl-package fixture AGENTS should keep task-scope authority at the monorepo root"
 assert_absent "fixtures/l2/tpl-package/scripts/ak.sh"
