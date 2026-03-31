@@ -20,6 +20,7 @@ chmod +x \
   "$repo_root/scripts/check-task-scope-snapshots.sh" \
   "$repo_root/scripts/check-template-ci.sh" \
   "$repo_root/scripts/install-hooks.sh" \
+  "$repo_root/scripts/lib/check-template-ak.py" \
   "$repo_root/scripts/ci/smoke.sh" \
   "$repo_root/scripts/ci/full.sh" \
   "$repo_root/.githooks/pre-commit" \
