@@ -16,6 +16,26 @@ need_cmd git
 need_cmd grep
 need_cmd mktemp
 
+fail() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+assert_file_contains() {
+  path="$1"
+  needle="$2"
+  label="$3"
+
+  grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
+}
+
+assert_path_absent() {
+  path="$1"
+  label="$2"
+
+  [ ! -e "$path" ] || fail "$label (unexpected path: $path)"
+}
+
 "$repo_root/scripts/check-l0-guardrails.sh"
 
 tmp_root="$(mktemp -d)"
@@ -261,5 +281,37 @@ if grep -qF -- "--prefer-repo" "$matrix_monorepo/docs/tech-stack.local.md"; then
   echo "error: monorepo stack doc should not hardcode repo-preferred lane resolution" >&2
   exit 1
 fi
+
+# Regression: generated descendant surfaces must keep AK-native task-scope guidance aligned.
+for generated_project in \
+  "$colon_l2" \
+  "$matrix_project_python" \
+  "$matrix_project_rust" \
+  "$matrix_project_elixir"
+ do
+  assert_file_contains "$generated_project/README.md" "governance/task-scopes/AK-<AK-ID>.snapshot.json" "generated tpl-project-repo README should describe frozen AK task-scope snapshots"
+  assert_file_contains "$generated_project/governance/README.md" "transitional scaffolding" "generated tpl-project-repo governance README should describe non-authoritative hand-authored task-scope files"
+  assert_file_contains "$generated_project/next_session_prompt.md" "Refresh task-scope snapshot" "generated tpl-project-repo next-session prompt should document AK task-scope refresh"
+ done
+
+for generated_monorepo in \
+  "$matrix_monorepo"
+ do
+  assert_file_contains "$generated_monorepo/README.md" "Packages/apps consume the monorepo-root snapshot" "generated tpl-monorepo README should keep member task-scope authority at the root"
+  assert_file_contains "$generated_monorepo/AGENTS.md" "packages/apps do not create standalone AK task-scope files" "generated tpl-monorepo AGENTS should forbid standalone member task-scope files"
+  assert_file_contains "$generated_monorepo/governance/README.md" "monorepo-root snapshot" "generated tpl-monorepo governance README should point members at the root snapshot"
+ done
+
+for generated_package in \
+  "$matrix_monorepo/packages/fixture-py-core" \
+  "$matrix_monorepo/packages/fixture-ts-core" \
+  "$matrix_monorepo/packages/fixture-rust-core" \
+  "$matrix_monorepo/packages/fixture-elixir-core"
+ do
+  assert_file_contains "$generated_package/README.md" "inherit deferred-work and explicit task-scope authority from the parent monorepo root" "generated tpl-package README should point task-scope authority back to the monorepo root"
+  assert_file_contains "$generated_package/AGENTS.md" "Deferred work and explicit task scope live at the monorepo root" "generated tpl-package AGENTS should keep task-scope authority at the monorepo root"
+  assert_path_absent "$generated_package/scripts/ak.sh" "generated tpl-package members must not ship a standalone AK wrapper"
+  assert_path_absent "$generated_package/governance/task-scopes" "generated tpl-package members must not ship standalone task-scope snapshot directories"
+ done
 
 echo "ok: l0 generation smoke + idempotency"

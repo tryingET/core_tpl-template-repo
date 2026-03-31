@@ -30,24 +30,26 @@ Continue the remaining repo-local slice chain for that issue via AK rather than 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Re-ran the runtime-resolved FCOS queue lookup, claimed `AK-547`, and propagated the AK-native task-scope flow into the descendant `tpl-project-repo`, `tpl-monorepo`, and `tpl-package` template surfaces.
+  - Re-ran the runtime-resolved FCOS queue lookup, claimed `AK-548`, and encoded regression checks for the AK-native task-scope adoption across descendant generated surfaces.
 - Outcome:
-  - `just fcos-runnable` now resolves to `FCOS-M36-04` for `core/tpl-template-repo`, so the repo-local slice was runnable again.
-  - `AK-547` completed by updating descendant template docs/prompts/governance guidance to treat explicit task scope as AK-authored and repo-side snapshots as frozen exports.
-  - Re-synced the L1/L2/matrix fixtures so the propagated descendant surfaces stay in lockstep with the L0 source.
-  - `AK-548` is now the immediate repo-local follow-up for the remaining `FCOS-M36-04` regression-tightening slice.
+  - `just fcos-runnable` still resolves to `FCOS-M36-04` for `core/tpl-template-repo`, so this repo-local slice remained the runtime head during the session.
+  - `AK-548` completed by tightening `scripts/check-l0-guardrails.sh` and `scripts/check-l0-generation.sh` around the propagated task-scope contract.
+  - Guardrails now assert that:
+    - `tpl-project-repo` keeps AK-authored `governance/task-scopes/AK-<id>.snapshot.json` guidance plus the transitional-scaffolding warning
+    - `tpl-monorepo` keeps explicit task-scope authority at the monorepo root
+    - `tpl-package` inherits monorepo-root task-scope authority and does not ship standalone `scripts/ak.sh` or `governance/task-scopes/`
+  - No further repo-local `[FCOS-M36-04]` AK tasks remain in `core/tpl-template-repo`, but canonical FCOS state was not advanced in this repo session, so the next session must re-resolve before picking another slice.
 - Validation run:
+  - `bash ./scripts/check-l0-generation.sh` (pass)
   - `bash ./scripts/check-l0.sh` (pass)
-  - `bash ./scripts/check-session-checkpoint.sh` (pass)
 - Files of interest:
+  - `scripts/check-l0-guardrails.sh`
+  - `scripts/check-l0-generation.sh`
   - `next_session_prompt.md`
-  - `copier-template/copier/tpl-project-repo/`
-  - `copier-template/copier/tpl-monorepo/`
-  - `copier-template/copier/tpl-package/`
-  - `diary/2026-03-30--feat-ak-task-scope-descendant-propagation.md`
+  - `diary/2026-03-30--test-ak-task-scope-regression-coverage.md`
 - Blockers / follow-up:
-  - Claim and complete `AK-548` to tighten regression checks around the new descendant task-scope adoption surface.
-  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting any non-`FCOS-M36-04` local slice.
+  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another local slice.
+  - If `FCOS-M36-04` still resolves, confirm whether governance-kernel FCOS state now needs sync because the repo-local AK chain (`AK-546` → `AK-548`) is complete.
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md`
 - KES crystallization flow:
