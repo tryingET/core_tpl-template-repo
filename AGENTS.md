@@ -13,7 +13,7 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Treat `enable_vouch_gate` as profile policy (default disabled, enable for trust-gated/public repos).
 - Keep generated repo-local task/issue/work-item surfaces AK-first: Agent Kernel is authoritative, while checked-in files such as `governance/work-items.json` are deterministic projections/mirrors.
 - When templates ship repo-local work-items, prefer deterministic wrappers (for example generated `./scripts/ak.sh`) and never reintroduce silent CI skips for projection drift checks.
-- When templates teach explicit task scope, keep AK as the authoring surface and treat frozen `governance/task-scopes/AK-<id>.snapshot.json` files as repo-consumption exports rather than hand-authored authority.
+- When templates teach explicit task scope, keep AK as the authoring surface and treat frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files as repo-consumption exports rather than hand-authored authority.
 - No secrets in git.
 
 ## Recursion policy (explicit)

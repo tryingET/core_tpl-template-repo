@@ -156,6 +156,8 @@ matrix_l1="$tmp_root/l1-template-matrix"
 matrix_project_python="$tmp_root/l2-project-python-matrix"
 matrix_project_rust="$tmp_root/l2-project-rust-matrix"
 matrix_project_elixir="$tmp_root/l2-project-elixir-matrix"
+matrix_agent="$tmp_root/l2-agent-matrix"
+matrix_org="$tmp_root/l2-org-matrix"
 matrix_monorepo="$tmp_root/l2-monorepo-matrix"
 "$repo_root/scripts/new-l1-from-copier.sh" "$matrix_l1" \
   -d repo_slug=l1-template-matrix \
@@ -179,6 +181,14 @@ matrix_monorepo="$tmp_root/l2-monorepo-matrix"
     -d repo_slug=fixture-project-elixir \
     -d language=elixir \
     -d enable_software_pack=true \
+    --defaults --overwrite >/dev/null
+
+  ./scripts/new-repo-from-copier.sh tpl-agent-repo "$matrix_agent" \
+    -d repo_slug=fixture-agent \
+    --defaults --overwrite >/dev/null
+
+  ./scripts/new-repo-from-copier.sh tpl-org-repo "$matrix_org" \
+    -d repo_slug=fixture-org \
     --defaults --overwrite >/dev/null
 
   ./scripts/new-repo-from-copier.sh tpl-monorepo "$matrix_monorepo" \
@@ -289,9 +299,17 @@ for generated_project in \
   "$matrix_project_rust" \
   "$matrix_project_elixir"
  do
-  assert_file_contains "$generated_project/README.md" "governance/task-scopes/AK-<AK-ID>.snapshot.json" "generated tpl-project-repo README should describe frozen AK task-scope snapshots"
+  assert_file_contains "$generated_project/README.md" "governance/task-scopes/AK-<TASK-ID>.snapshot.json" "generated tpl-project-repo README should describe frozen AK task-scope snapshots"
   assert_file_contains "$generated_project/governance/README.md" "transitional scaffolding" "generated tpl-project-repo governance README should describe non-authoritative hand-authored task-scope files"
   assert_file_contains "$generated_project/next_session_prompt.md" "Refresh task-scope snapshot" "generated tpl-project-repo next-session prompt should document AK task-scope refresh"
+ done
+
+for generated_repo in \
+  "$matrix_agent" \
+  "$matrix_org"
+ do
+  assert_file_contains "$generated_repo/README.md" "check-task-scope-snapshots.sh" "generated agent/org README should document task-scope snapshot validation"
+  assert_file_contains "$generated_repo/governance/README.md" "transitional scaffolding" "generated agent/org governance README should describe non-authoritative hand-authored task-scope files"
  done
 
 for generated_monorepo in \

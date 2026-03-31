@@ -7,6 +7,10 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "error: not a git repo" >&2; exit 1; }
 cd "$repo_root"
 
+if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then
+  ./scripts/check-task-scope-snapshots.sh
+fi
+
 if [ -f "./governance/work-items.json" ]; then
   ./scripts/ak.sh work-items check --repo "$repo_root" --path "./governance/work-items.json"
 fi

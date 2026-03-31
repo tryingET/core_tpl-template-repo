@@ -187,7 +187,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
     assert_file "copier/$tpl/scripts/ak.sh"
     assert_exec "copier/$tpl/scripts/ak.sh"
   fi
-  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+  if [ "$tpl" != "tpl-package" ]; then
     assert_file "copier/$tpl/scripts/check-task-scope-snapshots.sh"
     assert_exec "copier/$tpl/scripts/check-task-scope-snapshots.sh"
   fi
@@ -206,13 +206,17 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_contains "copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
   assert_contains "copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
   if [ "$tpl" != "tpl-package" ]; then
+    assert_contains "copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
     assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
     assert_not_contains "copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
-  fi
-  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
     assert_contains "copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
   fi
   assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
+done
+for tpl in tpl-agent-repo tpl-org-repo; do
+  assert_file "copier/$tpl/governance/README.md"
+  assert_contains "copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
+  assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
 for tpl in tpl-project-repo tpl-monorepo; do
   assert_file "copier/$tpl/governance/work-items.cue"
@@ -358,7 +362,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   if [ "$tpl" != "tpl-package" ]; then
     assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/ak.sh" "install-hooks must include executable bit normalization for $tpl AK wrapper"
   fi
-  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+  if [ "$tpl" != "tpl-package" ]; then
     assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/check-task-scope-snapshots.sh" "install-hooks must include executable bit normalization for $tpl task-scope checker"
   fi
   assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "install-hooks must include executable bit normalization for $tpl rocs wrapper"
@@ -575,15 +579,17 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   assert_file "$l2_dir/scripts/ci/smoke.sh"
   assert_file "$l2_dir/scripts/ci/full.sh"
   assert_file "$l2_dir/diary/README.md"
+  if [ "$tpl" != "tpl-package" ]; then
+    assert_file "$l2_dir/scripts/check-task-scope-snapshots.sh"
+  fi
   if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
     assert_file "$l2_dir/governance/work-items.cue"
     assert_file "$l2_dir/governance/work-items.json"
-    assert_file "$l2_dir/scripts/check-task-scope-snapshots.sh"
   fi
   assert_contains "$l2_dir/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "generated $tpl diary README should enforce descriptive filename convention"
   assert_not_dir "$l2_dir/docs/diary"
   assert_exec "$l2_dir/scripts/ak.sh"
-  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+  if [ "$tpl" != "tpl-package" ]; then
     assert_exec "$l2_dir/scripts/check-task-scope-snapshots.sh"
   fi
   assert_exec "$l2_dir/scripts/rocs.sh"
@@ -595,9 +601,15 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
     assert_contains "$l2_dir/AGENTS.md" "policy/stack-lane.json" "generated $tpl AGENTS should point to the pinned stack contract"
     assert_contains "$l2_dir/AGENTS.md" "docs/tech-stack.local.md" "generated $tpl AGENTS should point to the local stack override doc"
   fi
+  if [ "$tpl" != "tpl-package" ]; then
+    assert_contains "$l2_dir/README.md" "check-task-scope-snapshots.sh" "generated $tpl README should document task-scope snapshot validation"
+  fi
+  if [ "$tpl" = "tpl-agent-repo" ] || [ "$tpl" = "tpl-org-repo" ]; then
+    assert_file "$l2_dir/governance/README.md"
+    assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
+  fi
   if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
     assert_contains "$l2_dir/README.md" "Agent Kernel work-items flow" "generated $tpl README should document the AK work-items workflow"
-    assert_contains "$l2_dir/README.md" "check-task-scope-snapshots.sh" "generated $tpl README should document task-scope snapshot validation"
     assert_contains "$l2_dir/governance/README.md" "work-items export" "generated $tpl governance README should document projection export"
     assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
   fi
@@ -632,6 +644,34 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 done
 
 if [ -n "$ak_db" ]; then
+  agent_task_scope_repo="$tmp_root/tpl-agent-repo"
+  agent_task_scope_id="$(create_scoped_task "$agent_task_scope_repo" "template-ci: generated agent task-scope snapshot")"
+  write_task_scope_snapshot "$agent_task_scope_repo" "$agent_task_scope_id"
+  prepare_full_ci_probe "$agent_task_scope_repo"
+  run_repo_cmd "$agent_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
+  run_repo_cmd "$agent_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+
+  foreign_agent_repo="$tmp_root/foreign-agent-task-scope-repo"
+  mkdir -p "$foreign_agent_repo"
+  foreign_agent_task_id="$(create_scoped_task "$foreign_agent_repo" "template-ci: foreign agent task-scope snapshot")"
+  (
+    cd "$agent_task_scope_repo"
+    ./scripts/ak.sh task scope export "$foreign_agent_task_id" > "governance/task-scopes/AK-$foreign_agent_task_id.snapshot.json"
+  )
+  assert_command_fails "generated tpl-agent-repo task-scope checker should reject foreign snapshots" run_repo_cmd "$agent_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
+  assert_command_fails "generated tpl-agent-repo full CI should reject foreign task-scope snapshots" run_repo_cmd "$agent_task_scope_repo" ./scripts/ci/full.sh
+
+  org_task_scope_repo="$tmp_root/tpl-org-repo"
+  org_task_scope_id="$(create_scoped_task "$org_task_scope_repo" "template-ci: generated org task-scope snapshot")"
+  write_task_scope_snapshot "$org_task_scope_repo" "$org_task_scope_id"
+  prepare_full_ci_probe "$org_task_scope_repo"
+  run_repo_cmd "$org_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
+  run_repo_cmd "$org_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+
+  printf '{"schema_version":1}\n' > "$org_task_scope_repo/governance/task-scopes/AK-$org_task_scope_id.snapshot.json"
+  assert_command_fails "generated tpl-org-repo task-scope checker should reject drifted snapshots" run_repo_cmd "$org_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
+  assert_command_fails "generated tpl-org-repo full CI should reject drifted task-scope snapshots" run_repo_cmd "$org_task_scope_repo" ./scripts/ci/full.sh
+
   project_task_scope_repo="$tmp_root/tpl-project-repo"
   project_task_scope_id="$(create_scoped_task "$project_task_scope_repo" "template-ci: generated project task-scope snapshot")"
   write_task_scope_snapshot "$project_task_scope_repo" "$project_task_scope_id"

@@ -206,7 +206,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
     assert_file "copier-template/copier/$tpl/scripts/ak.sh"
     assert_exec "copier-template/copier/$tpl/scripts/ak.sh"
   fi
-  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+  if [ "$tpl" != "tpl-package" ]; then
     assert_file "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
     assert_exec "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
   fi
@@ -219,6 +219,11 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
 done
 
+for tpl in tpl-agent-repo tpl-org-repo; do
+  assert_file "copier-template/copier/$tpl/governance/README.md"
+  assert_contains "copier-template/copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
+  assert_contains "copier-template/copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
+done
 for tpl in tpl-project-repo tpl-monorepo; do
   assert_file "copier-template/copier/$tpl/governance/work-items.cue"
   assert_file "copier-template/copier/$tpl/governance/work-items.json.j2"
@@ -227,7 +232,7 @@ for tpl in tpl-project-repo tpl-monorepo; do
   assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
   assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
 done
-assert_contains "copier-template/copier/tpl-project-repo/README.md.j2" "governance/task-scopes/AK-<AK-ID>.snapshot.json" "tpl-project-repo README should describe frozen AK task-scope snapshot exports"
+assert_contains "copier-template/copier/tpl-project-repo/README.md.j2" "governance/task-scopes/AK-<TASK-ID>.snapshot.json" "tpl-project-repo README should describe frozen AK task-scope snapshot exports"
 assert_contains "copier-template/copier/tpl-project-repo/governance/README.md" "transitional scaffolding" "tpl-project-repo governance README should describe non-authoritative hand-authored task-scope files"
 assert_contains "copier-template/copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
 assert_contains "copier-template/copier/tpl-project-repo/next_session_prompt.md" "Refresh task-scope snapshot" "tpl-project-repo next-session prompt should document AK task-scope refresh"
@@ -309,10 +314,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
     assert_file "copier-template/copier/$tpl/scripts/ci/fast.sh"
   fi
   if [ "$tpl" != "tpl-package" ]; then
+    assert_contains "copier-template/copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
     assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
     assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
-  fi
-  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
     assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
   fi
   assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
@@ -361,7 +365,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   if [ "$tpl" != "tpl-package" ]; then
     assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ak.sh" "L1 install-hooks should normalize executable bits for $tpl AK wrapper"
   fi
-  if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+  if [ "$tpl" != "tpl-package" ]; then
     assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/check-task-scope-snapshots.sh" "L1 install-hooks should normalize executable bits for $tpl task-scope checker"
   fi
   assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"
@@ -454,7 +458,7 @@ assert_contains "copier-template/AGENTS.md.jinja" "L2 Templates" "generated L1 A
 assert_contains "copier-template/AGENTS.md.jinja" "bootstrap-lane-root.sh" "generated L1 AGENTS should document lane bootstrap helper"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
-assert_contains "fixtures/l2/tpl-project-repo/README.md" "governance/task-scopes/AK-<AK-ID>.snapshot.json" "tpl-project-repo fixture README should stay aligned with AK task-scope snapshot guidance"
+assert_contains "fixtures/l2/tpl-project-repo/README.md" "governance/task-scopes/AK-<TASK-ID>.snapshot.json" "tpl-project-repo fixture README should stay aligned with AK task-scope snapshot guidance"
 assert_contains "fixtures/l2/tpl-project-repo/governance/README.md" "transitional scaffolding" "tpl-project-repo fixture governance README should keep non-authoritative task-scope wording"
 assert_contains "fixtures/l2/tpl-project-repo/README.md" "check-task-scope-snapshots.sh" "tpl-project-repo fixture README should document task-scope snapshot validation"
 assert_contains "fixtures/l2/tpl-monorepo/README.md" "Packages/apps consume the monorepo-root snapshot" "tpl-monorepo fixture README should keep member task-scope authority at the root"

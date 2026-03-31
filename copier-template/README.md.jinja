@@ -142,12 +142,12 @@ Deterministic Agent Kernel launcher (for repo-local AK work-items projection and
 ./scripts/ak.sh --doctor
 ./scripts/ak.sh --which
 ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
-./scripts/ak.sh task scope show <AK-ID>
-mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <AK-ID> > governance/task-scopes/AK-<AK-ID>.snapshot.json
+./scripts/ak.sh task scope show <TASK-ID>
+mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ./scripts/check-task-scope-snapshots.sh
 ```
 
-Author explicit task scope in AK, not by hand in the repo. Frozen `governance/task-scopes/AK-<AK-ID>.snapshot.json` files are repo-consumption artifacts; hand-authored `AK-*.json` manifests remain transitional scaffolding only. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
+Author explicit task scope in AK, not by hand in the repo. Frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption artifacts; hand-authored `AK-*.json` manifests remain transitional scaffolding only. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
 
 ## Multi-pass template suffix policy (`.jinja` vs `.j2`)
 

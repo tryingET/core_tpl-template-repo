@@ -25,10 +25,12 @@ chmod +x \
   "$repo_root/.githooks/pre-commit" \
   "$repo_root/.githooks/pre-push" \
   "$repo_root/copier/tpl-agent-repo/scripts/ak.sh" \
+  "$repo_root/copier/tpl-agent-repo/scripts/check-task-scope-snapshots.sh" \
   "$repo_root/copier/tpl-agent-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-agent-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-agent-repo/scripts/ci/full.sh" \
   "$repo_root/copier/tpl-org-repo/scripts/ak.sh" \
+  "$repo_root/copier/tpl-org-repo/scripts/check-task-scope-snapshots.sh" \
   "$repo_root/copier/tpl-org-repo/scripts/rocs.sh.j2" \
   "$repo_root/copier/tpl-org-repo/scripts/ci/smoke.sh" \
   "$repo_root/copier/tpl-org-repo/scripts/ci/full.sh" \

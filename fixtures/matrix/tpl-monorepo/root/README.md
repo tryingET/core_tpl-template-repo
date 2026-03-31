@@ -57,8 +57,8 @@ Repo-local deferred work is **AK-first**.
 If a monorepo AK task carries explicit scope, author/update that scope in AK and keep repo-side copies as frozen exports at the monorepo root:
 
 ```bash
-./scripts/ak.sh task scope show <AK-ID>
-mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <AK-ID> > governance/task-scopes/AK-<AK-ID>.snapshot.json
+./scripts/ak.sh task scope show <TASK-ID>
+mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ```
 
 Packages/apps consume the monorepo-root snapshot; they do not author standalone AK task-scope files. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
@@ -96,7 +96,7 @@ Use `tpl-package` from your L1 templates to add packages:
 ## Governance
 
 - Work-items projection: `governance/work-items.json` (AK-backed; use `./scripts/ak.sh`)
-- Task-scope snapshots: `governance/task-scopes/AK-<id>.snapshot.json` (when explicit task scope is in play)
+- Task-scope snapshots: `governance/task-scopes/AK-<TASK-ID>.snapshot.json` (when explicit task scope is in play)
 - Projection schema: `governance/work-items.cue`
 - Policies: `policy/`
 - Ontology: `ontology/`

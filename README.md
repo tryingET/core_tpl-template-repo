@@ -20,7 +20,7 @@ For the detailed L0 -> L1 -> L2 file contract (deep review + what goes where):
 
 Repo-local work-items in generated `tpl-project-repo` / `tpl-monorepo` repos are now AK-first:
 the generated work-items JSON file is a deterministic checked-in projection/mirror, and generated repos use repo-local `scripts/ak.sh` wrappers for `ak work-items import|export|check`.
-When repo-local task-scope snapshots are in play, the same wrapper fronts `ak task scope show|export`, and frozen `governance/task-scopes/AK-<id>.snapshot.json` files are repo-consumption artifacts rather than hand-authored authority.
+When repo-local task-scope snapshots are in play, the same wrapper fronts `ak task scope show|export`, and frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption artifacts rather than hand-authored authority.
 
 ## Canonical tech-stack contract map
 
@@ -102,11 +102,11 @@ Use the wrapper instead of raw `ak` when operating on repo-local AK tasks or whe
 ./scripts/ak.sh --doctor
 ./scripts/ak.sh --which
 ./scripts/ak.sh task show 546
-./scripts/ak.sh task scope show <AK-ID>
-mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <AK-ID> > governance/task-scopes/AK-<AK-ID>.snapshot.json
+./scripts/ak.sh task scope show <TASK-ID>
+mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ```
 
-Author explicit task scope in AK. Frozen `governance/task-scopes/AK-<AK-ID>.snapshot.json` files are repo-consumption exports; hand-authored `AK-*.json` manifests are transitional scaffolding only.
+Author explicit task scope in AK. Frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption exports; hand-authored `AK-*.json` manifests are transitional scaffolding only.
 
 ## Organization docs profiles (L1 vs L2)
 
