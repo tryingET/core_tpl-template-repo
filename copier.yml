@@ -51,7 +51,7 @@ enable_release_pack:
   help: "Enable release baseline (release-please, release checks, publish automation)."
 
 _tasks:
-  - "chmod +x scripts/new-repo-from-copier.sh scripts/check-template-ci.sh scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh scripts/release/check.sh scripts/release/publish.sh .githooks/pre-commit .githooks/pre-push"
+  - "chmod +x scripts/new-repo-from-copier.sh scripts/check-template-ci.sh scripts/install-hooks.sh scripts/ci/smoke.sh scripts/ci/full.sh scripts/release/check.sh scripts/release/publish.sh scripts/lib/check-template-ak.py .githooks/pre-commit .githooks/pre-push"
   - "chmod +x copier/tpl-agent-repo/scripts/ci/smoke.sh copier/tpl-agent-repo/scripts/ci/full.sh copier/tpl-org-repo/scripts/ci/smoke.sh copier/tpl-org-repo/scripts/ci/full.sh copier/tpl-project-repo/scripts/ci/smoke.sh copier/tpl-project-repo/scripts/ci/full.sh"
   - "{{ 'true' if l1_org_docs_profile == 'rich' else 'rm -f docs/org/purpose.md docs/org/mission.md docs/org/vision.md docs/org/strategic_objectives.md docs/org/values_ethics.md docs/org/governance.md docs/org/glossary.md' }}"
   - "{{ 'true' if enable_community_pack else 'rm -f CODE_OF_CONDUCT.md SUPPORT.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug-report.yml .github/ISSUE_TEMPLATE/feature-request.yml' }}"
