@@ -47,7 +47,11 @@ is_local_rocs_project() {
 
 select_runner() {
   if [ -n "${ROCS_BIN:-}" ]; then
-    printf '%s\n' "rocs-bin"
+    if [ -x "$ROCS_BIN" ] || command -v "$ROCS_BIN" >/dev/null 2>&1; then
+      printf '%s\n' "rocs-bin"
+      return
+    fi
+    printf '%s\n' "rocs-bin-missing"
     return
   fi
 
@@ -93,6 +97,9 @@ runner_desc() {
     rocs-bin)
       printf 'ROCS_BIN=%s\n' "${ROCS_BIN}"
       ;;
+    rocs-bin-missing)
+      printf 'ROCS_BIN is set but not executable/resolvable (%s)\n' "${ROCS_BIN}"
+      ;;
     vendored-uvx)
       printf 'vendored via uvx: %s\n' "$repo_root/tools/rocs-cli"
       ;;
@@ -137,7 +144,7 @@ doctor() {
   say "- local project is rocs-cli: $(is_local_rocs_project && printf yes || printf no)"
   say "- selected runner: $(runner_desc "$runner")"
 
-  if [ "$runner" = "missing" ] || [ "$runner" = "vendored-missing-runtime" ]; then
+  if [ "$runner" = "missing" ] || [ "$runner" = "vendored-missing-runtime" ] || [ "$runner" = "rocs-bin-missing" ]; then
     return 1
   fi
   return 0
@@ -157,7 +164,7 @@ runner="$(select_runner)"
 
 if [ "${1:-}" = "--which" ]; then
   runner_desc "$runner"
-  if [ "$runner" = "missing" ] || [ "$runner" = "vendored-missing-runtime" ]; then
+  if [ "$runner" = "missing" ] || [ "$runner" = "vendored-missing-runtime" ] || [ "$runner" = "rocs-bin-missing" ]; then
     exit 1
   fi
   exit 0
@@ -166,6 +173,9 @@ fi
 case "$runner" in
   rocs-bin)
     exec "$ROCS_BIN" "$@"
+    ;;
+  rocs-bin-missing)
+    die "ROCS_BIN is set but not executable/resolvable: $ROCS_BIN"
     ;;
   vendored-uvx)
     exec uvx -n --from "$repo_root/tools/rocs-cli" rocs "$@"
