@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-03-31",
+  "owner": "@tryinget",
+  "project_name": "fixture-product-repo",
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "DB Task Projection",
+      "issues": [
+        {
+          "id": "AK-TASK-0281",
+          "title": "Remove template-shipped rocs_cli GitLab baseline-resolution from tpl-project-repo",
+          "state": "queued",
+          "tasks": [
+            {
+              "text": "Remove template-shipped rocs_cli GitLab baseline-resolution from tpl-project-repo (task #281)",
+              "done": false
+            }
+          ],
+          "dod": "Task reaches done in society.db with evidence recorded."
+        },
+        {
+          "id": "AK-TASK-0546",
+          "title": "[FCOS-M36-04] Replace template-authored task-scope manifest workflow with AK-native scope snapshots",
+          "state": "done",
+          "tasks": [
+            {
+              "text": "[FCOS-M36-04] Replace template-authored task-scope manifest workflow with AK-native scope snapshots (task #546)",
+              "done": true
+            }
+          ],
+          "dod": "Task reaches done in society.db with evidence recorded.",
+          "completed_at": "2026-03-31"
+        },
+        {
+          "id": "AK-TASK-0547",
+          "title": "[FCOS-M36-04] Propagate AK-native task-scope flow across descendant template chains",
+          "state": "done",
+          "tasks": [
+            {
+              "text": "[FCOS-M36-04] Propagate AK-native task-scope flow across descendant template chains (task #547)",
+              "done": true
+            }
+          ],
+          "dod": "Task reaches done in society.db with evidence recorded.",
+          "completed_at": "2026-03-31"
+        },
+        {
+          "id": "AK-TASK-0548",
+          "title": "[FCOS-M36-04] Update fixtures and regression checks for AK-native task-scope adoption",
+          "state": "done",
+          "tasks": [
+            {
+              "text": "[FCOS-M36-04] Update fixtures and regression checks for AK-native task-scope adoption (task #548)",
+              "done": true
+            }
+          ],
+          "dod": "Task reaches done in society.db with evidence recorded.",
+          "completed_at": "2026-03-31"
+        },
+        {
+          "id": "AK-TASK-0553",
+          "title": "[FCOS-M36-06] Publish template-side migration playbook for AK-native task-scope adoption",
+          "state": "queued",
+          "tasks": [
+            {
+              "text": "[FCOS-M36-06] Publish template-side migration playbook for AK-native task-scope adoption (task #553)",
+              "done": false
+            }
+          ],
+          "dod": "Task reaches done in society.db with evidence recorded."
+        },
+        {
+          "id": "AK-TASK-0620",
+          "title": "[FCOS-M36-04] Add generated-repo task-scope snapshot drift checks and CI enforcement",
+          "state": "done",
+          "tasks": [
+            {
+              "text": "[FCOS-M36-04] Add generated-repo task-scope snapshot drift checks and CI enforcement (task #620)",
+              "done": true
+            }
+          ],
+          "dod": "Task reaches done in society.db with evidence recorded.",
+          "completed_at": "2026-03-31"
+        },
+        {
+          "id": "AK-TASK-0621",
+          "title": "[FCOS-M36-04] Extend AK-native task-scope rollout to tpl-agent-repo/tpl-org-repo and fix task-id guidance",
+          "state": "done",
+          "tasks": [
+            {
+              "text": "[FCOS-M36-04] Extend AK-native task-scope rollout to tpl-agent-repo/tpl-org-repo and fix task-id guidance (task #621)",
+              "done": true
+            }
+          ],
+          "dod": "Task reaches done in society.db with evidence recorded.",
+          "completed_at": "2026-03-31"
+        }
+      ]
+    }
+  ]
+}
