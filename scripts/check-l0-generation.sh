@@ -11,10 +11,12 @@ need_cmd() {
   }
 }
 
+need_cmd awk
 need_cmd cp
 need_cmd git
 need_cmd grep
 need_cmd mktemp
+need_cmd sed
 
 fail() {
   echo "error: $*" >&2
@@ -36,10 +38,59 @@ assert_path_absent() {
   [ ! -e "$path" ] || fail "$label (unexpected path: $path)"
 }
 
+assert_command_fails() {
+  label="$1"
+  shift
+
+  if "$@" >/dev/null 2>&1; then
+    fail "$label"
+  fi
+}
+
+yaml_scalar_value() {
+  yaml_file="$1"
+  key="$2"
+
+  awk -v key="$key" '
+    function trim(value) {
+      sub(/^[ \t]+/, "", value)
+      sub(/[ \t]+$/, "", value)
+      return value
+    }
+
+    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
+      value = $0
+      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", value)
+      value = trim(value)
+
+      if (value ~ /^".*"$/) {
+        value = substr(value, 2, length(value) - 2)
+        gsub(/\\"/, "\"", value)
+        gsub(/\\\\/, "\\", value)
+      } else if (value ~ /^\047.*\047$/) {
+        value = substr(value, 2, length(value) - 2)
+        gsub(/\047\047/, "\047", value)
+      }
+
+      print value
+      exit
+    }
+  ' "$yaml_file"
+}
+
 "$repo_root/scripts/check-l0-guardrails.sh"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
+
+dummy_ak_dir="$tmp_root/dummy-ak-bin"
+mkdir -p "$dummy_ak_dir"
+cat > "$dummy_ak_dir/ak" <<'EOF'
+#!/usr/bin/env sh
+echo "error: ambient ak should not be used by check-template-ci" >&2
+exit 127
+EOF
+chmod +x "$dummy_ak_dir/ak"
 
 render_l1_case() {
   case_name="$1"
@@ -65,7 +116,7 @@ render_l1_case() {
     git config user.email "ci@tpl-template-repo.local" >/dev/null
     ./scripts/install-hooks.sh >/dev/null
     ./scripts/ci/smoke.sh >/dev/null
-    ./scripts/check-template-ci.sh
+    PATH="$dummy_ak_dir:$PATH" ./scripts/check-template-ci.sh
     git add .
     git commit -m "initial render ($case_name)" >/dev/null
   )
@@ -113,6 +164,13 @@ render_l1_case() {
       printf '%s\n' "$preview_output" >&2
       exit 1
     }
+
+    (
+      cd "$l1_dir"
+      sed -i 's/"0.1.0"/"0.1.1"/' .release-please-manifest.json
+      sed -i 's/## \[0.1.0\]/## [0.1.1]/' CHANGELOG.md
+      ./scripts/release/check.sh >/dev/null
+    )
   fi
 }
 
@@ -122,7 +180,7 @@ render_l1_case "l1-template-release" false true false rich
 render_l1_case "l1-template-vouch" false false true rich
 render_l1_case "l1-template-compact-org" false false false compact
 
-# Regression check: inherited string values must preserve colons.
+# Regression check: inherited string values must preserve punctuation and quoting.
 colon_l1="$tmp_root/l1-template-colon"
 colon_l2="$tmp_root/l2-template-colon"
 "$repo_root/scripts/new-l1-from-copier.sh" "$colon_l1" \
@@ -136,18 +194,51 @@ colon_l2="$tmp_root/l2-template-colon"
     -d repo_slug=l2-template-colon \
     --defaults --overwrite >/dev/null
 )
-colon_company_name="$(awk '
-  $0 ~ "^[[:space:]]*company_name[[:space:]]*:" {
-    v = $0
-    sub("^[[:space:]]*company_name[[:space:]]*:[[:space:]]*", "", v)
-    gsub(/^"|"$/, "", v)
-    gsub(/^\047|\047$/, "", v)
-    print v
-    exit
-  }
-' "$colon_l2/.copier-answers.yml")"
+colon_company_name="$(yaml_scalar_value "$colon_l2/.copier-answers.yml" company_name)"
 [ "$colon_company_name" = "Foo: Labs" ] || {
   echo "error: inherited company_name should preserve colon characters (expected 'Foo: Labs', got '$colon_company_name')" >&2
+  exit 1
+}
+
+apostrophe_l1="$tmp_root/l1-template-apostrophe"
+apostrophe_l2="$tmp_root/l2-template-apostrophe"
+"$repo_root/scripts/new-l1-from-copier.sh" "$apostrophe_l1" \
+  -d repo_slug=l1-template-apostrophe \
+  -d maintainer_handle=@template-owner \
+  -d company_name="O'Connor Labs" \
+  --defaults --overwrite >/dev/null
+if grep -qF "company_name: 'O'Connor Labs'" "$apostrophe_l1/.copier-answers.yml"; then
+  echo "error: L1 answers rendering must not emit invalid single-quoted YAML for apostrophes" >&2
+  exit 1
+fi
+(
+  cd "$apostrophe_l1"
+  ./scripts/new-repo-from-copier.sh tpl-project-repo "$apostrophe_l2" \
+    -d repo_slug=l2-template-apostrophe \
+    --defaults --overwrite >/dev/null
+)
+apostrophe_company_name="$(yaml_scalar_value "$apostrophe_l2/.copier-answers.yml" company_name)"
+[ "$apostrophe_company_name" = "O'Connor Labs" ] || {
+  echo "error: inherited company_name should preserve apostrophes (expected O'Connor Labs, got '$apostrophe_company_name')" >&2
+  exit 1
+}
+
+quote_l1="$tmp_root/l1-template-quote"
+quote_l2="$tmp_root/l2-template-quote"
+"$repo_root/scripts/new-l1-from-copier.sh" "$quote_l1" \
+  -d repo_slug=l1-template-quote \
+  -d maintainer_handle=@template-owner \
+  -d company_name='Acme "Lab"' \
+  --defaults --overwrite >/dev/null
+(
+  cd "$quote_l1"
+  ./scripts/new-repo-from-copier.sh tpl-project-repo "$quote_l2" \
+    -d repo_slug=l2-template-quote \
+    --defaults --overwrite >/dev/null
+)
+quote_company_name="$(yaml_scalar_value "$quote_l2/.copier-answers.yml" company_name)"
+[ "$quote_company_name" = 'Acme "Lab"' ] || {
+  echo "error: inherited company_name should preserve embedded double quotes (expected 'Acme \"Lab\"', got '$quote_company_name')" >&2
   exit 1
 }
 
@@ -219,6 +310,19 @@ matrix_monorepo="$tmp_root/l2-monorepo-matrix"
     -d package_type=library \
     -d language=elixir \
     --defaults --overwrite >/dev/null
+)
+
+assert_command_fails "root ROCS doctor must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing "$repo_root/scripts/rocs.sh" --doctor
+assert_command_fails "root ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing "$repo_root/scripts/rocs.sh" --which
+(
+  cd "$tmp_root/l1-template-sample"
+  assert_command_fails "generated L1 ROCS doctor must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --doctor
+  assert_command_fails "generated L1 ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --which
+)
+(
+  cd "$matrix_project_python"
+  assert_command_fails "generated L2 ROCS doctor must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --doctor
+  assert_command_fails "generated L2 ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --which
 )
 
 for required_file in \
@@ -312,13 +416,10 @@ for generated_repo in \
   assert_file_contains "$generated_repo/governance/README.md" "transitional scaffolding" "generated agent/org governance README should describe non-authoritative hand-authored task-scope files"
  done
 
-for generated_monorepo in \
-  "$matrix_monorepo"
- do
-  assert_file_contains "$generated_monorepo/README.md" "Packages/apps consume the monorepo-root snapshot" "generated tpl-monorepo README should keep member task-scope authority at the root"
-  assert_file_contains "$generated_monorepo/AGENTS.md" "packages/apps do not create standalone AK task-scope files" "generated tpl-monorepo AGENTS should forbid standalone member task-scope files"
-  assert_file_contains "$generated_monorepo/governance/README.md" "monorepo-root snapshot" "generated tpl-monorepo governance README should point members at the root snapshot"
- done
+generated_monorepo="$matrix_monorepo"
+assert_file_contains "$generated_monorepo/README.md" "Packages/apps consume the monorepo-root snapshot" "generated tpl-monorepo README should keep member task-scope authority at the root"
+assert_file_contains "$generated_monorepo/AGENTS.md" "packages/apps do not create standalone AK task-scope files" "generated tpl-monorepo AGENTS should forbid standalone member task-scope files"
+assert_file_contains "$generated_monorepo/governance/README.md" "monorepo-root snapshot" "generated tpl-monorepo governance README should point members at the root snapshot"
 
 for generated_package in \
   "$matrix_monorepo/packages/fixture-py-core" \

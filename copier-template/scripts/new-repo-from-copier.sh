@@ -168,42 +168,54 @@ has_data_override() {
   return 1
 }
 
-read_inherited_value() {
+yaml_scalar_from_answers() {
   answers_file="$1"
   key="$2"
 
   [ -f "$answers_file" ] || return 1
 
   awk -v key="$key" '
+    function trim(value) {
+      sub(/^[ \t]+/, "", value)
+      sub(/[ \t]+$/, "", value)
+      return value
+    }
+
     $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
-      v = $0
-      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", v)
-      gsub(/^[ \t]+|[ \t]+$/, "", v)
-      gsub(/"/, "", v)
-      gsub(/\047/, "", v)
-      print tolower(v)
+      value = $0
+      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", value)
+      value = trim(value)
+
+      if (value ~ /^".*"$/) {
+        value = substr(value, 2, length(value) - 2)
+        gsub(/\\"/, "\"", value)
+        gsub(/\\\\/, "\\", value)
+      } else if (value ~ /^\047.*\047$/) {
+        value = substr(value, 2, length(value) - 2)
+        gsub(/\047\047/, "\047", value)
+      }
+
+      print value
       exit
     }
   ' "$answers_file"
+}
+
+read_inherited_value() {
+  answers_file="$1"
+  key="$2"
+
+  value="$(yaml_scalar_from_answers "$answers_file" "$key" 2>/dev/null || true)"
+  [ -n "$value" ] || return 1
+
+  printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
 }
 
 read_inherited_string() {
   answers_file="$1"
   key="$2"
 
-  [ -f "$answers_file" ] || return 1
-
-  awk -v key="$key" '
-    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
-      v = $0
-      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", v)
-      gsub(/^[ \t]+|[ \t]+$/, "", v)
-      gsub(/"/, "", v)
-      gsub(/\047/, "", v)
-      print v
-      exit
-    }
-  ' "$answers_file"
+  yaml_scalar_from_answers "$answers_file" "$key"
 }
 
 infer_project_owner_handle() {

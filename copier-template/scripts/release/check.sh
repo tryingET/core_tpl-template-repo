@@ -27,7 +27,18 @@ assert_file SECURITY.md
 
 assert_contains .release-please-config.json '"release-type": "simple"'
 assert_contains .release-please-config.json '"include-v-in-tag": true'
-assert_contains .release-please-manifest.json '".": "0.1.0"'
-assert_contains CHANGELOG.md '## [0.1.0]'
 
-echo "ok: release baseline check"
+manifest_version="$(awk -F '"' '/"\."[[:space:]]*:/ { print $4; exit }' .release-please-manifest.json)"
+[ -n "$manifest_version" ] || fail "unable to extract manifest version from .release-please-manifest.json"
+
+case "$manifest_version" in
+  [0-9]*.[0-9]*.[0-9]*)
+    ;;
+  *)
+    fail "release manifest version must be semver-like (got: $manifest_version)"
+    ;;
+esac
+
+assert_contains CHANGELOG.md "## [$manifest_version]"
+
+echo "ok: release baseline check ($manifest_version)"

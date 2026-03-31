@@ -16,6 +16,7 @@ need_cmd find
 need_cmd git
 need_cmd grep
 need_cmd mktemp
+need_cmd python3
 need_cmd sort
 
 fail() {
@@ -151,6 +152,7 @@ scripts/check-task-scope-snapshots.sh
 scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
+scripts/lib/check-template-ak.py
 scripts/lib/suffix-policy.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
@@ -183,6 +185,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_file "copier/$tpl/copier.yml"
   assert_file "copier/$tpl/AGENTS.md.j2"
   assert_file "copier/$tpl/CODEOWNERS.j2"
+  assert_file "copier/$tpl/.copier-answers.yml.j2"
+  assert_contains "copier/$tpl/.copier-answers.yml.j2" "to_nice_yaml" "L2 template $tpl answers template should use canonical Copier YAML emission"
   if [ "$tpl" != "tpl-package" ]; then
     assert_file "copier/$tpl/scripts/ak.sh"
     assert_exec "copier/$tpl/scripts/ak.sh"
@@ -239,6 +243,7 @@ scripts/check-task-scope-snapshots.sh
 scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
+scripts/lib/check-template-ak.py
 scripts/ci/smoke.sh
 scripts/ci/full.sh
 .githooks/pre-commit
@@ -468,22 +473,21 @@ fi
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
-ak_db=""
-if command -v ak >/dev/null 2>&1; then
-  ak_db="$tmp_root/check-template-ci.ak.db"
-  ak -d "$ak_db" init >/dev/null
-  export AK_DB="$ak_db"
-fi
+ak_db="$tmp_root/check-template-ci.ak.db"
+ak_test_double="$repo_root/scripts/lib/check-template-ak.py"
+[ -x "$ak_test_double" ] || fail "missing executable AK test double: $ak_test_double"
+export AK_BIN="$ak_test_double"
+export AK_DB="$ak_db"
+"$AK_BIN" -d "$ak_db" init >/dev/null
 
 ensure_registered_repo() {
   repo_path="$1"
-  [ -n "$ak_db" ] || return 0
 
-  if ak -d "$ak_db" repo show "$repo_path" >/dev/null 2>&1; then
+  if "$AK_BIN" -d "$ak_db" repo show "$repo_path" >/dev/null 2>&1; then
     return 0
   fi
 
-  ak -d "$ak_db" repo register "$repo_path" --company templateci >/dev/null
+  "$AK_BIN" -d "$ak_db" repo register "$repo_path" --company templateci >/dev/null
 }
 
 extract_created_task_id() {
@@ -501,14 +505,13 @@ extract_created_task_id() {
 create_scoped_task() {
   repo_path="$1"
   title="$2"
-  [ -n "$ak_db" ] || fail "AK DB is required for task-scope regression coverage"
 
   ensure_registered_repo "$repo_path"
-  create_output="$(ak -d "$ak_db" task create --repo "$repo_path" "$title")"
+  create_output="$("$AK_BIN" -d "$ak_db" task create --repo "$repo_path" "$title")"
   task_id="$(extract_created_task_id "$create_output")"
   [ -n "$task_id" ] || fail "unable to parse task id from AK output: $create_output"
 
-  ak -d "$ak_db" task scope set "$task_id" --allowed README.md 'src/**' --required README.md >/dev/null
+  "$AK_BIN" -d "$ak_db" task scope set "$task_id" --allowed README.md 'src/**' --required README.md >/dev/null
   printf '%s\n' "$task_id"
 }
 
@@ -556,13 +559,11 @@ EOF
   fi
 }
 
-if [ -n "$ak_db" ]; then
-  l1_task_scope_id="$(create_scoped_task "$repo_root" "template-ci: generated L1 task-scope snapshot")"
-  write_task_scope_snapshot "$repo_root" "$l1_task_scope_id"
-  run_repo_cmd "$repo_root" ./scripts/check-task-scope-snapshots.sh >/dev/null
-  run_repo_cmd "$repo_root" ./scripts/ci/full.sh >/dev/null
-  rm -rf "$repo_root/governance/task-scopes"
-fi
+l1_task_scope_id="$(create_scoped_task "$repo_root" "template-ci: generated L1 task-scope snapshot")"
+write_task_scope_snapshot "$repo_root" "$l1_task_scope_id"
+run_repo_cmd "$repo_root" ./scripts/check-task-scope-snapshots.sh >/dev/null
+run_repo_cmd "$repo_root" ./scripts/ci/full.sh >/dev/null
+rm -rf "$repo_root/governance/task-scopes"
 
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   l2_dir="$tmp_root/$tpl"
@@ -623,7 +624,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
     git add . >/dev/null
     git commit -m "initial L2 render" >/dev/null
     ./scripts/ci/smoke.sh >/dev/null
-    if [ -n "$ak_db" ] && { [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; }; then
+    if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
       ensure_registered_repo "$l2_dir"
       ./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
     fi
@@ -643,63 +644,69 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   )
 done
 
-if [ -n "$ak_db" ]; then
-  agent_task_scope_repo="$tmp_root/tpl-agent-repo"
-  agent_task_scope_id="$(create_scoped_task "$agent_task_scope_repo" "template-ci: generated agent task-scope snapshot")"
-  write_task_scope_snapshot "$agent_task_scope_repo" "$agent_task_scope_id"
-  prepare_full_ci_probe "$agent_task_scope_repo"
-  run_repo_cmd "$agent_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
-  run_repo_cmd "$agent_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+agent_task_scope_repo="$tmp_root/tpl-agent-repo"
+agent_task_scope_id="$(create_scoped_task "$agent_task_scope_repo" "template-ci: generated agent task-scope snapshot")"
+write_task_scope_snapshot "$agent_task_scope_repo" "$agent_task_scope_id"
+prepare_full_ci_probe "$agent_task_scope_repo"
+run_repo_cmd "$agent_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
+run_repo_cmd "$agent_task_scope_repo" ./scripts/ci/full.sh >/dev/null
 
-  foreign_agent_repo="$tmp_root/foreign-agent-task-scope-repo"
-  mkdir -p "$foreign_agent_repo"
-  foreign_agent_task_id="$(create_scoped_task "$foreign_agent_repo" "template-ci: foreign agent task-scope snapshot")"
-  (
-    cd "$agent_task_scope_repo"
-    ./scripts/ak.sh task scope export "$foreign_agent_task_id" > "governance/task-scopes/AK-$foreign_agent_task_id.snapshot.json"
-  )
-  assert_command_fails "generated tpl-agent-repo task-scope checker should reject foreign snapshots" run_repo_cmd "$agent_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
-  assert_command_fails "generated tpl-agent-repo full CI should reject foreign task-scope snapshots" run_repo_cmd "$agent_task_scope_repo" ./scripts/ci/full.sh
+foreign_agent_repo="$tmp_root/foreign-agent-task-scope-repo"
+mkdir -p "$foreign_agent_repo"
+foreign_agent_task_id="$(create_scoped_task "$foreign_agent_repo" "template-ci: foreign agent task-scope snapshot")"
+(
+  cd "$agent_task_scope_repo"
+  ./scripts/ak.sh task scope export "$foreign_agent_task_id" > "governance/task-scopes/AK-$foreign_agent_task_id.snapshot.json"
+)
+assert_command_fails "generated tpl-agent-repo task-scope checker should reject foreign snapshots" run_repo_cmd "$agent_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
+assert_command_fails "generated tpl-agent-repo full CI should reject foreign task-scope snapshots" run_repo_cmd "$agent_task_scope_repo" ./scripts/ci/full.sh
 
-  org_task_scope_repo="$tmp_root/tpl-org-repo"
-  org_task_scope_id="$(create_scoped_task "$org_task_scope_repo" "template-ci: generated org task-scope snapshot")"
-  write_task_scope_snapshot "$org_task_scope_repo" "$org_task_scope_id"
-  prepare_full_ci_probe "$org_task_scope_repo"
-  run_repo_cmd "$org_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
-  run_repo_cmd "$org_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+org_task_scope_repo="$tmp_root/tpl-org-repo"
+org_task_scope_id="$(create_scoped_task "$org_task_scope_repo" "template-ci: generated org task-scope snapshot")"
+write_task_scope_snapshot "$org_task_scope_repo" "$org_task_scope_id"
+prepare_full_ci_probe "$org_task_scope_repo"
+run_repo_cmd "$org_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
+run_repo_cmd "$org_task_scope_repo" ./scripts/ci/full.sh >/dev/null
 
-  printf '{"schema_version":1}\n' > "$org_task_scope_repo/governance/task-scopes/AK-$org_task_scope_id.snapshot.json"
-  assert_command_fails "generated tpl-org-repo task-scope checker should reject drifted snapshots" run_repo_cmd "$org_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
-  assert_command_fails "generated tpl-org-repo full CI should reject drifted task-scope snapshots" run_repo_cmd "$org_task_scope_repo" ./scripts/ci/full.sh
+printf '{"schema_version":1}\n' > "$org_task_scope_repo/governance/task-scopes/AK-$org_task_scope_id.snapshot.json"
+assert_command_fails "generated tpl-org-repo task-scope checker should reject drifted snapshots" run_repo_cmd "$org_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
+assert_command_fails "generated tpl-org-repo full CI should reject drifted task-scope snapshots" run_repo_cmd "$org_task_scope_repo" ./scripts/ci/full.sh
 
-  project_task_scope_repo="$tmp_root/tpl-project-repo"
-  project_task_scope_id="$(create_scoped_task "$project_task_scope_repo" "template-ci: generated project task-scope snapshot")"
-  write_task_scope_snapshot "$project_task_scope_repo" "$project_task_scope_id"
-  prepare_full_ci_probe "$project_task_scope_repo"
-  run_repo_cmd "$project_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
-  run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+project_task_scope_repo="$tmp_root/tpl-project-repo"
+project_task_scope_id="$(create_scoped_task "$project_task_scope_repo" "template-ci: generated project task-scope snapshot")"
+write_task_scope_snapshot "$project_task_scope_repo" "$project_task_scope_id"
+prepare_full_ci_probe "$project_task_scope_repo"
+run_repo_cmd "$project_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
+run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+printf '{"schema_version":1}\n' > "$project_task_scope_repo/governance/work-items.json"
+assert_command_fails "generated tpl-project-repo work-items check should reject drifted projections" run_repo_cmd "$project_task_scope_repo" ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+assert_command_fails "generated tpl-project-repo full CI should reject drifted work-items projections" run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh
+run_repo_cmd "$project_task_scope_repo" ./scripts/ak.sh work-items export --repo . --path governance/work-items.json >/dev/null
 
-  foreign_project_repo="$tmp_root/foreign-project-task-scope-repo"
-  mkdir -p "$foreign_project_repo"
-  foreign_project_task_id="$(create_scoped_task "$foreign_project_repo" "template-ci: foreign project task-scope snapshot")"
-  (
-    cd "$project_task_scope_repo"
-    ./scripts/ak.sh task scope export "$foreign_project_task_id" > "governance/task-scopes/AK-$foreign_project_task_id.snapshot.json"
-  )
-  assert_command_fails "generated tpl-project-repo task-scope checker should reject foreign snapshots" run_repo_cmd "$project_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
-  assert_command_fails "generated tpl-project-repo full CI should reject foreign task-scope snapshots" run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh
+foreign_project_repo="$tmp_root/foreign-project-task-scope-repo"
+mkdir -p "$foreign_project_repo"
+foreign_project_task_id="$(create_scoped_task "$foreign_project_repo" "template-ci: foreign project task-scope snapshot")"
+(
+  cd "$project_task_scope_repo"
+  ./scripts/ak.sh task scope export "$foreign_project_task_id" > "governance/task-scopes/AK-$foreign_project_task_id.snapshot.json"
+)
+assert_command_fails "generated tpl-project-repo task-scope checker should reject foreign snapshots" run_repo_cmd "$project_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
+assert_command_fails "generated tpl-project-repo full CI should reject foreign task-scope snapshots" run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh
 
-  monorepo_task_scope_repo="$tmp_root/tpl-monorepo"
-  monorepo_task_scope_id="$(create_scoped_task "$monorepo_task_scope_repo" "template-ci: generated monorepo task-scope snapshot")"
-  write_task_scope_snapshot "$monorepo_task_scope_repo" "$monorepo_task_scope_id"
-  prepare_full_ci_probe "$monorepo_task_scope_repo"
-  run_repo_cmd "$monorepo_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
-  run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+monorepo_task_scope_repo="$tmp_root/tpl-monorepo"
+monorepo_task_scope_id="$(create_scoped_task "$monorepo_task_scope_repo" "template-ci: generated monorepo task-scope snapshot")"
+write_task_scope_snapshot "$monorepo_task_scope_repo" "$monorepo_task_scope_id"
+prepare_full_ci_probe "$monorepo_task_scope_repo"
+run_repo_cmd "$monorepo_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
+run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+printf '{"schema_version":1}\n' > "$monorepo_task_scope_repo/governance/work-items.json"
+assert_command_fails "generated tpl-monorepo work-items check should reject drifted projections" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+assert_command_fails "generated tpl-monorepo full CI should reject drifted work-items projections" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ci/full.sh
+run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ak.sh work-items export --repo . --path governance/work-items.json >/dev/null
 
-  printf '{"schema_version":1}\n' > "$monorepo_task_scope_repo/governance/task-scopes/AK-$monorepo_task_scope_id.snapshot.json"
-  assert_command_fails "generated tpl-monorepo task-scope checker should reject drifted snapshots" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
-  assert_command_fails "generated tpl-monorepo full CI should reject drifted task-scope snapshots" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ci/full.sh
-fi
+printf '{"schema_version":1}\n' > "$monorepo_task_scope_repo/governance/task-scopes/AK-$monorepo_task_scope_id.snapshot.json"
+assert_command_fails "generated tpl-monorepo task-scope checker should reject drifted snapshots" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
+assert_command_fails "generated tpl-monorepo full CI should reject drifted task-scope snapshots" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ci/full.sh
 
 # Test tpl-package separately (different parameters, no git required)
 tpl="tpl-package"
@@ -749,13 +756,11 @@ assert_contains "$elixir_project_dir/policy/stack-lane.json" '"ref": "workspace-
 assert_not_contains "$elixir_project_dir/policy/stack-lane.json" "--prefer-repo" "generated elixir project should not pin repo-preferred lane resolution"
 assert_contains "$elixir_project_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir project should point operators to the pinned lane command"
 assert_not_contains "$elixir_project_dir/docs/tech-stack.local.md" "--prefer-repo" "generated elixir project docs should not hardcode repo-preferred lane resolution"
-if [ -n "$ak_db" ]; then
-  ensure_registered_repo "$elixir_project_dir"
-  (
-    cd "$elixir_project_dir"
-    ./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
-  )
-fi
+ensure_registered_repo "$elixir_project_dir"
+(
+  cd "$elixir_project_dir"
+  ./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
+)
 
 elixir_package_dir="$tmp_root/tpl-package-elixir"
 ./scripts/new-repo-from-copier.sh tpl-package "$elixir_package_dir" \

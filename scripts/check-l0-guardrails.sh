@@ -148,6 +148,7 @@ copier-template/scripts/check-task-scope-snapshots.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
+copier-template/scripts/lib/check-template-ak.py
 copier-template/scripts/lib/suffix-policy.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
@@ -168,6 +169,7 @@ fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
 fixtures/l1/template-repo/diary/README.md
 fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
+fixtures/l1/template-repo/scripts/lib/check-template-ak.py
 fixtures/l1/template-repo/scripts/lib/suffix-policy.sh
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
@@ -262,6 +264,7 @@ copier-template/scripts/check-task-scope-snapshots.sh
 copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
+copier-template/scripts/lib/check-template-ak.py
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
 copier-template/scripts/release/check.sh
@@ -291,10 +294,11 @@ assert_contains "copier.yml" "enable_release_pack" "L0 copier config must expose
 assert_contains "copier.yml" "enable_vouch_gate" "L0 copier config must expose vouch gate toggle"
 assert_contains "copier.yml" "rm -rf copier/template-repo" "L0 must remove legacy template-repo in _tasks"
 
-# L1 answers template assertions
-assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "company_slug:" "L1 answers template must persist company_slug"
-assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "company_name:" "L1 answers template must persist company_name"
-assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "l1_org_docs_profile:" "L1 answers template must persist L1 org docs profile"
+# Answers templates should use canonical Copier YAML emission.
+assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "to_nice_yaml" "L1 answers template must use canonical Copier YAML emission"
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
+  assert_contains "copier-template/copier/$tpl/{{ _copier_conf.answers_file }}.j2" "to_nice_yaml" "L2 template $tpl answers template must use canonical Copier YAML emission"
+done
 
 # L2 template assertions (check tpl-project-repo as the primary example)
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "repo_slug:" "L2 copier config must have repo_slug"
@@ -361,6 +365,7 @@ assert_not_contains "copier-template/scripts/install-hooks.sh" "copier/template-
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "L1 install-hooks should normalize executable bit for lane bootstrap helper"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/ak.sh" "L1 install-hooks should normalize executable bit for the L1 AK wrapper"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/check-task-scope-snapshots.sh" "L1 install-hooks should normalize executable bit for the L1 task-scope checker"
+assert_contains "copier-template/scripts/install-hooks.sh" "scripts/lib/check-template-ak.py" "L1 install-hooks should normalize executable bit for the AK test double"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
   if [ "$tpl" != "tpl-package" ]; then
     assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ak.sh" "L1 install-hooks should normalize executable bits for $tpl AK wrapper"
