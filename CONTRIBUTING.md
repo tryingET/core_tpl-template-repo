@@ -37,6 +37,10 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
   bash ./scripts/sync-l0-fixtures.sh
   bash ./scripts/check-l0-fixtures.sh
   ```
+- If you touch operator-facing helper scripts (`new-l1-from-copier.sh`, `preview-l1-diff.sh`, `migrate-l1-structure.sh`, `preflight-repo-census.sh`, lane bootstrap flows), run the adversarial suite directly too:
+  ```bash
+  bash ./scripts/check-l0-adversarial.sh
+  ```
 
 ## Profile toggles note
 

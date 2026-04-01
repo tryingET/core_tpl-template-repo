@@ -6,6 +6,7 @@
 - [ ] `bash ./scripts/check-session-checkpoint.sh`
 - [ ] `bash ./scripts/check-supply-chain.sh`
 - [ ] `bash ./scripts/check-l0-generation.sh`
+- [ ] `bash ./scripts/check-l0-adversarial.sh`
 - [ ] `bash ./scripts/check-l0-fixtures.sh`
 - [ ] No nested Copier runs added in `_tasks`
 - [ ] Recursion contract still enforces: `L0 -> L1 -> L2` only

@@ -149,6 +149,7 @@ Optional focused checks:
 ```bash
 bash ./scripts/check-supply-chain.sh
 bash ./scripts/check-l0-generation.sh
+bash ./scripts/check-l0-adversarial.sh
 bash ./scripts/check-l0-fixtures.sh
 ```
 
@@ -172,6 +173,7 @@ Forbidden edges:
 
 - `scripts/check-l0-guardrails.sh`: validates required artifacts + recursion policy + contract presence.
 - `scripts/check-l0-generation.sh`: renders a sample L1 repo, runs its checks, and verifies idempotency.
+- `scripts/check-l0-adversarial.sh`: stress-tests operator surfaces (git worktrees, lane bootstrap adoption previews, migration portability, deep repo census).
 - `contracts/layer-contract.yml`: canonical L0 contract DSL for layer transitions.
 
 ## Adoption + release operations
@@ -181,6 +183,7 @@ Forbidden edges:
   ./scripts/preview-l1-diff.sh /path/to/holdingco
   ./scripts/preview-l1-diff.sh /path/to/softwareco
   ```
+  The preview focuses on the pure L1 render surface, materializes canonical lane-root baselines when they exist, and ignores nested child repos so tracked lane-baseline drift stays visible.
 - Contributing guide: `CONTRIBUTING.md`
 - Release/compatibility policy: `docs/release-compatibility-policy.md`
 - L1 rollout playbook: `docs/l1-adoption-playbook.md`

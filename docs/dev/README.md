@@ -195,6 +195,8 @@ Minimum deterministic flow:
 ./scripts/preview-l1-diff.sh ~/ai-society/<company>
 ```
 
+`preview-l1-diff.sh` compares the pure L1 render surface, materializes canonical lane-root baselines when they exist, and ignores nested child repos so adoption diffs stay reviewable without hiding tracked lane-baseline drift.
+
 Then in target L1 repo (on branch):
 - apply selected changes
 - run `bash ./scripts/check-template-ci.sh`
