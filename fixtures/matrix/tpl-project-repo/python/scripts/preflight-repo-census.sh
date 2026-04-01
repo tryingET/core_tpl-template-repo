@@ -7,17 +7,21 @@ set -euo pipefail
 SCOPE="${1:-.}"
 
 if [ ! -d "$SCOPE" ]; then
-  echo "error: scope not found: $SCOPE" >&2
-  exit 1
+	echo "error: scope not found: $SCOPE" >&2
+	exit 1
 fi
 
-mapfile -t REPOS < <(find "$SCOPE" -mindepth 1 -maxdepth 5 -type d -name .git -printf '%h\n' | sort)
+repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+repo_surface_lib="$repo_root/scripts/lib/repo-surface.sh"
+if [ ! -f "$repo_surface_lib" ]; then
+	echo "error: missing dependency: $repo_surface_lib" >&2
+	exit 2
+fi
+# shellcheck source=/dev/null
+. "$repo_surface_lib"
 
+mapfile -t REPOS < <(repo_surface_find_repo_roots "$SCOPE")
 repo_count="$(printf '%s\n' "${REPOS[@]-}" | sed '/^$/d' | wc -l | tr -d ' ')"
-if [ "${repo_count:-0}" -eq 0 ] && [ -d "$SCOPE/.git" ]; then
-  REPOS=("$SCOPE")
-  repo_count=1
-fi
 
 echo "scope: $SCOPE"
 echo "repos: ${repo_count:-0}"
@@ -26,19 +30,21 @@ printf '%-45s %-28s %-8s\n' "REPO" "BRANCH" "DIRTY"
 printf '%-45s %-28s %-8s\n' "----" "------" "-----"
 
 for repo in "${REPOS[@]}"; do
-  if ! git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then
-    printf '%-45s %-28s %-8s\n' "$repo" "(not-git)" "n/a"
-    continue
-  fi
+	if ! repo_surface_is_git_repo "$repo"; then
+		printf '%-45s %-28s %-8s\n' "$repo" "(not-git)" "n/a"
+		continue
+	fi
 
-  branch="$(git -C "$repo" branch --show-current 2>/dev/null || true)"
-  [ -n "$branch" ] || branch="(detached)"
+	branch="$(git -C "$repo" branch --show-current 2>/dev/null || true)"
+	if [ -z "$branch" ]; then
+		branch="(detached)"
+	fi
 
-  dirty_count="$(git -C "$repo" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
-  dirty="clean"
-  if [ "${dirty_count:-0}" -gt 0 ]; then
-    dirty="dirty:$dirty_count"
-  fi
+	dirty_count="$(git -C "$repo" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+	dirty="clean"
+	if [ "${dirty_count:-0}" -gt 0 ]; then
+		dirty="dirty:$dirty_count"
+	fi
 
-  printf '%-45s %-28s %-8s\n' "$repo" "$branch" "$dirty"
+	printf '%-45s %-28s %-8s\n' "$repo" "$branch" "$dirty"
 done
