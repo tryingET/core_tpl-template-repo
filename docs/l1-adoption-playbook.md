@@ -2,6 +2,7 @@
 
 Operator entrypoint: docs/dev/README.md (relative from here: `./dev/README.md`)
 Related L2 migration playbook: docs/l2-transition-playbook.md (relative from here: `./l2-transition-playbook.md`)
+Related task-scope migration playbook: copier-template/docs/dev/task-scope-migration-playbook.md
 
 ## Goal
 Adopt L0 updates into existing L1 repos with minimal drift and explicit review.
@@ -33,6 +34,25 @@ Then compare render output against that extracted snapshot.
    bash ./scripts/check-template-ci.sh
    ```
 5. Open MR with recursion + contract notes.
+
+## Special case: task-scope migration/deprecation rollout
+
+When the adoption slice includes the FCOS-M36-06 task-scope migration contract:
+
+1. Pull in the updated L1 docs surface from the L0 source:
+   - `../copier-template/README.md.jinja`
+   - `../copier-template/governance/README.md.jinja`
+   - `../copier-template/docs/dev/task-scope-migration-playbook.md`
+2. Confirm the generated L2 templates say the same bounded thing:
+   - AK authors explicit task scope
+   - `AK-<TASK-ID>.snapshot.json` is a frozen export for repo validation
+   - legacy `AK-*.json` manifests are compatibility-only, not co-equal authority
+   - repo-default scope does not require either file
+3. Re-render and validate in the target L1 repo:
+   ```bash
+   bash ./scripts/check-template-ci.sh
+   ```
+4. Call out the migration/deprecation boundary explicitly in the MR so downstream brownfield adopters do not mistake the rollout for a flag day.
 
 ## Drift controls
 - Keep contracts/layer-contract.yml untouched unless intentionally changing policy (relative from here: `../contracts/layer-contract.yml`).

@@ -25,7 +25,7 @@ Do not ask for permission to start.
 - Mission and goals: `docs/project/`
 - Active/deferred work authority: Agent Kernel work-items state
 - Checked-in work-items projection: `governance/work-items.json`
-- Explicit task-scope snapshots (when present): `governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- Explicit task-scope snapshots (when present; frozen exports, not hand-authored truth): `governance/task-scopes/AK-<TASK-ID>.snapshot.json`
 - Prior decisions: `docs/decisions/`
 - Crystallized learnings: `docs/learnings/`
 - Raw session capture: `diary/`
@@ -38,6 +38,7 @@ Do not ask for permission to start.
 - Legacy JSON bootstrap only: `./scripts/ak.sh work-items import --repo . --path governance/work-items.json`
 - Show explicit task scope (when used): `./scripts/ak.sh task scope show <TASK-ID>`
 - Refresh task-scope snapshot (when used): `mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- Legacy `governance/task-scopes/AK-*.json` files are compatibility-only; do not treat them as primary authored truth.
 
 ## SESSION PREFLIGHT (FILL BEFORE EXECUTION)
 - Objective (one sentence):
@@ -49,7 +50,7 @@ Do not ask for permission to start.
 1. `AGENTS.md`
 2. `README.md`
 3. `governance/work-items.json` (projection only; query AK if you need live state)
-4. Relevant `governance/task-scopes/AK-<TASK-ID>.snapshot.json` (when explicit task scope is in play)
+4. Relevant `governance/task-scopes/AK-<TASK-ID>.snapshot.json` (when explicit task scope is in play; frozen export only)
 5. `docs/project/mission.md`
 6. `docs/project/tactical_goals.md`
 7. Most recent `diary/YYYY-MM-DD--type-scope-summary.md`

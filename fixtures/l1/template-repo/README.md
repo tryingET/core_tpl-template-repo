@@ -148,6 +148,7 @@ mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> >
 ```
 
 Author explicit task scope in AK, not by hand in the repo. Frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption artifacts; hand-authored `AK-*.json` manifests remain transitional scaffolding only. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
+For brownfield migration/deprecation guidance, see `docs/dev/task-scope-migration-playbook.md`.
 
 ## Multi-pass template suffix policy (`.jinja` vs `.j2`)
 

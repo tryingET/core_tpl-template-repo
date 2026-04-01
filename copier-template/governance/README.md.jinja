@@ -63,6 +63,17 @@ When a generated repo opts into explicit AK task scope:
 - missing snapshots remain acceptable while a task still inherits repo-default scope
 - any hand-authored `governance/task-scopes/AK-*.json` file that is not an AK export is transitional scaffolding, not authoritative truth
 
+## Brownfield migration boundary
+
+If an existing generated repo still carries hand-authored `governance/task-scopes/AK-*.json` files:
+
+- author/update explicit scope in AK first, then export `AK-<TASK-ID>.snapshot.json`
+- keep the legacy `AK-*.json` file only as temporary compatibility fallback while the repo still depends on it
+- remove legacy manifest authoring from workflow docs/handoffs once `./scripts/check-task-scope-snapshots.sh` passes
+- if a task remains on repo-default scope, do not invent either file
+
+See `docs/dev/task-scope-migration-playbook.md` for the template-side rollout path.
+
 ## Validation
 
 Validate company-level program work-items against schema:

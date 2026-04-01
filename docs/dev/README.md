@@ -11,6 +11,7 @@ system4d:
       - "[[README.md]]"
       - "[[docs/l1-adoption-playbook.md]]"
       - "[[docs/l2-transition-playbook.md]]"
+      - "[[copier-template/docs/dev/task-scope-migration-playbook.md]]"
       - "[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]"
   compass:
     driver: "Eliminate setup/migration ambiguity with one authoritative entrypoint."
@@ -40,7 +41,8 @@ If you or your agent only read one file, read this one.
 3. `[[docs/l1-adoption-playbook.md]]` (L1 update flow)
 4. `[[docs/l2-transition-playbook.md]]` (L2 migration flow)
 5. `[[docs/dev/single-file-propagation-playbook.md]]` (safe one-file rollout pattern)
-6. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
+6. `[[copier-template/docs/dev/task-scope-migration-playbook.md]]` (brownfield task-scope migration/deprecation path)
+7. `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]` (detailed project-template contract)
 
 ### Agent handoff line
 Use this exact prompt with your coding agent:
@@ -184,6 +186,7 @@ Note: grouping/lane-root folders are not `tpl-package` targets. Keep grouping-ro
 
 Authoritative playbook:
 - `[[docs/l1-adoption-playbook.md]]`
+- `[[copier-template/docs/dev/task-scope-migration-playbook.md]]` when task-scope manifests or snapshot adoption are part of the L1 rollout
 
 Minimum deterministic flow:
 
@@ -203,6 +206,7 @@ Then in target L1 repo (on branch):
 
 Authoritative playbook:
 - `[[docs/l2-transition-playbook.md]]`
+- `[[copier-template/docs/dev/task-scope-migration-playbook.md]]` when retiring legacy `governance/task-scopes/AK-*.json` files or teaching the AK-native snapshot path
 
 Important: there is currently **no in-place auto-migrator**. Use scaffold-first migration.
 

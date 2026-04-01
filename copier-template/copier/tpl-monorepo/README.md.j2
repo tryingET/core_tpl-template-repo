@@ -62,6 +62,7 @@ mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> >
 ```
 
 Packages/apps consume the monorepo-root snapshot; they do not author standalone AK task-scope files. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
+If you are retiring a legacy monorepo-root `governance/task-scopes/AK-*.json` file, export the snapshot first, keep the legacy file only as temporary compatibility fallback, and remove it from the primary workflow once the snapshot checks pass. If the task stays on repo-default scope, do not invent either file.
 
 ## ROCS command flow
 

@@ -72,6 +72,35 @@ When adopting template scaffolding, merge these files intentionally (do not blin
 - `AGENTS.md`: preserve repo-specific operating instructions and add required guardrails (no secrets, MR-only, immutable core, deferred-work contract).
 - `next_session_prompt.md`: preserve active handoff context unless intentionally resetting session state.
 
+### 3b) Special case: retiring hand-authored task-scope manifests
+
+If the repo currently uses `governance/task-scopes/AK-*.json` as a legacy authored/compatibility path:
+
+1. Adopt the current template control-plane surface first (repo README, governance README, repo-local AK wrapper, task-scope snapshot checker, and full CI lane).
+2. Decide whether the task actually needs explicit scope.
+   - If the task stays on repo-default scope, do **not** create a snapshot or a replacement legacy manifest.
+3. If explicit scope is needed, author/update it in AK first:
+   ```bash
+   ./scripts/ak.sh task scope show <TASK-ID>
+   ./scripts/ak.sh task scope set <TASK-ID> ...
+   # or
+   ./scripts/ak.sh task scope update <TASK-ID> ...
+   ```
+4. Export the frozen repo-consumption snapshot:
+   ```bash
+   mkdir -p governance/task-scopes
+   ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
+   ```
+5. Validate on the snapshot path:
+   ```bash
+   ./scripts/check-task-scope-snapshots.sh
+   ./scripts/ci/full.sh
+   ```
+6. Keep the old `AK-*.json` file only as temporary compatibility fallback while the repo still depends on it; remove it from workflow docs/handoffs/CI inputs as soon as the snapshot path is proven.
+7. If migration regresses, restore the last known-good snapshot or fallback, repair the control-plane assumptions, and retry.
+
+See also: `../copier-template/docs/dev/task-scope-migration-playbook.md`
+
 ### 4) Validate migrated repo
 
 Run baseline checks:
@@ -114,4 +143,5 @@ git reset --hard <migration-branch-start-sha>
 ## Related
 - Operator entrypoint: `./dev/README.md`
 - L1 update playbook: `./l1-adoption-playbook.md`
+- Task-scope migration playbook: `../copier-template/docs/dev/task-scope-migration-playbook.md`
 - tpl-project detailed contract: `../copier-template/docs/dev/tpl-project-repo-file-contract.md`
