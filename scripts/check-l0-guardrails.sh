@@ -1,48 +1,48 @@
 #!/usr/bin/env sh
 set -eu
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$repo_root"
 
 fail() {
-  echo "error: $*" >&2
-  exit 1
+	echo "error: $*" >&2
+	exit 1
 }
 
 assert_file() {
-  path="$1"
-  [ -f "$path" ] || fail "missing required file: $path"
+	path="$1"
+	[ -f "$path" ] || fail "missing required file: $path"
 }
 
 assert_exec() {
-  path="$1"
-  [ -x "$path" ] || fail "expected executable file: $path"
+	path="$1"
+	[ -x "$path" ] || fail "expected executable file: $path"
 }
 
 assert_dir() {
-  path="$1"
-  [ -d "$path" ] || fail "missing required directory: $path"
+	path="$1"
+	[ -d "$path" ] || fail "missing required directory: $path"
 }
 
 assert_absent() {
-  path="$1"
-  [ ! -e "$path" ] || fail "legacy path must be absent: $path"
+	path="$1"
+	[ ! -e "$path" ] || fail "legacy path must be absent: $path"
 }
 
 assert_contains() {
-  path="$1"
-  needle="$2"
-  label="$3"
-  grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
+	path="$1"
+	needle="$2"
+	label="$3"
+	grep -qF -- "$needle" "$path" || fail "$label (missing '$needle' in $path)"
 }
 
 assert_not_contains() {
-  path="$1"
-  needle="$2"
-  label="$3"
-  if grep -qF -- "$needle" "$path"; then
-    fail "$label (found '$needle' in $path)"
-  fi
+	path="$1"
+	needle="$2"
+	label="$3"
+	if grep -qF -- "$needle" "$path"; then
+		fail "$label (found '$needle' in $path)"
+	fi
 }
 
 suffix_policy_lib="$repo_root/copier-template/scripts/lib/suffix-policy.sh"
@@ -51,38 +51,38 @@ suffix_policy_lib="$repo_root/copier-template/scripts/lib/suffix-policy.sh"
 . "$suffix_policy_lib"
 
 check_multi_pass_suffix_policy() {
-  self_test_untemplated_jinja_matcher || fail "suffix-policy matcher regression: expected to ignore GitHub expressions and detect unsuffixed Jinja markers"
+	self_test_untemplated_jinja_matcher || fail "suffix-policy matcher regression: expected to ignore GitHub expressions and detect unsuffixed Jinja markers"
 
-  l0_suffix="$(yaml_scalar_value "copier.yml" "_templates_suffix")"
-  [ "$l0_suffix" = ".jinja" ] || fail "L0 copier config must use .jinja suffix (found ${l0_suffix:-<missing>})"
+	l0_suffix="$(yaml_scalar_value "copier.yml" "_templates_suffix")"
+	[ "$l0_suffix" = ".jinja" ] || fail "L0 copier config must use .jinja suffix (found ${l0_suffix:-<missing>})"
 
-  for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
-    tpl_suffix="$(yaml_scalar_value "copier-template/copier/$tpl/copier.yml" "_templates_suffix")"
-    [ "$tpl_suffix" = ".j2" ] || fail "L2 template $tpl copier config must use .j2 suffix (found ${tpl_suffix:-<missing>})"
-  done
+	for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
+		tpl_suffix="$(yaml_scalar_value "copier-template/copier/$tpl/copier.yml" "_templates_suffix")"
+		[ "$tpl_suffix" = ".j2" ] || fail "L2 template $tpl copier config must use .j2 suffix (found ${tpl_suffix:-<missing>})"
+	done
 
-  nested_jinja="$(first_suffix_match "copier-template/copier" "*.jinja")"
-  [ -z "$nested_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 templates must not use .jinja (found $nested_jinja)"
+	nested_jinja="$(first_suffix_match "copier-template/copier" "*.jinja")"
+	[ -z "$nested_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 templates must not use .jinja (found $nested_jinja)"
 
-  outer_j2="$(first_suffix_match "copier-template" "*.j2" "copier-template/copier/*")"
-  [ -z "$outer_j2" ] || fail "pass-boundary suffix policy violated: outer L1 template surface must not use .j2 outside copier-template/copier/ (found $outer_j2)"
+	outer_j2="$(first_suffix_match "copier-template" "*.j2" "copier-template/copier/*")"
+	[ -z "$outer_j2" ] || fail "pass-boundary suffix policy violated: outer L1 template surface must not use .j2 outside copier-template/copier/ (found $outer_j2)"
 
-  nested_untemplated_jinja="$(first_untemplated_jinja_match "copier-template/copier" ".j2")"
-  [ -z "$nested_untemplated_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 template file contains Jinja markers but is not suffixed .j2 (found $nested_untemplated_jinja)"
+	nested_untemplated_jinja="$(first_untemplated_jinja_match "copier-template/copier" ".j2")"
+	[ -z "$nested_untemplated_jinja" ] || fail "pass-boundary suffix policy violated: nested L2 template file contains Jinja markers but is not suffixed .j2 (found $nested_untemplated_jinja)"
 }
 
 list_template_files() {
-  template_dir="$1"
+	template_dir="$1"
 
-  find "$template_dir" -type f | while IFS= read -r abs_path; do
-    rel_path="${abs_path#"$template_dir"/}"
-    case "$rel_path" in
-      */__pycache__/*|*.pyc)
-        continue
-        ;;
-    esac
-    printf '%s\n' "$rel_path"
-  done | LC_ALL=C sort
+	find "$template_dir" -type f | while IFS= read -r abs_path; do
+		rel_path="${abs_path#"$template_dir"/}"
+		case "$rel_path" in
+		*/__pycache__/* | *.pyc)
+			continue
+			;;
+		esac
+		printf '%s\n' "$rel_path"
+	done | LC_ALL=C sort
 }
 
 # L0 core files
@@ -150,6 +150,7 @@ copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/lib/check-template-ak.py
 copier-template/scripts/lib/copier-answers.sh
+copier-template/scripts/lib/repo-surface.sh
 copier-template/scripts/lib/suffix-policy.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
@@ -163,16 +164,19 @@ scripts/preview-l1-diff.sh
 scripts/rocs.sh
 scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
+scripts/check-l0-adversarial.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
 scripts/lib/copier-answers.sh
 scripts/lib/fixture-normalization.sh
+scripts/lib/repo-surface.sh
 fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
 fixtures/l1/template-repo/diary/README.md
 fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 fixtures/l1/template-repo/scripts/lib/check-template-ak.py
 fixtures/l1/template-repo/scripts/lib/copier-answers.sh
+fixtures/l1/template-repo/scripts/lib/repo-surface.sh
 fixtures/l1/template-repo/scripts/lib/suffix-policy.sh
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
@@ -180,8 +184,8 @@ fixtures/l2/tpl-project-repo/diary/README.md
 "
 
 while IFS= read -r path; do
-  [ -n "$path" ] || continue
-  assert_file "$path"
+	[ -n "$path" ] || continue
+	assert_file "$path"
 done <<EOF
 $required_files
 EOF
@@ -196,47 +200,49 @@ copier-template/copier/tpl-package
 "
 
 while IFS= read -r path; do
-  [ -n "$path" ] || continue
-  assert_dir "$path"
+	[ -n "$path" ] || continue
+	assert_dir "$path"
 done <<EOF
 $required_dirs
 EOF
 
 # L2 template required files (each template must have these)
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
-  assert_file "copier-template/copier/$tpl/copier.yml"
-  assert_file "copier-template/copier/$tpl/AGENTS.md.j2"
-  assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
-  if [ "$tpl" != "tpl-package" ]; then
-    assert_file "copier-template/copier/$tpl/scripts/ak.sh"
-    assert_file "copier-template/copier/$tpl/scripts/lib/copier-answers.sh"
-    assert_exec "copier-template/copier/$tpl/scripts/ak.sh"
-  fi
-  if [ "$tpl" != "tpl-package" ]; then
-    assert_file "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
-    assert_exec "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
-  fi
-  assert_file "copier-template/copier/$tpl/scripts/rocs.sh.j2"
-  assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
-  assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
-  assert_file "copier-template/copier/$tpl/diary/README.md"
-  assert_contains "copier-template/copier/$tpl/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 template $tpl diary README should enforce descriptive filename convention"
-  assert_absent "copier-template/copier/$tpl/docs/diary"
-  assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
+	assert_file "copier-template/copier/$tpl/copier.yml"
+	assert_file "copier-template/copier/$tpl/AGENTS.md.j2"
+	assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
+	if [ "$tpl" != "tpl-package" ]; then
+		assert_file "copier-template/copier/$tpl/scripts/ak.sh"
+		assert_file "copier-template/copier/$tpl/scripts/lib/copier-answers.sh"
+		assert_file "copier-template/copier/$tpl/scripts/lib/repo-surface.sh.j2"
+		assert_exec "copier-template/copier/$tpl/scripts/ak.sh"
+	fi
+	if [ "$tpl" != "tpl-package" ]; then
+		assert_file "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
+		assert_file "copier-template/copier/$tpl/scripts/preflight-repo-census.sh.j2"
+		assert_exec "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh"
+	fi
+	assert_file "copier-template/copier/$tpl/scripts/rocs.sh.j2"
+	assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
+	assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
+	assert_file "copier-template/copier/$tpl/diary/README.md"
+	assert_contains "copier-template/copier/$tpl/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 template $tpl diary README should enforce descriptive filename convention"
+	assert_absent "copier-template/copier/$tpl/docs/diary"
+	assert_exec "copier-template/copier/$tpl/scripts/rocs.sh.j2"
 done
 
 for tpl in tpl-agent-repo tpl-org-repo; do
-  assert_file "copier-template/copier/$tpl/governance/README.md"
-  assert_contains "copier-template/copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
-  assert_contains "copier-template/copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
+	assert_file "copier-template/copier/$tpl/governance/README.md"
+	assert_contains "copier-template/copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
+	assert_contains "copier-template/copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
 for tpl in tpl-project-repo tpl-monorepo; do
-  assert_file "copier-template/copier/$tpl/governance/work-items.cue"
-  assert_file "copier-template/copier/$tpl/governance/work-items.json.j2"
-  assert_contains "copier-template/copier/$tpl/README.md.j2" "Agent Kernel work-items flow" "L2 template $tpl README should document the AK work-items workflow"
-  assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items export" "L2 template $tpl governance README should document projection export"
-  assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
-  assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
+	assert_file "copier-template/copier/$tpl/governance/work-items.cue"
+	assert_file "copier-template/copier/$tpl/governance/work-items.json.j2"
+	assert_contains "copier-template/copier/$tpl/README.md.j2" "Agent Kernel work-items flow" "L2 template $tpl README should document the AK work-items workflow"
+	assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items export" "L2 template $tpl governance README should document projection export"
+	assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
+	assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
 done
 assert_contains "copier-template/copier/tpl-project-repo/README.md.j2" "governance/task-scopes/AK-<TASK-ID>.snapshot.json" "tpl-project-repo README should describe frozen AK task-scope snapshot exports"
 assert_contains "copier-template/copier/tpl-project-repo/governance/README.md" "transitional scaffolding" "tpl-project-repo governance README should describe non-authoritative hand-authored task-scope files"
@@ -259,6 +265,7 @@ scripts/preview-l1-diff.sh
 scripts/rocs.sh
 scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
+scripts/check-l0-adversarial.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
 copier-template/scripts/new-repo-from-copier.sh
@@ -279,8 +286,8 @@ fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 "
 
 while IFS= read -r path; do
-  [ -n "$path" ] || continue
-  assert_exec "$path"
+	[ -n "$path" ] || continue
+	assert_exec "$path"
 done <<EOF
 $required_exec
 EOF
@@ -301,7 +308,7 @@ assert_contains "copier.yml" "rm -rf copier/template-repo" "L0 must remove legac
 # Answers templates should use canonical Copier YAML emission.
 assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "to_nice_yaml" "L1 answers template must use canonical Copier YAML emission"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
-  assert_contains "copier-template/copier/$tpl/{{ _copier_conf.answers_file }}.j2" "to_nice_yaml" "L2 template $tpl answers template must use canonical Copier YAML emission"
+	assert_contains "copier-template/copier/$tpl/{{ _copier_conf.answers_file }}.j2" "to_nice_yaml" "L2 template $tpl answers template must use canonical Copier YAML emission"
 done
 
 # L2 template assertions (check tpl-project-repo as the primary example)
@@ -314,21 +321,22 @@ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_rel
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
 
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
-  assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
-  assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
-  assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
-  assert_contains "copier-template/copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
-  if [ "$tpl" = "tpl-project-repo" ]; then
-    assert_file "copier-template/copier/$tpl/scripts/ci/fast.sh"
-  fi
-  if [ "$tpl" != "tpl-package" ]; then
-    assert_contains "copier-template/copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
-    assert_contains "copier-template/copier/$tpl/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L2 template $tpl AK wrapper should source the shared copier answers helper"
-    assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
-    assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
-    assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
-  fi
-  assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
+	assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
+	assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"
+	assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "diary/" "L2 template $tpl AGENTS should reference repo-local diary"
+	assert_contains "copier-template/copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
+	if [ "$tpl" = "tpl-project-repo" ]; then
+		assert_file "copier-template/copier/$tpl/scripts/ci/fast.sh"
+	fi
+	if [ "$tpl" != "tpl-package" ]; then
+		assert_contains "copier-template/copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
+		assert_contains "copier-template/copier/$tpl/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L2 template $tpl AK wrapper should source the shared copier answers helper"
+		assert_contains "copier-template/copier/$tpl/scripts/preflight-repo-census.sh.j2" "scripts/lib/repo-surface.sh" "L2 template $tpl repo census helper should source the shared repo-surface helper"
+		assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
+		assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
+		assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
+	fi
+	assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/rocs.sh" "L2 template $tpl full CI should use scripts/rocs.sh when ontology is present"
 done
 assert_not_contains "copier-template/copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
 
@@ -338,10 +346,13 @@ assert_contains "scripts/rocs.sh" "deterministic resolution order" "L0 ROCS wrap
 assert_contains "scripts/new-l1-from-copier.sh" "COPIER_QUIET" "L0 L1 render wrapper must expose Copier quiet-mode toggle"
 assert_contains "scripts/new-l1-from-copier.sh" "--quiet" "L0 L1 render wrapper must default Copier execution to quiet mode"
 assert_contains "scripts/new-l1-from-copier.sh" "bootstrap-lane-root.sh" "L0 L1 render wrapper docs should include lane bootstrap workflow"
-assert_contains "scripts/preview-l1-diff.sh" '"$repo_root/scripts/new-l1-from-copier.sh" "$render_dir"' "preview-l1-diff must call new-l1 wrapper with render dir as first arg"
+assert_contains "scripts/preview-l1-diff.sh" "\"\$repo_root/scripts/new-l1-from-copier.sh\" \"\$render_dir\"" "preview-l1-diff must call new-l1 wrapper with render dir as first arg"
 assert_contains "scripts/preview-l1-diff.sh" ".copier-answers.yml" "preview-l1-diff should infer repo_slug from target answers when available"
 assert_contains "scripts/preview-l1-diff.sh" "repo_slug_from_answers" "preview-l1-diff should parse repo_slug from target answers file"
 assert_contains "scripts/preview-l1-diff.sh" "scripts/lib/copier-answers.sh" "preview-l1-diff should source the shared copier answers helper"
+assert_contains "scripts/preview-l1-diff.sh" "scripts/lib/repo-surface.sh" "preview-l1-diff should source the shared repo-surface helper"
+assert_contains "scripts/preflight-repo-census.sh" "scripts/lib/repo-surface.sh" "repo census helper should source the shared repo-surface helper"
+assert_contains "scripts/migrate-l1-structure.sh" "scripts/lib/repo-surface.sh" "migration helper should source the shared repo-surface helper"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
@@ -351,14 +362,17 @@ assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_QUIET"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "--quiet" "L1 wrapper must default Copier execution to quiet mode"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_VERSION" "L1 wrapper must pin Copier version"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "scripts/lib/copier-answers.sh" "L1 wrapper should source the shared copier answers helper"
-assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'uvx --from "copier==${COPIER_VERSION}" copier' "L1 wrapper must include pinned uvx invocation"
-assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'uv tool run --from "copier==${COPIER_VERSION}" copier' "L1 wrapper must include pinned uv tool invocation"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "uvx --from \"copier==\${COPIER_VERSION}\" copier" "L1 wrapper must include pinned uvx invocation"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "uv tool run --from \"copier==\${COPIER_VERSION}\" copier" "L1 wrapper must include pinned uv tool invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "warning: uvx/uv not found; falling back to unpinned copier on PATH" "L1 wrapper must surface unpinned fallback warning"
 assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "--init-lane-git" "L1 lane bootstrap helper must support lane git initialization"
 assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "tpl-project-repo" "L1 lane bootstrap helper must render tpl-project-repo baseline"
+assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "scripts/lib/repo-surface.sh" "L1 lane bootstrap helper should source the shared repo-surface helper"
+assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "repo_surface_lane_root_src_path" "L1 lane bootstrap helper should derive a stable lane-root source path"
 assert_not_contains "copier-template/scripts/bootstrap-lane-root.sh" "sed -i" "L1 lane bootstrap helper must not rely on GNU sed -i"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must pin Copier version" "L1 template CI must enforce copier pinning"
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
+assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/repo-surface.sh" "L1 template CI should require the shared repo-surface helper"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
 assert_contains "copier-template/scripts/ak.sh" "deterministic resolution order" "L1 AK wrapper should document deterministic resolution order"
 assert_contains "copier-template/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L1 AK wrapper should source the shared copier answers helper"
@@ -374,21 +388,22 @@ assert_contains "copier-template/.github/workflows/ci.yml" "Setup uv (full lane)
 assert_not_contains "copier-template/scripts/install-hooks.sh" "copier/template-repo" "L1 install-hooks must not reference removed legacy template-repo path"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "L1 install-hooks should normalize executable bit for lane bootstrap helper"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/ak.sh" "L1 install-hooks should normalize executable bit for the L1 AK wrapper"
+assert_contains "copier-template/scripts/install-hooks.sh" "scripts/rocs.sh" "L1 install-hooks should normalize executable bit for the L1 ROCS wrapper"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/check-task-scope-snapshots.sh" "L1 install-hooks should normalize executable bit for the L1 task-scope checker"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/lib/check-template-ak.py" "L1 install-hooks should normalize executable bit for the AK test double"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
-  if [ "$tpl" != "tpl-package" ]; then
-    assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ak.sh" "L1 install-hooks should normalize executable bits for $tpl AK wrapper"
-  fi
-  if [ "$tpl" != "tpl-package" ]; then
-    assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/check-task-scope-snapshots.sh" "L1 install-hooks should normalize executable bits for $tpl task-scope checker"
-  fi
-  assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"
-  assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "L1 install-hooks should normalize executable bits for $tpl smoke lane"
-  if [ "$tpl" = "tpl-project-repo" ]; then
-    assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/fast.sh" "L1 install-hooks should normalize executable bits for $tpl fast lane"
-  fi
-  assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "L1 install-hooks should normalize executable bits for $tpl full lane"
+	if [ "$tpl" != "tpl-package" ]; then
+		assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ak.sh" "L1 install-hooks should normalize executable bits for $tpl AK wrapper"
+	fi
+	if [ "$tpl" != "tpl-package" ]; then
+		assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/check-task-scope-snapshots.sh" "L1 install-hooks should normalize executable bits for $tpl task-scope checker"
+	fi
+	assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/rocs.sh.j2" "L1 install-hooks should normalize executable bits for $tpl rocs wrapper"
+	assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/smoke.sh" "L1 install-hooks should normalize executable bits for $tpl smoke lane"
+	if [ "$tpl" = "tpl-project-repo" ]; then
+		assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/fast.sh" "L1 install-hooks should normalize executable bits for $tpl fast lane"
+	fi
+	assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/scripts/ci/full.sh" "L1 install-hooks should normalize executable bits for $tpl full lane"
 done
 assert_not_contains "copier-template/scripts/ci/smoke.sh" "copier/template-repo/copier.yml" "L1 smoke lane must not lint removed legacy template-repo path"
 assert_contains "copier-template/scripts/ci/smoke.sh" "copier.yml copier/*/copier.yml" "L1 smoke lane should lint root and nested copier configs"
@@ -403,9 +418,11 @@ assert_contains "AGENTS.md" "Knowledge crystallization flow" "AGENTS should defi
 assert_contains ".github/pull_request_template.md" "check-l0-guardrails.sh" "PR template must require guardrail checks"
 assert_contains ".github/pull_request_template.md" "check-session-checkpoint.sh" "PR template must require session checkpoint check"
 assert_contains ".github/pull_request_template.md" "check-l0-generation.sh" "PR template must require generation checks"
+assert_contains ".github/pull_request_template.md" "check-l0-adversarial.sh" "PR template should require adversarial operator-surface checks"
 assert_contains ".github/pull_request_template.md" "check-l0-fixtures.sh" "PR template should require fixture checks"
 assert_contains ".github/pull_request_template.md" "check-supply-chain.sh" "PR template should require supply-chain checks"
 assert_contains "CONTRIBUTING.md" "check-l0.sh" "L0 contributing guide should reference full L0 checks"
+assert_contains "CONTRIBUTING.md" "check-l0-adversarial.sh" "L0 contributing guide should document the adversarial operator-surface suite"
 assert_contains "CONTRIBUTING.md" "L0_CHECK_TIMEOUT_SECONDS" "L0 contributing guide should document fail-fast timeout control for full checks"
 assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L0 contributing guide should include deterministic ROCS wrapper usage"
 assert_contains "CONTRIBUTING.md" "diary/" "L0 contributing guide should require repo-local diary"
@@ -424,6 +441,7 @@ assert_contains "README.md" "Pass-boundary rule" "README should describe pass-bo
 assert_contains "README.md" "docs/learnings/" "README should describe KES crystallization destination"
 assert_contains "README.md" "diary/" "README should document repo-local diary policy"
 assert_contains "README.md" "docs/dev/README.md" "README should link setup+transition operator entrypoint"
+assert_contains "README.md" "check-l0-adversarial.sh" "README should document the adversarial operator-surface suite"
 assert_contains "README.md" "l2-transition-playbook.md" "README should link L2 transition playbook"
 assert_contains "README.md" "tpl-project-repo-file-contract.md" "README should link the canonical tpl-project-repo file contract"
 assert_contains "docs/dev/README.md" "Agent handoff line" "operator entrypoint should include explicit agent handoff guidance"
@@ -433,7 +451,14 @@ assert_contains "docs/dev/README.md" "no in-place auto-migrator" "operator entry
 assert_contains "docs/l1-adoption-playbook.md" "docs/dev/README.md" "L1 adoption playbook should link operator entrypoint"
 assert_contains "docs/l1-adoption-playbook.md" "docs/l2-transition-playbook.md" "L1 adoption playbook should link L2 migration playbook"
 assert_contains "scripts/check-l0.sh" "check-session-checkpoint" "consolidated L0 check should run session checkpoint guardrails"
+assert_contains "scripts/check-l0.sh" "check-l0-adversarial" "consolidated L0 check should run adversarial operator-surface checks"
 assert_contains "scripts/check-l0.sh" "L0_CHECK_TIMEOUT_SECONDS" "consolidated L0 check should expose fail-fast timeout control"
+assert_contains "scripts/check-l0-adversarial.sh" "git worktree add --detach" "adversarial suite should exercise git worktree provenance"
+assert_contains "scripts/check-l0-adversarial.sh" "preview-l1-diff.sh" "adversarial suite should exercise adoption preview filtering"
+assert_contains "scripts/check-l0-adversarial.sh" "tracked lane drift" "adversarial suite should force tracked lane-root drift through preview"
+assert_contains "scripts/check-l0-adversarial.sh" "migrate-l1-structure.sh" "adversarial suite should exercise migration portability"
+assert_contains "scripts/check-l0-adversarial.sh" "preflight-repo-census.sh" "adversarial suite should exercise deep repo census coverage"
+assert_contains "scripts/check-l0-adversarial.sh" "stable relative _src_path" "adversarial suite should exercise stable lane-root source paths"
 assert_contains "scripts/check-l0-generation.sh" "preview-l1-diff.sh" "L0 generation checks should execute preview-l1-diff runtime coverage"
 assert_contains "scripts/check-l0-generation.sh" "ok: no diff between rendered L1 and target" "L0 generation checks should assert clean preview no-diff output"
 assert_contains "docs/learnings/README.md" "Session output" "L0 learnings README should define KES flow"
@@ -448,10 +473,10 @@ assert_contains "next_session_prompt.md" "KES crystallization flow" "session che
 assert_contains "copier-template/diary/README.md.jinja" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README template should enforce descriptive filename convention"
 
 for doc in copier-template/README.md.jinja copier-template/AGENTS.md.jinja; do
-  assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"
-  assert_contains "$doc" "L1 -> L2" "generated L1 docs must allow L1 -> L2"
-  assert_contains "$doc" "L1 -> L0" "generated L1 docs must forbid L1 -> L0"
-  assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
+	assert_contains "$doc" "Recursion policy" "generated L1 docs must include recursion policy section"
+	assert_contains "$doc" "L1 -> L2" "generated L1 docs must allow L1 -> L2"
+	assert_contains "$doc" "L1 -> L0" "generated L1 docs must forbid L1 -> L0"
+	assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
 done
 assert_contains "copier-template/AGENTS.md.jinja" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
 assert_contains "copier-template/AGENTS.md.jinja" "scripts/ak.sh" "generated L1 AGENTS should reference scripts/ak.sh when repo-local work-items projection is in scope"
@@ -518,18 +543,18 @@ assert_absent "fixtures/l2/tpl-project-repo/docs/diary"
 
 # Ensure template sources do not include generated Python build/cache artifacts
 if find copier-template/copier -type d \( -name '__pycache__' -o -name '*.egg-info' \) | grep -q .; then
-  fail "template source contains generated python cache/metadata directories"
+	fail "template source contains generated python cache/metadata directories"
 fi
 if find copier-template/copier -type f -name '*.pyc' | grep -q .; then
-  fail "template source contains generated python bytecode files"
+	fail "template source contains generated python bytecode files"
 fi
 if find copier-template/copier -type d -path '*/tools/rocs-cli/build' | grep -q .; then
-  fail "template source contains rocs-cli build output directory"
+	fail "template source contains rocs-cli build output directory"
 fi
 
 # Ensure no nested copier invocations
 if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then
-  fail "nested copier invocations are not allowed in template config files"
+	fail "nested copier invocations are not allowed in template config files"
 fi
 
 "$repo_root/scripts/check-session-checkpoint.sh"

@@ -30,11 +30,7 @@ repo_slug:
 location:
   type: str
   default: owned
-  choices:
-    - owned
-    - contrib
-    - infra
-  help: "Location archetype: owned (company projects), contrib (upstream contributions), infra (infrastructure)"
+  help: "Location/lane label: owned, contrib, infra, or a custom lane name (for example data-lane)."
 
 language:
   type: str

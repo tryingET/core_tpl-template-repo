@@ -2,7 +2,7 @@
 set -eu
 
 usage() {
-  cat <<'EOF' >&2
+	cat <<'EOF' >&2
 usage: new-l1-from-copier.sh <dest-dir> [copier args...]
 
 Example:
@@ -43,112 +43,113 @@ COPIER_VCS_REF="${COPIER_VCS_REF:-HEAD}"
 COPIER_QUIET="${COPIER_QUIET:-1}"
 
 run_copier() {
-  pythonwarnings="$COPIER_WARN_FILTER"
-  if [ -n "${PYTHONWARNINGS:-}" ]; then
-    pythonwarnings="$pythonwarnings,${PYTHONWARNINGS}"
-  fi
+	pythonwarnings="$COPIER_WARN_FILTER"
+	if [ -n "${PYTHONWARNINGS:-}" ]; then
+		pythonwarnings="$pythonwarnings,${PYTHONWARNINGS}"
+	fi
 
-  if command -v uvx >/dev/null 2>&1; then
-    if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
-      return
-    fi
-    echo "error: uvx pinned runtime (copier==${COPIER_VERSION}) failed" >&2
-    exit 2
-  fi
-  if command -v uv >/dev/null 2>&1; then
-    if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
-      return
-    fi
-    echo "error: uv tool pinned runtime (copier==${COPIER_VERSION}) failed" >&2
-    exit 2
-  fi
-  if command -v copier >/dev/null 2>&1; then
-    echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2
-    PYTHONWARNINGS="$pythonwarnings" copier "$@"
-    return
-  fi
-  echo "error: missing dependency: copier (or uvx/uv)" >&2
-  exit 2
+	if command -v uvx >/dev/null 2>&1; then
+		if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
+			return
+		fi
+		echo "error: uvx pinned runtime (copier==${COPIER_VERSION}) failed" >&2
+		exit 2
+	fi
+	if command -v uv >/dev/null 2>&1; then
+		if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
+			return
+		fi
+		echo "error: uv tool pinned runtime (copier==${COPIER_VERSION}) failed" >&2
+		exit 2
+	fi
+	if command -v copier >/dev/null 2>&1; then
+		echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2
+		PYTHONWARNINGS="$pythonwarnings" copier "$@"
+		return
+	fi
+	echo "error: missing dependency: copier (or uvx/uv)" >&2
+	exit 2
 }
 
 dest_dir="${1:-}"
 shift 1 2>/dev/null || true
 
 if [ -z "$dest_dir" ]; then
-  usage
-  exit 2
+	usage
+	exit 2
 fi
 
 have_answers=0
 for arg in "$@"; do
-  case "$arg" in
-    -a|--answers-file|--answers-file=*) have_answers=1; break ;;
-  esac
+	case "$arg" in
+	-a | --answers-file | --answers-file=*)
+		have_answers=1
+		break
+		;;
+	esac
 done
 
 if [ "$have_answers" = "0" ]; then
-  set -- -a .copier-answers.yml "$@"
+	set -- -a .copier-answers.yml "$@"
 fi
 
 has_vcs_ref_override() {
-  expect_ref_value=0
-  for arg in "$@"; do
-    if [ "$expect_ref_value" = "1" ]; then
-      return 0
-    fi
+	expect_ref_value=0
+	for arg in "$@"; do
+		if [ "$expect_ref_value" = "1" ]; then
+			return 0
+		fi
 
-    case "$arg" in
-      -r|--vcs-ref)
-        expect_ref_value=1
-        ;;
-      -r*|--vcs-ref=*)
-        return 0
-        ;;
-    esac
-  done
+		case "$arg" in
+		-r | --vcs-ref)
+			expect_ref_value=1
+			;;
+		-r* | --vcs-ref=*)
+			return 0
+			;;
+		esac
+	done
 
-  return 1
+	return 1
 }
 
 has_quiet_override() {
-  for arg in "$@"; do
-    case "$arg" in
-      -q|--quiet)
-        return 0
-        ;;
-    esac
-  done
+	for arg in "$@"; do
+		case "$arg" in
+		-q | --quiet)
+			return 0
+			;;
+		esac
+	done
 
-  return 1
+	return 1
 }
 
 is_enabled() {
-  case "$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')" in
-    1|true|yes|on)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+	case "$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')" in
+	1 | true | yes | on)
+		return 0
+		;;
+	*)
+		return 1
+		;;
+	esac
 }
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 
-# Inject L0 source SHA for provenance tracking
-l0_sha="unknown"
-if [ -d "$repo_root/.git" ]; then
-  l0_sha="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || echo unknown)"
-fi
+# Inject L0 source SHA for provenance tracking.
+# Resolve through git directly so normal clones and git worktrees both preserve provenance.
+l0_sha="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || echo unknown)"
 
 if ! has_vcs_ref_override "$@"; then
-  if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    set -- -r "$COPIER_VCS_REF" "$@"
-  fi
+	if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+		set -- -r "$COPIER_VCS_REF" "$@"
+	fi
 fi
 
 if is_enabled "$COPIER_QUIET" && ! has_quiet_override "$@"; then
-  set -- --quiet "$@"
+	set -- --quiet "$@"
 fi
 
 run_copier copy --trust -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"
