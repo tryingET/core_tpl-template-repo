@@ -21,6 +21,20 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+python_cmd() {
+  if has_cmd python3; then
+    printf '%s\n' "python3"
+    return 0
+  fi
+
+  if has_cmd python; then
+    printf '%s\n' "python"
+    return 0
+  fi
+
+  return 1
+}
+
 usage() {
   cat <<'EOF'
 usage: scripts/rocs.sh [--doctor|--which|--help] [rocs args...]
@@ -73,8 +87,8 @@ select_runner() {
       printf '%s\n' "local-project-uv"
       return
     fi
-    if has_cmd python; then
-      printf '%s\n' "local-project-python"
+    if python_bin="$(python_cmd 2>/dev/null)"; then
+      printf 'local-project-%s\n' "$python_bin"
       return
     fi
   fi
@@ -112,8 +126,9 @@ runner_desc() {
     local-project-uv)
       printf 'local rocs-cli project via uv --project %s\n' "$repo_root"
       ;;
-    local-project-python)
-      printf 'local rocs-cli project via python -m rocs_cli (%s)\n' "$repo_root"
+    local-project-python|local-project-python3)
+      python_bin="${1#local-project-}"
+      printf 'local rocs-cli project via PYTHONPATH=%s/src %s -m rocs_cli (%s)\n' "$repo_root" "$python_bin" "$repo_root"
       ;;
     workspace-core-uv)
       printf 'workspace core via uv --project %s\n' "$core_project_default"
@@ -138,6 +153,7 @@ doctor() {
   say "- core_project_default: $core_project_default"
   say "- has uv: $(has_cmd uv && printf yes || printf no)"
   say "- has uvx: $(has_cmd uvx && printf yes || printf no)"
+  say "- has python3: $(has_cmd python3 && printf yes || printf no)"
   say "- has python: $(has_cmd python && printf yes || printf no)"
   say "- has rocs on PATH: $(has_cmd rocs && printf yes || printf no)"
   say "- has vendored tools/rocs-cli: $([ -d "$repo_root/tools/rocs-cli" ] && printf yes || printf no)"
@@ -189,8 +205,9 @@ case "$runner" in
   local-project-uv)
     exec uv --project "$repo_root" run rocs "$@"
     ;;
-  local-project-python)
-    exec python -m rocs_cli "$@"
+  local-project-python|local-project-python3)
+    python_bin="${runner#local-project-}"
+    PYTHONPATH="$repo_root/src${PYTHONPATH:+:$PYTHONPATH}" exec "$python_bin" -m rocs_cli "$@"
     ;;
   workspace-core-uv)
     exec uv --project "$core_project_default" run rocs "$@"

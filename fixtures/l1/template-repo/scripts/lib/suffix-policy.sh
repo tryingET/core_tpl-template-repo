@@ -4,20 +4,33 @@
 # Intended to be sourced by guardrail scripts.
 
 # L2 project folders to exclude from L1 checks (each has own .git)
-L2_EXCLUDE_PATHS="! -path './owned/*' ! -path './contrib/*' ! -path './infra/*' ! -path './agents/*'"
+with_l2_excludes() {
+  search_root="$1"
+  shift
+
+  case "$search_root" in
+    "") search_root=. ;;
+    */) search_root="${search_root%/}" ;;
+  esac
+
+  find "$search_root" "$@" \
+    ! -path "$search_root/owned/*" \
+    ! -path "$search_root/contrib/*" \
+    ! -path "$search_root/infra/*" \
+    ! -path "$search_root/agents/*"
+}
 
 first_suffix_match() {
   search_root="$1"
   suffix_glob="$2"
   exclude_glob="${3:-}"
 
-  # shellcheck disable=SC2086
   if [ -n "$exclude_glob" ]; then
-    find "$search_root" -type f -name "$suffix_glob" ! -path "$exclude_glob" ! -path '*/.git/*' $L2_EXCLUDE_PATHS | LC_ALL=C sort | awk 'NR==1{print;exit}'
+    with_l2_excludes "$search_root" -type f -name "$suffix_glob" ! -path "$exclude_glob" ! -path '*/.git/*' | LC_ALL=C sort | awk 'NR==1{print;exit}'
     return
   fi
 
-  find "$search_root" -type f -name "$suffix_glob" ! -path '*/.git/*' $L2_EXCLUDE_PATHS | LC_ALL=C sort | awk 'NR==1{print;exit}'
+  with_l2_excludes "$search_root" -type f -name "$suffix_glob" ! -path '*/.git/*' | LC_ALL=C sort | awk 'NR==1{print;exit}'
 }
 
 yaml_scalar_value() {
@@ -57,8 +70,7 @@ first_untemplated_jinja_match() {
   # expression syntax (${ {... }}) and vendored tools (Python f-string escapes {{ }}).
   # Also exclude copier.yml files which legitimately contain Jinja2 syntax.
   # Exclude L2 project folders (owned/, contrib/, infra/, agents/).
-  # shellcheck disable=SC2086
-  find "$search_root" -type f ! -name "*${template_suffix}" ! -name "copier.yml" ! -path '*/.git/*' ! -path '*/tools/*' $L2_EXCLUDE_PATHS \
+  with_l2_excludes "$search_root" -type f ! -name "*${template_suffix}" ! -name "copier.yml" ! -path '*/.git/*' ! -path '*/tools/*' \
     -exec grep -I -l -m 1 -E '(^|[^$])\{\{|(^|[^$])\{%|\{#' {} + 2>/dev/null \
     | LC_ALL=C sort \
     | awk 'NR==1{print;exit}'

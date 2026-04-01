@@ -3,6 +3,12 @@ set -eu
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 answers_file="$repo_root/.copier-answers.yml"
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+
+if [ -f "$answers_lib" ]; then
+  # shellcheck source=/dev/null
+  . "$answers_lib"
+fi
 
 say() {
   printf '%s\n' "$*"
@@ -52,7 +58,22 @@ value_from_answers() {
   file="$1"
   key="$2"
 
-  [ -f "$file" ] || return 1
+  if command -v copier_answers_try_scalar >/dev/null 2>&1; then
+    value=""
+    status=0
+
+    value="$(copier_answers_try_scalar "$file" "$key" 2>/dev/null)" || status=$?
+
+    if [ "$status" -eq 0 ]; then
+      printf '%s\n' "$value"
+      return 0
+    fi
+
+    echo "error: unable to parse '$key' from $file; install python3/python with PyYAML for multiline or escaped Copier answers" >&2
+    return "$status"
+  fi
+
+  [ -f "$file" ] || return 0
 
   awk -F ':' -v key="$key" '
     $1 ~ "^[[:space:]]*" key "[[:space:]]*$" {
@@ -74,7 +95,19 @@ default_work_items_owner() {
   fi
 
   for key in project_owner_handle maintainer_handle agent_owner_handle org_owner_handle; do
-    value="$(value_from_answers "$answers_file" "$key" 2>/dev/null || true)"
+    value=""
+    value_status=0
+    value="$(value_from_answers "$answers_file" "$key")" || value_status=$?
+    case "$value_status" in
+      0)
+        ;;
+      1)
+        value=""
+        ;;
+      *)
+        return "$value_status"
+        ;;
+    esac
     if [ -n "$value" ]; then
       printf '%s\n' "$value"
       return 0
@@ -91,7 +124,19 @@ default_work_items_project_name() {
   fi
 
   for key in repo_slug package_name; do
-    value="$(value_from_answers "$answers_file" "$key" 2>/dev/null || true)"
+    value=""
+    value_status=0
+    value="$(value_from_answers "$answers_file" "$key")" || value_status=$?
+    case "$value_status" in
+      0)
+        ;;
+      1)
+        value=""
+        ;;
+      *)
+        return "$value_status"
+        ;;
+    esac
     if [ -n "$value" ]; then
       printf '%s\n' "$value"
       return 0
@@ -179,8 +224,28 @@ runner_desc() {
 
 doctor() {
   runner="$(select_runner)"
-  work_items_owner="$(default_work_items_owner 2>/dev/null || true)"
-  work_items_project_name="$(default_work_items_project_name 2>/dev/null || true)"
+
+  work_items_owner=""
+  work_items_owner_status=0
+  work_items_owner="$(default_work_items_owner)" || work_items_owner_status=$?
+  case "$work_items_owner_status" in
+    0|1)
+      ;;
+    *)
+      return "$work_items_owner_status"
+      ;;
+  esac
+
+  work_items_project_name=""
+  work_items_project_name_status=0
+  work_items_project_name="$(default_work_items_project_name)" || work_items_project_name_status=$?
+  case "$work_items_project_name_status" in
+    0|1)
+      ;;
+    *)
+      return "$work_items_project_name_status"
+      ;;
+  esac
 
   say "ak launcher doctor"
   say "- repo_root: $repo_root"
@@ -224,14 +289,32 @@ fi
 
 if wants_work_items_defaults "$@"; then
   if ! has_flag "--owner" "$@"; then
-    work_items_owner="$(default_work_items_owner 2>/dev/null || true)"
+    work_items_owner=""
+    work_items_owner_status=0
+    work_items_owner="$(default_work_items_owner)" || work_items_owner_status=$?
+    case "$work_items_owner_status" in
+      0|1)
+        ;;
+      *)
+        exit "$work_items_owner_status"
+        ;;
+    esac
     if [ -n "$work_items_owner" ]; then
       set -- "$@" --owner "$work_items_owner"
     fi
   fi
 
   if ! has_flag "--project-name" "$@"; then
-    work_items_project_name="$(default_work_items_project_name 2>/dev/null || true)"
+    work_items_project_name=""
+    work_items_project_name_status=0
+    work_items_project_name="$(default_work_items_project_name)" || work_items_project_name_status=$?
+    case "$work_items_project_name_status" in
+      0|1)
+        ;;
+      *)
+        exit "$work_items_project_name_status"
+        ;;
+    esac
     if [ -n "$work_items_project_name" ]; then
       set -- "$@" --project-name "$work_items_project_name"
     fi
