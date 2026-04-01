@@ -4,11 +4,10 @@
 Reading this file is authorization to start immediately.
 Do not ask for permission to begin.
 
-## CURRENT MISSION: FOLLOW THE RUNTIME-RESOLVED FCOS QUEUE; THE LOCAL M36-06 TEMPLATE SLICE IS DONE
+## CURRENT MISSION: FOLLOW THE RUNTIME-RESOLVED FCOS QUEUE, BUT DO NOT START A NEW LOCAL SLICE UNLESS THE HEAD RETURNS HERE
 
-The runtime-resolved FCOS head now includes `FCOS-M36-06` across `holdingco/governance-kernel` and `core/tpl-template-repo`.
-This repo has completed the template-side `AK-553` slice for that issue.
-If the resolver still returns `FCOS-M36-06`, continue from governance-kernel closeout / issue-completion surfaces rather than inventing more local template changes here.
+The runtime-resolved FCOS head has moved off `core/tpl-template-repo` to `softwareco/infra/workstation` for `FCOS-M38-01`.
+Treat the repo-local `FCOS-M36-06` slice as canonically closed and use this repo only as a mirror/handoff surface until the resolver points back here.
 
 ## RUNTIME-RESOLVED PRIORITY / NEXT ISSUE
 
@@ -17,10 +16,9 @@ If the resolver still returns `FCOS-M36-06`, continue from governance-kernel clo
 - Next issue resolver (same command, mirror-only):
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Last synced runtime-resolved FCOS issue id (mirror-only, rerun the resolver instead of trusting this line):
-  - `FCOS-M36-06`
-- Last synced runtime-resolved FCOS repos (mirror-only, rerun the resolver instead of trusting this line):
-  - `holdingco/governance-kernel`
-  - `core/tpl-template-repo`
+  - `FCOS-M38-01`
+- Last synced runtime-resolved FCOS repo (mirror-only, rerun the resolver instead of trusting this line):
+  - `softwareco/infra/workstation`
 - Anti-drift cadence policy:
   - loop-owned via `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`
 
@@ -35,40 +33,30 @@ If the resolver still returns `FCOS-M36-06`, continue from governance-kernel clo
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Re-ran the runtime-resolved FCOS queue lookup, claimed `AK-553`, published the template-side migration/deprecation playbook for AK-native task-scope adoption, clarified the brownfield boundary across L0/L1/L2 docs, and re-synced fixtures.
+  - Verified canonical `FCOS-M36-06` closeout in governance-kernel, re-ran the runtime-resolved FCOS queue lookup, confirmed the head advanced to `FCOS-M38-01`, and updated this repo's mirror/handoff surface.
 - Outcome:
-  - Added the canonical template-side playbook at `copier-template/docs/dev/task-scope-migration-playbook.md` and propagated it into the rendered L1 fixture at `fixtures/l1/template-repo/docs/dev/task-scope-migration-playbook.md`.
-  - L0 operator docs now point to one explicit migration path for this slice:
-    - `README.md`
-    - `docs/dev/README.md`
-    - `docs/l1-adoption-playbook.md`
-    - `docs/l2-transition-playbook.md`
-  - L1/L2 template docs now make the deprecation boundary explicit:
-    - export `AK-<TASK-ID>.snapshot.json` first
-    - keep legacy `governance/task-scopes/AK-*.json` files only as temporary compatibility fallback
-    - remove legacy manifest authoring from the primary workflow once snapshot checks pass
-    - do not invent task-scope files when repo-default scope still applies
-  - `copier-template/copier/tpl-project-repo/next_session_prompt.md` now marks snapshots as frozen exports and legacy `AK-*.json` manifests as compatibility-only, so the handoff surface no longer implies dual authority.
-  - If `just fcos-runnable` still resolves to `FCOS-M36-06`, the next work should happen in governance-kernel closeout / issue-completion surfaces rather than as another new local template slice here.
+  - `FCOS-M36-06` is now `done` in `~/ai-society/holdingco/governance-kernel/governance/programs/fcos/work-items.json` with all three rollout tasks checked off and scheduler transition history recorded.
+  - `just fcos-runnable` now resolves to `FCOS-M38-01` in `softwareco/infra/workstation`, so `core/tpl-template-repo` no longer owns the runtime FCOS head.
+  - Repo-local template follow-through for `AK-553` remains canonically closed:
+    - `copier-template/docs/dev/task-scope-migration-playbook.md` is the template-side brownfield migration playbook
+    - L0/L1/L2 docs already teach the compatibility-only boundary for legacy `AK-*.json` task-scope manifests
+    - no new local FCOS template slice is needed unless a later runtime head returns here
+  - `AK-281` is still a separately ready repo-local AK task, but it is unrelated to the runtime-resolved FCOS queue and should not replace FCOS workflow without explicit operator direction.
 - Validation run:
-  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` (`FCOS-M36-06` includes `holdingco/governance-kernel` + `core/tpl-template-repo`)
-  - `bash ./scripts/check-doc-references.sh` (pass)
-  - `bash ./scripts/sync-l0-fixtures.sh` (pass)
+  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` (`FCOS-M38-01` includes `holdingco/governance-kernel` + `softwareco/infra/workstation`)
   - `bash ./scripts/check-l0.sh` (pass)
+  - `bash ./scripts/check-session-checkpoint.sh` (pass)
 - Files of interest:
-  - `copier-template/docs/dev/task-scope-migration-playbook.md`
-  - `README.md`
-  - `docs/dev/README.md`
-  - `docs/l1-adoption-playbook.md`
-  - `docs/l2-transition-playbook.md`
-  - `copier-template/README.md.jinja`
-  - `copier-template/governance/README.md.jinja`
-  - `copier-template/copier/tpl-project-repo/next_session_prompt.md`
+  - `~/ai-society/holdingco/governance-kernel/governance/programs/fcos/work-items.json`
+  - `~/ai-society/holdingco/governance-kernel/governance/fcos/portfolio.yaml`
+  - `~/ai-society/holdingco/governance-kernel/docs/project/fcos-direction-to-execution.md`
   - `diary/2026-04-01--docs-fcos-m36-06-task-scope-migration-playbook.md`
+  - `diary/2026-04-01--ops-fcos-m36-06-closeout-and-queue-advance.md`
   - `next_session_prompt.md`
 - Blockers / follow-up:
   - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session.
-  - If `FCOS-M36-06` still resolves, continue in governance-kernel closeout/issue-completion surfaces rather than reopening this repo's docs without a new contradiction.
+  - If `FCOS-M38-01` still resolves to `softwareco/infra/workstation`, leave this repo and follow that head instead of starting new local work.
+  - If the runtime-resolved head later returns to this repo, start from the then-current FCOS issue instead of reopening `FCOS-M36-06`.
   - Do not substitute unrelated ready task `AK-281` for FCOS queue work unless the operator explicitly asks for that backlog item.
 - Rollback path (mirror-only correction):
   - `git restore -- next_session_prompt.md`
