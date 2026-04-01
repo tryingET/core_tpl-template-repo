@@ -171,42 +171,26 @@ has_data_override() {
 yaml_scalar_from_answers() {
   answers_file="$1"
   key="$2"
+  value=""
+  status=0
 
-  [ -f "$answers_file" ] || return 1
+  value="$(copier_answers_try_scalar "$answers_file" "$key" 2>/dev/null)" || status=$?
 
-  awk -v key="$key" '
-    function trim(value) {
-      sub(/^[ \t]+/, "", value)
-      sub(/[ \t]+$/, "", value)
-      return value
-    }
+  if [ "$status" -eq 0 ]; then
+    printf '%s\n' "$value"
+    return 0
+  fi
 
-    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
-      value = $0
-      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", value)
-      value = trim(value)
-
-      if (value ~ /^".*"$/) {
-        value = substr(value, 2, length(value) - 2)
-        gsub(/\\"/, "\"", value)
-        gsub(/\\\\/, "\\", value)
-      } else if (value ~ /^\047.*\047$/) {
-        value = substr(value, 2, length(value) - 2)
-        gsub(/\047\047/, "\047", value)
-      }
-
-      print value
-      exit
-    }
-  ' "$answers_file"
+  echo "error: unable to parse '$key' from $answers_file; install python3/python with PyYAML for multiline or escaped Copier answers" >&2
+  return "$status"
 }
 
 read_inherited_value() {
   answers_file="$1"
   key="$2"
 
-  value="$(yaml_scalar_from_answers "$answers_file" "$key" 2>/dev/null || true)"
-  [ -n "$value" ] || return 1
+  value="$(yaml_scalar_from_answers "$answers_file" "$key")"
+  [ -n "$value" ] || return 0
 
   printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
 }
@@ -249,13 +233,23 @@ infer_project_owner_handle() {
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 answers_file="$repo_root/.copier-answers.yml"
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+[ -f "$answers_lib" ] || {
+  echo "error: missing dependency: $answers_lib" >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$answers_lib"
 
 for key in enable_vouch_gate enable_community_pack enable_release_pack; do
   if has_data_override "$key" "$@"; then
     continue
   fi
 
-  inherited_value="$(read_inherited_value "$answers_file" "$key" || true)"
+  inherited_value=""
+  inherited_value_status=0
+  inherited_value="$(read_inherited_value "$answers_file" "$key")" || inherited_value_status=$?
+  [ "$inherited_value_status" -eq 0 ] || exit "$inherited_value_status"
   case "$inherited_value" in
     true|false)
       set -- -d "$key=$inherited_value" "$@"
@@ -265,14 +259,20 @@ done
 
 # Inherit company_slug and company_name from L1 answers
 if ! has_data_override company_slug "$@"; then
-  inherited_slug="$(read_inherited_string "$answers_file" company_slug || true)"
+  inherited_slug=""
+  inherited_slug_status=0
+  inherited_slug="$(read_inherited_string "$answers_file" company_slug)" || inherited_slug_status=$?
+  [ "$inherited_slug_status" -eq 0 ] || exit "$inherited_slug_status"
   if [ -n "$inherited_slug" ]; then
     set -- -d "company_slug=$inherited_slug" "$@"
   fi
 fi
 
 if ! has_data_override company_name "$@"; then
-  inherited_name="$(read_inherited_string "$answers_file" company_name || true)"
+  inherited_name=""
+  inherited_name_status=0
+  inherited_name="$(read_inherited_string "$answers_file" company_name)" || inherited_name_status=$?
+  [ "$inherited_name_status" -eq 0 ] || exit "$inherited_name_status"
   if [ -n "$inherited_name" ]; then
     set -- -d "company_name=$inherited_name" "$@"
   fi
@@ -287,7 +287,10 @@ if ! has_data_override project_owner_handle "$@"; then
 fi
 
 if ! has_data_override org_docs_profile "$@"; then
-  inherited_org_profile="$(read_inherited_value "$answers_file" l2_org_docs_default || true)"
+  inherited_org_profile=""
+  inherited_org_profile_status=0
+  inherited_org_profile="$(read_inherited_value "$answers_file" l2_org_docs_default)" || inherited_org_profile_status=$?
+  [ "$inherited_org_profile_status" -eq 0 ] || exit "$inherited_org_profile_status"
   case "$inherited_org_profile" in
     compact|rich)
       set -- -d "org_docs_profile=$inherited_org_profile" "$@"

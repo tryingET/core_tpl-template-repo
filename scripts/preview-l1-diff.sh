@@ -30,6 +30,7 @@ need_cmd() {
   }
 }
 
+need_cmd awk
 need_cmd basename
 need_cmd cp
 need_cmd git
@@ -38,34 +39,38 @@ need_cmd mktemp
 need_cmd rm
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+[ -f "$answers_lib" ] || {
+  echo "error: missing dependency: $answers_lib" >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$answers_lib"
 
-read_answer_value() {
-  file="$1"
+read_preview_answer_value() {
+  answers_path="$1"
   key="$2"
+  value=""
+  status=0
 
-  [ -f "$file" ] || return 1
+  value="$(copier_answers_try_scalar "$answers_path" "$key" 2>/dev/null)" || status=$?
 
-  awk -v key="$key" '
-    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
-      v = $0
-      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", v)
-      gsub(/^[ \t]+|[ \t]+$/, "", v)
-      sub(/[[:space:]]+#.*$/, "", v)
-      if (v ~ /^".*"$/) {
-        v = substr(v, 2, length(v) - 2)
-      } else if (v ~ /^\047.*\047$/) {
-        v = substr(v, 2, length(v) - 2)
-      }
-      print v
-      exit
-    }
-  ' "$file"
+  if [ "$status" -eq 0 ]; then
+    printf '%s\n' "$value"
+    return 0
+  fi
+
+  echo "error: unable to parse '$key' from $answers_path; install python3/python with PyYAML for multiline or escaped Copier answers" >&2
+  return "$status"
 }
 
 answers_file="$target_repo/.copier-answers.yml"
 
 if [ -z "$repo_slug" ] && [ -f "$answers_file" ]; then
-  repo_slug_from_answers="$(read_answer_value "$answers_file" repo_slug || true)"
+  repo_slug_from_answers=""
+  repo_slug_status=0
+  repo_slug_from_answers="$(read_preview_answer_value "$answers_file" repo_slug)" || repo_slug_status=$?
+  [ "$repo_slug_status" -eq 0 ] || exit "$repo_slug_status"
   if [ -n "$repo_slug_from_answers" ]; then
     repo_slug="$repo_slug_from_answers"
   fi
@@ -83,8 +88,11 @@ render_dir="$tmp_root/l1-render"
 set -- --defaults --overwrite
 
 if [ -f "$answers_file" ]; then
-  for key in company_slug company_name maintainer_handle l1_org_docs_profile enable_vouch_gate enable_community_pack enable_release_pack; do
-    value="$(read_answer_value "$answers_file" "$key" || true)"
+  for key in $(copier_answers_l1_preview_keys); do
+    value=""
+    value_status=0
+    value="$(read_preview_answer_value "$answers_file" "$key")" || value_status=$?
+    [ "$value_status" -eq 0 ] || exit "$value_status"
     if [ -n "$value" ]; then
       set -- "$@" -d "$key=$value"
     fi

@@ -24,6 +24,8 @@ Examples:
   git add .gitignore data
   git commit -m "chore: bootstrap data lane baseline"
   ./scripts/bootstrap-lane-root.sh data --init-lane-git
+
+Lane names must match: [A-Za-z0-9][A-Za-z0-9._-]*
 EOF
 }
 
@@ -34,11 +36,33 @@ need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "missing dependency: $1"
 }
 
+rewrite_line_matching() {
+  file="$1"
+  pattern="$2"
+  replacement="$3"
+  tmp_file="$(mktemp "${TMPDIR:-/tmp}/lane-bootstrap.XXXXXX")"
+
+  awk -v pattern="$pattern" -v replacement="$replacement" '
+    !done && $0 ~ pattern {
+      print replacement
+      done = 1
+      next
+    }
+    { print }
+  ' "$file" > "$tmp_file" || {
+    rm -f "$tmp_file"
+    die "unable to rewrite $file"
+  }
+
+  mv "$tmp_file" "$file"
+}
+
+need_cmd awk
 need_cmd git
 need_cmd grep
 need_cmd mktemp
+need_cmd mv
 need_cmd rsync
-need_cmd sed
 
 lane=""
 init_lane_git=0
@@ -71,6 +95,19 @@ done
 case "$lane" in
   */*|.|..)
     die "lane name must be a single path segment (got: $lane)"
+    ;;
+esac
+
+case "$lane" in
+  [A-Za-z0-9]*)
+    case "$lane" in
+      *[!A-Za-z0-9._-]*)
+        die "lane name must match [A-Za-z0-9][A-Za-z0-9._-]* (got: $lane)"
+        ;;
+    esac
+    ;;
+  *)
+    die "lane name must match [A-Za-z0-9][A-Za-z0-9._-]* (got: $lane)"
     ;;
 esac
 
@@ -107,22 +144,22 @@ rm -f "$lane_dir/.gitlab-ci.yml"
 answers_file="$lane_dir/.copier-answers.yml"
 if [ -f "$answers_file" ]; then
   if grep -q '^_src_path:' "$answers_file"; then
-    sed -i "s|^_src_path:.*|_src_path: $repo_root/copier/tpl-project-repo|" "$answers_file"
+    rewrite_line_matching "$answers_file" '^_src_path:.*$' "_src_path: $repo_root/copier/tpl-project-repo"
   else
     printf '_src_path: %s/copier/tpl-project-repo\n' "$repo_root" | cat - "$answers_file" > "$answers_file.tmp"
     mv "$answers_file.tmp" "$answers_file"
   fi
 
   if grep -q '^location:' "$answers_file"; then
-    sed -i "s|^location:.*|location: $lane|" "$answers_file"
+    rewrite_line_matching "$answers_file" '^location:.*$' "location: $lane"
   else
     printf '\nlocation: %s\n' "$lane" >> "$answers_file"
   fi
 fi
 
 readme_file="$lane_dir/README.md"
-if [ -f "$readme_file" ]; then
-  sed -i "s|\*\*Location\*\*: .*|**Location**: $lane|" "$readme_file" || true
+if [ -f "$readme_file" ] && grep -q '^\*\*Location\*\*:' "$readme_file"; then
+  rewrite_line_matching "$readme_file" '^\*\*Location\*\*: .*$' "**Location**: $lane"
 fi
 
 # Lane-local ignore policy: track only lane baseline, ignore nested child repos by default.
@@ -161,7 +198,7 @@ if [ ! -f "$parent_gitignore" ]; then
   die "missing parent .gitignore: $parent_gitignore"
 fi
 
-if ! grep -q "^$lane/\\*$" "$parent_gitignore"; then
+if ! grep -qxF "$lane/*" "$parent_gitignore"; then
   cat >> "$parent_gitignore" <<EOF
 
 # Lane root: $lane
@@ -196,7 +233,7 @@ EOF
 fi
 
 # Ensure lane .gitignore is unignored in parent policy (older lane blocks may miss this).
-if ! grep -q "^!$lane/\\.gitignore$" "$parent_gitignore"; then
+if ! grep -qxF "!$lane/.gitignore" "$parent_gitignore"; then
   printf '!%s/.gitignore\n' "$lane" >> "$parent_gitignore"
 fi
 

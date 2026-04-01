@@ -12,12 +12,21 @@ need_cmd() {
 }
 
 need_cmd awk
+need_cmd cp
 need_cmd find
 need_cmd git
 need_cmd grep
 need_cmd mktemp
 need_cmd python3
 need_cmd sort
+
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+[ -f "$answers_lib" ] || {
+  echo "error: missing dependency: $answers_lib" >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$answers_lib"
 
 fail() {
   echo "error: $*" >&2
@@ -106,7 +115,7 @@ list_template_files() {
   template_dir="$1"
 
   find "$template_dir" -type f | while IFS= read -r abs_path; do
-    rel_path="${abs_path#$template_dir/}"
+    rel_path="${abs_path#"$template_dir"/}"
     case "$rel_path" in
       */__pycache__/*|*.pyc)
         continue
@@ -119,21 +128,38 @@ list_template_files() {
 value_from_answers() {
   answers_file="$1"
   key="$2"
+  value=""
+  status=0
 
-  awk -F':' -v key="$key" '
-    $1 ~ "^" key "$" {
-      v=$2
-      gsub(/^[ \t]+|[ \t]+$/, "", v)
-      gsub(/"/, "", v)
-      gsub(/\047/, "", v)
-      print tolower(v)
-      exit
-    }
-  ' "$answers_file"
+  value="$(copier_answers_try_scalar "$answers_file" "$key" 2>/dev/null)" || status=$?
+
+  if [ "$status" -eq 0 ]; then
+    printf '%s\n' "$value"
+    return 0
+  fi
+
+  echo "error: unable to parse '$key' from $answers_file; install python3/python with PyYAML for multiline or escaped Copier answers" >&2
+  return "$status"
 }
 
 bool_from_answers() {
-  value_from_answers "$1" "$2"
+  value=""
+  value_status=0
+
+  value="$(value_from_answers "$1" "$2")" || value_status=$?
+  case "$value_status" in
+    0)
+      ;;
+    1)
+      return 1
+      ;;
+    *)
+      return "$value_status"
+      ;;
+  esac
+
+  [ -n "$value" ] || return 0
+  printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
 }
 
 # L1-level required files
@@ -153,6 +179,7 @@ scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/lib/check-template-ak.py
+scripts/lib/copier-answers.sh
 scripts/lib/suffix-policy.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
@@ -189,6 +216,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_contains "copier/$tpl/.copier-answers.yml.j2" "to_nice_yaml" "L2 template $tpl answers template should use canonical Copier YAML emission"
   if [ "$tpl" != "tpl-package" ]; then
     assert_file "copier/$tpl/scripts/ak.sh"
+    assert_file "copier/$tpl/scripts/lib/copier-answers.sh"
     assert_exec "copier/$tpl/scripts/ak.sh"
   fi
   if [ "$tpl" != "tpl-package" ]; then
@@ -211,6 +239,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_contains "copier/$tpl/README.md.j2" "ROCS command flow" "L2 template $tpl README should include ROCS command flow section"
   if [ "$tpl" != "tpl-package" ]; then
     assert_contains "copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
+    assert_contains "copier/$tpl/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L2 template $tpl AK wrapper should source the shared copier answers helper"
     assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
     assert_not_contains "copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
     assert_contains "copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
@@ -324,6 +353,7 @@ assert_contains "scripts/new-repo-from-copier.sh" "tpl-monorepo" "L1 wrapper mus
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-package" "L1 wrapper must list tpl-package template"
 assert_contains "scripts/bootstrap-lane-root.sh" "--init-lane-git" "lane bootstrap helper must support lane git initialization"
 assert_contains "scripts/bootstrap-lane-root.sh" "tpl-project-repo" "lane bootstrap helper must render tpl-project-repo baseline"
+assert_not_contains "scripts/bootstrap-lane-root.sh" "sed -i" "lane bootstrap helper must not rely on GNU sed -i"
 
 expected_pin='COPIER_VERSION="${COPIER_VERSION:-9.11.1}"'
 expected_uvx='uvx --from "copier==${COPIER_VERSION}" copier'
@@ -334,6 +364,7 @@ uv_guard='if command -v uv >/dev/null 2>&1; then'
 copier_guard='if command -v copier >/dev/null 2>&1; then'
 
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_pin" "L1 wrapper must pin Copier version"
+assert_contains "scripts/new-repo-from-copier.sh" "scripts/lib/copier-answers.sh" "L1 wrapper should source the shared copier answers helper"
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvx" "L1 wrapper must use pinned uvx invocation"
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvtool" "L1 wrapper must use pinned uv tool invocation"
 assert_contains "scripts/new-repo-from-copier.sh" "$fallback_warning" "L1 wrapper must surface unpinned fallback warning"
@@ -341,8 +372,10 @@ assert_not_contains "scripts/new-repo-from-copier.sh" "uvx copier" "L1 wrapper m
 assert_line_precedes "scripts/new-repo-from-copier.sh" "$uvx_guard" "$uv_guard" "L1 wrapper must prefer uvx before uv tool run"
 assert_line_precedes "scripts/new-repo-from-copier.sh" "$uv_guard" "$copier_guard" "L1 wrapper must prefer pinned runtimes before unpinned copier"
 assert_contains "scripts/ak.sh" "deterministic resolution order" "L1 AK wrapper should document deterministic resolution order"
+assert_contains "scripts/ak.sh" "scripts/lib/copier-answers.sh" "L1 AK wrapper should source the shared copier answers helper"
 assert_contains "scripts/ak.sh" "work-items check" "L1 AK wrapper should document work-items projection commands"
 assert_contains "scripts/check-task-scope-snapshots.sh" "task-scope snapshots" "L1 task-scope checker should explain its validation target"
+assert_contains "scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
 
 workflow=".github/workflows/template-check.yml"
 assert_contains "$workflow" "pull_request:" "template-check workflow must run on pull requests"
@@ -380,7 +413,16 @@ done
 assert_not_contains "scripts/ci/smoke.sh" "copier/template-repo/copier.yml" "L1 smoke lane must not lint removed legacy template-repo path"
 assert_contains "scripts/ci/smoke.sh" "copier.yml copier/*/copier.yml" "L1 smoke lane should lint nested copier configs"
 
-vouch_enabled="$(bool_from_answers .copier-answers.yml enable_vouch_gate || true)"
+vouch_enabled=""
+vouch_enabled_status=0
+vouch_enabled="$(bool_from_answers .copier-answers.yml enable_vouch_gate)" || vouch_enabled_status=$?
+case "$vouch_enabled_status" in
+  0|1)
+    ;;
+  *)
+    exit "$vouch_enabled_status"
+    ;;
+esac
 if [ "$vouch_enabled" = "true" ]; then
   assert_contains ".github/workflows/vouch-check-pr.yml" "pull_request_target" "vouch-check-pr must be active when enable_vouch_gate=true"
   assert_contains ".github/workflows/vouch-check-pr.yml" "mitchellh/vouch/action/check-pr@5713ce1baedf75e2f830afa3dac813a9c48bff12" "vouch-check-pr action must be SHA pinned"
@@ -394,7 +436,16 @@ else
   assert_contains ".github/workflows/vouch-manage.yml" "vouch manage workflow disabled" "vouch-manage disabled workflow should explain status"
 fi
 
-community_enabled="$(bool_from_answers .copier-answers.yml enable_community_pack || true)"
+community_enabled=""
+community_enabled_status=0
+community_enabled="$(bool_from_answers .copier-answers.yml enable_community_pack)" || community_enabled_status=$?
+case "$community_enabled_status" in
+  0|1)
+    ;;
+  *)
+    exit "$community_enabled_status"
+    ;;
+esac
 if [ "$community_enabled" = "true" ]; then
   assert_file "CODE_OF_CONDUCT.md"
   assert_file "SUPPORT.md"
@@ -412,7 +463,16 @@ else
   assert_not_file ".github/ISSUE_TEMPLATE/feature-request.yml"
 fi
 
-release_enabled="$(bool_from_answers .copier-answers.yml enable_release_pack || true)"
+release_enabled=""
+release_enabled_status=0
+release_enabled="$(bool_from_answers .copier-answers.yml enable_release_pack)" || release_enabled_status=$?
+case "$release_enabled_status" in
+  0|1)
+    ;;
+  *)
+    exit "$release_enabled_status"
+    ;;
+esac
 if [ "$release_enabled" = "true" ]; then
   assert_file ".release-please-config.json"
   assert_file ".release-please-manifest.json"
@@ -437,7 +497,16 @@ else
   assert_not_file "scripts/release/publish.sh"
 fi
 
-l1_org_docs_profile="$(value_from_answers .copier-answers.yml l1_org_docs_profile || true)"
+l1_org_docs_profile=""
+l1_org_docs_profile_status=0
+l1_org_docs_profile="$(value_from_answers .copier-answers.yml l1_org_docs_profile)" || l1_org_docs_profile_status=$?
+case "$l1_org_docs_profile_status" in
+  0|1)
+    ;;
+  *)
+    exit "$l1_org_docs_profile_status"
+    ;;
+esac
 [ -n "$l1_org_docs_profile" ] || l1_org_docs_profile="rich"
 
 if [ "$l1_org_docs_profile" = "rich" ]; then
@@ -471,7 +540,28 @@ fi
 
 # Test L2 generation for each template
 tmp_root="$(mktemp -d)"
-trap 'rm -rf "$tmp_root"' EXIT
+l1_task_scopes_dir="$repo_root/governance/task-scopes"
+l1_task_scopes_backup="$tmp_root/l1-task-scopes-backup"
+l1_task_scopes_had_existing=0
+
+restore_l1_task_scope_dir() {
+  rm -rf "$l1_task_scopes_dir"
+
+  if [ "$l1_task_scopes_had_existing" != "1" ]; then
+    return 0
+  fi
+
+  mkdir -p "$l1_task_scopes_dir"
+  if [ -n "$(find "$l1_task_scopes_backup" -mindepth 1 -print -quit)" ]; then
+    cp -R "$l1_task_scopes_backup/." "$l1_task_scopes_dir/"
+  fi
+}
+
+cleanup() {
+  restore_l1_task_scope_dir
+  rm -rf "$tmp_root"
+}
+trap cleanup EXIT INT TERM
 
 ak_db="$tmp_root/check-template-ci.ak.db"
 ak_test_double="$repo_root/scripts/lib/check-template-ak.py"
@@ -559,11 +649,17 @@ EOF
   fi
 }
 
+if [ -d "$l1_task_scopes_dir" ]; then
+  mkdir -p "$l1_task_scopes_backup"
+  cp -R "$l1_task_scopes_dir/." "$l1_task_scopes_backup/"
+  l1_task_scopes_had_existing=1
+fi
+
 l1_task_scope_id="$(create_scoped_task "$repo_root" "template-ci: generated L1 task-scope snapshot")"
 write_task_scope_snapshot "$repo_root" "$l1_task_scope_id"
 run_repo_cmd "$repo_root" ./scripts/check-task-scope-snapshots.sh >/dev/null
 run_repo_cmd "$repo_root" ./scripts/ci/full.sh >/dev/null
-rm -rf "$repo_root/governance/task-scopes"
+restore_l1_task_scope_dir
 
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   l2_dir="$tmp_root/$tpl"
@@ -576,6 +672,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   assert_file "$l2_dir/AGENTS.md"
   assert_file "$l2_dir/CODEOWNERS"
   assert_file "$l2_dir/scripts/ak.sh"
+  assert_file "$l2_dir/scripts/lib/copier-answers.sh"
   assert_file "$l2_dir/scripts/rocs.sh"
   assert_file "$l2_dir/scripts/ci/smoke.sh"
   assert_file "$l2_dir/scripts/ci/full.sh"
@@ -590,6 +687,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
   assert_contains "$l2_dir/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "generated $tpl diary README should enforce descriptive filename convention"
   assert_not_dir "$l2_dir/docs/diary"
   assert_exec "$l2_dir/scripts/ak.sh"
+  assert_contains "$l2_dir/scripts/ak.sh" "scripts/lib/copier-answers.sh" "generated $tpl AK wrapper should source the shared copier answers helper"
   if [ "$tpl" != "tpl-package" ]; then
     assert_exec "$l2_dir/scripts/check-task-scope-snapshots.sh"
   fi
@@ -650,6 +748,10 @@ write_task_scope_snapshot "$agent_task_scope_repo" "$agent_task_scope_id"
 prepare_full_ci_probe "$agent_task_scope_repo"
 run_repo_cmd "$agent_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
 run_repo_cmd "$agent_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+agent_task_scope_symlink="$tmp_root/tpl-agent-repo-symlink"
+ln -s "$agent_task_scope_repo" "$agent_task_scope_symlink"
+run_repo_cmd "$agent_task_scope_symlink" ./scripts/check-task-scope-snapshots.sh >/dev/null
+run_repo_cmd "$agent_task_scope_symlink" ./scripts/ci/full.sh >/dev/null
 
 foreign_agent_repo="$tmp_root/foreign-agent-task-scope-repo"
 mkdir -p "$foreign_agent_repo"
@@ -678,6 +780,10 @@ write_task_scope_snapshot "$project_task_scope_repo" "$project_task_scope_id"
 prepare_full_ci_probe "$project_task_scope_repo"
 run_repo_cmd "$project_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
 run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh >/dev/null
+project_task_scope_symlink="$tmp_root/tpl-project-repo-symlink"
+ln -s "$project_task_scope_repo" "$project_task_scope_symlink"
+run_repo_cmd "$project_task_scope_symlink" ./scripts/check-task-scope-snapshots.sh >/dev/null
+run_repo_cmd "$project_task_scope_symlink" ./scripts/ci/full.sh >/dev/null
 printf '{"schema_version":1}\n' > "$project_task_scope_repo/governance/work-items.json"
 assert_command_fails "generated tpl-project-repo work-items check should reject drifted projections" run_repo_cmd "$project_task_scope_repo" ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
 assert_command_fails "generated tpl-project-repo full CI should reject drifted work-items projections" run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh

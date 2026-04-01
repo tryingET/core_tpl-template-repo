@@ -75,7 +75,7 @@ list_template_files() {
   template_dir="$1"
 
   find "$template_dir" -type f | while IFS= read -r abs_path; do
-    rel_path="${abs_path#$template_dir/}"
+    rel_path="${abs_path#"$template_dir"/}"
     case "$rel_path" in
       */__pycache__/*|*.pyc)
         continue
@@ -149,6 +149,7 @@ copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/lib/check-template-ak.py
+copier-template/scripts/lib/copier-answers.sh
 copier-template/scripts/lib/suffix-policy.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
@@ -164,12 +165,14 @@ scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-fixtures.sh
 scripts/sync-l0-fixtures.sh
+scripts/lib/copier-answers.sh
 scripts/lib/fixture-normalization.sh
 fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
 fixtures/l1/template-repo/diary/README.md
 fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 fixtures/l1/template-repo/scripts/lib/check-template-ak.py
+fixtures/l1/template-repo/scripts/lib/copier-answers.sh
 fixtures/l1/template-repo/scripts/lib/suffix-policy.sh
 fixtures/l2/tpl-project-repo/AGENTS.md
 fixtures/l2/tpl-project-repo/.copier-answers.yml
@@ -206,6 +209,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
   if [ "$tpl" != "tpl-package" ]; then
     assert_file "copier-template/copier/$tpl/scripts/ak.sh"
+    assert_file "copier-template/copier/$tpl/scripts/lib/copier-answers.sh"
     assert_exec "copier-template/copier/$tpl/scripts/ak.sh"
   fi
   if [ "$tpl" != "tpl-package" ]; then
@@ -319,6 +323,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
   fi
   if [ "$tpl" != "tpl-package" ]; then
     assert_contains "copier-template/copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
+    assert_contains "copier-template/copier/$tpl/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L2 template $tpl AK wrapper should source the shared copier answers helper"
     assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
     assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
     assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
@@ -336,6 +341,7 @@ assert_contains "scripts/new-l1-from-copier.sh" "bootstrap-lane-root.sh" "L0 L1 
 assert_contains "scripts/preview-l1-diff.sh" '"$repo_root/scripts/new-l1-from-copier.sh" "$render_dir"' "preview-l1-diff must call new-l1 wrapper with render dir as first arg"
 assert_contains "scripts/preview-l1-diff.sh" ".copier-answers.yml" "preview-l1-diff should infer repo_slug from target answers when available"
 assert_contains "scripts/preview-l1-diff.sh" "repo_slug_from_answers" "preview-l1-diff should parse repo_slug from target answers file"
+assert_contains "scripts/preview-l1-diff.sh" "scripts/lib/copier-answers.sh" "preview-l1-diff should source the shared copier answers helper"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
@@ -344,14 +350,18 @@ assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-package" 
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_QUIET" "L1 wrapper must expose Copier quiet-mode toggle"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "--quiet" "L1 wrapper must default Copier execution to quiet mode"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_VERSION" "L1 wrapper must pin Copier version"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "scripts/lib/copier-answers.sh" "L1 wrapper should source the shared copier answers helper"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'uvx --from "copier==${COPIER_VERSION}" copier' "L1 wrapper must include pinned uvx invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'uv tool run --from "copier==${COPIER_VERSION}" copier' "L1 wrapper must include pinned uv tool invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "warning: uvx/uv not found; falling back to unpinned copier on PATH" "L1 wrapper must surface unpinned fallback warning"
 assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "--init-lane-git" "L1 lane bootstrap helper must support lane git initialization"
 assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "tpl-project-repo" "L1 lane bootstrap helper must render tpl-project-repo baseline"
+assert_not_contains "copier-template/scripts/bootstrap-lane-root.sh" "sed -i" "L1 lane bootstrap helper must not rely on GNU sed -i"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must pin Copier version" "L1 template CI must enforce copier pinning"
+assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
 assert_contains "copier-template/scripts/ak.sh" "deterministic resolution order" "L1 AK wrapper should document deterministic resolution order"
+assert_contains "copier-template/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L1 AK wrapper should source the shared copier answers helper"
 assert_contains "copier-template/scripts/ak.sh" "work-items check" "L1 AK wrapper should document work-items projection commands"
 assert_contains "copier-template/scripts/check-task-scope-snapshots.sh" "task-scope snapshots" "L1 task-scope checker should explain its validation target"
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"

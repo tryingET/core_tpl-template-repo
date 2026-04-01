@@ -16,7 +16,25 @@ need_cmd cp
 need_cmd git
 need_cmd grep
 need_cmd mktemp
-need_cmd sed
+need_cmd mv
+
+python_exec=""
+if command -v python3 >/dev/null 2>&1; then
+  python_exec="python3"
+elif command -v python >/dev/null 2>&1; then
+  python_exec="python"
+else
+  echo "error: missing dependency: python3 or python" >&2
+  exit 2
+fi
+
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+[ -f "$answers_lib" ] || {
+  echo "error: missing dependency: $answers_lib" >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$answers_lib"
 
 fail() {
   echo "error: $*" >&2
@@ -47,35 +65,54 @@ assert_command_fails() {
   fi
 }
 
+assert_command_fails_with_stderr() {
+  label="$1"
+  needle="$2"
+  shift 2
+
+  stderr_file="$(mktemp "$tmp_root/assert-failure.XXXXXX")"
+  if "$@" >/dev/null 2>"$stderr_file"; then
+    rm -f "$stderr_file"
+    fail "$label"
+  fi
+
+  if ! grep -qF -- "$needle" "$stderr_file"; then
+    echo "error: $label (missing '$needle' in stderr)" >&2
+    cat "$stderr_file" >&2 || true
+    rm -f "$stderr_file"
+    exit 1
+  fi
+
+  rm -f "$stderr_file"
+}
+
 yaml_scalar_value() {
   yaml_file="$1"
   key="$2"
 
-  awk -v key="$key" '
-    function trim(value) {
-      sub(/^[ \t]+/, "", value)
-      sub(/[ \t]+$/, "", value)
-      return value
-    }
+  copier_answers_scalar "$yaml_file" "$key"
+}
 
-    $0 ~ "^[[:space:]]*" key "[[:space:]]*:" {
-      value = $0
-      sub("^[[:space:]]*" key "[[:space:]]*:[[:space:]]*", "", value)
-      value = trim(value)
+replace_first_match_in_file() {
+  file="$1"
+  pattern="$2"
+  replacement="$3"
+  tmp_file="$file.tmp"
 
-      if (value ~ /^".*"$/) {
-        value = substr(value, 2, length(value) - 2)
-        gsub(/\\"/, "\"", value)
-        gsub(/\\\\/, "\\", value)
-      } else if (value ~ /^\047.*\047$/) {
-        value = substr(value, 2, length(value) - 2)
-        gsub(/\047\047/, "\047", value)
+  awk -v pattern="$pattern" -v replacement="$replacement" '
+    !done {
+      pos = index($0, pattern)
+      if (pos > 0) {
+        prefix = substr($0, 1, pos - 1)
+        suffix = substr($0, pos + length(pattern))
+        print prefix replacement suffix
+        done = 1
+        next
       }
-
-      print value
-      exit
     }
-  ' "$yaml_file"
+    { print }
+  ' "$file" > "$tmp_file"
+  mv "$tmp_file" "$file"
 }
 
 "$repo_root/scripts/check-l0-guardrails.sh"
@@ -91,6 +128,33 @@ echo "error: ambient ak should not be used by check-template-ci" >&2
 exit 127
 EOF
 chmod +x "$dummy_ak_dir/ak"
+
+no_yaml_bin="$tmp_root/no-yaml-bin"
+mkdir -p "$no_yaml_bin"
+for fake_python in python3 python; do
+  cat > "$no_yaml_bin/$fake_python" <<'EOF'
+#!/usr/bin/env sh
+exit 1
+EOF
+  chmod +x "$no_yaml_bin/$fake_python"
+done
+
+ak_parse_root="$tmp_root/ak-parse-root"
+mkdir -p "$ak_parse_root/scripts/lib" "$ak_parse_root/bin"
+cp "$repo_root/scripts/ak.sh" "$ak_parse_root/scripts/ak.sh"
+chmod +x "$ak_parse_root/scripts/ak.sh"
+cp "$repo_root/scripts/lib/copier-answers.sh" "$ak_parse_root/scripts/lib/copier-answers.sh"
+cat > "$ak_parse_root/.copier-answers.yml" <<'EOF'
+repo_slug: 'Line1
+
+    Line2'
+EOF
+cat > "$ak_parse_root/bin/ak" <<'EOF'
+#!/usr/bin/env sh
+exit 0
+EOF
+chmod +x "$ak_parse_root/bin/ak"
+assert_command_fails_with_stderr "AK wrapper should fail closed on unsupported multiline answers when PyYAML is unavailable" "unable to parse 'repo_slug'" env PATH="$no_yaml_bin:$ak_parse_root/bin:$PATH" "$ak_parse_root/scripts/ak.sh" --doctor
 
 render_l1_case() {
   case_name="$1"
@@ -116,7 +180,15 @@ render_l1_case() {
     git config user.email "ci@tpl-template-repo.local" >/dev/null
     ./scripts/install-hooks.sh >/dev/null
     ./scripts/ci/smoke.sh >/dev/null
-    PATH="$dummy_ak_dir:$PATH" ./scripts/check-template-ci.sh
+    if [ "$case_name" = "l1-template-sample" ]; then
+      mkdir -p governance/task-scopes
+      printf 'do not delete\n' > governance/task-scopes/KEEP.txt
+      PATH="$dummy_ak_dir:$PATH" ./scripts/check-template-ci.sh
+      [ -f governance/task-scopes/KEEP.txt ] || fail "generated L1 check-template-ci should preserve existing task-scope files"
+      rm -rf governance/task-scopes
+    else
+      PATH="$dummy_ak_dir:$PATH" ./scripts/check-template-ci.sh
+    fi
     git add .
     git commit -m "initial render ($case_name)" >/dev/null
   )
@@ -167,8 +239,8 @@ render_l1_case() {
 
     (
       cd "$l1_dir"
-      sed -i 's/"0.1.0"/"0.1.1"/' .release-please-manifest.json
-      sed -i 's/## \[0.1.0\]/## [0.1.1]/' CHANGELOG.md
+      replace_first_match_in_file .release-please-manifest.json '"0.1.0"' '"0.1.1"'
+      replace_first_match_in_file CHANGELOG.md '## [0.1.0]' '## [0.1.1]'
       ./scripts/release/check.sh >/dev/null
     )
   fi
@@ -239,6 +311,220 @@ quote_l2="$tmp_root/l2-template-quote"
 quote_company_name="$(yaml_scalar_value "$quote_l2/.copier-answers.yml" company_name)"
 [ "$quote_company_name" = 'Acme "Lab"' ] || {
   echo "error: inherited company_name should preserve embedded double quotes (expected 'Acme \"Lab\"', got '$quote_company_name')" >&2
+  exit 1
+}
+
+hash_l1="$tmp_root/l1-template-hash"
+hash_l2="$tmp_root/l2-template-hash"
+"$repo_root/scripts/new-l1-from-copier.sh" "$hash_l1" \
+  -d repo_slug=l1-template-hash \
+  -d maintainer_handle=@template-owner \
+  -d company_name='Foo #1' \
+  --defaults --overwrite >/dev/null
+(
+  cd "$hash_l1"
+  ./scripts/new-repo-from-copier.sh tpl-project-repo "$hash_l2" \
+    -d repo_slug=l2-template-hash \
+    --defaults --overwrite >/dev/null
+)
+hash_company_name="$(yaml_scalar_value "$hash_l2/.copier-answers.yml" company_name)"
+[ "$hash_company_name" = 'Foo #1' ] || {
+  echo "error: inherited company_name should preserve hash characters (expected 'Foo #1', got '$hash_company_name')" >&2
+  exit 1
+}
+
+hash_preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$hash_l1")"
+printf '%s\n' "$hash_preview_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+  echo "error: preview-l1-diff must preserve quoted hash values from .copier-answers.yml" >&2
+  printf '%s\n' "$hash_preview_output" >&2
+  exit 1
+}
+hash_preview_no_yaml_output="$(env PATH="$no_yaml_bin:$PATH" "$repo_root/scripts/preview-l1-diff.sh" "$hash_l1")"
+printf '%s\n' "$hash_preview_no_yaml_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+  echo "error: preview-l1-diff should keep supported quoted hash values when PyYAML is unavailable" >&2
+  printf '%s\n' "$hash_preview_no_yaml_output" >&2
+  exit 1
+}
+
+multiline_l1="$tmp_root/l1-template-multiline"
+multiline_l2="$tmp_root/l2-template-multiline"
+multiline_expected="$(printf 'Line1\nLine2')"
+"$repo_root/scripts/new-l1-from-copier.sh" "$multiline_l1" \
+  -d repo_slug=l1-template-multiline \
+  -d maintainer_handle=@template-owner \
+  -d company_name="$multiline_expected" \
+  --defaults --overwrite >/dev/null
+(
+  cd "$multiline_l1"
+  ./scripts/new-repo-from-copier.sh tpl-project-repo "$multiline_l2" \
+    -d repo_slug=l2-template-multiline \
+    --defaults --overwrite >/dev/null
+)
+multiline_company_name="$(yaml_scalar_value "$multiline_l2/.copier-answers.yml" company_name)"
+[ "$multiline_company_name" = "$multiline_expected" ] || {
+  echo "error: inherited company_name should preserve multiline values" >&2
+  printf 'expected:\n%s\n---\nactual:\n%s\n' "$multiline_expected" "$multiline_company_name" >&2
+  exit 1
+}
+multiline_preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$multiline_l1")"
+printf '%s\n' "$multiline_preview_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+  echo "error: preview-l1-diff must preserve multiline values from .copier-answers.yml" >&2
+  printf '%s\n' "$multiline_preview_output" >&2
+  exit 1
+}
+multiline_fallback_l2="$tmp_root/l2-template-multiline-no-yaml"
+assert_command_fails_with_stderr "generated L1 render should fail closed on unsupported multiline answers when PyYAML is unavailable" "unable to parse 'company_name'" env PATH="$no_yaml_bin:$PATH" sh -c 'cd "$1" && ./scripts/new-repo-from-copier.sh tpl-project-repo "$2" -d repo_slug=l2-template-multiline-no-yaml --defaults --overwrite' sh "$multiline_l1" "$multiline_fallback_l2"
+assert_command_fails_with_stderr "preview-l1-diff should fail closed on unsupported multiline answers when PyYAML is unavailable" "unable to parse 'company_name'" env PATH="$no_yaml_bin:$PATH" "$repo_root/scripts/preview-l1-diff.sh" "$multiline_l1"
+
+tab_l1="$tmp_root/l1-template-tab"
+tab_l2="$tmp_root/l2-template-tab"
+tab_expected="$(printf 'Tab\tCo')"
+"$repo_root/scripts/new-l1-from-copier.sh" "$tab_l1" \
+  -d repo_slug=l1-template-tab \
+  -d maintainer_handle=@template-owner \
+  -d company_name="$tab_expected" \
+  --defaults --overwrite >/dev/null
+(
+  cd "$tab_l1"
+  ./scripts/new-repo-from-copier.sh tpl-project-repo "$tab_l2" \
+    -d repo_slug=l2-template-tab \
+    --defaults --overwrite >/dev/null
+)
+tab_company_name="$(yaml_scalar_value "$tab_l2/.copier-answers.yml" company_name)"
+[ "$tab_company_name" = "$tab_expected" ] || {
+  echo "error: inherited company_name should preserve escaped tab values" >&2
+  printf 'expected:\n%s\n---\nactual:\n%s\n' "$tab_expected" "$tab_company_name" >&2
+  exit 1
+}
+
+org_default_l1="$tmp_root/l1-template-org-default"
+"$repo_root/scripts/new-l1-from-copier.sh" "$org_default_l1" \
+  -d repo_slug=l1-template-org-default \
+  -d maintainer_handle=@template-owner \
+  -d l2_org_docs_default=compact \
+  --defaults --overwrite >/dev/null
+org_default_preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$org_default_l1")"
+printf '%s\n' "$org_default_preview_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+  echo "error: preview-l1-diff must replay l2_org_docs_default from .copier-answers.yml" >&2
+  printf '%s\n' "$org_default_preview_output" >&2
+  exit 1
+}
+
+suffix_l1="$tmp_root/l1-template-suffix-allowlist"
+"$repo_root/scripts/new-l1-from-copier.sh" "$suffix_l1" \
+  -d repo_slug=l1-template-suffix-allowlist \
+  -d maintainer_handle=@template-owner \
+  --defaults --overwrite >/dev/null
+mkdir -p "$suffix_l1/owned/demo"
+touch "$suffix_l1/owned/demo/stray.j2"
+printf 'repo_slug: {{ repo_slug }}\n' > "$suffix_l1/owned/demo/stray.txt"
+(
+  cd "$suffix_l1"
+  ./scripts/check-template-ci.sh >/dev/null
+)
+
+bootstrap_l1="$tmp_root/l1-template-bootstrap-portable"
+"$repo_root/scripts/new-l1-from-copier.sh" "$bootstrap_l1" \
+  -d repo_slug=l1-template-bootstrap-portable \
+  -d maintainer_handle=@template-owner \
+  --defaults --overwrite >/dev/null
+bootstrap_fake_bin="$tmp_root/bootstrap-fake-bin"
+mkdir -p "$bootstrap_fake_bin"
+cat > "$bootstrap_fake_bin/sed" <<'EOF'
+#!/usr/bin/env sh
+if [ "${1:-}" = "-i" ]; then
+  echo "error: bootstrap-lane-root.sh must not rely on sed -i" >&2
+  exit 99
+fi
+exec /usr/bin/sed "$@"
+EOF
+chmod +x "$bootstrap_fake_bin/sed"
+(
+  cd "$bootstrap_l1"
+  PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh owned >/dev/null
+)
+assert_file_contains "$bootstrap_l1/owned/.copier-answers.yml" "location: owned" "portable lane bootstrap should stamp lane location without sed"
+assert_file_contains "$bootstrap_l1/owned/README.md" "**Location**: owned" "portable lane bootstrap should update README location without sed"
+assert_command_fails "lane bootstrap should reject regex-bearing lane names" env PATH="$bootstrap_fake_bin:$PATH" sh -c 'cd "$1" && ./scripts/bootstrap-lane-root.sh "[foo"' sh "$bootstrap_l1"
+assert_command_fails "lane bootstrap should reject whitespace lane names" env PATH="$bootstrap_fake_bin:$PATH" sh -c 'cd "$1" && ./scripts/bootstrap-lane-root.sh "data lane"' sh "$bootstrap_l1"
+(
+  cd "$bootstrap_l1"
+  PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh data-lane >/dev/null
+  PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh data-lane >/dev/null
+)
+data_lane_block_count="$(grep -cF '# Lane root: data-lane' "$bootstrap_l1/.gitignore" || true)"
+[ "$data_lane_block_count" = "1" ] || {
+  echo "error: lane bootstrap should remain idempotent for safe custom lane names" >&2
+  exit 1
+}
+
+rocs_python_l1="$tmp_root/l1-template-rocs-python"
+"$repo_root/scripts/new-l1-from-copier.sh" "$rocs_python_l1" \
+  -d repo_slug=l1-template-rocs-python \
+  -d maintainer_handle=@template-owner \
+  --defaults --overwrite >/dev/null
+mkdir -p "$rocs_python_l1/src/rocs_cli" "$rocs_python_l1/bin"
+cat > "$rocs_python_l1/pyproject.toml" <<'EOF'
+[project]
+name = "rocs-cli"
+version = "0.0.0"
+EOF
+cat > "$rocs_python_l1/src/rocs_cli/__main__.py" <<'EOF'
+print("ok: rocs python fallback")
+EOF
+for cmd in sh "$python_exec" dirname grep; do
+  ln -s "$(command -v "$cmd")" "$rocs_python_l1/bin/$cmd"
+done
+rocs_which_output="$(
+  cd "$rocs_python_l1"
+  PATH="$rocs_python_l1/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh --which
+)"
+printf '%s\n' "$rocs_which_output" | grep -qF "local rocs-cli project via PYTHONPATH=$rocs_python_l1/src $python_exec -m rocs_cli" || {
+  echo "error: generated L1 ROCS wrapper should select the python fallback when uv/uvx are absent" >&2
+  printf '%s\n' "$rocs_which_output" >&2
+  exit 1
+}
+rocs_python_output="$(
+  cd "$rocs_python_l1"
+  PATH="$rocs_python_l1/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh version
+)"
+printf '%s\n' "$rocs_python_output" | grep -qF "ok: rocs python fallback" || {
+  echo "error: generated L1 ROCS wrapper should execute the python fallback with repo-local src on PYTHONPATH" >&2
+  printf '%s\n' "$rocs_python_output" >&2
+  exit 1
+}
+
+rocs_python_root="$tmp_root/root-rocs-python"
+mkdir -p "$rocs_python_root/scripts" "$rocs_python_root/src/rocs_cli" "$rocs_python_root/bin"
+cp "$repo_root/scripts/rocs.sh" "$rocs_python_root/scripts/rocs.sh"
+chmod +x "$rocs_python_root/scripts/rocs.sh"
+cat > "$rocs_python_root/pyproject.toml" <<'EOF'
+[project]
+name = "rocs-cli"
+version = "0.0.0"
+EOF
+cat > "$rocs_python_root/src/rocs_cli/__main__.py" <<'EOF'
+print("ok: root rocs python fallback")
+EOF
+for cmd in sh "$python_exec" dirname grep; do
+  ln -s "$(command -v "$cmd")" "$rocs_python_root/bin/$cmd"
+done
+root_rocs_which_output="$(
+  cd "$rocs_python_root"
+  PATH="$rocs_python_root/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh --which
+)"
+printf '%s\n' "$root_rocs_which_output" | grep -qF "local rocs-cli project via PYTHONPATH=$rocs_python_root/src $python_exec -m rocs_cli" || {
+  echo "error: root ROCS wrapper should select the python fallback when uv/uvx are absent" >&2
+  printf '%s\n' "$root_rocs_which_output" >&2
+  exit 1
+}
+root_rocs_python_output="$(
+  cd "$rocs_python_root"
+  PATH="$rocs_python_root/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh version
+)"
+printf '%s\n' "$root_rocs_python_output" | grep -qF "ok: root rocs python fallback" || {
+  echo "error: root ROCS wrapper should execute the python fallback with repo-local src on PYTHONPATH" >&2
+  printf '%s\n' "$root_rocs_python_output" >&2
   exit 1
 }
 

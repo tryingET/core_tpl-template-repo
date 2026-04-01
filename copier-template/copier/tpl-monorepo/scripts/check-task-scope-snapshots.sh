@@ -1,7 +1,13 @@
 #!/usr/bin/env sh
 set -eu
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+canonical_dir() {
+  path="$1"
+
+  CDPATH= cd -- "$path" 2>/dev/null && pwd -P
+}
+
+repo_root="$(canonical_dir "$(dirname -- "$0")/..")"
 cd "$repo_root"
 
 need_cmd() {
@@ -83,7 +89,9 @@ while IFS= read -r snapshot_path; do
 
   task_repo="$(extract_task_repo "$task_json")"
   [ -n "$task_repo" ] || fail "unable to extract repo for AK task $task_id"
-  [ "$task_repo" = "$repo_root" ] || fail "snapshot $snapshot_path belongs to repo $task_repo, expected $repo_root"
+
+  task_repo_canonical="$(canonical_dir "$task_repo")"
+  [ "$task_repo_canonical" = "$repo_root" ] || fail "snapshot $snapshot_path belongs to repo $task_repo (canonical: $task_repo_canonical), expected $repo_root"
 
   exported_snapshot="$tmp_root/AK-$task_id.expected.json"
   if ! ./scripts/ak.sh task scope export "$task_id" >"$exported_snapshot"; then
