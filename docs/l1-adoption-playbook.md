@@ -54,6 +54,32 @@ When the adoption slice includes the FCOS-M36-06 task-scope migration contract:
    ```
 4. Call out the migration/deprecation boundary explicitly in the MR so downstream brownfield adopters do not mistake the rollout for a flag day.
 
+## Special case: migrating an old `<company>-templates` layout
+
+If the company still lives under an old:
+
+```text
+<company>/<company>-templates
+```
+
+layout, use the staged L0 helper from `core/tpl-template-repo` instead of ad-hoc moves:
+
+```bash
+./scripts/migrate-l1-structure.sh <company_slug> "<Company Name>"
+```
+
+When the old company root contains custom grouping roots that are not already bootstrapped lane baselines, classify them explicitly:
+
+```bash
+AI_SOCIETY_CUSTOM_LANES=data,ml-platform \
+  ./scripts/migrate-l1-structure.sh <company_slug> "<Company Name>"
+```
+
+Guardrails:
+- Reserved L1 control-plane paths such as `docs`, `scripts`, `copier`, `governance`, `policy`, and `ontology` are never valid lane names.
+- The migrator fails closed rather than inferring custom lanes from nested repos alone.
+- Repair reserved-path collisions manually before rerunning the migrator.
+
 ## Drift controls
 - Keep contracts/layer-contract.yml untouched unless intentionally changing policy (relative from here: `../contracts/layer-contract.yml`).
 - Keep generated `.copier-answers.yml` committed.

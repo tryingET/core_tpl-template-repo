@@ -58,6 +58,7 @@ Read [[docs/dev/README.md]] completely, then execute the relevant section for my
 - Create a **new L1 company template repo** → [Section 3](#3-create-a-new-l1-company-template-repo-l0---l1)
 - Create a **new L2 repo** (agent/project/org/monorepo/package) → [Section 4](#4-create-a-new-l2-repo-l1---l2)
 - Update an **existing L1** to latest L0 → [Section 5](#5-transition-an-existing-l1-template-repo)
+- Migrate an **old `<company>-templates` layout** to company-root L1 → [Section 5a](#5a-transition-an-old-company-templates-layout-to-company-root-l1)
 - Migrate an **existing L2** to template baseline → [Section 6](#6-transition-an-existing-l2-repo)
 
 ---
@@ -114,6 +115,8 @@ git add .gitignore data
 git commit -m "chore: bootstrap data lane baseline"
 ./scripts/bootstrap-lane-root.sh data --init-lane-git
 ```
+
+Reserved L1 control-plane paths such as `docs`, `scripts`, `copier`, `governance`, `policy`, and `ontology` are not valid lane names.
 
 **L1 Structure:**
 ```
@@ -201,6 +204,38 @@ Then in target L1 repo (on branch):
 - apply selected changes
 - run `bash ./scripts/check-template-ci.sh`
 - open MR with recursion/contract notes
+
+---
+
+## 5a) Transition an old `<company>-templates` layout to company-root L1
+
+Use the staged migrator from `core/tpl-template-repo` when a company still uses the older:
+
+```text
+<company>/<company>-templates
+```
+
+layout.
+
+Basic flow:
+
+```bash
+./scripts/migrate-l1-structure.sh <company_slug> "<Company Name>"
+```
+
+If the old company root contains custom grouping roots that are not already bootstrapped lane baselines, classify them explicitly:
+
+```bash
+AI_SOCIETY_CUSTOM_LANES=data,ml-platform \
+  ./scripts/migrate-l1-structure.sh <company_slug> "<Company Name>"
+```
+
+Fail-closed rules:
+- Reserved L1 control-plane paths such as `docs`, `scripts`, `copier`, `governance`, `policy`, and `ontology` are never valid lanes.
+- If one of those paths contains lane-like state or nested repos, repair it manually before rerunning the migrator.
+- If a custom grouping root only reveals itself via nested child repos, the migrator requires `AI_SOCIETY_CUSTOM_LANES=...` instead of guessing.
+
+The migrator is staged and non-destructive: verify the generated `<company>-stage` repo, then perform the explicit switch manually.
 
 ---
 

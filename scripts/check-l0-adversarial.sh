@@ -11,12 +11,14 @@ need_cmd() {
 	}
 }
 
+need_cmd awk
 need_cmd bash
 need_cmd find
 need_cmd git
 need_cmd grep
 need_cmd ln
 need_cmd mktemp
+need_cmd mv
 need_cmd rm
 need_cmd tail
 
@@ -38,6 +40,21 @@ yaml_scalar_value() {
 	key="$2"
 
 	copier_answers_scalar "$answers_file" "$key"
+}
+
+drop_yaml_key() {
+	file="$1"
+	key="$2"
+	tmp_file="$file.tmp"
+
+	awk -v key="$key" '
+    !done && $0 ~ "^[[:space:]]*" key ":[[:space:]]*" {
+      done = 1
+      next
+    }
+    { print }
+  ' "$file" >"$tmp_file"
+	mv "$tmp_file" "$file"
 }
 
 render_l1() {
@@ -142,6 +159,29 @@ printf '%s\n' "$preview_output" | grep -qF "ignored nested child repos" || {
 	printf '%s\n' "$preview_output" >&2
 	fail "preview-l1-diff should report ignored nested child repos"
 }
+
+drop_yaml_key "$preview_l1/owned/.copier-answers.yml" project_owner_handle
+(
+	cd "$preview_l1"
+	git add owned/.copier-answers.yml >/dev/null
+	git commit -m "simulate older lane baseline" >/dev/null
+)
+legacy_lane_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1")"
+printf '%s\n' "$legacy_lane_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+	printf '%s\n' "$legacy_lane_output" >&2
+	fail "preview-l1-diff should stay clean for older lane baselines that omit project_owner_handle"
+}
+(
+	cd "$preview_l1"
+	PROJECT_OWNER_HANDLE='@acme/platform-team' ./scripts/bootstrap-lane-root.sh data >/dev/null
+	git add .gitignore data >/dev/null
+	git commit -m "bootstrap team-owned data lane" >/dev/null
+)
+team_owner_preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1")"
+printf '%s\n' "$team_owner_preview_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+	printf '%s\n' "$team_owner_preview_output" >&2
+	fail "preview-l1-diff should preserve structured team owner handles when materializing canonical lane baselines"
+}
 (
 	cd "$preview_l1"
 	printf '\ntracked lane drift\n' >>owned/README.md
@@ -156,18 +196,7 @@ if printf '%s\n' "$drift_output" | grep -qF "ok: no diff between rendered L1 and
 	fail "preview-l1-diff must not hide tracked lane-root drift"
 fi
 
-# 3) Migration must stay portable when sed -i is unavailable and old template repos live in a worktree.
-workspace_root="$tmp_root/workspace"
-company_slug="demo"
-old_company_dir="$workspace_root/$company_slug"
-old_templates_dir="$old_company_dir/${company_slug}-templates"
-stage_dir="$workspace_root/${company_slug}-stage"
-seed_templates_repo="$tmp_root/${company_slug}-templates-seed"
-mkdir -p "$old_company_dir"
-render_l1 "$seed_templates_repo" "${company_slug}-templates" "$company_slug" "Demo Co"
-init_git_repo "$seed_templates_repo" "initial render"
-git -C "$seed_templates_repo" remote add origin git@example.com:demo/demo-templates.git >/dev/null
-git -C "$seed_templates_repo" worktree add "$old_templates_dir" >/dev/null
+# 3) Migration must stay portable on worktrees, require explicit custom-lane classification, and fail closed for reserved lane collisions.
 fake_bsd_bin="$tmp_root/fake-bsd-bin"
 mkdir -p "$fake_bsd_bin"
 cat >"$fake_bsd_bin/sed" <<'EOF'
@@ -179,9 +208,22 @@ fi
 exec /usr/bin/sed "$@"
 EOF
 chmod +x "$fake_bsd_bin/sed"
-if ! AI_SOCIETY_WORKSPACE="$workspace_root" PATH="$fake_bsd_bin:$PATH" bash "$repo_root/scripts/migrate-l1-structure.sh" "$company_slug" "Demo Co" >"$tmp_root/migrate.log" 2>&1; then
-	tail -n 200 "$tmp_root/migrate.log" >&2 || true
-	fail "migrate-l1-structure.sh should support worktree-backed source repos and remain portable when sed -i is unavailable"
+
+workspace_root="$tmp_root/workspace-explicit"
+company_slug="demo"
+old_company_dir="$workspace_root/$company_slug"
+old_templates_dir="$old_company_dir/${company_slug}-templates"
+stage_dir="$workspace_root/${company_slug}-stage"
+seed_templates_repo="$tmp_root/${company_slug}-templates-seed-explicit"
+mkdir -p "$old_company_dir"
+render_l1 "$seed_templates_repo" "${company_slug}-templates" "$company_slug" "Demo Co"
+init_git_repo "$seed_templates_repo" "initial render"
+git -C "$seed_templates_repo" remote add origin git@example.com:demo/demo-templates.git >/dev/null
+git -C "$seed_templates_repo" worktree add "$old_templates_dir" >/dev/null
+init_seed_repo "$old_company_dir/data-lane/service-x" "service init"
+if ! AI_SOCIETY_CUSTOM_LANES=data-lane AI_SOCIETY_WORKSPACE="$workspace_root" PATH="$fake_bsd_bin:$PATH" bash "$repo_root/scripts/migrate-l1-structure.sh" "$company_slug" "Demo Co" >"$tmp_root/migrate-explicit.log" 2>&1; then
+	tail -n 200 "$tmp_root/migrate-explicit.log" >&2 || true
+	fail "migrate-l1-structure.sh should accept explicitly classified custom lanes and remain portable when sed -i is unavailable"
 fi
 [ -d "$stage_dir" ] || fail "migration should create the staged L1 repo"
 stage_repo_slug="$(yaml_scalar_value "$stage_dir/.copier-answers.yml" repo_slug)"
@@ -191,6 +233,46 @@ stage_head_subject="$(git -C "$stage_dir" log -1 --pretty=%s 2>/dev/null || true
 [ "$stage_head_subject" = "initial render" ] || fail "migration should preserve source git history in the staged repo"
 stage_origin_url="$(git -C "$stage_dir" remote get-url origin 2>/dev/null || true)"
 [ "$stage_origin_url" = "git@example.com:demo/demo-templates.git" ] || fail "migration should preserve source remotes instead of cloning a local path (got $stage_origin_url)"
+git -C "$stage_dir" ls-files --error-unmatch README.md >/dev/null 2>&1 || fail "migration should preserve a populated git index in the staged repo"
+[ -f "$stage_dir/data-lane/.gitignore" ] || fail "migration should bootstrap explicitly classified custom lanes with a lane-local .gitignore"
+[ -f "$stage_dir/data-lane/.copier-answers.yml" ] || fail "migration should bootstrap explicitly classified custom lanes with copier answers"
+grep -qF '# Lane root: data-lane' "$stage_dir/.gitignore" || fail "migration should add the parent ignore block for explicitly classified custom lanes"
+
+missing_lane_workspace="$tmp_root/workspace-missing-lane"
+missing_lane_company_dir="$missing_lane_workspace/$company_slug"
+missing_lane_templates_dir="$missing_lane_company_dir/${company_slug}-templates"
+missing_lane_seed_templates_repo="$tmp_root/${company_slug}-templates-seed-missing-lane"
+mkdir -p "$missing_lane_company_dir"
+render_l1 "$missing_lane_seed_templates_repo" "${company_slug}-templates" "$company_slug" "Demo Co"
+init_git_repo "$missing_lane_seed_templates_repo" "initial render"
+git -C "$missing_lane_seed_templates_repo" worktree add "$missing_lane_templates_dir" >/dev/null
+init_seed_repo "$missing_lane_company_dir/data-lane/service-x" "service init"
+if AI_SOCIETY_WORKSPACE="$missing_lane_workspace" PATH="$fake_bsd_bin:$PATH" bash "$repo_root/scripts/migrate-l1-structure.sh" "$company_slug" "Demo Co" >"$tmp_root/migrate-missing-lane.log" 2>&1; then
+	tail -n 200 "$tmp_root/migrate-missing-lane.log" >&2 || true
+	fail "migrate-l1-structure.sh should require AI_SOCIETY_CUSTOM_LANES for custom grouping roots that have nested repos but no baseline"
+fi
+grep -qF 'AI_SOCIETY_CUSTOM_LANES=data-lane' "$tmp_root/migrate-missing-lane.log" || {
+	tail -n 200 "$tmp_root/migrate-missing-lane.log" >&2 || true
+	fail "migration failure should explain how to classify custom lanes explicitly"
+}
+
+reserved_lane_workspace="$tmp_root/workspace-reserved-lane"
+reserved_lane_company_dir="$reserved_lane_workspace/$company_slug"
+reserved_lane_templates_dir="$reserved_lane_company_dir/${company_slug}-templates"
+reserved_lane_seed_templates_repo="$tmp_root/${company_slug}-templates-seed-reserved-lane"
+mkdir -p "$reserved_lane_company_dir"
+render_l1 "$reserved_lane_seed_templates_repo" "${company_slug}-templates" "$company_slug" "Demo Co"
+init_git_repo "$reserved_lane_seed_templates_repo" "initial render"
+git -C "$reserved_lane_seed_templates_repo" worktree add "$reserved_lane_templates_dir" >/dev/null
+init_seed_repo "$reserved_lane_company_dir/docs/service-x" "service init"
+if AI_SOCIETY_WORKSPACE="$reserved_lane_workspace" PATH="$fake_bsd_bin:$PATH" bash "$repo_root/scripts/migrate-l1-structure.sh" "$company_slug" "Demo Co" >"$tmp_root/migrate-reserved-lane.log" 2>&1; then
+	tail -n 200 "$tmp_root/migrate-reserved-lane.log" >&2 || true
+	fail "migrate-l1-structure.sh should fail closed when reserved L1 control-plane dirs contain lane-like state"
+fi
+grep -qF 'reserved L1 control-plane dirs contain lane-like state' "$tmp_root/migrate-reserved-lane.log" || {
+	tail -n 200 "$tmp_root/migrate-reserved-lane.log" >&2 || true
+	fail "migration failure should explain reserved lane collisions clearly"
+}
 
 # 4) Repo census fallback must see deep repos and git worktrees in both L0 and rendered descendants.
 census_l1="$tmp_root/l1-census"

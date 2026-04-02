@@ -89,12 +89,20 @@ materialize_lane_root_baselines() {
 			lane_name="$(basename "$dir")"
 			project_owner_handle=""
 			project_owner_status=0
-			project_owner_handle="$(copier_answers_try_scalar "$dir/.copier-answers.yml" project_owner_handle 2>/dev/null)" || project_owner_status=$?
+			preserve_missing_project_owner_handle=0
+			if ! yaml_key_present "$dir/.copier-answers.yml" project_owner_handle; then
+				preserve_missing_project_owner_handle=1
+			fi
+			project_owner_handle="$(read_lane_project_owner_handle "$dir")" || project_owner_status=$?
 			[ "$project_owner_status" -eq 0 ] || return "$project_owner_status"
 			(
 				cd "$render_tree"
-				if [ -n "$project_owner_handle" ]; then
+				if [ -n "$project_owner_handle" ] && [ "$preserve_missing_project_owner_handle" -eq 1 ]; then
+					PROJECT_OWNER_HANDLE="$project_owner_handle" PRESERVE_MISSING_PROJECT_OWNER_HANDLE=1 ./scripts/bootstrap-lane-root.sh "$lane_name" >/dev/null
+				elif [ -n "$project_owner_handle" ]; then
 					PROJECT_OWNER_HANDLE="$project_owner_handle" ./scripts/bootstrap-lane-root.sh "$lane_name" >/dev/null
+				elif [ "$preserve_missing_project_owner_handle" -eq 1 ]; then
+					DISABLE_PROJECT_OWNER_HANDLE_INFERENCE=1 PRESERVE_MISSING_PROJECT_OWNER_HANDLE=1 ./scripts/bootstrap-lane-root.sh "$lane_name" >/dev/null
 				else
 					./scripts/bootstrap-lane-root.sh "$lane_name" >/dev/null
 				fi
@@ -125,6 +133,77 @@ EOF
 	fi
 
 	printf '%s\n' "$pruned"
+}
+
+yaml_key_present() {
+	answers_path="$1"
+	key="$2"
+
+	[ -f "$answers_path" ] || return 1
+	grep -q "^[[:space:]]*$key:[[:space:]]*" "$answers_path"
+}
+
+read_preview_json_string_value() {
+	json_path="$1"
+	key="$2"
+
+	[ -f "$json_path" ] || return 1
+
+	awk -v key="$key" '
+    BEGIN {
+      status = 1
+      pattern = "\"" key "\"[[:space:]]*:[[:space:]]*\"[^\"]*\""
+    }
+
+    {
+      if ($0 !~ pattern) {
+        next
+      }
+
+      value = $0
+      sub("^.*\"" key "\"[[:space:]]*:[[:space:]]*\"", "", value)
+      sub("\".*$", "", value)
+      print value
+      status = 0
+      exit
+    }
+
+    END {
+      exit status
+    }
+  ' "$json_path"
+}
+
+read_lane_project_owner_handle() {
+	lane_dir="$1"
+	answers_path="$lane_dir/.copier-answers.yml"
+	work_items_path="$lane_dir/governance/work-items.json"
+	value=""
+	status=0
+
+	if yaml_key_present "$answers_path" project_owner_handle; then
+		value="$(copier_answers_try_scalar "$answers_path" project_owner_handle 2>/dev/null)" || status=$?
+		if [ "$status" -eq 0 ]; then
+			printf '%s\n' "$value"
+			return 0
+		fi
+		return "$status"
+	fi
+
+	value="$(read_preview_json_string_value "$work_items_path" owner 2>/dev/null)" || status=$?
+	case "$status" in
+	0)
+		printf '%s\n' "$value"
+		return 0
+		;;
+	1)
+		printf '\n'
+		return 0
+		;;
+	*)
+		return "$status"
+		;;
+	esac
 }
 
 read_preview_answer_value() {

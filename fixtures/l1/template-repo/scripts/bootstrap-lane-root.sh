@@ -26,6 +26,8 @@ Examples:
   ./scripts/bootstrap-lane-root.sh data --init-lane-git
 
 Lane names must match: [A-Za-z0-9][A-Za-z0-9._-]*
+Reserved L1 control-plane paths (for example docs, scripts, copier,
+governance, policy, ontology) cannot be bootstrapped as lanes.
 EOF
 }
 
@@ -37,6 +39,17 @@ die() {
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || die "missing dependency: $1"
+}
+
+is_enabled() {
+	case "$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')" in
+	1 | true | yes | on)
+		return 0
+		;;
+	*)
+		return 1
+		;;
+	esac
 }
 
 rewrite_line_matching() {
@@ -58,6 +71,85 @@ rewrite_line_matching() {
 	}
 
 	mv "$tmp_file" "$file"
+}
+
+drop_yaml_key() {
+	file="$1"
+	key="$2"
+	tmp_file="$(mktemp "${TMPDIR:-/tmp}/lane-bootstrap.XXXXXX")"
+
+	awk -v key="$key" '
+    !done && $0 ~ "^[[:space:]]*" key ":[[:space:]]*" {
+      done = 1
+      next
+    }
+    { print }
+  ' "$file" >"$tmp_file" || {
+		rm -f "$tmp_file"
+		die "unable to rewrite $file"
+	}
+
+	mv "$tmp_file" "$file"
+}
+
+yaml_key_present() {
+	file="$1"
+	key="$2"
+
+	[ -f "$file" ] || return 1
+	grep -q "^[[:space:]]*$key:[[:space:]]*" "$file"
+}
+
+json_string_value() {
+	json_file="$1"
+	key="$2"
+
+	[ -f "$json_file" ] || return 1
+
+	awk -v key="$key" '
+    BEGIN {
+      status = 1
+      pattern = "\"" key "\"[[:space:]]*:[[:space:]]*\"[^\"]*\""
+    }
+
+    {
+      if ($0 !~ pattern) {
+        next
+      }
+
+      value = $0
+      sub("^.*\"" key "\"[[:space:]]*:[[:space:]]*\"", "", value)
+      sub("\".*$", "", value)
+      print value
+      status = 0
+      exit
+    }
+
+    END {
+      exit status
+    }
+  ' "$json_file"
+}
+
+lane_project_owner_handle_from_work_items() {
+	lane_path="$1"
+	work_items_path="$lane_path/governance/work-items.json"
+	owner=""
+	owner_status=0
+
+	owner="$(json_string_value "$work_items_path" owner 2>/dev/null)" || owner_status=$?
+	case "$owner_status" in
+	0)
+		printf '%s\n' "$owner"
+		return 0
+		;;
+	1)
+		return 1
+		;;
+	*)
+		die "unable to parse owner from $work_items_path"
+		;;
+	esac
 }
 
 need_cmd awk
@@ -95,44 +187,80 @@ done
 	exit 2
 }
 
-case "$lane" in
-*/* | . | ..)
-	die "lane name must be a single path segment (got: $lane)"
-	;;
-esac
-
-case "$lane" in
-[A-Za-z0-9]*)
-	case "$lane" in
-	*[!A-Za-z0-9._-]*)
-		die "lane name must match [A-Za-z0-9][A-Za-z0-9._-]* (got: $lane)"
-		;;
-	esac
-	;;
-*)
-	die "lane name must match [A-Za-z0-9][A-Za-z0-9._-]* (got: $lane)"
-	;;
-esac
-
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 repo_surface_lib="$repo_root/scripts/lib/repo-surface.sh"
 [ -f "$repo_surface_lib" ] || die "missing dependency: $repo_surface_lib"
 # shellcheck source=/dev/null
 . "$repo_surface_lib"
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+[ -f "$answers_lib" ] || die "missing dependency: $answers_lib"
+# shellcheck source=/dev/null
+. "$answers_lib"
 cd "$repo_root"
+
+if ! repo_surface_lane_name_has_valid_syntax "$lane"; then
+	die "lane name must match [A-Za-z0-9][A-Za-z0-9._-]* (got: $lane)"
+fi
+
+if ! repo_surface_lane_name_is_bootstrap_allowed "$lane"; then
+	die "lane name is reserved for the L1 control plane (got: $lane)"
+fi
 
 [ -x "./scripts/new-repo-from-copier.sh" ] || die "missing executable wrapper: scripts/new-repo-from-copier.sh"
 
 lane_dir="$repo_root/$lane"
+existing_answers_file="$lane_dir/.copier-answers.yml"
+preserve_missing_project_owner_handle=0
+render_project_owner_handle="${PROJECT_OWNER_HANDLE:-}"
+disable_project_owner_inference=0
+
+if is_enabled "${PRESERVE_MISSING_PROJECT_OWNER_HANDLE:-}"; then
+	preserve_missing_project_owner_handle=1
+fi
+
+if is_enabled "${DISABLE_PROJECT_OWNER_HANDLE_INFERENCE:-}"; then
+	disable_project_owner_inference=1
+fi
+
+if [ -z "$render_project_owner_handle" ] && [ "$disable_project_owner_inference" = "0" ] && [ -f "$existing_answers_file" ]; then
+	if yaml_key_present "$existing_answers_file" project_owner_handle; then
+		owner_status=0
+		render_project_owner_handle="$(copier_answers_try_scalar "$existing_answers_file" project_owner_handle 2>/dev/null)" || owner_status=$?
+		[ "$owner_status" -eq 0 ] || die "unable to parse project_owner_handle from $existing_answers_file"
+	else
+		preserve_missing_project_owner_handle=1
+	fi
+fi
+
+if [ -z "$render_project_owner_handle" ] && [ "$disable_project_owner_inference" = "0" ]; then
+	render_project_owner_handle="$(lane_project_owner_handle_from_work_items "$lane_dir" 2>/dev/null || true)"
+fi
+
+if [ -z "$render_project_owner_handle" ] && [ "$preserve_missing_project_owner_handle" = "1" ]; then
+	disable_project_owner_inference=1
+fi
+
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
 rendered_lane="$tmp_root/$lane"
 
-./scripts/new-repo-from-copier.sh tpl-project-repo "$rendered_lane" \
-	-d repo_slug="$lane" \
-	-d location="$lane" \
-	--defaults --overwrite >/dev/null
+if [ -n "$render_project_owner_handle" ]; then
+	PROJECT_OWNER_HANDLE="$render_project_owner_handle" ./scripts/new-repo-from-copier.sh tpl-project-repo "$rendered_lane" \
+		-d repo_slug="$lane" \
+		-d location="$lane" \
+		--defaults --overwrite >/dev/null
+elif [ "$disable_project_owner_inference" = "1" ]; then
+	DISABLE_PROJECT_OWNER_HANDLE_INFERENCE=1 ./scripts/new-repo-from-copier.sh tpl-project-repo "$rendered_lane" \
+		-d repo_slug="$lane" \
+		-d location="$lane" \
+		--defaults --overwrite >/dev/null
+else
+	./scripts/new-repo-from-copier.sh tpl-project-repo "$rendered_lane" \
+		-d repo_slug="$lane" \
+		-d location="$lane" \
+		--defaults --overwrite >/dev/null
+fi
 
 mkdir -p "$lane_dir"
 
@@ -157,6 +285,10 @@ if [ -f "$answers_file" ]; then
 	else
 		printf '_src_path: %s\n' "$lane_src_path" | cat - "$answers_file" >"$answers_file.tmp"
 		mv "$answers_file.tmp" "$answers_file"
+	fi
+
+	if [ "$preserve_missing_project_owner_handle" = "1" ] && yaml_key_present "$answers_file" project_owner_handle; then
+		drop_yaml_key "$answers_file" project_owner_handle
 	fi
 fi
 

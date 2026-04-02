@@ -202,25 +202,25 @@ read_inherited_string() {
   yaml_scalar_from_answers "$answers_file" "$key"
 }
 
-infer_project_owner_handle() {
-  root="$1"
+structured_project_owner_handle() {
+  raw="$1"
+  raw="${raw#@}"
 
-  raw="${PROJECT_OWNER_HANDLE:-}"
-  if [ -z "$raw" ]; then
-    raw="${PI_PROJECT_OWNER_HANDLE:-}"
-  fi
-  if [ -z "$raw" ]; then
-    raw="${GITHUB_ACTOR:-}"
-  fi
-  if [ -z "$raw" ]; then
-    raw="$(git -C "$root" config --get user.username 2>/dev/null || true)"
-  fi
-  if [ -z "$raw" ]; then
-    raw="$(git -C "$root" config --get user.name 2>/dev/null || true)"
-  fi
   [ -n "$raw" ] || return 1
 
+  case "$raw" in
+    *[!A-Za-z0-9._/-]*)
+      return 1
+      ;;
+  esac
+
+  printf '@%s\n' "$raw"
+}
+
+normalized_project_owner_handle() {
+  raw="$1"
   raw="${raw#@}"
+
   handle="$(
     printf '%s' "$raw" \
       | tr '[:upper:]' '[:lower:]' \
@@ -231,7 +231,51 @@ infer_project_owner_handle() {
   printf '@%s\n' "$handle"
 }
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+project_owner_handle_from_override() {
+  raw="$1"
+
+  structured_project_owner_handle "$raw" && return 0
+  normalized_project_owner_handle "$raw"
+}
+
+infer_project_owner_handle() {
+  root="$1"
+  raw=""
+  owner_handle=""
+
+  if is_enabled "${DISABLE_PROJECT_OWNER_HANDLE_INFERENCE:-}"; then
+    return 1
+  fi
+
+  raw="${PROJECT_OWNER_HANDLE:-}"
+  if [ -n "$raw" ]; then
+    owner_handle="$(project_owner_handle_from_override "$raw" || true)"
+    [ -n "$owner_handle" ] || return 1
+    printf '%s\n' "$owner_handle"
+    return 0
+  fi
+
+  raw="${PI_PROJECT_OWNER_HANDLE:-}"
+  if [ -n "$raw" ]; then
+    owner_handle="$(project_owner_handle_from_override "$raw" || true)"
+    [ -n "$owner_handle" ] || return 1
+    printf '%s\n' "$owner_handle"
+    return 0
+  fi
+
+  raw="${GITHUB_ACTOR:-}"
+  if [ -z "$raw" ]; then
+    raw="$(git -C "$root" config --get user.username 2>/dev/null || true)"
+  fi
+  if [ -z "$raw" ]; then
+    raw="$(git -C "$root" config --get user.name 2>/dev/null || true)"
+  fi
+  [ -n "$raw" ] || return 1
+
+  normalized_project_owner_handle "$raw"
+}
+
+repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 answers_file="$repo_root/.copier-answers.yml"
 answers_lib="$repo_root/scripts/lib/copier-answers.sh"
 [ -f "$answers_lib" ] || {
@@ -278,7 +322,8 @@ if ! has_data_override company_name "$@"; then
   fi
 fi
 
-# Default project owner handle from local git config unless explicitly provided.
+# Default project owner handle from local git config unless explicitly provided
+# and inference is not explicitly disabled.
 if ! has_data_override project_owner_handle "$@"; then
   inferred_owner="$(infer_project_owner_handle "$repo_root" || true)"
   if [ -n "$inferred_owner" ]; then

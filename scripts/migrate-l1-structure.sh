@@ -5,7 +5,7 @@
 #   ./scripts/migrate-l1-structure.sh <company_slug> [company_name]
 #
 # Example:
-#   ./scripts/migrate-l1-structure.sh softwareco "Software Company"
+#   AI_SOCIETY_CUSTOM_LANES=data,ml-platform ./scripts/migrate-l1-structure.sh softwareco "Software Company"
 #
 # Safety model:
 #   - Non-destructive: does NOT move/delete source folders.
@@ -21,7 +21,7 @@ company_name="${2:-${company_slug}}"
 
 if [[ -z "$company_slug" ]]; then
 	echo "usage: migrate-l1-structure.sh <company_slug> [company_name]" >&2
-	echo "  example: ./scripts/migrate-l1-structure.sh softwareco 'Software Company'" >&2
+	echo "  example: AI_SOCIETY_CUSTOM_LANES=data,ml-platform ./scripts/migrate-l1-structure.sh softwareco 'Software Company'" >&2
 	exit 2
 fi
 
@@ -89,6 +89,163 @@ copy_dir_if_exists() {
 	fi
 }
 
+parse_explicit_custom_lane_names() {
+	local raw="${AI_SOCIETY_CUSTOM_LANES:-}"
+	local lane_name
+
+	[[ -n "$raw" ]] || return 0
+
+	raw="${raw//,/ }"
+	raw="${raw//:/ }"
+	for lane_name in $raw; do
+		[[ -n "$lane_name" ]] || continue
+		repo_surface_lane_name_has_valid_syntax "$lane_name" || die "AI_SOCIETY_CUSTOM_LANES contains invalid lane name: $lane_name"
+		repo_surface_lane_name_is_bootstrap_allowed "$lane_name" || die "AI_SOCIETY_CUSTOM_LANES contains reserved L1 control-plane path: $lane_name"
+		printf '%s\n' "$lane_name"
+	done
+}
+
+lane_dir_has_baseline_control_plane() {
+	local lane_dir="$1"
+
+	[[ -d "$lane_dir" ]] || return 1
+	[[ -f "$lane_dir/.gitignore" ]] || return 1
+	[[ -f "$lane_dir/.copier-answers.yml" ]] || return 1
+	grep -qF "# Track lane baseline only." "$lane_dir/.gitignore"
+}
+
+lane_dir_has_nested_repos() {
+	local lane_dir="$1"
+
+	[[ -n "$(repo_surface_find_nested_repo_roots "$lane_dir" || true)" ]]
+}
+
+lane_dir_conflicts_with_reserved_control_plane() {
+	local lane_dir="$1"
+	local lane_name
+
+	lane_name="$(basename "$lane_dir")"
+	repo_surface_lane_name_has_valid_syntax "$lane_name" || return 1
+	repo_surface_is_reserved_lane_name "$lane_name" || return 1
+
+	lane_dir_has_baseline_control_plane "$lane_dir" && return 0
+	lane_dir_has_nested_repos "$lane_dir"
+}
+
+lane_dir_should_migrate() {
+	local lane_dir="$1"
+	shift
+	local lane_name
+
+	lane_name="$(basename "$lane_dir")"
+	repo_surface_lane_name_has_valid_syntax "$lane_name" || return 1
+	repo_surface_is_builtin_lane_name "$lane_name" && return 0
+	repo_surface_is_reserved_lane_name "$lane_name" && return 1
+	lane_dir_has_baseline_control_plane "$lane_dir" && return 0
+	repo_surface_lane_name_is_listed "$lane_name" "$@"
+}
+
+lane_dir_requires_explicit_custom_lane() {
+	local lane_dir="$1"
+	shift
+	local lane_name
+
+	lane_name="$(basename "$lane_dir")"
+	repo_surface_lane_name_has_valid_syntax "$lane_name" || return 1
+	repo_surface_is_builtin_lane_name "$lane_name" && return 1
+	repo_surface_is_reserved_lane_name "$lane_name" && return 1
+	lane_dir_has_baseline_control_plane "$lane_dir" && return 1
+	repo_surface_lane_name_is_listed "$lane_name" "$@" && return 1
+	lane_dir_has_nested_repos "$lane_dir"
+}
+
+discover_lane_names() {
+	local company_dir="$1"
+	local templates_dir_name="$2"
+	shift 2
+	local entry
+	local lane_name
+
+	shopt -s dotglob nullglob
+	for entry in "$company_dir"/*; do
+		[[ -d "$entry" ]] || continue
+		lane_name="$(basename "$entry")"
+		case "$lane_name" in
+		. | .. | .pi | "$templates_dir_name")
+			continue
+			;;
+		esac
+		lane_dir_should_migrate "$entry" "$@" || continue
+		printf '%s\n' "$lane_name"
+	done
+	shopt -u dotglob nullglob
+}
+
+discover_reserved_lane_conflicts() {
+	local company_dir="$1"
+	local templates_dir_name="$2"
+	local entry
+	local lane_name
+
+	shopt -s dotglob nullglob
+	for entry in "$company_dir"/*; do
+		[[ -d "$entry" ]] || continue
+		lane_name="$(basename "$entry")"
+		case "$lane_name" in
+		. | .. | .pi | "$templates_dir_name")
+			continue
+			;;
+		esac
+		lane_dir_conflicts_with_reserved_control_plane "$entry" || continue
+		printf '%s\n' "$lane_name"
+	done
+	shopt -u dotglob nullglob
+}
+
+discover_unclassified_custom_lane_dirs() {
+	local company_dir="$1"
+	local templates_dir_name="$2"
+	shift 2
+	local entry
+	local lane_name
+
+	shopt -s dotglob nullglob
+	for entry in "$company_dir"/*; do
+		[[ -d "$entry" ]] || continue
+		lane_name="$(basename "$entry")"
+		case "$lane_name" in
+		. | .. | .pi | "$templates_dir_name")
+			continue
+			;;
+		esac
+		lane_dir_requires_explicit_custom_lane "$entry" "$@" || continue
+		printf '%s\n' "$lane_name"
+	done
+	shopt -u dotglob nullglob
+}
+
+discover_missing_explicit_custom_lanes() {
+	local company_dir="$1"
+	shift
+	local lane_name
+
+	for lane_name in "$@"; do
+		[[ -d "$company_dir/$lane_name" ]] || printf '%s\n' "$lane_name"
+	done
+}
+
+is_discovered_lane_name() {
+	local lane_name="$1"
+	shift
+	local known_lane
+
+	for known_lane in "$@"; do
+		[[ "$lane_name" = "$known_lane" ]] && return 0
+	done
+
+	return 1
+}
+
 clone_git_history_into_stage() {
 	local src_repo="$1"
 	local dst_repo="$2"
@@ -97,7 +254,7 @@ clone_git_history_into_stage() {
 	local src_common_config
 
 	rm -rf "$history_clone_dir"
-	git clone --no-checkout "$src_repo" "$history_clone_dir" >/dev/null 2>&1 || die "unable to clone git history from $src_repo"
+	git clone "$src_repo" "$history_clone_dir" >/dev/null 2>&1 || die "unable to clone git history from $src_repo"
 
 	src_common_dir="$(cd "$src_repo" && common_dir="$(git rev-parse --git-common-dir)" && cd "$common_dir" && pwd)"
 	src_common_config="$src_common_dir/config"
@@ -139,34 +296,75 @@ if [[ -f "$old_templates_dir/.copier-answers.yml" ]]; then
 	fi
 fi
 
-say "Step 4: Copy lane folders (owned/contrib/infra/agents) into stage"
-for lane in owned contrib infra agents; do
-	copy_dir_if_exists "$old_company_dir/$lane" "$stage_dir/$lane"
-	count=0
-	[[ -d "$stage_dir/$lane" ]] && count="$(find "$stage_dir/$lane" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
-	say "  - $lane: $count top-level dirs"
-done
+explicit_custom_lane_names_output="$(parse_explicit_custom_lane_names)" || exit $?
+if [[ -n "$explicit_custom_lane_names_output" ]]; then
+	mapfile -t explicit_custom_lane_names < <(printf '%s\n' "$explicit_custom_lane_names_output" | LC_ALL=C sort -u)
+else
+	explicit_custom_lane_names=()
+fi
+
+if [[ ${#explicit_custom_lane_names[@]} -gt 0 ]]; then
+	mapfile -t missing_explicit_custom_lanes < <(discover_missing_explicit_custom_lanes "$old_company_dir" "${explicit_custom_lane_names[@]}" | LC_ALL=C sort -u)
+	if [[ ${#missing_explicit_custom_lanes[@]} -gt 0 ]]; then
+		die "AI_SOCIETY_CUSTOM_LANES lists non-existent top-level dirs: ${missing_explicit_custom_lanes[*]}"
+	fi
+fi
+
+mapfile -t reserved_lane_conflicts < <(discover_reserved_lane_conflicts "$old_company_dir" "${company_slug}-templates" | LC_ALL=C sort -u)
+if [[ ${#reserved_lane_conflicts[@]} -gt 0 ]]; then
+	die "reserved L1 control-plane dirs contain lane-like state and must be repaired manually before migration: ${reserved_lane_conflicts[*]}"
+fi
+
+mapfile -t unclassified_custom_lane_names < <(discover_unclassified_custom_lane_dirs "$old_company_dir" "${company_slug}-templates" "${explicit_custom_lane_names[@]}" | LC_ALL=C sort -u)
+if [[ ${#unclassified_custom_lane_names[@]} -gt 0 ]]; then
+	suggested_custom_lanes="${unclassified_custom_lane_names[0]}"
+	for lane in "${unclassified_custom_lane_names[@]:1}"; do
+		suggested_custom_lanes="$suggested_custom_lanes,$lane"
+	done
+	die "top-level dirs with nested repos require explicit lane classification via AI_SOCIETY_CUSTOM_LANES=$suggested_custom_lanes"
+fi
+
+mapfile -t lane_names < <(discover_lane_names "$old_company_dir" "${company_slug}-templates" "${explicit_custom_lane_names[@]}" | LC_ALL=C sort -u)
+
+say "Step 4: Copy lane folders (built-in + baseline + explicit custom lanes) into stage"
+if [[ ${#lane_names[@]} -eq 0 ]]; then
+	say "  - none discovered"
+else
+	for lane in "${lane_names[@]}"; do
+		copy_dir_if_exists "$old_company_dir/$lane" "$stage_dir/$lane"
+		count=0
+		[[ -d "$stage_dir/$lane" ]] && count="$(find "$stage_dir/$lane" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
+		say "  - $lane: $count top-level dirs"
+	done
+fi
 
 say "Step 5: Bootstrap copied lane roots with baseline control-plane + ignore policy"
-for lane in owned contrib infra agents; do
-	if [[ -d "$stage_dir/$lane" ]]; then
-		(
-			cd "$stage_dir"
-			./scripts/bootstrap-lane-root.sh "$lane" >/dev/null
-		)
-		say "  - $lane: baseline bootstrapped"
-	fi
-done
+if [[ ${#lane_names[@]} -eq 0 ]]; then
+	say "  - none discovered"
+else
+	for lane in "${lane_names[@]}"; do
+		if [[ -d "$stage_dir/$lane" ]]; then
+			(
+				cd "$stage_dir"
+				./scripts/bootstrap-lane-root.sh "$lane" >/dev/null
+			)
+			say "  - $lane: baseline bootstrapped"
+		fi
+	done
+fi
 
-say "Step 6: Copy additional company-root extras (except old templates and lanes)"
+say "Step 6: Copy additional company-root extras (except old templates and discovered lanes)"
 shopt -s dotglob nullglob
 for entry in "$old_company_dir"/*; do
 	base="$(basename "$entry")"
 	case "$base" in
-	. | .. | .pi | "${company_slug}-templates" | owned | contrib | infra | agents)
+	. | .. | .pi | "${company_slug}-templates")
 		continue
 		;;
 	esac
+	if is_discovered_lane_name "$base" "${lane_names[@]}"; then
+		continue
+	fi
 	rsync -a "$entry" "$stage_dir/"
 done
 shopt -u dotglob nullglob
@@ -188,11 +386,16 @@ say "  cd $stage_dir"
 say "  git status"
 say "  bash ./scripts/check-template-ci.sh"
 say ""
+say "note: git status should show the staged company-root migration diff against preserved history until you commit it."
+say ""
 say "After switch + parent commit, initialize lane-root git repos (optional but recommended):"
-say "  ./scripts/bootstrap-lane-root.sh owned --init-lane-git"
-say "  ./scripts/bootstrap-lane-root.sh contrib --init-lane-git"
-say "  ./scripts/bootstrap-lane-root.sh infra --init-lane-git"
-say "  ./scripts/bootstrap-lane-root.sh agents --init-lane-git"
+if [[ ${#lane_names[@]} -eq 0 ]]; then
+	say "  # no lane roots detected"
+else
+	for lane in "${lane_names[@]}"; do
+		say "  ./scripts/bootstrap-lane-root.sh $lane --init-lane-git"
+	done
+fi
 say ""
 say "When ready to switch (manual, explicit):"
 say "  mv $old_company_dir $workspace_root/${company_slug}-old"

@@ -32,6 +32,72 @@ repo_surface_find_nested_repo_roots() {
   done | LC_ALL=C sort -u
 }
 
+repo_surface_lane_name_has_valid_syntax() {
+  lane_name="$1"
+
+  case "$lane_name" in
+    */*|.|..)
+      return 1
+      ;;
+  esac
+
+  case "$lane_name" in
+    [A-Za-z0-9]*)
+      case "$lane_name" in
+        *[!A-Za-z0-9._-]*)
+          return 1
+          ;;
+      esac
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  return 0
+}
+
+repo_surface_is_builtin_lane_name() {
+  case "$1" in
+    owned|contrib|infra|agents)
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+repo_surface_is_reserved_lane_name() {
+  case "$1" in
+    contracts|copier|diary|docs|examples|external|governance|metrics|ontology|policy|scripts|src|tests|tips)
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+repo_surface_lane_name_is_bootstrap_allowed() {
+  lane_name="$1"
+
+  repo_surface_lane_name_has_valid_syntax "$lane_name" || return 1
+  repo_surface_is_builtin_lane_name "$lane_name" && return 0
+  repo_surface_is_reserved_lane_name "$lane_name" && return 1
+
+  return 0
+}
+
+repo_surface_lane_name_is_listed() {
+  lane_name="$1"
+  shift
+
+  for known_lane_name in "$@"; do
+    [ "$lane_name" = "$known_lane_name" ] && return 0
+  done
+
+  return 1
+}
+
 repo_surface_lane_root_src_path() {
   printf '../copier/tpl-project-repo\n'
 }

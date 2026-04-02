@@ -62,6 +62,8 @@ git commit -m "chore: bootstrap data lane baseline"
 ./scripts/bootstrap-lane-root.sh data --init-lane-git
 ```
 
+Do not reuse reserved L1 control-plane paths such as `docs`, `scripts`, `copier`, `governance`, `policy`, or `ontology` as lane names.
+
 ## Creating L2 repos
 
 ```bash

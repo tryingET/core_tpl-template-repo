@@ -447,6 +447,7 @@ assert_file_contains "$bootstrap_l1/owned/.copier-answers.yml" "location: owned"
 assert_file_contains "$bootstrap_l1/owned/README.md" "**Location**: owned" "portable lane bootstrap should update README location without sed"
 assert_command_fails "lane bootstrap should reject regex-bearing lane names" env PATH="$bootstrap_fake_bin:$PATH" sh -c "cd \"\$1\" && ./scripts/bootstrap-lane-root.sh \"[foo\"" sh "$bootstrap_l1"
 assert_command_fails "lane bootstrap should reject whitespace lane names" env PATH="$bootstrap_fake_bin:$PATH" sh -c "cd \"\$1\" && ./scripts/bootstrap-lane-root.sh \"data lane\"" sh "$bootstrap_l1"
+assert_command_fails "lane bootstrap should reject reserved L1 control-plane lane names" env PATH="$bootstrap_fake_bin:$PATH" sh -c "cd \"\$1\" && ./scripts/bootstrap-lane-root.sh docs" sh "$bootstrap_l1"
 (
 	cd "$bootstrap_l1"
 	PROJECT_OWNER_HANDLE=@lane-owner PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh data-lane >/dev/null
@@ -461,6 +462,14 @@ data_lane_block_count="$(grep -cF '# Lane root: data-lane' "$bootstrap_l1/.gitig
 	echo "error: lane bootstrap should remain idempotent for safe custom lane names" >&2
 	exit 1
 }
+(
+	cd "$bootstrap_l1"
+	PROJECT_OWNER_HANDLE='@acme/platform-team' PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh team-data >/dev/null
+	PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh team-data >/dev/null
+)
+assert_file_contains "$bootstrap_l1/team-data/.copier-answers.yml" "project_owner_handle: '@acme/platform-team'" "lane bootstrap should preserve structured team owner handles verbatim in answers"
+assert_file_contains "$bootstrap_l1/team-data/CODEOWNERS" "docs/project/** @acme/platform-team" "lane bootstrap should preserve structured team owner handles verbatim in CODEOWNERS"
+assert_file_contains "$bootstrap_l1/team-data/governance/work-items.json" '"owner": "@acme/platform-team"' "lane bootstrap should preserve structured team owner handles verbatim in work-items"
 (
 	cd "$bootstrap_l1"
 	git init -b main >/dev/null

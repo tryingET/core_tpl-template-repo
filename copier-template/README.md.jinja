@@ -51,7 +51,7 @@ Generate an L2 **project** repository:
   --defaults --overwrite
 ```
 
-If `project_owner_handle` is omitted, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config.
+If `project_owner_handle` is omitted, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config. Structured handles such as `@org/team` are preserved verbatim.
 
 Generate an L2 **org** handbook:
 
@@ -100,7 +100,7 @@ git commit -m "chore: bootstrap data lane baseline"
 ./scripts/bootstrap-lane-root.sh data --init-lane-git
 ```
 
-This keeps lane baseline files versioned while nested child repos are ignored by default (`<lane>/.gitignore`).
+This keeps lane baseline files versioned while nested child repos are ignored by default (`<lane>/.gitignore`). Reserved L1 control-plane paths such as `docs`, `scripts`, `copier`, `governance`, `policy`, and `ontology` are not valid lane names.
 
 ### Transition existing L2 repos (scaffold-first)
 
