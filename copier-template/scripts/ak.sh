@@ -1,9 +1,39 @@
 #!/usr/bin/env sh
+# repo_capability:begin
+# {
+#   "schema_version": 1,
+#   "slug": "ak.launcher",
+#   "summary": "Resolve and launch the canonical Agent Kernel CLI for this repo.",
+#   "kind": "ak-wrapper",
+#   "when_to_use": "Use for repo-scoped AK task, repo, evidence, and work-item operations instead of guessing which ak binary or cargo manifest to invoke.",
+#   "scope": "repo",
+#   "lifecycle_state": "canonical",
+#   "risk_class": "repo-and-runtime-mutation",
+#   "receipt_mode": "observational",
+#   "inputs": [
+#     {
+#       "name": "argv",
+#       "kind": "argv",
+#       "required": false,
+#       "summary": "Arguments forwarded to the selected AK runner."
+#     }
+#   ],
+#   "outputs": [
+#     {
+#       "kind": "process-exit",
+#       "summary": "Delegated AK exit status plus the wrapped command's console output."
+#     }
+#   ],
+#   "composition_eligibility": "manual-only",
+#   "summary_visibility": "default"
+# }
+# repo_capability:end
 set -eu
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 answers_file="$repo_root/.copier-answers.yml"
 answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+core_project_default="${AK_CORE_PROJECT:-$HOME/ai-society/softwareco/owned/agent-kernel}"
 
 if [ -f "$answers_lib" ]; then
   # shellcheck source=/dev/null
@@ -34,13 +64,19 @@ usage: scripts/ak.sh [--doctor|--which|--help] [ak args...]
 Portable Agent Kernel launcher with deterministic resolution order:
   1) AK_BIN override
   2) vendored ./crates/ak-cli/Cargo.toml via cargo run --bin ak
-  3) ak on PATH
+  3) workspace core ~/ai-society/softwareco/owned/agent-kernel via cargo run --bin ak
+  4) ak on PATH
 
 When invoked as:
   ./scripts/ak.sh work-items export ...
   ./scripts/ak.sh work-items check ...
+  ./scripts/ak.sh work-items import ...
 
-the wrapper auto-fills --owner and --project-name from:
+the wrapper auto-fills:
+  - --repo with the repo root when omitted
+  - --owner / --project-name from environment or ./.copier-answers.yml
+
+Resolution order for owner/project metadata:
   - AK_WORK_ITEMS_OWNER / AK_WORK_ITEMS_PROJECT_NAME
   - ./.copier-answers.yml (project_owner_handle, maintainer_handle, repo_slug, ...)
   - repo basename fallback for project name
@@ -48,9 +84,10 @@ the wrapper auto-fills --owner and --project-name from:
 Examples:
   ./scripts/ak.sh --doctor
   ./scripts/ak.sh --which
-  ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
-  ./scripts/ak.sh work-items export --repo . --path governance/work-items.json
-  ./scripts/ak.sh work-items import --repo . --path governance/work-items.json
+  ./scripts/ak.sh repo register "$PWD" --company softwareco --archetype project --layer L2
+  ./scripts/ak.sh task ready
+  ./scripts/ak.sh work-items check --path governance/work-items.json
+  ./scripts/ak.sh work-items export --path governance/work-items.json
 EOF
 }
 
@@ -94,7 +131,7 @@ default_work_items_owner() {
     return 0
   fi
 
-  for key in project_owner_handle maintainer_handle agent_owner_handle org_owner_handle; do
+  for key in project_owner_handle maintainer_handle agent_owner_handle org_owner_handle core_owner_handle; do
     value=""
     value_status=0
     value="$(value_from_answers "$answers_file" "$key")" || value_status=$?
@@ -164,7 +201,7 @@ has_flag() {
 wants_work_items_defaults() {
   [ "${1:-}" = "work-items" ] || return 1
   case "${2:-}" in
-    export|check) return 0 ;;
+    export|check|import) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -185,6 +222,15 @@ select_runner() {
       return
     fi
     printf '%s\n' "vendored-missing-cargo"
+    return
+  fi
+
+  if [ -f "$core_project_default/crates/ak-cli/Cargo.toml" ]; then
+    if has_cmd cargo; then
+      printf '%s\n' "workspace-core-cargo"
+      return
+    fi
+    printf '%s\n' "workspace-core-missing-cargo"
     return
   fi
 
@@ -209,6 +255,12 @@ runner_desc() {
       ;;
     vendored-missing-cargo)
       printf 'vendored crates/ak-cli found but cargo is missing: %s\n' "$repo_root/crates/ak-cli/Cargo.toml"
+      ;;
+    workspace-core-cargo)
+      printf 'workspace core via cargo: %s\n' "$core_project_default/crates/ak-cli/Cargo.toml"
+      ;;
+    workspace-core-missing-cargo)
+      printf 'workspace core found but cargo is missing: %s\n' "$core_project_default/crates/ak-cli/Cargo.toml"
       ;;
     path-ak)
       printf 'ak on PATH (%s)\n' "$(command -v ak)"
@@ -249,16 +301,18 @@ doctor() {
 
   say "ak launcher doctor"
   say "- repo_root: $repo_root"
+  say "- core_project_default: $core_project_default"
   say "- has cargo: $(has_cmd cargo && printf yes || printf no)"
   say "- has ak on PATH: $(has_cmd ak && printf yes || printf no)"
   say "- has answers file: $([ -f "$answers_file" ] && printf yes || printf no)"
   say "- has vendored crates/ak-cli: $([ -f "$repo_root/crates/ak-cli/Cargo.toml" ] && printf yes || printf no)"
+  say "- has workspace core ak-cli: $([ -f "$core_project_default/crates/ak-cli/Cargo.toml" ] && printf yes || printf no)"
   say "- derived work-items owner: ${work_items_owner:-<unset>}"
   say "- derived work-items project name: ${work_items_project_name:-<unset>}"
   say "- selected runner: $(runner_desc "$runner")"
 
   case "$runner" in
-    ak-bin-missing|vendored-missing-cargo|missing)
+    ak-bin-missing|vendored-missing-cargo|workspace-core-missing-cargo|missing)
       return 1
       ;;
   esac
@@ -280,7 +334,7 @@ runner="$(select_runner)"
 if [ "${1:-}" = "--which" ]; then
   runner_desc "$runner"
   case "$runner" in
-    ak-bin-missing|vendored-missing-cargo|missing)
+    ak-bin-missing|vendored-missing-cargo|workspace-core-missing-cargo|missing)
       exit 1
       ;;
   esac
@@ -288,6 +342,10 @@ if [ "${1:-}" = "--which" ]; then
 fi
 
 if wants_work_items_defaults "$@"; then
+  if ! has_flag "--repo" "$@"; then
+    set -- "$@" --repo "$repo_root"
+  fi
+
   if ! has_flag "--owner" "$@"; then
     work_items_owner=""
     work_items_owner_status=0
@@ -334,10 +392,16 @@ case "$runner" in
   vendored-missing-cargo)
     die "vendored crates/ak-cli/Cargo.toml detected but cargo is missing"
     ;;
+  workspace-core-cargo)
+    exec cargo run --quiet --manifest-path "$core_project_default/crates/ak-cli/Cargo.toml" --bin ak -- "$@"
+    ;;
+  workspace-core-missing-cargo)
+    die "workspace core agent-kernel detected but cargo is missing"
+    ;;
   path-ak)
     exec ak "$@"
     ;;
   *)
-    die "unable to locate Agent Kernel CLI; install 'ak' on PATH, vendor ./crates/ak-cli, or set AK_BIN=/absolute/path/to/ak"
+    die "unable to locate Agent Kernel CLI; install 'ak' on PATH, ensure workspace core agent-kernel exists, or set AK_BIN=/absolute/path/to/ak"
     ;;
 esac
