@@ -36,9 +36,9 @@ Common language-specific files you may add as the package matures:
 - `mix.exs` — Elixir
 
 ## Recursion policy
-This is L3 (inside monorepo L2).
-- No further nesting allowed.
-- All packages in monorepo share root workspace config.
+This package is an internal member of an L2 monorepo, not a separate render layer.
+- No further nesting allowed inside this member.
+- All packages in the monorepo share root workspace config.
 
 ## Read order
 1) `docs/` — package docs

@@ -1,3 +1,4 @@
+
 company_name: Holding Company
 company_slug: holdingco
 enable_community_pack: false
@@ -5,8 +6,8 @@ enable_release_pack: false
 enable_vouch_gate: false
 l0_source_sha: __VOLATILE_L0_SOURCE_SHA__
 l1_org_docs_profile: rich
-l1_profile: ''
-l2_org_docs_default: ''
+l1_profile: internal-standard
+l2_org_docs_default: compact
 maintainer_handle: '@template-owner'
 repo_slug: fixture-template-repo
 

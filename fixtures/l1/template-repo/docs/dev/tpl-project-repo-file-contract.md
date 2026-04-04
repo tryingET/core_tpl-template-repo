@@ -61,6 +61,8 @@ Default L2 output is intentionally split into 7 domains:
 ### B. Delivery documentation (minimal but complete)
 - `docs/_core/` (core snapshot placeholder)
 - `docs/org_context/` (org constraints snapshot)
+  - compact baseline: `README.md`, `org-summary.md`
+  - rich profile (`org_docs_profile=rich`): adds `mission.md`, `purpose.md`, `vision.md`, `strategic_objectives.md`, `governance.md`
 - `docs/project/` (purpose/mission/vision/model/goals)
 - `docs/system4d/` (container/compass/engine/fog)
 - `next_session_prompt.md` (single active handoff prompt; replaces status/next-steps split and must not mirror queryable runtime state)
@@ -90,20 +92,6 @@ Default L2 output is intentionally split into 7 domains:
 - `policy/.gitkeep`
 - `scripts/.gitkeep`
 
-### D. Ontology + validation toolchain
-- `ontology/manifest.yaml`, `ontology/src/**`
-- `scripts/rocs.sh`
-- `tools/rocs-cli/` (vendored deterministic runner source)
-
-### E. CI surface
-- `scripts/ci/smoke.sh`, `scripts/ci/full.sh`
-
-### F. Product-code placeholders
-- `src/.gitkeep`
-- `tests/.gitkeep`
-- `policy/.gitkeep`
-- `scripts/.gitkeep`
-
 ### Conditional files (software pack)
 Enabled only when `enable_software_pack=true`:
 - Python: `pyproject.toml`
@@ -112,6 +100,7 @@ Enabled only when `enable_software_pack=true`:
 - Rust: `Cargo.toml`
 - Go: `go.mod`
 - Elixir: `mix.exs`
+- Bash: no language-specific package manifest and no shared `tech-stack-core` lane emitted yet; the repo remains script-first without `policy/stack-lane.json` / `docs/tech-stack.local.md`
 
 ---
 

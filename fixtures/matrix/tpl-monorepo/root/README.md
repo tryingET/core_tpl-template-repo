@@ -7,7 +7,7 @@ Holding Company monorepo workspace.
 ```
 packages/        # Reusable libraries
 apps/            # Deployable services/applications
-docs/            # Documentation
+docs/            # Documentation (_core, org_context, tech-stack.local)
 ontology/        # ROCS ontology
 governance/      # AK work-items projection, optional task-scope snapshots, policies
 scripts/         # CI/utility scripts
@@ -17,6 +17,11 @@ scripts/         # CI/utility scripts
 
 - **uv** — workspace package management
 - Languages — defined per-package (see `packages/` and `apps/`)
+
+## Org Context Profile
+
+- `org_docs_profile=compact`: `docs/org_context/org-summary.md`
+- `org_docs_profile=rich`: adds mission / purpose / vision / strategic objectives / governance context files
 
 ## Quick Commands
 
@@ -101,6 +106,7 @@ Use `tpl-package` from your L1 templates to add packages:
 - Projection schema: `governance/work-items.cue`
 - Policies: `policy/`
 - Ontology: `ontology/`
+- Repo-local org-context snapshot: `docs/org_context/`
 - Repo-local stack note: `docs/tech-stack.local.md`
 - Package/app stack contracts live inside generated members (for example `policy/stack-lane.json` and `docs/tech-stack.local.md` from `tpl-package`)
 
@@ -110,5 +116,5 @@ Capture sessions in `diary/YYYY-MM-DD--type-scope-summary.md`.
 
 ## Recursion Policy
 
-- **Allowed**: L1 → L2 (this monorepo), L2 → L3 (packages/apps)
-- **Forbidden**: L2 → L1, L1 → L0
+- **Allowed**: L1 → L2 (this monorepo)
+- **Forbidden**: L2 → L1, L1 → L0, any cycle

@@ -13,6 +13,8 @@ Holding Company project repository.
 Project repository with:
 - Project documentation (`docs/project/`)
 - Organization context (`docs/org_context/`)
+  - `org_docs_profile=compact`: `README.md` + `org-summary.md`
+  - `org_docs_profile=rich`: adds mission/purpose/vision/strategic objectives/governance context files
 - Decision records (`docs/decisions/`)
 - Learnings capture (`docs/learnings/`)
 - Repo-local work-items projection (`governance/work-items.json`)
@@ -108,7 +110,7 @@ Use the staged CI lanes:
 ├── next_session_prompt.md # Active handoff for the next session
 ├── docs/
 │   ├── _core/             # Vendored governance (immutable)
-│   ├── org_context/       # Organization context summary
+│   ├── org_context/       # Organization context summary (+ optional rich org-context pack)
 │   ├── project/           # Project definition
 │   │   ├── vision.md
 │   │   ├── mission.md
@@ -141,6 +143,7 @@ Use the staged CI lanes:
 - `project_owner_handle`: CODEOWNERS entry for project paths
   - if not passed explicitly, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config
 - `org_owner_handle`: CODEOWNERS entry for org paths
+- `org_docs_profile`: `compact` keeps a short org-context snapshot; `rich` adds mission/purpose/vision/strategic-objectives/governance context files
 - `kernel_ontology_ref`: ROCS core ontology reference
 - `company_ontology_ref`: ROCS company ontology reference
 - `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:

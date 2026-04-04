@@ -34,6 +34,14 @@ package_manager:
     - go-mod
   help: "Package manager for workspace"
 
+org_docs_profile:
+  type: str
+  default: compact
+  choices:
+    - compact
+    - rich
+  help: "Depth of org-context docs under docs/org_context/."
+
 enable_community_pack:
   type: bool
   default: false
@@ -73,3 +81,6 @@ project_owner_handle:
   type: str
   default: "@project-owners"
   help: "CODEOWNERS entry for monorepo execution paths"
+
+_tasks:
+  - "if [ '{{ org_docs_profile }}' != 'rich' ]; then rm -f docs/org_context/mission.md docs/org_context/purpose.md docs/org_context/vision.md docs/org_context/strategic_objectives.md docs/org_context/governance.md 2>/dev/null; fi"

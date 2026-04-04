@@ -1,6 +1,7 @@
+
 schema: ai-society.template-provenance.v1
 template:
-  profile: 
+  profile: "internal-standard"
   source_repository: "core/tpl-template-repo"
   source_sha: "__VOLATILE_SOURCE_SHA__"
 render:

@@ -10,6 +10,7 @@ enable_vouch_gate: false
 kernel_ontology_ref: <gitlab:org/ontology-kernel@v0.1.0>
 language: elixir
 location: owned
+org_docs_profile: compact
 org_owner_handle: '@org-owners'
 project_owner_handle: '@tryinget'
 repo_slug: fixture-project-elixir

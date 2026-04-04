@@ -339,6 +339,13 @@ fi
 
 assert_contains ".copier-answers.yml" "l0_source_sha:" "L1 answers file should persist L0 source sha"
 assert_contains ".copier-answers.yml" "l1_org_docs_profile:" "L1 answers file should persist L1 org docs profile"
+assert_contains ".copier-answers.yml" "l2_org_docs_default:" "L1 answers file should persist default L2 org-context profile"
+assert_contains ".copier-answers.yml" "l1_profile:" "L1 answers file should persist a resolved profile label"
+assert_not_contains "README.md" '- Profile: ``' "L1 README should not render an empty profile label"
+assert_not_contains "README.md" '- Default L2 project/monorepo org-context profile: ``' "L1 README should not render an empty default L2 org-context profile"
+if grep -Eq '^  profile:[[:space:]]*$' "$provenance"; then
+	fail "L1 provenance seal must not render an empty profile label"
+fi
 
 # Check L2 template copier configs
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
@@ -348,6 +355,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	assert_contains "copier/$tpl/copier.yml" "enable_release_pack" "L2 template $tpl must expose release pack toggle"
 	assert_contains "copier/$tpl/copier.yml" "enable_vouch_gate" "L2 template $tpl must expose vouch gate toggle"
 done
+assert_contains "copier/tpl-project-repo/copier.yml" "org_docs_profile" "tpl-project-repo must expose org-context profile"
+assert_contains "copier/tpl-monorepo/copier.yml" "org_docs_profile" "tpl-monorepo must expose org-context profile"
 
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper must list tpl-org-repo template"
@@ -501,6 +510,23 @@ else
 	assert_not_file "scripts/release/publish.sh"
 fi
 
+l1_profile=""
+l1_profile_status=0
+l1_profile="$(value_from_answers .copier-answers.yml l1_profile)" || l1_profile_status=$?
+case "$l1_profile_status" in
+0)
+	case "$l1_profile" in
+	internal-lean | internal-standard | internal-governed | public-collaboration | public-trust-gated | public-rich-org | custom) ;;
+	*)
+		fail "L1 answers file must persist a recognized resolved profile label (got: ${l1_profile:-<empty>})"
+		;;
+	esac
+	;;
+*)
+	exit "$l1_profile_status"
+	;;
+esac
+
 l1_org_docs_profile=""
 l1_org_docs_profile_status=0
 l1_org_docs_profile="$(value_from_answers .copier-answers.yml l1_org_docs_profile)" || l1_org_docs_profile_status=$?
@@ -511,6 +537,23 @@ case "$l1_org_docs_profile_status" in
 	;;
 esac
 [ -n "$l1_org_docs_profile" ] || l1_org_docs_profile="rich"
+
+l2_org_docs_default=""
+l2_org_docs_default_status=0
+l2_org_docs_default="$(value_from_answers .copier-answers.yml l2_org_docs_default)" || l2_org_docs_default_status=$?
+case "$l2_org_docs_default_status" in
+0)
+	case "$l2_org_docs_default" in
+	compact | rich) ;;
+	*)
+		fail "L1 answers file must persist a recognized default L2 org-context profile (got: ${l2_org_docs_default:-<empty>})"
+		;;
+	esac
+	;;
+*)
+	exit "$l2_org_docs_default_status"
+	;;
+esac
 
 if [ "$l1_org_docs_profile" = "rich" ]; then
 	assert_file "docs/org/purpose.md"
@@ -688,6 +731,22 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
 		assert_file "$l2_dir/governance/work-items.cue"
 		assert_file "$l2_dir/governance/work-items.json"
+		assert_contains "$l2_dir/.copier-answers.yml" "org_docs_profile: $l2_org_docs_default" "generated $tpl should inherit the parent L1 org-context default"
+		assert_file "$l2_dir/docs/org_context/README.md"
+		assert_file "$l2_dir/docs/org_context/org-summary.md"
+		if [ "$l2_org_docs_default" = "rich" ]; then
+			assert_file "$l2_dir/docs/org_context/mission.md"
+			assert_file "$l2_dir/docs/org_context/purpose.md"
+			assert_file "$l2_dir/docs/org_context/vision.md"
+			assert_file "$l2_dir/docs/org_context/strategic_objectives.md"
+			assert_file "$l2_dir/docs/org_context/governance.md"
+		else
+			assert_not_file "$l2_dir/docs/org_context/mission.md"
+			assert_not_file "$l2_dir/docs/org_context/purpose.md"
+			assert_not_file "$l2_dir/docs/org_context/vision.md"
+			assert_not_file "$l2_dir/docs/org_context/strategic_objectives.md"
+			assert_not_file "$l2_dir/docs/org_context/governance.md"
+		fi
 	fi
 	assert_contains "$l2_dir/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "generated $tpl diary README should enforce descriptive filename convention"
 	assert_not_dir "$l2_dir/docs/diary"
@@ -705,6 +764,10 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		assert_contains "$l2_dir/AGENTS.md" "policy/stack-lane.json" "generated $tpl AGENTS should point to the pinned stack contract"
 		assert_contains "$l2_dir/AGENTS.md" "docs/tech-stack.local.md" "generated $tpl AGENTS should point to the local stack override doc"
 	fi
+	if [ "$tpl" = "tpl-project-repo" ]; then
+		assert_not_file "$l2_dir/policy/stack-lane.json"
+		assert_not_file "$l2_dir/docs/tech-stack.local.md"
+	fi
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_contains "$l2_dir/README.md" "check-task-scope-snapshots.sh" "generated $tpl README should document task-scope snapshot validation"
 	fi
@@ -716,6 +779,10 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		assert_contains "$l2_dir/README.md" "Agent Kernel work-items flow" "generated $tpl README should document the AK work-items workflow"
 		assert_contains "$l2_dir/governance/README.md" "work-items export" "generated $tpl governance README should document projection export"
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
+	fi
+	if [ "$tpl" = "tpl-monorepo" ]; then
+		assert_not_contains "$l2_dir/README.md" "L2 → L3" "generated tpl-monorepo README must not advertise forbidden L3 recursion"
+		assert_not_contains "$l2_dir/AGENTS.md" "L2 -> L3" "generated tpl-monorepo AGENTS must not advertise forbidden L3 recursion"
 	fi
 
 	# Initialize git for smoke + idempotency test (smoke requires git repo)
@@ -746,6 +813,32 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		fi
 	)
 done
+
+project_rich_dir="$tmp_root/tpl-project-repo-rich-org-context"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$project_rich_dir" \
+	-d repo_slug=tpl-project-repo-rich-org-context \
+	-d org_docs_profile=rich \
+	--defaults --overwrite >/dev/null
+assert_file "$project_rich_dir/docs/org_context/org-summary.md"
+assert_file "$project_rich_dir/docs/org_context/mission.md"
+assert_file "$project_rich_dir/docs/org_context/purpose.md"
+assert_file "$project_rich_dir/docs/org_context/vision.md"
+assert_file "$project_rich_dir/docs/org_context/strategic_objectives.md"
+assert_file "$project_rich_dir/docs/org_context/governance.md"
+
+monorepo_rich_dir="$tmp_root/tpl-monorepo-rich-org-context"
+./scripts/new-repo-from-copier.sh tpl-monorepo "$monorepo_rich_dir" \
+	-d repo_slug=tpl-monorepo-rich-org-context \
+	-d org_docs_profile=rich \
+	--defaults --overwrite >/dev/null
+assert_file "$monorepo_rich_dir/docs/org_context/org-summary.md"
+assert_file "$monorepo_rich_dir/docs/org_context/mission.md"
+assert_file "$monorepo_rich_dir/docs/org_context/purpose.md"
+assert_file "$monorepo_rich_dir/docs/org_context/vision.md"
+assert_file "$monorepo_rich_dir/docs/org_context/strategic_objectives.md"
+assert_file "$monorepo_rich_dir/docs/org_context/governance.md"
+assert_not_contains "$monorepo_rich_dir/README.md" "L2 → L3" "rich tpl-monorepo README must not advertise forbidden L3 recursion"
+assert_not_contains "$monorepo_rich_dir/AGENTS.md" "L2 -> L3" "rich tpl-monorepo AGENTS must not advertise forbidden L3 recursion"
 
 agent_task_scope_repo="$tmp_root/tpl-agent-repo"
 agent_task_scope_id="$(create_scoped_task "$agent_task_scope_repo" "template-ci: generated agent task-scope snapshot")"
@@ -843,6 +936,8 @@ assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated $tpl AGENTS sho
 assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
 assert_contains "$l2_dir/AGENTS.md" "policy/stack-lane.json" "generated $tpl AGENTS should point to the pinned stack contract"
 assert_contains "$l2_dir/AGENTS.md" "docs/tech-stack.local.md" "generated $tpl AGENTS should point to the local stack override doc"
+assert_not_contains "$l2_dir/AGENTS.md" "This is L3" "generated $tpl AGENTS must not invent an L3 render layer"
+assert_contains "$l2_dir/AGENTS.md" "internal member of an L2 monorepo" "generated $tpl AGENTS should describe package membership without inventing a new render layer"
 assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README should include ROCS command flow section"
 
 # tpl-package idempotency check (no git required)
@@ -872,6 +967,17 @@ ensure_registered_repo "$elixir_project_dir"
 	cd "$elixir_project_dir"
 	./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
 )
+
+bash_project_dir="$tmp_root/tpl-project-repo-bash"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$bash_project_dir" \
+	-d repo_slug=fixture-project-bash \
+	-d language=bash \
+	-d enable_software_pack=true \
+	--defaults --overwrite >/dev/null
+assert_not_file "$bash_project_dir/policy/stack-lane.json"
+assert_not_file "$bash_project_dir/docs/tech-stack.local.md"
+assert_contains "$bash_project_dir/README.md" "Bash project scaffolded with:" "generated bash project README should describe the bash software-pack contract"
+assert_contains "$bash_project_dir/README.md" 'no shared `tech-stack-core` lane is emitted yet for bash' "generated bash project README should explain the current bash lane boundary honestly"
 
 elixir_package_dir="$tmp_root/tpl-package-elixir"
 ./scripts/new-repo-from-copier.sh tpl-package "$elixir_package_dir" \

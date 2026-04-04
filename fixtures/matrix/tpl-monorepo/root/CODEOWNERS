@@ -1,16 +1,17 @@
 # Core + org context snapshots
 docs/_core/** @core-owner
 docs/org_context/** @org-owners
+docs/tech-stack.local.md @tryinget
 
-# Project delivery + governance
-docs/project/** @tryinget
-docs/system4d/** @tryinget
-docs/decisions/** @tryinget
-docs/dev/** @tryinget
+# Monorepo control plane + governance
+governance/** @tryinget
 policy/** @tryinget
+ontology/** @tryinget
 
-# Code
+# Workspace code and tooling
 scripts/** @tryinget
+packages/** @tryinget
+apps/** @tryinget
 src/** @tryinget
 tests/** @tryinget
 
