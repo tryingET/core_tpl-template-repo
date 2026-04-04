@@ -32,8 +32,15 @@ repo_surface_lib="$repo_root/scripts/lib/repo-surface.sh"
 	echo "error: missing dependency: $repo_surface_lib" >&2
 	exit 2
 }
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+[ -f "$answers_lib" ] || {
+	echo "error: missing dependency: $answers_lib" >&2
+	exit 2
+}
 # shellcheck source=/dev/null
 . "$repo_surface_lib"
+# shellcheck source=/dev/null
+. "$answers_lib"
 
 old_company_dir="$workspace_root/$company_slug"
 old_templates_dir="$old_company_dir/${company_slug}-templates"
@@ -70,6 +77,85 @@ rewrite_line_matching() {
 	}
 
 	mv "$tmp_file" "$file"
+}
+
+yaml_emit_scalar() {
+	local value="$1"
+	case "$value" in
+	true | false)
+		printf '%s' "$value"
+		return 0
+		;;
+	esac
+
+	escaped_value=$(printf '%s' "$value" | sed "s/'/''/g")
+	printf "'%s'" "$escaped_value"
+}
+
+upsert_yaml_scalar() {
+	local file="$1"
+	local key="$2"
+	local value="$3"
+	local rendered_value
+
+	rendered_value="$(yaml_emit_scalar "$value")"
+	if grep -q "^$key:" "$file"; then
+		rewrite_line_matching "$file" "^$key:.*$" "$key: $rendered_value"
+		return 0
+	fi
+
+	printf '%s: %s\n' "$key" "$rendered_value" >>"$file"
+}
+
+merge_legacy_answers_into_stage() {
+	local old_answers="$1"
+	local stage_answers="$2"
+	local key
+	local value
+	local status
+
+	for key in maintainer_handle l1_org_docs_profile l2_org_docs_default enable_vouch_gate enable_community_pack enable_release_pack; do
+		value=""
+		status=0
+		value="$(copier_answers_try_scalar "$old_answers" "$key" 2>/dev/null)" || status=$?
+		case "$status" in
+		0)
+			[ -n "$value" ] || continue
+			upsert_yaml_scalar "$stage_answers" "$key" "$value"
+			;;
+		1)
+			continue
+			;;
+		*)
+			die "unable to parse '$key' from legacy answers file: $old_answers"
+			;;
+		esac
+	done
+
+	upsert_yaml_scalar "$stage_answers" repo_slug "$company_slug"
+}
+
+append_legacy_render_arg_if_present() {
+	local answers_file="$1"
+	local key="$2"
+	local value
+	local status
+
+	value=""
+	status=0
+	value="$(copier_answers_try_scalar "$answers_file" "$key" 2>/dev/null)" || status=$?
+	case "$status" in
+	0)
+		[ -n "$value" ] || return 0
+		legacy_render_args+=( -d "$key=$value" )
+		;;
+	1)
+		return 0
+		;;
+	*)
+		die "unable to parse '$key' from legacy answers file: $answers_file"
+		;;
+	esac
 }
 
 ensure_clean_git_repo() {
@@ -276,24 +362,32 @@ ensure_clean_git_repo "$old_templates_dir"
 
 [[ ! -e "$stage_dir" ]] || die "stage dir already exists: $stage_dir (remove it first)"
 
+legacy_answers_file="$old_templates_dir/.copier-answers.yml"
+legacy_render_args=()
+if [[ -f "$legacy_answers_file" ]]; then
+	append_legacy_render_arg_if_present "$legacy_answers_file" maintainer_handle
+	append_legacy_render_arg_if_present "$legacy_answers_file" l1_org_docs_profile
+	append_legacy_render_arg_if_present "$legacy_answers_file" l2_org_docs_default
+	append_legacy_render_arg_if_present "$legacy_answers_file" enable_vouch_gate
+	append_legacy_render_arg_if_present "$legacy_answers_file" enable_community_pack
+	append_legacy_render_arg_if_present "$legacy_answers_file" enable_release_pack
+fi
+
 say "Step 1: Render fresh company-root L1 from L0 into stage"
 cd "$repo_root"
 ./scripts/new-l1-from-copier.sh "$stage_dir" \
 	-d repo_slug="$company_slug" \
 	-d company_slug="$company_slug" \
 	-d company_name="$company_name" \
+	"${legacy_render_args[@]}" \
 	--defaults --overwrite
 
 say "Step 2: Preserve L1 git history in stage"
 clone_git_history_into_stage "$old_templates_dir" "$stage_dir"
 
 say "Step 3: Preserve copier answers provenance"
-if [[ -f "$old_templates_dir/.copier-answers.yml" ]]; then
-	cp "$old_templates_dir/.copier-answers.yml" "$stage_dir/.copier-answers.yml"
-	# normalize repo_slug to company-root naming
-	if grep -q "^repo_slug:" "$stage_dir/.copier-answers.yml"; then
-		rewrite_line_matching "$stage_dir/.copier-answers.yml" '^repo_slug:.*$' "repo_slug: '$company_slug'"
-	fi
+if [[ -f "$legacy_answers_file" ]]; then
+	merge_legacy_answers_into_stage "$legacy_answers_file" "$stage_dir/.copier-answers.yml"
 fi
 
 explicit_custom_lane_names_output="$(parse_explicit_custom_lane_names)" || exit $?

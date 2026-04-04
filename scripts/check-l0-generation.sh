@@ -120,6 +120,15 @@ replace_first_match_in_file() {
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
+missing_node_bin="$tmp_root/missing-node-bin"
+mkdir -p "$missing_node_bin"
+for tool_name in sh dirname pwd; do
+	ln -s "$(command -v "$tool_name")" "$missing_node_bin/$tool_name"
+done
+missing_node_checker="$tmp_root/docs-ref-check.mjs"
+printf 'console.log("ok")\n' >"$missing_node_checker"
+assert_command_fails_with_stderr "check-doc-references should fail clearly when node is unavailable" "missing dependency: node" env PATH="$missing_node_bin" DOC_REF_CHECK_SCRIPT="$missing_node_checker" sh "$repo_root/scripts/check-doc-references.sh"
+
 dummy_ak_dir="$tmp_root/dummy-ak-bin"
 mkdir -p "$dummy_ak_dir"
 cat >"$dummy_ak_dir/ak" <<'EOF'

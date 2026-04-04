@@ -62,12 +62,14 @@ render_l1() {
 	repo_slug="$2"
 	company_slug="$3"
 	company_name="$4"
+	shift 4
 
 	"$repo_root/scripts/new-l1-from-copier.sh" "$dest_dir" \
 		-d repo_slug="$repo_slug" \
 		-d company_slug="$company_slug" \
 		-d company_name="$company_name" \
 		-d maintainer_handle=@template-owner \
+		"$@" \
 		--defaults --overwrite >/dev/null
 }
 
@@ -216,7 +218,11 @@ old_templates_dir="$old_company_dir/${company_slug}-templates"
 stage_dir="$workspace_root/${company_slug}-stage"
 seed_templates_repo="$tmp_root/${company_slug}-templates-seed-explicit"
 mkdir -p "$old_company_dir"
-render_l1 "$seed_templates_repo" "${company_slug}-templates" "$company_slug" "Demo Co"
+render_l1 "$seed_templates_repo" "${company_slug}-templates" "$company_slug" "Demo Co" \
+		-d maintainer_handle=@migrated-owner \
+		-d l1_org_docs_profile=compact \
+		-d l2_org_docs_default=rich \
+		-d enable_release_pack=true
 init_git_repo "$seed_templates_repo" "initial render"
 git -C "$seed_templates_repo" remote add origin git@example.com:demo/demo-templates.git >/dev/null
 git -C "$seed_templates_repo" worktree add "$old_templates_dir" >/dev/null
@@ -234,6 +240,16 @@ stage_head_subject="$(git -C "$stage_dir" log -1 --pretty=%s 2>/dev/null || true
 stage_origin_url="$(git -C "$stage_dir" remote get-url origin 2>/dev/null || true)"
 [ "$stage_origin_url" = "git@example.com:demo/demo-templates.git" ] || fail "migration should preserve source remotes instead of cloning a local path (got $stage_origin_url)"
 git -C "$stage_dir" ls-files --error-unmatch README.md >/dev/null 2>&1 || fail "migration should preserve a populated git index in the staged repo"
+stage_l0_sha="$(yaml_scalar_value "$stage_dir/.copier-answers.yml" l0_source_sha)"
+[ -n "$stage_l0_sha" ] || fail "migration should preserve rendered l0_source_sha while merging legacy answers"
+stage_l1_org_profile="$(yaml_scalar_value "$stage_dir/.copier-answers.yml" l1_org_docs_profile)"
+[ "$stage_l1_org_profile" = "compact" ] || fail "migration should preserve legacy l1_org_docs_profile in staged answers"
+stage_l2_org_default="$(yaml_scalar_value "$stage_dir/.copier-answers.yml" l2_org_docs_default)"
+[ "$stage_l2_org_default" = "rich" ] || fail "migration should preserve legacy l2_org_docs_default in staged answers"
+stage_maintainer_handle="$(yaml_scalar_value "$stage_dir/.copier-answers.yml" maintainer_handle)"
+[ "$stage_maintainer_handle" = "@migrated-owner" ] || fail "migration should preserve legacy maintainer_handle in staged answers"
+[ -f "$stage_dir/CHANGELOG.md" ] || fail "migration should preserve legacy release-pack render settings in staged files"
+[ -f "$stage_dir/.github/workflows/release-please.yml" ] || fail "migration should preserve legacy release-pack workflows in staged files"
 [ -f "$stage_dir/data-lane/.gitignore" ] || fail "migration should bootstrap explicitly classified custom lanes with a lane-local .gitignore"
 [ -f "$stage_dir/data-lane/.copier-answers.yml" ] || fail "migration should bootstrap explicitly classified custom lanes with copier answers"
 grep -qF '# Lane root: data-lane' "$stage_dir/.gitignore" || fail "migration should add the parent ignore block for explicitly classified custom lanes"

@@ -11,6 +11,7 @@ Example:
     -d company_slug=softwareco \
     -d company_name="Software Company" \
     -d l1_org_docs_profile=rich \
+    -d l2_org_docs_default=compact \
     -d enable_community_pack=false \
     -d enable_release_pack=false \
     -d enable_vouch_gate=false \
@@ -31,6 +32,7 @@ Notes:
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - Wrapper runs Copier in quiet mode by default; set `COPIER_QUIET=0` to show Copier progress logs.
   - Set `-d l1_org_docs_profile=rich|compact` to choose L1 org docs depth.
+  - Set `-d l2_org_docs_default=compact|rich` to choose default org-context depth for generated tpl-project-repo/tpl-monorepo repos.
   - Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
   - Set `-d enable_release_pack=true` for release-please/publish automation baseline.
   - Set `-d enable_vouch_gate=true` for trust-gated/public contribution templates.

@@ -4,6 +4,13 @@ set -eu
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 workspace_root="${AI_SOCIETY_WORKSPACE:-$HOME/ai-society}"
 
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "error: missing dependency: $1" >&2
+    exit 2
+  }
+}
+
 resolve_override() {
   value="$1"
   [ -n "$value" ] || return 1
@@ -53,6 +60,8 @@ checker="$(resolve_checker || true)"
   echo "hint: set DOC_REF_CHECK_SCRIPT or AGENT_SCRIPTS_DOC_REF_CHECK, vendor tools/agent-scripts, or clone $workspace_root/core/agent-scripts." >&2
   exit 2
 }
+
+need_cmd node
 
 if [ "$#" -gt 0 ]; then
   exec node "$checker" --require-tracked "$@"
