@@ -62,7 +62,6 @@ Session → diary/ (raw) → docs/learnings/ (crystallized) → TIPs (propagated
 ## Recursion policy (explicit)
 Allowed:
 - L1 -> L2 (this monorepo)
-- L2 -> L3 (packages/apps via tpl-package)
 
 Forbidden:
 - L1 -> L0
@@ -72,9 +71,9 @@ Forbidden:
 ## Read order
 1) `docs/_core/`
 2) `docs/org_context/`
-3) `docs/project/`
-4) `docs/decisions/`
-5) `docs/learnings/`
+3) `docs/tech-stack.local.md`
+4) `governance/`
+5) `ontology/`
 6) `diary/`               ← recent work sessions
 7) `packages/`            ← reusable libraries
 8) `apps/`                ← deployable services

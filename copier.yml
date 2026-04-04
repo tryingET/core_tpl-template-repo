@@ -35,6 +35,14 @@ l1_org_docs_profile:
     - compact
   help: "Organization docs profile for generated L1 repositories."
 
+l2_org_docs_default:
+  type: str
+  default: compact
+  choices:
+    - compact
+    - rich
+  help: "Default org-context profile for generated tpl-project-repo and tpl-monorepo repositories."
+
 enable_vouch_gate:
   type: bool
   default: false
@@ -130,6 +138,10 @@ _message_after_copy: |
   Organization docs profile (L1):
     - currently {{ l1_org_docs_profile }}
     - toggle at generation time with: -d l1_org_docs_profile=rich|compact
+
+  Default L2 org-context profile (tpl-project-repo / tpl-monorepo):
+    - currently {{ l2_org_docs_default }}
+    - toggle at generation time with: -d l2_org_docs_default=compact|rich
 
   Community pack:
     - currently {{ 'enabled' if enable_community_pack else 'disabled' }}

@@ -28,6 +28,8 @@ Notes:
   - Wrapper runs Copier in quiet mode by default; set `COPIER_QUIET=0` to show Copier progress logs.
   - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
     are inherited from this L1 repo `.copier-answers.yml` unless overridden.
+  - `org_docs_profile` is inherited for `tpl-project-repo` / `tpl-monorepo`
+    from `l2_org_docs_default` unless overridden.
   - `template_source_sha` is auto-injected from this L1 git HEAD unless
     overridden with `-d template_source_sha=<git-sha>`.
 EOF
@@ -331,16 +333,18 @@ if ! has_data_override project_owner_handle "$@"; then
   fi
 fi
 
-if ! has_data_override org_docs_profile "$@"; then
-  inherited_org_profile=""
-  inherited_org_profile_status=0
-  inherited_org_profile="$(read_inherited_value "$answers_file" l2_org_docs_default)" || inherited_org_profile_status=$?
-  [ "$inherited_org_profile_status" -eq 0 ] || exit "$inherited_org_profile_status"
-  case "$inherited_org_profile" in
-    compact|rich)
-      set -- -d "org_docs_profile=$inherited_org_profile" "$@"
-      ;;
-  esac
+if [ "$template_name" = "tpl-project-repo" ] || [ "$template_name" = "tpl-monorepo" ]; then
+  if ! has_data_override org_docs_profile "$@"; then
+    inherited_org_profile=""
+    inherited_org_profile_status=0
+    inherited_org_profile="$(read_inherited_value "$answers_file" l2_org_docs_default)" || inherited_org_profile_status=$?
+    [ "$inherited_org_profile_status" -eq 0 ] || exit "$inherited_org_profile_status"
+    case "$inherited_org_profile" in
+      compact|rich)
+        set -- -d "org_docs_profile=$inherited_org_profile" "$@"
+        ;;
+    esac
+  fi
 fi
 
 if ! has_data_override template_source_sha "$@"; then

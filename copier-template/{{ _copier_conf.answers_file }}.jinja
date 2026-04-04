@@ -1,12 +1,21 @@
+{% set resolved_l1_profile =
+  'internal-lean' if l1_org_docs_profile == 'compact' and l2_org_docs_default == 'compact' and not enable_community_pack and not enable_release_pack and not enable_vouch_gate
+  else 'internal-standard' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and not enable_community_pack and not enable_release_pack and not enable_vouch_gate
+  else 'internal-governed' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and not enable_community_pack and enable_release_pack and not enable_vouch_gate
+  else 'public-collaboration' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and enable_community_pack and enable_release_pack and not enable_vouch_gate
+  else 'public-trust-gated' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and enable_community_pack and enable_release_pack and enable_vouch_gate
+  else 'public-rich-org' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'rich' and enable_community_pack and enable_release_pack and enable_vouch_gate
+  else 'custom'
+%}
 {{ {
-  "l1_profile": l1_profile | default(""),
+  "l1_profile": resolved_l1_profile,
   "company_slug": company_slug,
   "company_name": company_name,
   "repo_slug": repo_slug,
   "maintainer_handle": maintainer_handle,
   "l0_source_sha": l0_source_sha,
   "l1_org_docs_profile": l1_org_docs_profile,
-  "l2_org_docs_default": l2_org_docs_default | default(""),
+  "l2_org_docs_default": l2_org_docs_default,
   "enable_vouch_gate": enable_vouch_gate,
   "enable_community_pack": enable_community_pack,
   "enable_release_pack": enable_release_pack,

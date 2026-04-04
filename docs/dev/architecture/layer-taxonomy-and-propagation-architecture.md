@@ -1,9 +1,9 @@
 ---
-summary: "Canonical layer taxonomy and propagation architecture for L0/L1/L2/L3 changes, including how to treat lane roots, standalone repos, monorepos, and monorepo members without collapsing them into one naming scheme."
+summary: "Canonical layer taxonomy and propagation architecture for L0/L1/L2 changes, including how to treat lane roots, standalone repos, monorepos, and monorepo members without collapsing them into one naming scheme."
 read_when:
-  - "When deciding what L0, L1, L2, and L3 actually mean in AI Society templates"
+  - "When deciding what L0, L1, and L2 actually mean in AI Society templates"
   - "When designing single-file or multi-file propagation across template generations"
-  - "When a physically nested repo makes the layer model feel ambiguous"
+  - "When a physically nested repo or monorepo member makes the layer model feel ambiguous"
 type: "explanation"
 system4d:
   container:
@@ -19,12 +19,12 @@ system4d:
     outcome: "A change can target the right descendants without confusing lane roots, standalone repos, and monorepo members."
   engine:
     invariants:
-      - "L0/L1/L2/L3 name render lineage, not just filesystem depth."
+      - "L0/L1/L2 name render lineage, not just filesystem depth."
       - "Lane roots and group roots do not automatically create a new render layer."
-      - "L3 is reserved for members generated inside an L2 monorepo, not every repo nested under another repo path."
+      - "Monorepo members are internal surfaces of an L2 monorepo, not a new render layer."
   fog:
     risks:
-      - "People overloading L0/L1/L2/L3 to mean AGENTS scope, git nesting, and generation lineage at the same time."
+      - "People overloading L0/L1/L2 to mean AGENTS scope, git nesting, and generation lineage at the same time."
       - "Blind descendant propagation that touches repos with the wrong authority boundary."
 ---
 
@@ -32,9 +32,9 @@ system4d:
 
 ## Problem
 
-The current naming pressure comes from several different concepts being informally collapsed into one stack:
+Several different concepts keep getting informally collapsed into one stack:
 
-- template generation lineage (`L0 -> L1 -> L2 -> L3`)
+- template generation lineage (`L0 -> L1 -> L2`)
 - filesystem ancestry
 - AGENTS scope layering (workspace/company/group/repo)
 - git nesting (for example lane-root repos containing child repos)
@@ -46,7 +46,7 @@ The architecture below separates those concerns so a propagation plan can target
 
 ---
 
-## 1) Canonical meaning of L0 / L1 / L2 / L3
+## 1) Canonical meaning of L0 / L1 / L2 + monorepo members
 
 ### L0 — meta-template authoring source
 
@@ -106,11 +106,11 @@ If it is a standalone repo generated from L1 and has its own repo authority boun
 
 ---
 
-### L3 — member generated inside an L2 monorepo
+### Monorepo members — internal surfaces inside an L2 monorepo
 
-**What it is**
-- a package/app/member generated inside an L2 monorepo root
-- managed by the monorepo, not by its own `.git`
+**What they are**
+- packages/apps/members generated inside an L2 monorepo root
+- managed by the monorepo, not by their own `.git`
 
 **Canonical examples**
 - `packages/<name>/`
@@ -118,14 +118,14 @@ If it is a standalone repo generated from L1 and has its own repo authority boun
 - anything generated from `tpl-package` inside a monorepo L2
 
 **Important rule**
-L3 is **not** “any repo nested under another repo path”.
-L3 is specifically the monorepo-internal layer.
+Monorepo members are **not** a new render layer.
+They are specifically an internal surface of an L2 monorepo.
 
 ---
 
 ## 2) What is *not* a layer
 
-These are real concepts, but they are **orthogonal** to L0/L1/L2/L3.
+These are real concepts, but they are **orthogonal** to L0/L1/L2.
 
 ### A. AGENTS scope layering
 Examples:
@@ -137,13 +137,16 @@ Examples:
 This is a **policy scope hierarchy**, not a generation-layer hierarchy.
 
 ### B. Filesystem ancestry
-A path being nested three directories deep does not make it L3.
+A path being nested three directories deep does not create a new render layer.
 
 ### C. Git nesting or lane-root nesting
-A standalone repo under a lane-root repo is still L2 unless it is a monorepo member.
+A standalone repo under a lane-root repo is still L2 unless it is merely a monorepo member without its own repo boundary.
 
 ### D. Lane / group identity
 `owned/`, `infra/`, `contrib/`, `agents/`, `fork/` are routing/grouping categories, not generation layers by themselves.
+
+### E. Monorepo membership
+Membership inside `packages/` or `apps/` is an intra-L2 composition pattern, not `L3`.
 
 ---
 
@@ -156,7 +159,7 @@ Lane roots are easy to misname because they can be both:
 ### Architectural rule
 Treat a lane-root/group-root as a **kind of L2 control-plane repo** when it is initialized as its own repo.
 
-But do **not** infer that child repos inside it become L3.
+But do **not** infer that child repos inside it become a new generation layer.
 
 ### Why
 Because the render lineage is still:
@@ -176,17 +179,23 @@ The lane root changes grouping and local policy context, but not the fundamental
 L0 meta-template source
   -> L1 company template repos
      -> L2 standalone repos
-        -> L3 monorepo members only
+```
+
+### Internal monorepo composition
+
+```text
+L2 monorepo root
+  -> internal package/app members
 ```
 
 ### Important boundary
 There is **no general rule** that says:
 
 ```text
-L2 repo -> another standalone child repo = L3
+L2 repo -> another standalone child repo = new render layer
 ```
 
-That is false except for the monorepo-member case.
+That is false except when you are talking about internal monorepo membership, which is still intra-L2 composition rather than a new layer.
 
 ---
 
@@ -202,7 +211,8 @@ A change should declare all of the following:
 2. **target layers**
    - L1 only
    - L1 + L2
-   - L2 monorepo roots + L3 members
+   - L2 monorepo roots only
+   - L2 monorepo roots + internal members
 3. **target entity kinds**
    - company template repo
    - standalone project repo
@@ -261,7 +271,7 @@ Create and adopt this taxonomy as the canonical naming model:
 - L0 = authoring source
 - L1 = company template repo
 - L2 = standalone generated repo
-- L3 = monorepo member only
+- monorepo members = internal surfaces inside an L2 monorepo
 
 ### Phase 2 — define propagation unit contract
 Add a feature-manifest format at L0 that declares:
@@ -306,8 +316,9 @@ Because many repos already exist with divergence:
 
 - do not assume every repo with a matching path is eligible
 - do not treat missing provenance as safe for automatic mutation
-- do not treat nested physical placement as proof of L3
+- do not treat nested physical placement as proof of a new render layer
 - do not apply monorepo-member rules to standalone repos under lane roots
+- do not treat monorepo members as if they carried standalone repo authority
 
 Brownfield default should be:
 - fail closed
@@ -323,11 +334,11 @@ When speaking precisely:
 - say **L0 authoring source** for `core/tpl-template-repo`
 - say **L1 company template repo** for `softwareco` / `holdingco`
 - say **L2 standalone repo** for normal generated repos and lane-root repos with their own repo boundary
-- say **L3 monorepo member** only for package/app members inside an L2 monorepo
+- say **monorepo member** for package/app members inside an L2 monorepo
 
 Avoid saying:
 - “L3 because it is nested under another repo”
-- “L2 because it is just two directories deep”
+- “a deeper filesystem path creates a new render layer”
 - “lane root creates a new generation layer automatically”
 
 ---
@@ -340,4 +351,4 @@ That playbook should assume:
 - layer lineage is canonical
 - entity kind is separate from layer
 - rollout eligibility is provenance-aware
-- monorepo-member propagation is the only default `L2 -> L3` path
+- monorepo-member propagation is intra-L2 composition, not `L2 -> L3`

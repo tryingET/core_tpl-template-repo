@@ -50,6 +50,14 @@ enable_software_pack:
   default: false
   help: "Enable software development scaffolding (pyproject.toml, package.json, etc.)"
 
+org_docs_profile:
+  type: str
+  default: compact
+  choices:
+    - compact
+    - rich
+  help: "Depth of org-context docs under docs/org_context/."
+
 enable_community_pack:
   type: bool
   default: false
@@ -104,3 +112,5 @@ _tasks:
   - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'rust' ]; then rm -f Cargo.toml Cargo.lock 2>/dev/null; fi"
   - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'go' ]; then rm -f go.mod go.sum 2>/dev/null; fi"
   - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'elixir' ]; then rm -f mix.exs 2>/dev/null; fi"
+  - "if [ '{{ enable_software_pack }}' != 'True' ] || ! printf '%s\n' '{{ language }}' | grep -Eq '^(python|node|typescript|rust|go|elixir)$'; then rm -f policy/stack-lane.json docs/tech-stack.local.md 2>/dev/null; fi"
+  - "if [ '{{ org_docs_profile }}' != 'rich' ]; then rm -f docs/org_context/mission.md docs/org_context/purpose.md docs/org_context/vision.md docs/org_context/strategic_objectives.md docs/org_context/governance.md 2>/dev/null; fi"

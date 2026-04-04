@@ -1,11 +1,20 @@
+{% set resolved_l1_profile =
+  'internal-lean' if l1_org_docs_profile == 'compact' and l2_org_docs_default == 'compact' and not enable_community_pack and not enable_release_pack and not enable_vouch_gate
+  else 'internal-standard' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and not enable_community_pack and not enable_release_pack and not enable_vouch_gate
+  else 'internal-governed' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and not enable_community_pack and enable_release_pack and not enable_vouch_gate
+  else 'public-collaboration' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and enable_community_pack and enable_release_pack and not enable_vouch_gate
+  else 'public-trust-gated' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and enable_community_pack and enable_release_pack and enable_vouch_gate
+  else 'public-rich-org' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'rich' and enable_community_pack and enable_release_pack and enable_vouch_gate
+  else 'custom'
+%}
 # {{ repo_slug }}
 
 This is an **L1 template repository** generated from `core/tpl-template-repo` (L0).
 
-- Profile: `{{ l1_profile }}`
+- Profile: `{{ resolved_l1_profile }}`
 - Maintainer: `{{ maintainer_handle }}`
 - L1 organization docs profile: `{{ l1_org_docs_profile }}`
-- Default L2 organization docs profile: `{{ l2_org_docs_default }}`
+- Default L2 project/monorepo org-context profile: `{{ l2_org_docs_default }}`
 - Baseline L2 template family: `agent`, `project`, `org`, `monorepo`, `package`
 
 ## What this repo provides
@@ -208,7 +217,7 @@ See `tips/README.md` for TIP process.
 ## Organization docs profile
 
 - This L1 repository currently ships **{{ l1_org_docs_profile }}** organization docs in `docs/org/`.
-- Generated L2 repositories default to **{{ l2_org_docs_default }}** via `scripts/new-repo-from-copier.sh` inheritance from `.copier-answers.yml` (`l2_org_docs_default`).
+- Generated `tpl-project-repo` / `tpl-monorepo` repositories default to **{{ l2_org_docs_default }}** org-context via `scripts/new-repo-from-copier.sh` inheritance from `.copier-answers.yml` (`l2_org_docs_default`).
 - Override at L2 generation time with:
   - `-d org_docs_profile=compact`
   - `-d org_docs_profile=rich`

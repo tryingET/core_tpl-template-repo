@@ -45,7 +45,7 @@ Generate an L1 repo from L0:
 ```
 
 Set `-d l1_org_docs_profile=rich|compact` to choose how much org structure L1 repositories ship.
-Set `-d l2_org_docs_default=compact|rich` to choose the default org structure L1 templates use for L2 repositories.
+Set `-d l2_org_docs_default=compact|rich` to choose the default org-context depth L1 templates use for generated `tpl-project-repo` / `tpl-monorepo` repositories.
 Set `-d enable_community_pack=true` for public/community-facing collaboration intake.
 Set `-d enable_release_pack=true` for release-please/publish automation baseline.
 Set `-d enable_vouch_gate=true` for trust-gated template lines.
@@ -113,10 +113,10 @@ Author explicit task scope in AK. Frozen `governance/task-scopes/AK-<TASK-ID>.sn
 
 - `l1_org_docs_profile=rich` (default): generated L1 repositories include a richer `docs/org/` structure for organization-level governance and strategy artifacts.
 - `l1_org_docs_profile=compact`: generated L1 repositories keep only a compact org baseline.
-- `l2_org_docs_default=compact` (default): generated L1 templates default generated L2 repositories to compact org docs + project execution docs.
-- `l2_org_docs_default=rich`: generated L1 templates default generated L2 repositories to rich org docs as well.
+- `l2_org_docs_default=compact` (default): generated L1 templates default generated `tpl-project-repo` / `tpl-monorepo` repositories to a compact org-context snapshot.
+- `l2_org_docs_default=rich`: generated L1 templates default generated `tpl-project-repo` / `tpl-monorepo` repositories to a richer org-context pack.
 
-Generated L2 repositories can still override with `-d org_docs_profile=compact|rich` at generation time.
+Generated `tpl-project-repo` / `tpl-monorepo` repositories can still override with `-d org_docs_profile=compact|rich` at generation time.
 
 ## Community pack (optional by profile)
 

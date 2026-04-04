@@ -13,7 +13,7 @@ This policy defines:
 | Toggle | Governance meaning |
 |---|---|
 | `l1_org_docs_profile` (`rich`/`compact`) | How much organization-level policy/context is carried directly in generated L1 repos. |
-| `l2_org_docs_default` (`compact`/`rich`) | Default org-docs burden for downstream L2 repos. |
+| `l2_org_docs_default` (`compact`/`rich`) | Default org-context burden for downstream `tpl-project-repo` / `tpl-monorepo` L2 repos. |
 | `enable_community_pack` | Whether the repo is prepared for public issue/PR intake and community interaction artifacts. |
 | `enable_release_pack` | Whether release automation + release accountability artifacts are expected by default. |
 | `enable_vouch_gate` | Whether contribution trust gating is enforced for public-risk surfaces. |
@@ -43,7 +43,7 @@ Map profile decisions to consent tiers:
   - setting or changing defaults for a specific L1 template line,
   - enabling/disabling `enable_vouch_gate` for public-facing lines.
 - **Project / Maintained tier**:
-  - one-off L2 overrides (for example `-d org_docs_profile=rich` on a specific repo) when trust boundary is unchanged.
+  - one-off `tpl-project-repo` / `tpl-monorepo` L2 overrides (for example `-d org_docs_profile=rich` on a specific repo) when trust boundary is unchanged.
 
 If a change moves a repo across trust boundaries (internal -> public, or ungated -> trust-gated), treat it at least as **Org / Consent-gated**.
 
@@ -53,7 +53,7 @@ If a change moves a repo across trust boundaries (internal -> public, or ungated
 2. If a repo accepts broad external contributions, set `enable_community_pack=true`.
 3. If releases are contractual (consumers depend on versioned outputs), set `enable_release_pack=true`.
 4. If contribution trust must be explicitly controlled, set `enable_vouch_gate=true`.
-5. Keep `l2_org_docs_default=compact` unless each product repo must carry full org governance locally.
+5. Keep `l2_org_docs_default=compact` unless each generated project/monorepo repo must carry richer org context locally.
 
 ## Operational notes
 
