@@ -50,6 +50,20 @@ Check that the committed projection matches AK (used by `./scripts/ci/full.sh`):
 
 `./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so the projection stays reproducible even when the checkout folder name differs from the repo slug.
 
+## Managed launcher-bundle adoption snapshot
+
+Generated repos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also carry:
+
+- `governance/dist/managed-launcher-bundle.adoption-snapshot.json`
+
+Treat that file as a **consumer-side snapshot contract** for the managed launcher bundle:
+- the owner repo remains `softwareco/owned/agent-kernel`
+- the template propagation source remains `core/tpl-template-repo`
+- downstream repos stay consumer-only unless an explicit waiver says otherwise
+- copied wrappers alone do not make a generated repo the durable owner of the launcher bundle
+
+The snapshot is a deterministic checked-in contract surface, not a hand-authored claim that downstream rollout is globally complete.
+
 ## Optional explicit task-scope snapshots
 
 When a repo-local AK task needs explicit scope:

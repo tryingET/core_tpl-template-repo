@@ -2,6 +2,20 @@
 
 Agent repos stay lightweight, but if a repo-local AK task needs explicit scope, keep repo copies under `governance/task-scopes/` as frozen exports only.
 
+## Managed launcher-bundle adoption snapshot
+
+Generated agent repos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also carry:
+
+- `governance/dist/managed-launcher-bundle.adoption-snapshot.json`
+
+Treat that file as a **consumer-side snapshot contract** for the managed launcher bundle:
+- the owner repo remains `softwareco/owned/agent-kernel`
+- the template propagation source remains `core/tpl-template-repo`
+- downstream repos stay consumer-only unless an explicit waiver says otherwise
+- copied wrappers alone do not make the agent repo the durable owner of the launcher bundle
+
+The snapshot is a deterministic checked-in contract surface, not a hand-authored claim that downstream rollout is globally complete.
+
 ## Optional explicit task-scope snapshots
 
 - author/update the scope in AK via `./scripts/ak.sh task scope show|set|update ...`

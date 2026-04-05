@@ -286,16 +286,22 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 done
 for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_file "copier/$tpl/governance/README.md"
+	assert_file "copier/$tpl/governance/dist/managed-launcher-bundle.adoption-snapshot.json"
 	assert_contains "copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
 	assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
+	assert_contains "copier/$tpl/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "L2 template $tpl governance README should document launcher-bundle adoption snapshots"
+	assert_contains "copier/$tpl/governance/dist/managed-launcher-bundle.adoption-snapshot.json" '"managed_artifact_slug": "managed.launcher-bundle"' "L2 template $tpl should ship the launcher-bundle adoption snapshot contract"
 done
 for tpl in tpl-project-repo tpl-monorepo; do
 	assert_file "copier/$tpl/governance/work-items.cue"
 	assert_file "copier/$tpl/governance/work-items.json.j2"
+	assert_file "copier/$tpl/governance/dist/managed-launcher-bundle.adoption-snapshot.json"
 	assert_contains "copier/$tpl/README.md.j2" "Agent Kernel work-items flow" "L2 template $tpl README should document the AK work-items workflow"
 	assert_contains "copier/$tpl/governance/README.md" "work-items export" "L2 template $tpl governance README should document projection export"
 	assert_contains "copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
 	assert_contains "copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
+	assert_contains "copier/$tpl/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "L2 template $tpl governance README should document launcher-bundle adoption snapshots"
+	assert_contains "copier/$tpl/governance/dist/managed-launcher-bundle.adoption-snapshot.json" '"normalized_content_rule": "strip_repo_capability_blocks"' "L2 template $tpl should ship the launcher-bundle adoption snapshot contract"
 done
 assert_contains "copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
@@ -867,12 +873,16 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	fi
 	if [ "$tpl" = "tpl-agent-repo" ] || [ "$tpl" = "tpl-org-repo" ]; then
 		assert_file "$l2_dir/governance/README.md"
+		assert_file "$l2_dir/governance/dist/managed-launcher-bundle.adoption-snapshot.json"
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
+		assert_contains "$l2_dir/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "generated $tpl governance README should document launcher-bundle adoption snapshots"
 	fi
 	if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
+		assert_file "$l2_dir/governance/dist/managed-launcher-bundle.adoption-snapshot.json"
 		assert_contains "$l2_dir/README.md" "Agent Kernel work-items flow" "generated $tpl README should document the AK work-items workflow"
 		assert_contains "$l2_dir/governance/README.md" "work-items export" "generated $tpl governance README should document projection export"
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
+		assert_contains "$l2_dir/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "generated $tpl governance README should document launcher-bundle adoption snapshots"
 	fi
 	if [ "$tpl" = "tpl-monorepo" ]; then
 		assert_not_contains "$l2_dir/README.md" "L2 → L3" "generated tpl-monorepo README must not advertise forbidden L3 recursion"

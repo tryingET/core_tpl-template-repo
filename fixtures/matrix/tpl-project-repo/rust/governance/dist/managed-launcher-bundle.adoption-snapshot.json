@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "snapshot_kind": "managed_launcher_bundle_adoption_snapshot",
+  "owner_repo_identity": "softwareco/owned/agent-kernel",
+  "template_repo_identity": "core/tpl-template-repo",
+  "managed_artifact_slug": "managed.launcher-bundle",
+  "required_member_locator_paths": [
+    "scripts/ak.sh",
+    "scripts/cargo-operator.sh"
+  ],
+  "expected_member_capability_slugs": [
+    "ak.launcher",
+    "cargo.operator"
+  ],
+  "expected_receipt_mode": "observational",
+  "normalized_content_rule": "strip_repo_capability_blocks",
+  "downstream_posture": "consumer_only_until_explicit_waiver",
+  "adoption_authority": "consumer_snapshot_only"
+}

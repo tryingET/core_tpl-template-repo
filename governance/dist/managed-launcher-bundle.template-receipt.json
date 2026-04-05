@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "receipt_kind": "managed_launcher_bundle_template_receipt",
+  "template_repo_identity": "core/tpl-template-repo",
+  "owner_repo_identity": "softwareco/owned/agent-kernel",
+  "managed_artifact_slug": "managed.launcher-bundle",
+  "owner_contract_note_path": "docs/project/managed-launcher-bundle-owner-contract.md",
+  "source_drift_check_locator_path": "scripts/ci/check-repo-capability-projections.sh",
+  "source_member_locator_paths": [
+    "scripts/ak.sh",
+    "scripts/cargo-operator.sh"
+  ],
+  "propagated_member_target_paths": {
+    "scripts/ak.sh": [
+      "copier-template/copier/tpl-agent-repo/scripts/ak.sh",
+      "copier-template/copier/tpl-monorepo/scripts/ak.sh",
+      "copier-template/copier/tpl-org-repo/scripts/ak.sh",
+      "copier-template/copier/tpl-project-repo/scripts/ak.sh",
+      "copier-template/scripts/ak.sh",
+      "fixtures/l1/template-repo/copier/tpl-agent-repo/scripts/ak.sh",
+      "fixtures/l1/template-repo/copier/tpl-monorepo/scripts/ak.sh",
+      "fixtures/l1/template-repo/copier/tpl-org-repo/scripts/ak.sh",
+      "fixtures/l1/template-repo/copier/tpl-project-repo/scripts/ak.sh",
+      "fixtures/l1/template-repo/scripts/ak.sh",
+      "fixtures/l2/tpl-agent-repo/scripts/ak.sh",
+      "fixtures/l2/tpl-monorepo/scripts/ak.sh",
+      "fixtures/l2/tpl-org-repo/scripts/ak.sh",
+      "fixtures/l2/tpl-project-repo/scripts/ak.sh",
+      "fixtures/matrix/tpl-monorepo/root/scripts/ak.sh",
+      "fixtures/matrix/tpl-project-repo/elixir/scripts/ak.sh",
+      "fixtures/matrix/tpl-project-repo/node/scripts/ak.sh",
+      "fixtures/matrix/tpl-project-repo/python/scripts/ak.sh",
+      "fixtures/matrix/tpl-project-repo/rust/scripts/ak.sh",
+      "fixtures/matrix/tpl-project-repo/typescript/scripts/ak.sh",
+      "scripts/ak.sh"
+    ],
+    "scripts/cargo-operator.sh": [
+      "copier-template/copier/tpl-agent-repo/scripts/cargo-operator.sh",
+      "copier-template/copier/tpl-monorepo/scripts/cargo-operator.sh",
+      "copier-template/copier/tpl-org-repo/scripts/cargo-operator.sh",
+      "copier-template/copier/tpl-project-repo/scripts/cargo-operator.sh",
+      "copier-template/scripts/cargo-operator.sh",
+      "fixtures/l1/template-repo/copier/tpl-agent-repo/scripts/cargo-operator.sh",
+      "fixtures/l1/template-repo/copier/tpl-monorepo/scripts/cargo-operator.sh",
+      "fixtures/l1/template-repo/copier/tpl-org-repo/scripts/cargo-operator.sh",
+      "fixtures/l1/template-repo/copier/tpl-project-repo/scripts/cargo-operator.sh",
+      "fixtures/l1/template-repo/scripts/cargo-operator.sh",
+      "fixtures/l2/tpl-agent-repo/scripts/cargo-operator.sh",
+      "fixtures/l2/tpl-monorepo/scripts/cargo-operator.sh",
+      "fixtures/l2/tpl-org-repo/scripts/cargo-operator.sh",
+      "fixtures/l2/tpl-project-repo/scripts/cargo-operator.sh",
+      "fixtures/matrix/tpl-monorepo/root/scripts/cargo-operator.sh",
+      "fixtures/matrix/tpl-project-repo/elixir/scripts/cargo-operator.sh",
+      "fixtures/matrix/tpl-project-repo/node/scripts/cargo-operator.sh",
+      "fixtures/matrix/tpl-project-repo/python/scripts/cargo-operator.sh",
+      "fixtures/matrix/tpl-project-repo/rust/scripts/cargo-operator.sh",
+      "fixtures/matrix/tpl-project-repo/typescript/scripts/cargo-operator.sh",
+      "scripts/cargo-operator.sh"
+    ]
+  },
+  "normalized_member_fingerprints": {
+    "scripts/ak.sh": "sha256:1548c60be626425ccd3247f691283063e87c70cd16775dcb3a44d7175c683e44",
+    "scripts/cargo-operator.sh": "sha256:afe69dee2c222138c7d49eaecff518b448785a2fbb4369971f808942bcaba451"
+  },
+  "normalized_bundle_fingerprint": "sha256:982d3d8421ad161af3b732c45e0c36254f0f738441e9227e572e08530f5f891b",
+  "normalized_content_rule": "strip_repo_capability_blocks",
+  "downstream_posture": "consumer_only_until_explicit_waiver",
+  "propagation_mode": "template_propagation",
+  "receipt_status": "in_sync"
+}

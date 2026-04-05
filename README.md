@@ -111,6 +111,16 @@ By default the wrapper trusts `AK_BIN`, vendored `ak-cli`, or the workspace-core
 
 Author explicit task scope in AK. Frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption exports; hand-authored `AK-*.json` manifests are transitional scaffolding only.
 
+## Managed launcher-bundle rollout surfaces
+
+This repo now carries one template-side propagation receipt at:
+
+- `governance/dist/managed-launcher-bundle.template-receipt.json`
+
+Generated L2 repos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also seed an adoption snapshot contract (for example `copier-template/copier/tpl-project-repo/governance/dist/managed-launcher-bundle.adoption-snapshot.json`).
+
+Treat those generated files as deterministic **consumer-side snapshot contracts** for the managed launcher bundle, not as proof that generated repos have become the durable owner of the wrapper bundle.
+
 ## Organization docs profiles (L1 vs L2)
 
 - `l1_org_docs_profile=rich` (default): generated L1 repositories include a richer `docs/org/` structure for organization-level governance and strategy artifacts.
