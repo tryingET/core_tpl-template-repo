@@ -1,0 +1,14 @@
+# Core references (vendored snapshot or submodule)
+docs/_core/** @core-owner
+
+# Agent-owned content
+docs/person/** @agent-owner
+docs/system4d/** @agent-owner
+docs/learnings/** @agent-owner
+policy/** @agent-owner
+governance/** @agent-owner
+
+# Root control-plane files
+AGENTS.md @agent-owner
+README.md @agent-owner
+

@@ -1,0 +1,11 @@
+_src_path: __VOLATILE_SRC_PATH__
+agent_owner_handle: '@agent-owner'
+company_name: Holding Company
+company_slug: holdingco
+core_owner_handle: '@core-owner'
+enable_community_pack: false
+enable_release_pack: false
+enable_vouch_gate: false
+repo_slug: fixture-agent
+
+

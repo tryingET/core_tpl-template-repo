@@ -1,0 +1,14 @@
+# Core references
+docs/_core/** @core-owner
+
+# Org governance/content
+docs/org/** @org-owners
+docs/system4d/** @org-owners
+docs/registers/** @org-owners
+docs/decisions/** @org-owners
+governance/** @org-owners
+policy/** @org-owners
+
+# Root control-plane files
+AGENTS.md @org-owners
+README.md @org-owners

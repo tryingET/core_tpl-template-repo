@@ -1,0 +1,66 @@
+# AGENTS.md — fixture-agent
+
+## Intent
+Template for an **agent repo**: one repo per agent, no hierarchy, work via proposals + merge requests.
+
+## Guardrails
+- No secrets in git (use CI variables + local secret manager references).
+- Never push to `main`; open branches + MRs.
+- Treat `docs/_core/**` as immutable (vendored snapshot from `governance-kernel`; no submodules).
+
+## Deterministic tooling policy (ROCS-first)
+- Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
+- Use `./scripts/preflight-repo-census.sh [scope]` for shallow multi-repo status checks.
+- When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots via `./scripts/ak.sh task scope show|export <TASK-ID> ...`; treat `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as AK exports, not hand-authored truth.
+- For ontology/policy checks, use ROCS commands as the default execution path.
+- Use inline Python only as an explicit escape hatch when no deterministic command exists.
+
+## Knowledge Crystallization Flow
+
+```
+Session → diary/ (raw) → docs/learnings/ (crystallized) → TIPs (propagated)
+```
+
+**Knowledge that isn't crystallized is knowledge that will be re-learned the hard way.**
+
+1. During session: Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
+2. End of session: Extract patterns, surprises, heuristics
+3. Weekly: Promote diary entries to `docs/learnings/`
+4. When pattern generalizes: Propose TIP to parent L1
+
+## Cognitive Tools
+
+Higher-order thinking frameworks for when you're stuck, planning, or making high-stakes decisions.
+
+**Invoke by name:**
+- "What's the NEXUS intervention here?" — Find highest-leverage action
+- "Apply FIRST PRINCIPLES to this blocker" — Dissolve assumptions
+- "Inventory our CONSTRAINTS" — Find hidden freedom
+- "Generate five ALTERNATIVES" — Escape solution fixation
+- "Design the ESCAPE HATCH first" — Plan rollback before change
+- "Time travel: what degrades in 12 months?" — Future-proof
+- "Run TELESCOPIC analysis" — See both micro and macro
+- "ELEVATE this document" — Transcend incremental improvement
+
+See `prompts/cognitive-tools/` for full frameworks.
+
+These compound. Each use improves pattern recognition for the next.
+
+## Recursion policy (explicit)
+Allowed:
+- L1 -> L2
+
+Forbidden:
+- L1 -> L0
+- L2 -> L1
+- any cycle
+
+## Read order
+1) `docs/_core/README.md`
+2) `docs/person/`
+3) `docs/decisions/`
+4) `docs/learnings/`
+5) `governance/README.md`
+6) `diary/`               ← recent sessions
+7) `prompts/cognitive-tools/` ← when stuck or planning
+8) `docs/system4d/`

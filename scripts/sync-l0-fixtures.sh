@@ -53,6 +53,8 @@ tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
 l1_render="$tmp_root/l1-template-repo"
+l2_render_agent="$tmp_root/l2-tpl-agent-repo"
+l2_render_org="$tmp_root/l2-tpl-org-repo"
 l2_render_project="$tmp_root/l2-tpl-project-repo"
 l2_render_monorepo="$tmp_root/l2-tpl-monorepo"
 l2_render_package="$tmp_root/l2-tpl-package"
@@ -76,6 +78,20 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
   cd "$l1_render"
 
   # Baseline L2 fixtures (one per template archetype)
+  run_step ./scripts/new-repo-from-copier.sh tpl-agent-repo "$l2_render_agent" \
+    -d repo_slug=fixture-agent \
+    -d enable_community_pack=false \
+    -d enable_release_pack=false \
+    -d enable_vouch_gate=false \
+    --defaults --overwrite
+
+  run_step ./scripts/new-repo-from-copier.sh tpl-org-repo "$l2_render_org" \
+    -d repo_slug=fixture-org \
+    -d enable_community_pack=false \
+    -d enable_release_pack=false \
+    -d enable_vouch_gate=false \
+    --defaults --overwrite
+
   run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$l2_render_project" \
     -d repo_slug=fixture-product-repo \
     -d enable_community_pack=false \
@@ -161,6 +177,8 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 
 fixtures_root="$repo_root/fixtures"
 fixture_l1="$fixtures_root/l1/template-repo"
+fixture_l2_agent="$fixtures_root/l2/tpl-agent-repo"
+fixture_l2_org="$fixtures_root/l2/tpl-org-repo"
 fixture_l2_project="$fixtures_root/l2/tpl-project-repo"
 fixture_l2_monorepo="$fixtures_root/l2/tpl-monorepo"
 fixture_l2_package="$fixtures_root/l2/tpl-package"
@@ -172,12 +190,16 @@ fixture_matrix_monorepo_root="$fixture_matrix_root/tpl-monorepo/root"
 
 rm -rf \
   "$fixture_l1" \
+  "$fixture_l2_agent" \
+  "$fixture_l2_org" \
   "$fixture_l2_project" \
   "$fixture_l2_monorepo" \
   "$fixture_l2_package" \
   "$fixture_matrix_root"
 mkdir -p \
   "$fixture_l1" \
+  "$fixture_l2_agent" \
+  "$fixture_l2_org" \
   "$fixture_l2_project" \
   "$fixture_l2_monorepo" \
   "$fixture_l2_package" \
@@ -187,6 +209,8 @@ mkdir -p \
   "$fixture_matrix_monorepo_root"
 
 cp -R "$l1_render/." "$fixture_l1/"
+cp -R "$l2_render_agent/." "$fixture_l2_agent/"
+cp -R "$l2_render_org/." "$fixture_l2_org/"
 cp -R "$l2_render_project/." "$fixture_l2_project/"
 cp -R "$l2_render_monorepo/." "$fixture_l2_monorepo/"
 cp -R "$l2_render_package/." "$fixture_l2_package/"
@@ -196,6 +220,8 @@ cp -R "$matrix_render_project_elixir/." "$fixture_matrix_project_elixir/"
 cp -R "$matrix_render_monorepo/." "$fixture_matrix_monorepo_root/"
 
 normalize_fixture_tree_volatiles "$fixture_l1"
+normalize_fixture_tree_volatiles "$fixture_l2_agent"
+normalize_fixture_tree_volatiles "$fixture_l2_org"
 normalize_fixture_tree_volatiles "$fixture_l2_project"
 normalize_fixture_tree_volatiles "$fixture_l2_monorepo"
 normalize_fixture_tree_volatiles "$fixture_l2_package"
@@ -203,6 +229,8 @@ normalize_fixture_tree_volatiles "$fixture_matrix_root"
 
 echo "ok: fixtures synchronized"
 echo "  - $fixture_l1"
+echo "  - $fixture_l2_agent"
+echo "  - $fixture_l2_org"
 echo "  - $fixture_l2_project"
 echo "  - $fixture_l2_monorepo"
 echo "  - $fixture_l2_package"
