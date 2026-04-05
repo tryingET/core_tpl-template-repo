@@ -440,6 +440,16 @@ multiline_fallback_l2="$tmp_root/l2-template-multiline-no-yaml"
 assert_command_fails_with_stderr "generated L1 render should fail closed on unsupported multiline answers when PyYAML is unavailable" "unable to parse 'company_name'" env PATH="$no_yaml_bin:$PATH" sh -c "cd \"\$1\" && ./scripts/new-repo-from-copier.sh tpl-project-repo \"\$2\" -d repo_slug=l2-template-multiline-no-yaml --defaults --overwrite" sh "$multiline_l1" "$multiline_fallback_l2"
 assert_command_fails_with_stderr "preview-l1-diff should fail closed on unsupported multiline answers when PyYAML is unavailable" "unable to parse 'company_name'" env PATH="$no_yaml_bin:$PATH" "$repo_root/scripts/preview-l1-diff.sh" "$multiline_l1"
 
+tagged_l1="$tmp_root/l1-template-tagged"
+tagged_l2="$tmp_root/l2-template-tagged-no-yaml"
+"$repo_root/scripts/new-l1-from-copier.sh" "$tagged_l1" \
+	-d repo_slug=l1-template-tagged \
+	-d maintainer_handle=@template-owner \
+	--defaults --overwrite >/dev/null
+replace_first_match_in_file "$tagged_l1/.copier-answers.yml" "company_name: Holding Company" "company_name: !!str Holding Company"
+assert_command_fails_with_stderr "generated L1 render should fail closed on tagged YAML answers when PyYAML is unavailable" "unable to parse 'company_name'" env PATH="$no_yaml_bin:$PATH" sh -c "cd \"\$1\" && ./scripts/new-repo-from-copier.sh tpl-project-repo \"\$2\" -d repo_slug=l2-template-tagged-no-yaml --defaults --overwrite" sh "$tagged_l1" "$tagged_l2"
+assert_command_fails_with_stderr "preview-l1-diff should fail closed on tagged YAML answers when PyYAML is unavailable" "unable to parse 'company_name'" env PATH="$no_yaml_bin:$PATH" "$repo_root/scripts/preview-l1-diff.sh" "$tagged_l1"
+
 tab_l1="$tmp_root/l1-template-tab"
 tab_l2="$tmp_root/l2-template-tab"
 tab_expected="$(printf 'Tab\tCo')"
@@ -620,6 +630,8 @@ printf '%s\n' "$root_rocs_python_output" | grep -qF "ok: root rocs python fallba
 # Language-matrix smoke: project language cases plus monorepo member-language cases.
 matrix_l1="$tmp_root/l1-template-matrix"
 matrix_project_python="$tmp_root/l2-project-python-matrix"
+matrix_project_node="$tmp_root/l2-project-node-matrix"
+matrix_project_typescript="$tmp_root/l2-project-typescript-matrix"
 matrix_project_rust="$tmp_root/l2-project-rust-matrix"
 matrix_project_elixir="$tmp_root/l2-project-elixir-matrix"
 matrix_agent="$tmp_root/l2-agent-matrix"
@@ -634,6 +646,18 @@ matrix_monorepo="$tmp_root/l2-monorepo-matrix"
 	./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_project_python" \
 		-d repo_slug=fixture-project-python \
 		-d language=python \
+		-d enable_software_pack=true \
+		--defaults --overwrite >/dev/null
+
+	./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_project_node" \
+		-d repo_slug=fixture-project-node \
+		-d language=node \
+		-d enable_software_pack=true \
+		--defaults --overwrite >/dev/null
+
+	./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_project_typescript" \
+		-d repo_slug=fixture-project-typescript \
+		-d language=typescript \
 		-d enable_software_pack=true \
 		--defaults --overwrite >/dev/null
 
@@ -757,10 +781,10 @@ toggle_monorepo_enabled="$tmp_root/l2-monorepo-toggle-enabled"
 		--defaults --overwrite >/dev/null
 )
 
-assert_file_contains "$toggle_agent_enabled/README.md" 'metadata-only in `tpl-agent-repo`' "generated tpl-agent-repo README should describe profile toggles as metadata-only"
-assert_file_contains "$toggle_org_enabled/README.md" 'metadata-only in `tpl-org-repo`' "generated tpl-org-repo README should describe profile toggles as metadata-only"
-assert_file_contains "$toggle_project_enabled/README.md" 'metadata-only in `tpl-project-repo`' "generated tpl-project-repo README should describe profile toggles as metadata-only"
-assert_file_contains "$toggle_monorepo_enabled/README.md" 'metadata-only in `tpl-monorepo`' "generated tpl-monorepo README should describe profile toggles as metadata-only"
+assert_file_contains "$toggle_agent_enabled/README.md" "metadata-only in \`tpl-agent-repo\`" "generated tpl-agent-repo README should describe profile toggles as metadata-only"
+assert_file_contains "$toggle_org_enabled/README.md" "metadata-only in \`tpl-org-repo\`" "generated tpl-org-repo README should describe profile toggles as metadata-only"
+assert_file_contains "$toggle_project_enabled/README.md" "metadata-only in \`tpl-project-repo\`" "generated tpl-project-repo README should describe profile toggles as metadata-only"
+assert_file_contains "$toggle_monorepo_enabled/README.md" "metadata-only in \`tpl-monorepo\`" "generated tpl-monorepo README should describe profile toggles as metadata-only"
 assert_trees_equal_without_answers "$toggle_agent_default" "$toggle_agent_enabled" "tpl-agent-repo profile toggles should remain metadata-only at L2"
 assert_trees_equal_without_answers "$toggle_org_default" "$toggle_org_enabled" "tpl-org-repo profile toggles should remain metadata-only at L2"
 assert_trees_equal_without_answers "$toggle_project_default" "$toggle_project_enabled" "tpl-project-repo profile toggles should remain metadata-only at L2"
@@ -779,9 +803,21 @@ assert_command_fails "root ROCS which must fail closed when ROCS_BIN is invalid"
 	assert_command_fails "generated L2 ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --which
 )
 
+[ -s "$matrix_project_node/package.json" ] || fail "expected node project software-pack manifest"
+[ ! -e "$matrix_project_node/tsconfig.json" ] || fail "node project should not emit tsconfig.json"
+[ -s "$matrix_project_typescript/package.json" ] || fail "expected typescript project software-pack manifest"
+[ -s "$matrix_project_typescript/tsconfig.json" ] || fail "expected typescript project tsconfig"
+
 for required_file in \
 	"$matrix_project_python/policy/stack-lane.json" \
 	"$matrix_project_python/docs/tech-stack.local.md" \
+	"$matrix_project_node/package.json" \
+	"$matrix_project_node/policy/stack-lane.json" \
+	"$matrix_project_node/docs/tech-stack.local.md" \
+	"$matrix_project_typescript/package.json" \
+	"$matrix_project_typescript/tsconfig.json" \
+	"$matrix_project_typescript/policy/stack-lane.json" \
+	"$matrix_project_typescript/docs/tech-stack.local.md" \
 	"$matrix_project_rust/policy/stack-lane.json" \
 	"$matrix_project_rust/docs/tech-stack.local.md" \
 	"$matrix_project_elixir/mix.exs" \
@@ -804,6 +840,8 @@ done
 
 for generated_policy in \
 	"$matrix_project_python/policy/stack-lane.json" \
+	"$matrix_project_node/policy/stack-lane.json" \
+	"$matrix_project_typescript/policy/stack-lane.json" \
 	"$matrix_project_rust/policy/stack-lane.json" \
 	"$matrix_project_elixir/policy/stack-lane.json" \
 	"$matrix_monorepo/packages/fixture-py-core/policy/stack-lane.json" \
@@ -822,6 +860,8 @@ done
 
 for generated_doc in \
 	"$matrix_project_python/docs/tech-stack.local.md" \
+	"$matrix_project_node/docs/tech-stack.local.md" \
+	"$matrix_project_typescript/docs/tech-stack.local.md" \
 	"$matrix_project_rust/docs/tech-stack.local.md" \
 	"$matrix_project_elixir/docs/tech-stack.local.md" \
 	"$matrix_monorepo/packages/fixture-py-core/docs/tech-stack.local.md" \
@@ -829,9 +869,13 @@ for generated_doc in \
 	"$matrix_monorepo/packages/fixture-rust-core/docs/tech-stack.local.md" \
 	"$matrix_monorepo/packages/fixture-elixir-core/docs/tech-stack.local.md"; do
 	grep -qF "tech_stack_core.command" "$generated_doc" || {
-		echo "error: generated stack override doc should point to the pinned lane command: $generated_doc" >&2
+		echo "error: generated stack override doc should point to the declared lane command: $generated_doc" >&2
 		exit 1
 	}
+	if grep -qF "pins the upstream lane" "$generated_doc"; then
+		echo "error: generated stack override doc should not overstate lane pinning: $generated_doc" >&2
+		exit 1
+	fi
 	if grep -qF -- "--prefer-repo" "$generated_doc"; then
 		echo "error: generated stack override doc should not hardcode repo-preferred lane resolution: $generated_doc" >&2
 		exit 1
@@ -842,6 +886,10 @@ grep -qF "policy/stack-lane.json" "$matrix_monorepo/docs/tech-stack.local.md" ||
 	echo "error: monorepo stack doc should point packages/apps at policy/stack-lane.json" >&2
 	exit 1
 }
+if grep -qF "pinned upstream lane" "$matrix_monorepo/docs/tech-stack.local.md"; then
+	echo "error: monorepo stack doc should not overstate lane pinning" >&2
+	exit 1
+fi
 if grep -qF -- "--prefer-repo" "$matrix_monorepo/docs/tech-stack.local.md"; then
 	echo "error: monorepo stack doc should not hardcode repo-preferred lane resolution" >&2
 	exit 1
@@ -851,6 +899,8 @@ fi
 for generated_project in \
 	"$colon_l2" \
 	"$matrix_project_python" \
+	"$matrix_project_node" \
+	"$matrix_project_typescript" \
 	"$matrix_project_rust" \
 	"$matrix_project_elixir"; do
 	assert_file_contains "$generated_project/README.md" "governance/task-scopes/AK-<TASK-ID>.snapshot.json" "generated tpl-project-repo README should describe frozen AK task-scope snapshots"

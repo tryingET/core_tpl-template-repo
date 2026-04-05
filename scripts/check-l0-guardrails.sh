@@ -45,6 +45,28 @@ assert_not_contains() {
 	fi
 }
 
+assert_files_equal() {
+	left="$1"
+	right="$2"
+	label="$3"
+
+	set +e
+	git diff --no-index --quiet -- "$left" "$right"
+	status=$?
+	set -e
+
+	if [ "$status" -eq 0 ]; then
+		return
+	fi
+	if [ "$status" -eq 1 ]; then
+		echo "error: $label" >&2
+		git --no-pager diff --no-index -- "$left" "$right" >&2 || true
+		exit 1
+	fi
+
+	fail "$label (diff command failed)"
+}
+
 suffix_policy_lib="$repo_root/copier-template/scripts/lib/suffix-policy.sh"
 [ -f "$suffix_policy_lib" ] || fail "missing required file: $suffix_policy_lib"
 # shellcheck source=/dev/null
@@ -294,6 +316,15 @@ while IFS= read -r path; do
 done <<EOF
 $required_exec
 EOF
+
+assert_files_equal "scripts/lib/copier-answers.sh" "copier-template/scripts/lib/copier-answers.sh" "L0 and L1 copier-answers helpers must stay identical"
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
+	assert_files_equal "scripts/lib/copier-answers.sh" "copier-template/copier/$tpl/scripts/lib/copier-answers.sh" "shared copier-answers helper must stay identical in $tpl"
+done
+assert_files_equal "scripts/lib/repo-surface.sh" "copier-template/scripts/lib/repo-surface.sh" "L0 and L1 repo-surface helpers must stay identical"
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
+	assert_files_equal "scripts/lib/repo-surface.sh" "copier-template/copier/$tpl/scripts/lib/repo-surface.sh.j2" "shared repo-surface helper must stay identical in $tpl"
+done
 
 # L0 copier.yml assertions
 assert_contains "copier.yml" "_subdirectory: copier-template" "L0 copier source must target copier-template/"

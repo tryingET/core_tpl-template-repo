@@ -4,11 +4,11 @@
 Reading this file is authorization to start immediately.
 Do not ask for permission to begin.
 
-## CURRENT MISSION: FOLLOW THE RUNTIME-RESOLVED FCOS QUEUE, BUT DO NOT REOPEN COMPLETED LOCAL SLICES
+## CURRENT MISSION: NO RUNNABLE FCOS HEAD; FOLLOW OPERATOR DIRECTION OR REQUERY
 
-The runtime-resolved FCOS head currently resolves to `FCOS-M43-01` and spans `holdingco/governance-kernel`, `softwareco/owned/agent-kernel`, and `core/tpl-template-repo`.
-Treat repo-local AK task `#738` as the bounded `core/tpl-template-repo` slice for that concern.
-Once this repo-local slice is committed and completed in AK, use this repo as a mirror/handoff surface unless the resolver points back here with a new local slice or the operator explicitly asks for a different repo-local task.
+The runtime-resolved FCOS queue currently resolves to `none` (`cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` returns `[]`).
+Repo-local FCOS slice `#738` remains closed; do not reopen it.
+If the operator gives an explicit repo-local AK task, follow that task. Otherwise re-run the FCOS resolver first, then fall back to the repo-local ready queue only if the operator wants backlog work here.
 
 ## RUNTIME-RESOLVED PRIORITY / NEXT ISSUE
 
@@ -17,11 +17,9 @@ Once this repo-local slice is committed and completed in AK, use this repo as a 
 - Next issue resolver (same command, mirror-only):
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Last synced runtime-resolved FCOS issue id (mirror-only, rerun the resolver instead of trusting this line):
-  - `FCOS-M43-01`
+  - `none`
 - Last synced runtime-resolved FCOS repo set (mirror-only, rerun the resolver instead of trusting this line):
-  - `holdingco/governance-kernel`
-  - `softwareco/owned/agent-kernel`
-  - `core/tpl-template-repo`
+  - none
 - Anti-drift cadence policy:
   - loop-owned via `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`
 
@@ -32,38 +30,46 @@ Once this repo-local slice is committed and completed in AK, use this repo as a 
 4. `scripts/cargo-operator.sh`
 5. `diary/2026-04-04--chore-ak-nightly-cargo-wrapper-propagation.md`
 6. `diary/2026-04-04--ops-fcos-m43-01-tpl-template-repo-closeout.md`
-7. latest `diary/YYYY-MM-DD--type-scope-summary.md`
+7. `diary/2026-04-05--fix-nexus-helper-parity-language-matrix-and-stack-wording.md`
+8. latest `diary/YYYY-MM-DD--type-scope-summary.md`
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Claimed repo-local AK task `#738`, verified dependency `#736` was already done in `softwareco/owned/agent-kernel`, confirmed the runtime FCOS head is now `FCOS-M43-01`, and closed the tpl-template-repo launcher-bundle propagation slice by validating the already-landed wrapper propagation commit and refreshing this repo's handoff mirror.
+  - Claimed repo-local AK task `#792`, expanded the tpl-project-repo language matrix to cover Node and TypeScript, aligned stack-contract wording with the emitted `workspace-local-unpinned` provenance, hardened copied `copier-answers.sh` helpers/parity checks across L0/L1/L2 surfaces, refreshed fixtures, and updated the handoff mirror now that the FCOS runnable queue is empty.
 - Outcome:
-  - Repo-local AK task `#738` corresponds to the launcher-bundle propagation already landed in commit `d1ea412` (`chore(ak): propagate nightly cargo operator wrapper`).
-  - The managed `scripts/ak.sh` + `scripts/cargo-operator.sh` bundle is propagated through the repo root, `copier-template/`, and checked-in fixtures.
-  - Validation evidence `#433` records `validation:check-l0 = pass` for task `#738`.
-  - `bash ./scripts/check-l0-generation.sh`, `bash ./scripts/check-l0-fixtures.sh`, and `bash ./scripts/check-l0.sh` all pass from this repo.
-  - With governance-kernel task `#735` and agent-kernel task `#736` already done, `core/tpl-template-repo` no longer has an open local execution slice for `FCOS-M43-01` after task `#738` is completed in AK; any remaining queue/state transition belongs first in governance-kernel canonical FCOS surfaces.
-  - `AK-281` is still a separate ready repo-local task, but it is unrelated to `FCOS-M43-01` and should not replace FCOS follow-through without explicit operator direction.
+  - `tpl-project-repo` now preserves `package.json` for both Node and TypeScript software-pack renders while keeping `tsconfig.json` TypeScript-only.
+  - `scripts/check-l0-generation.sh`, `scripts/check-l0-fixtures.sh`, and `scripts/sync-l0-fixtures.sh` now exercise/store matrix fixtures for Python, Node, TypeScript, Rust, and Elixir project repos plus the monorepo package-language matrix.
+  - Stack-contract docs/templates now describe `policy/stack-lane.json` as the source of the declared upstream lane command instead of overstating pinning when the emitted provenance is `workspace-local-unpinned`.
+  - Shared `copier-answers.sh` copies are hardened against unsupported tagged YAML fallback parsing and parity-checked across generated L0/L1/L2 surfaces.
+  - Validation evidence `#416` records `validation:check-l0 = pass` for task `#792`.
+  - `AK-281`, `#791`, `#793`, and `#794` remain ready repo-local backlog items; none should be substituted automatically for FCOS work unless the operator asks.
 - Validation run:
-  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` (`FCOS-M43-01` includes `holdingco/governance-kernel` + `softwareco/owned/agent-kernel` + `core/tpl-template-repo`)
+  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` (`[]`, next issue id `none`)
   - `bash ./scripts/check-l0-generation.sh` (pass)
   - `bash ./scripts/check-l0-fixtures.sh` (pass)
   - `bash ./scripts/check-l0.sh` (pass)
 - Files of interest:
-  - `scripts/ak.sh`
-  - `scripts/cargo-operator.sh`
-  - `copier-template/scripts/ak.sh`
-  - `copier-template/scripts/cargo-operator.sh`
-  - `diary/2026-04-04--chore-ak-nightly-cargo-wrapper-propagation.md`
-  - `diary/2026-04-04--ops-fcos-m43-01-tpl-template-repo-closeout.md`
+  - `scripts/check-l0-generation.sh`
+  - `scripts/check-l0-fixtures.sh`
+  - `scripts/sync-l0-fixtures.sh`
+  - `copier-template/copier/tpl-project-repo/copier.yml`
+  - `copier-template/copier/tpl-project-repo/docs/tech-stack.local.md.j2`
+  - `copier-template/copier/tpl-package/docs/tech-stack.local.md.j2`
+  - `copier-template/copier/tpl-monorepo/docs/tech-stack.local.md.j2`
+  - `copier-template/scripts/check-template-ci.sh`
+  - `scripts/lib/copier-answers.sh`
+  - `fixtures/matrix/tpl-project-repo/node/`
+  - `fixtures/matrix/tpl-project-repo/typescript/`
+  - `diary/2026-04-05--fix-nexus-helper-parity-language-matrix-and-stack-wording.md`
+  - `docs/learnings/2026-04-05-shared-helper-copies-need-parity-checks.md`
   - `next_session_prompt.md`
 - Blockers / follow-up:
-  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session.
-  - If `FCOS-M43-01` still resolves but this repo-local slice is already done, do not reopen task `#738`; reconcile the remaining cross-repo issue state from governance-kernel first.
-  - If the runtime-resolved head moves to another repo, leave this repo and follow that head instead of starting unrelated local work here.
-  - Do not substitute unrelated ready task `AK-281` for FCOS queue work unless the operator explicitly asks for that backlog item.
+  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; the runnable FCOS queue is currently empty.
+  - Do not reopen task `#738`; that FCOS slice is already closed locally.
+  - Do not reopen task `#792` unless a regression appears in Node/TypeScript matrix coverage, stack-contract wording, or helper parity.
+  - If the operator wants backlog work in this repo, pick from the ready queue explicitly instead of inferring a new FCOS-local slice.
 - Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md diary/2026-04-04--ops-fcos-m43-01-tpl-template-repo-closeout.md`
+  - `git restore -- next_session_prompt.md diary/2026-04-05--fix-nexus-helper-parity-language-matrix-and-stack-wording.md docs/learnings/2026-04-05-shared-helper-copies-need-parity-checks.md`
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
   - Crystallize to `docs/learnings/`

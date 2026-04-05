@@ -1,0 +1,23 @@
+# Location: owned
+# Language: node# Core + org context snapshots
+docs/_core/** @core-owner
+docs/org_context/** @org-owners
+
+# Project delivery + governance
+docs/project/** @holdingco-owners
+docs/system4d/** @holdingco-owners
+docs/decisions/** @holdingco-owners
+docs/dev/** @holdingco-owners
+policy/** @holdingco-owners
+governance/** @holdingco-owners
+ontology/** @holdingco-owners
+
+# Code
+scripts/** @holdingco-owners
+src/** @holdingco-owners
+tests/** @holdingco-owners
+
+# Root control-plane files
+AGENTS.md @holdingco-owners
+README.md @holdingco-owners
+next_session_prompt.md @holdingco-owners

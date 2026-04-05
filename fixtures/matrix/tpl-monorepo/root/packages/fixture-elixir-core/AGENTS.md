@@ -17,8 +17,8 @@ Package inside monorepo: library (elixir)
 
 ## Stack contract
 - When this package language maps to a shared `tech-stack-core` lane, keep it explicit:
-  - `policy/stack-lane.json` pins the upstream lane and the executable retrieval command
-  - `docs/tech-stack.local.md` records package-local overrides on top of that lane
+  - `policy/stack-lane.json` declares the upstream lane reference and the executable retrieval command
+  - `docs/tech-stack.local.md` records package-local overrides on top of that lane contract
   - consult `policy/stack-lane.json` before invoking `tech-stack-core` directly; do not assume package-local `lanes/` overrides exist
 
 ## Structure

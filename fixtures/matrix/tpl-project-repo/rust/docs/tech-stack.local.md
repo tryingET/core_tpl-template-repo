@@ -19,13 +19,13 @@ Primary lane:
 
 Executable contract surface:
 
-- `policy/stack-lane.json` pins the upstream lane and retrieval command.
+- `policy/stack-lane.json` declares the upstream lane reference and retrieval command.
 - `docs/tech-stack.local.md` records repo-local deltas.
-- Repo validation should at least verify the pinned lane metadata and may smoke the pinned command when available.
+- Repo validation should at least verify the declared lane metadata and may smoke the declared command when available.
 
 Repo-local emphasis:
 
-- This file is the local override layer on top of the upstream lane.
-- Keep workflow scripts and docs aligned with the pinned lane.
+- This file is the local override layer on top of the upstream lane contract.
+- Keep workflow scripts and docs aligned with the declared lane contract.
 - Prefer local deterministic wrappers before ad-hoc commands.
 - Update this file when local practice intentionally diverges from the upstream lane.

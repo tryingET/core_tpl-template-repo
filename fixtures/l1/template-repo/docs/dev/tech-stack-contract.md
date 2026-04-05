@@ -7,7 +7,7 @@ read_when:
 system4d:
   container: "Stack-contract propagation only; does not redefine the lane docs themselves."
   compass: "Make stack selection inspectable, repeatable, and machine-checkable across generated repos."
-  engine: "Pin upstream lane -> record local override -> validate metadata -> optionally smoke the CLI."
+  engine: "Declare upstream lane reference -> record local override -> validate metadata -> optionally smoke the CLI."
   fog: "Drift appears when lane prose exists without explicit per-repo artifacts."
 ---
 
@@ -20,16 +20,16 @@ This is the canonical document for how `tech-stack-core` should appear in genera
 When a repo or package maps to a shared `tech-stack-core` lane, prefer this explicit surface:
 
 1. `policy/stack-lane.json`
-   - pins the upstream lane name
+   - declares the upstream lane reference
    - records the executable retrieval command
    - records how that command resolves the upstream lane provenance
    - is the machine-readable source of truth
 2. `docs/tech-stack.local.md`
-   - records repo/package-local deltas on top of the upstream lane
+   - records repo/package-local deltas on top of the upstream lane contract
    - is the human-readable local override
 3. validation scripts
-   - must at least verify pinned lane metadata
-   - should smoke the pinned `tech_stack_core.command` when the local workspace can resolve `tech-stack-core`
+   - must at least verify declared lane metadata
+   - should smoke the declared `tech_stack_core.command` when the local workspace can resolve `tech-stack-core`
 
 ## Read / consult order
 

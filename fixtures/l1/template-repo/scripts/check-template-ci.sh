@@ -74,6 +74,28 @@ assert_not_contains() {
 	fi
 }
 
+assert_files_equal() {
+	left="$1"
+	right="$2"
+	label="$3"
+
+	set +e
+	git diff --no-index --quiet -- "$left" "$right"
+	status=$?
+	set -e
+
+	if [ "$status" -eq 0 ]; then
+		return
+	fi
+	if [ "$status" -eq 1 ]; then
+		echo "error: $label" >&2
+		git --no-pager diff --no-index -- "$left" "$right" >&2 || true
+		exit 1
+	fi
+
+	fail "$label (diff command failed)"
+}
+
 assert_line_precedes() {
 	path="$1"
 	first="$2"
@@ -205,6 +227,11 @@ diary/README.md
 
 for path in $required_files; do
 	assert_file "$path"
+done
+
+for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
+	assert_files_equal "scripts/lib/copier-answers.sh" "copier/$tpl/scripts/lib/copier-answers.sh" "generated copier-answers helper must stay identical in $tpl"
+	assert_files_equal "scripts/lib/repo-surface.sh" "copier/$tpl/scripts/lib/repo-surface.sh.j2" "generated repo-surface helper must stay identical in $tpl"
 done
 
 # L2 embedded templates required
@@ -613,12 +640,36 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+no_yaml_bin="$tmp_root/no-yaml-bin"
+mkdir -p "$no_yaml_bin"
+for fake_python in python3 python; do
+	cat >"$no_yaml_bin/$fake_python" <<'EOF'
+#!/usr/bin/env sh
+exit 1
+EOF
+	chmod +x "$no_yaml_bin/$fake_python"
+done
+
 ak_db="$tmp_root/check-template-ci.ak.db"
 ak_test_double="$repo_root/scripts/lib/check-template-ak.py"
 [ -x "$ak_test_double" ] || fail "missing executable AK test double: $ak_test_double"
 export AK_BIN="$ak_test_double"
 export AK_DB="$ak_db"
 "$AK_BIN" -d "$ak_db" init >/dev/null
+
+tagged_ak_root="$tmp_root/tagged-ak-root"
+mkdir -p "$tagged_ak_root/scripts/lib" "$tagged_ak_root/bin"
+cp "$repo_root/scripts/ak.sh" "$tagged_ak_root/scripts/ak.sh"
+chmod +x "$tagged_ak_root/scripts/ak.sh"
+cp "$repo_root/scripts/lib/copier-answers.sh" "$tagged_ak_root/scripts/lib/copier-answers.sh"
+cat >"$tagged_ak_root/.copier-answers.yml" <<'EOF'
+repo_slug: !!str tagged-generated-repo
+EOF
+cat >"$tagged_ak_root/bin/ak" <<'EOF'
+#!/usr/bin/env sh
+exit 0
+EOF
+chmod +x "$tagged_ak_root/bin/ak"
 
 ensure_registered_repo() {
 	repo_path="$1"
@@ -703,6 +754,8 @@ assert_command_fails_with_stderr() {
 
 	rm -f "$stderr_file"
 }
+
+assert_command_fails_with_stderr "generated AK wrapper should fail closed on tagged answers when PyYAML is unavailable" "unable to parse 'repo_slug'" env PATH="$no_yaml_bin:$tagged_ak_root/bin:$PATH" "$tagged_ak_root/scripts/ak.sh" --doctor
 
 prepare_full_ci_probe() {
 	repo_path="$1"
@@ -1060,7 +1113,7 @@ assert_contains "$l2_dir/README.md" "ROCS command flow" "generated $tpl README s
 	-d language=python \
 	--defaults --overwrite >/dev/null
 
-# Elixir stack-contract smoke for project + package templates.
+# Stack-contract smoke for project templates across software-pack languages.
 elixir_project_dir="$tmp_root/tpl-project-repo-elixir"
 ./scripts/new-repo-from-copier.sh tpl-project-repo "$elixir_project_dir" \
 	-d repo_slug=fixture-project-elixir \
@@ -1070,16 +1123,49 @@ elixir_project_dir="$tmp_root/tpl-project-repo-elixir"
 assert_file "$elixir_project_dir/mix.exs"
 assert_file "$elixir_project_dir/policy/stack-lane.json"
 assert_file "$elixir_project_dir/docs/tech-stack.local.md"
-assert_contains "$elixir_project_dir/policy/stack-lane.json" '"lane": "elixir"' "generated elixir project should pin the elixir stack lane"
+assert_contains "$elixir_project_dir/policy/stack-lane.json" '"lane": "elixir"' "generated elixir project should declare the elixir stack lane"
 assert_contains "$elixir_project_dir/policy/stack-lane.json" '"ref": "workspace-local-unpinned"' "generated elixir project should record honest workspace-local provenance"
 assert_not_contains "$elixir_project_dir/policy/stack-lane.json" "--prefer-repo" "generated elixir project should not pin repo-preferred lane resolution"
-assert_contains "$elixir_project_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir project should point operators to the pinned lane command"
+assert_contains "$elixir_project_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir project should point operators to the declared lane command"
+assert_not_contains "$elixir_project_dir/docs/tech-stack.local.md" "pins the upstream lane" "generated elixir project docs should not overstate lane pinning"
 assert_not_contains "$elixir_project_dir/docs/tech-stack.local.md" "--prefer-repo" "generated elixir project docs should not hardcode repo-preferred lane resolution"
 ensure_registered_repo "$elixir_project_dir"
 (
 	cd "$elixir_project_dir"
 	./scripts/ak.sh work-items check --repo . --path governance/work-items.json >/dev/null
 )
+
+node_project_dir="$tmp_root/tpl-project-repo-node"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$node_project_dir" \
+	-d repo_slug=fixture-project-node \
+	-d language=node \
+	-d enable_software_pack=true \
+	--defaults --overwrite >/dev/null
+assert_file "$node_project_dir/package.json"
+assert_not_file "$node_project_dir/tsconfig.json"
+assert_file "$node_project_dir/policy/stack-lane.json"
+assert_file "$node_project_dir/docs/tech-stack.local.md"
+assert_contains "$node_project_dir/policy/stack-lane.json" '"lane": "ts"' "generated node project should declare the ts stack lane"
+assert_contains "$node_project_dir/policy/stack-lane.json" '"ref": "workspace-local-unpinned"' "generated node project should record honest workspace-local provenance"
+assert_contains "$node_project_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated node project should point operators to the declared lane command"
+assert_not_contains "$node_project_dir/docs/tech-stack.local.md" "pins the upstream lane" "generated node project docs should not overstate lane pinning"
+assert_not_contains "$node_project_dir/docs/tech-stack.local.md" "--prefer-repo" "generated node project docs should not hardcode repo-preferred lane resolution"
+
+typescript_project_dir="$tmp_root/tpl-project-repo-typescript"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$typescript_project_dir" \
+	-d repo_slug=fixture-project-typescript \
+	-d language=typescript \
+	-d enable_software_pack=true \
+	--defaults --overwrite >/dev/null
+assert_file "$typescript_project_dir/package.json"
+assert_file "$typescript_project_dir/tsconfig.json"
+assert_file "$typescript_project_dir/policy/stack-lane.json"
+assert_file "$typescript_project_dir/docs/tech-stack.local.md"
+assert_contains "$typescript_project_dir/policy/stack-lane.json" '"lane": "ts"' "generated typescript project should declare the ts stack lane"
+assert_contains "$typescript_project_dir/policy/stack-lane.json" '"ref": "workspace-local-unpinned"' "generated typescript project should record honest workspace-local provenance"
+assert_contains "$typescript_project_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated typescript project should point operators to the declared lane command"
+assert_not_contains "$typescript_project_dir/docs/tech-stack.local.md" "pins the upstream lane" "generated typescript project docs should not overstate lane pinning"
+assert_not_contains "$typescript_project_dir/docs/tech-stack.local.md" "--prefer-repo" "generated typescript project docs should not hardcode repo-preferred lane resolution"
 
 bash_project_dir="$tmp_root/tpl-project-repo-bash"
 ./scripts/new-repo-from-copier.sh tpl-project-repo "$bash_project_dir" \
@@ -1090,7 +1176,8 @@ bash_project_dir="$tmp_root/tpl-project-repo-bash"
 assert_not_file "$bash_project_dir/policy/stack-lane.json"
 assert_not_file "$bash_project_dir/docs/tech-stack.local.md"
 assert_contains "$bash_project_dir/README.md" "Bash project scaffolded with:" "generated bash project README should describe the bash software-pack contract"
-assert_contains "$bash_project_dir/README.md" 'no shared `tech-stack-core` lane is emitted yet for bash' "generated bash project README should explain the current bash lane boundary honestly"
+assert_contains "$bash_project_dir/README.md" "no shared \`tech-stack-core\` lane is emitted yet for bash" "generated bash project README should explain the current bash lane boundary honestly"
+assert_not_contains "$bash_project_dir/README.md" "pretending a pinned lane exists" "generated bash project README should not claim nonexistent lane pinning"
 
 elixir_package_dir="$tmp_root/tpl-package-elixir"
 ./scripts/new-repo-from-copier.sh tpl-package "$elixir_package_dir" \
@@ -1103,7 +1190,8 @@ assert_file "$elixir_package_dir/docs/tech-stack.local.md"
 assert_contains "$elixir_package_dir/policy/stack-lane.json" '"lane": "elixir"' "generated elixir package should pin the elixir stack lane"
 assert_contains "$elixir_package_dir/policy/stack-lane.json" '"ref": "workspace-local-unpinned"' "generated elixir package should record honest workspace-local provenance"
 assert_not_contains "$elixir_package_dir/policy/stack-lane.json" "--prefer-repo" "generated elixir package should not pin repo-preferred lane resolution"
-assert_contains "$elixir_package_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir package should point operators to the pinned lane command"
+assert_contains "$elixir_package_dir/docs/tech-stack.local.md" "tech_stack_core.command" "generated elixir package should point operators to the declared lane command"
+assert_not_contains "$elixir_package_dir/docs/tech-stack.local.md" "pins the upstream lane" "generated elixir package docs should not overstate lane pinning"
 assert_not_contains "$elixir_package_dir/docs/tech-stack.local.md" "--prefer-repo" "generated elixir package docs should not hardcode repo-preferred lane resolution"
 
 # Detailed check for tpl-project-repo (primary template)

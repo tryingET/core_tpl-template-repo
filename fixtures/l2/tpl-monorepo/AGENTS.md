@@ -37,7 +37,7 @@ governance/      # AK work-items projection, optional task-scope snapshots, poli
 - Keep the stack contract explicit:
   - root `docs/tech-stack.local.md` records monorepo control-plane overrides
   - generated packages/apps should carry `policy/stack-lane.json` + `docs/tech-stack.local.md`
-  - package/app `policy/stack-lane.json` is the source of truth for the pinned upstream lane command
+  - package/app `policy/stack-lane.json` is the source of truth for the declared upstream lane command
 
 ## Agent/operator prompts
 - Repo-local commit workflow prompt lives at `.pi/prompts/commit.md`.

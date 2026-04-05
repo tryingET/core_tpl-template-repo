@@ -10,35 +10,44 @@
 # The fallback intentionally fails closed for multi-line/escaped scalars rather
 # than silently corrupting values.
 
+copier_answers__python() {
+	if [ "${COPIER_ANSWERS_BASE_PYTHON:-__unset__}" = "__unset__" ]; then
+		COPIER_ANSWERS_BASE_PYTHON=""
+
+		for candidate in python3 python; do
+			if command -v "$candidate" >/dev/null 2>&1; then
+				COPIER_ANSWERS_BASE_PYTHON="$candidate"
+				break
+			fi
+		done
+	fi
+
+	[ -n "${COPIER_ANSWERS_BASE_PYTHON:-}" ] || return 1
+	printf '%s\n' "$COPIER_ANSWERS_BASE_PYTHON"
+}
+
 copier_answers__python_with_yaml() {
-  if [ "${COPIER_ANSWERS_PYTHON:-__unset__}" = "__unset__" ]; then
-    COPIER_ANSWERS_PYTHON=""
+	if [ "${COPIER_ANSWERS_PYTHON:-__unset__}" = "__unset__" ]; then
+		COPIER_ANSWERS_PYTHON=""
 
-    for candidate in python3 python; do
-      if ! command -v "$candidate" >/dev/null 2>&1; then
-        continue
-      fi
-
-      if "$candidate" - <<'PY' >/dev/null 2>&1
+		python_bin="$(copier_answers__python 2>/dev/null || true)"
+		if [ -n "$python_bin" ] && "$python_bin" - <<'PY' >/dev/null 2>&1; then
 import yaml
 PY
-      then
-        COPIER_ANSWERS_PYTHON="$candidate"
-        break
-      fi
-    done
-  fi
+			COPIER_ANSWERS_PYTHON="$python_bin"
+		fi
+	fi
 
-  [ -n "${COPIER_ANSWERS_PYTHON:-}" ] || return 1
-  printf '%s\n' "$COPIER_ANSWERS_PYTHON"
+	[ -n "${COPIER_ANSWERS_PYTHON:-}" ] || return 1
+	printf '%s\n' "$COPIER_ANSWERS_PYTHON"
 }
 
 copier_answers__scalar_with_python() {
-  answers_file="$1"
-  key="$2"
-  python_bin="$(copier_answers__python_with_yaml)" || return 1
+	answers_file="$1"
+	key="$2"
+	python_bin="$(copier_answers__python_with_yaml)" || return 1
 
-  "$python_bin" - "$answers_file" "$key" <<'PY'
+	"$python_bin" - "$answers_file" "$key" <<'PY'
 import sys
 import yaml
 
@@ -64,10 +73,10 @@ PY
 }
 
 copier_answers__scalar_fallback() {
-  answers_file="$1"
-  key="$2"
+	answers_file="$1"
+	key="$2"
 
-  awk -v key="$key" '
+	awk -v key="$key" '
     function trim(value) {
       sub(/^[ \t]+/, "", value)
       sub(/[ \t]+$/, "", value)
@@ -178,8 +187,22 @@ copier_answers__scalar_fallback() {
         exit
       }
 
+      # Reject block-scalar markers, flow collections, and anchors/tags.
+      # These are not simple scalars and the fallback cannot parse them correctly.
+      if (value ~ /^[|>]$/ || value ~ /^[|>][[:space:]]/ || value ~ /^[\[\{]/ || value ~ /^&/ || value ~ /^\*/ || value ~ /^!/) {
+        status = 2
+        exit
+      }
+
       sub(/[[:space:]]+#.*$/, "", value)
       value = trim(value)
+
+      # Also reject unquoted values that look like block/folded markers after trim.
+      if (value == "|" || value == ">" || value ~ /^[\[\{]/ || value ~ /^&/ || value ~ /^\*/ || value ~ /^!/) {
+        status = 2
+        exit
+      }
+
       print value
       status = 0
       exit
@@ -192,67 +215,107 @@ copier_answers__scalar_fallback() {
 }
 
 copier_answers_scalar() {
-  answers_file="$1"
-  key="$2"
+	answers_file="$1"
+	key="$2"
 
-  [ -f "$answers_file" ] || return 1
+	[ -f "$answers_file" ] || return 1
 
-  if copier_answers__python_with_yaml >/dev/null 2>&1; then
-    copier_answers__scalar_with_python "$answers_file" "$key"
-    return $?
-  fi
+	if copier_answers__python_with_yaml >/dev/null 2>&1; then
+		copier_answers__scalar_with_python "$answers_file" "$key"
+		return $?
+	fi
 
-  copier_answers__scalar_fallback "$answers_file" "$key"
+	copier_answers__scalar_fallback "$answers_file" "$key"
 }
 
 copier_answers_try_scalar() {
-  value=""
-  status=0
+	value=""
+	status=0
 
-  value="$(copier_answers_scalar "$1" "$2" 2>/dev/null)" || status=$?
+	value="$(copier_answers_scalar "$1" "$2" 2>/dev/null)" || status=$?
 
-  if [ "$status" -eq 0 ]; then
-    printf '%s\n' "$value"
-    return 0
-  fi
+	if [ "$status" -eq 0 ]; then
+		printf '%s\n' "$value"
+		return 0
+	fi
 
-  [ "$status" -eq 1 ] && return 0
-  return "$status"
+	[ "$status" -eq 1 ] && return 0
+	return "$status"
 }
 
 copier_answers_lower_scalar() {
-  value=""
-  status=0
+	value=""
+	status=0
 
-  value="$(copier_answers_scalar "$1" "$2" 2>/dev/null)" || status=$?
+	value="$(copier_answers_scalar "$1" "$2" 2>/dev/null)" || status=$?
 
-  if [ "$status" -eq 0 ]; then
-    [ -n "$value" ] || return 1
-    printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
-    return 0
-  fi
+	if [ "$status" -eq 0 ]; then
+		[ -n "$value" ] || return 1
+		printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
+		return 0
+	fi
 
-  [ "$status" -eq 1 ] || return "$status"
-  return 1
+	[ "$status" -eq 1 ] || return "$status"
+	return 1
 }
 
 copier_answers_try_lower_scalar() {
-  value=""
-  status=0
+	value=""
+	status=0
 
-  value="$(copier_answers_try_scalar "$1" "$2" 2>/dev/null)" || status=$?
+	value="$(copier_answers_try_scalar "$1" "$2" 2>/dev/null)" || status=$?
 
-  if [ "$status" -eq 0 ]; then
-    [ -n "$value" ] || return 0
-    printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
-    return 0
-  fi
+	if [ "$status" -eq 0 ]; then
+		[ -n "$value" ] || return 0
+		printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
+		return 0
+	fi
 
-  return "$status"
+	return "$status"
+}
+
+copier_answers_json_scalar() {
+	json_file="$1"
+	key="$2"
+
+	[ -f "$json_file" ] || return 1
+
+	python_bin="$(copier_answers__python 2>/dev/null || true)"
+	[ -n "$python_bin" ] || return 2
+
+	"$python_bin" - "$json_file" "$key" <<'PY'
+import json
+import sys
+
+path, key = sys.argv[1], sys.argv[2]
+
+try:
+    with open(path, "r", encoding="utf-8") as handle:
+        data = json.load(handle)
+except FileNotFoundError:
+    raise SystemExit(1)
+except Exception:
+    raise SystemExit(2)
+
+if not isinstance(data, dict) or key not in data:
+    raise SystemExit(1)
+
+value = data[key]
+if value is None:
+    raise SystemExit(1)
+
+if isinstance(value, (dict, list, tuple)):
+    raise SystemExit(2)
+
+if isinstance(value, bool):
+    sys.stdout.write("true" if value else "false")
+else:
+    sys.stdout.write(str(value))
+PY
 }
 
 copier_answers_l1_preview_keys() {
-  cat <<'EOF'
+	cat <<'EOF'
 company_slug
 company_name
 maintainer_handle
