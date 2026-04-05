@@ -23,6 +23,11 @@ scripts/         # CI/utility scripts
 - `org_docs_profile=compact`: `docs/org_context/org-summary.md`
 - `org_docs_profile=rich`: adds mission / purpose / vision / strategic objectives / governance context files
 
+## Profile Compatibility Flags
+
+- `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:
+  inherited compatibility flags from the parent L1 profile; currently metadata-only in `tpl-monorepo` (no extra file overlays at the monorepo root)
+
 ## Quick Commands
 
 ```bash

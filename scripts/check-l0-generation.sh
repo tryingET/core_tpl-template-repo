@@ -120,6 +120,46 @@ replace_first_match_in_file() {
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
+prepare_tree_without_answers() {
+	src="$1"
+	dst="$2"
+
+	rm -rf "$dst"
+	mkdir -p "$dst"
+	cp -R "$src/." "$dst/"
+	rm -f "$dst/.copier-answers.yml"
+}
+
+assert_trees_equal_without_answers() {
+	left="$1"
+	right="$2"
+	label="$3"
+	left_copy="$(mktemp -d "$tmp_root/left-tree.XXXXXX")"
+	right_copy="$(mktemp -d "$tmp_root/right-tree.XXXXXX")"
+
+	prepare_tree_without_answers "$left" "$left_copy"
+	prepare_tree_without_answers "$right" "$right_copy"
+
+	set +e
+	git diff --no-index --quiet -- "$left_copy" "$right_copy"
+	status=$?
+	set -e
+
+	if [ "$status" -eq 0 ]; then
+		rm -rf "$left_copy" "$right_copy"
+		return
+	fi
+	if [ "$status" -eq 1 ]; then
+		echo "error: $label" >&2
+		git --no-pager diff --no-index -- "$left_copy" "$right_copy" >&2 || true
+		rm -rf "$left_copy" "$right_copy"
+		exit 1
+	fi
+
+	rm -rf "$left_copy" "$right_copy"
+	fail "$label (diff command failed)"
+}
+
 missing_node_bin="$tmp_root/missing-node-bin"
 mkdir -p "$missing_node_bin"
 for tool_name in sh dirname pwd; do
@@ -631,6 +671,85 @@ matrix_monorepo="$tmp_root/l2-monorepo-matrix"
 		-d language=elixir \
 		--defaults --overwrite >/dev/null
 )
+
+toggle_contract_l1="$tmp_root/l1-template-toggle-contract"
+toggle_agent_default="$tmp_root/l2-agent-toggle-default"
+toggle_agent_enabled="$tmp_root/l2-agent-toggle-enabled"
+toggle_org_default="$tmp_root/l2-org-toggle-default"
+toggle_org_enabled="$tmp_root/l2-org-toggle-enabled"
+toggle_project_default="$tmp_root/l2-project-toggle-default"
+toggle_project_enabled="$tmp_root/l2-project-toggle-enabled"
+toggle_monorepo_default="$tmp_root/l2-monorepo-toggle-default"
+toggle_monorepo_enabled="$tmp_root/l2-monorepo-toggle-enabled"
+"$repo_root/scripts/new-l1-from-copier.sh" "$toggle_contract_l1" \
+	-d repo_slug=l1-template-toggle-contract \
+	-d maintainer_handle=@template-owner \
+	--defaults --overwrite >/dev/null
+(
+	cd "$toggle_contract_l1"
+	./scripts/new-repo-from-copier.sh tpl-agent-repo "$toggle_agent_default" \
+		-d repo_slug=fixture-agent-toggle-contract \
+		-d enable_community_pack=false \
+		-d enable_release_pack=false \
+		-d enable_vouch_gate=false \
+		--defaults --overwrite >/dev/null
+	./scripts/new-repo-from-copier.sh tpl-agent-repo "$toggle_agent_enabled" \
+		-d repo_slug=fixture-agent-toggle-contract \
+		-d enable_community_pack=true \
+		-d enable_release_pack=true \
+		-d enable_vouch_gate=true \
+		--defaults --overwrite >/dev/null
+
+	./scripts/new-repo-from-copier.sh tpl-org-repo "$toggle_org_default" \
+		-d repo_slug=fixture-org-toggle-contract \
+		-d enable_community_pack=false \
+		-d enable_release_pack=false \
+		-d enable_vouch_gate=false \
+		--defaults --overwrite >/dev/null
+	./scripts/new-repo-from-copier.sh tpl-org-repo "$toggle_org_enabled" \
+		-d repo_slug=fixture-org-toggle-contract \
+		-d enable_community_pack=true \
+		-d enable_release_pack=true \
+		-d enable_vouch_gate=true \
+		--defaults --overwrite >/dev/null
+
+	./scripts/new-repo-from-copier.sh tpl-project-repo "$toggle_project_default" \
+		-d repo_slug=fixture-project-toggle-contract \
+		-d enable_community_pack=false \
+		-d enable_release_pack=false \
+		-d enable_vouch_gate=false \
+		--defaults --overwrite >/dev/null
+	./scripts/new-repo-from-copier.sh tpl-project-repo "$toggle_project_enabled" \
+		-d repo_slug=fixture-project-toggle-contract \
+		-d enable_community_pack=true \
+		-d enable_release_pack=true \
+		-d enable_vouch_gate=true \
+		--defaults --overwrite >/dev/null
+
+	./scripts/new-repo-from-copier.sh tpl-monorepo "$toggle_monorepo_default" \
+		-d repo_slug=fixture-monorepo-toggle-contract \
+		-d package_manager=uv \
+		-d enable_community_pack=false \
+		-d enable_release_pack=false \
+		-d enable_vouch_gate=false \
+		--defaults --overwrite >/dev/null
+	./scripts/new-repo-from-copier.sh tpl-monorepo "$toggle_monorepo_enabled" \
+		-d repo_slug=fixture-monorepo-toggle-contract \
+		-d package_manager=uv \
+		-d enable_community_pack=true \
+		-d enable_release_pack=true \
+		-d enable_vouch_gate=true \
+		--defaults --overwrite >/dev/null
+)
+
+assert_file_contains "$toggle_agent_enabled/README.md" 'metadata-only in `tpl-agent-repo`' "generated tpl-agent-repo README should describe profile toggles as metadata-only"
+assert_file_contains "$toggle_org_enabled/README.md" 'metadata-only in `tpl-org-repo`' "generated tpl-org-repo README should describe profile toggles as metadata-only"
+assert_file_contains "$toggle_project_enabled/README.md" 'metadata-only in `tpl-project-repo`' "generated tpl-project-repo README should describe profile toggles as metadata-only"
+assert_file_contains "$toggle_monorepo_enabled/README.md" 'metadata-only in `tpl-monorepo`' "generated tpl-monorepo README should describe profile toggles as metadata-only"
+assert_trees_equal_without_answers "$toggle_agent_default" "$toggle_agent_enabled" "tpl-agent-repo profile toggles should remain metadata-only at L2"
+assert_trees_equal_without_answers "$toggle_org_default" "$toggle_org_enabled" "tpl-org-repo profile toggles should remain metadata-only at L2"
+assert_trees_equal_without_answers "$toggle_project_default" "$toggle_project_enabled" "tpl-project-repo profile toggles should remain metadata-only at L2"
+assert_trees_equal_without_answers "$toggle_monorepo_default" "$toggle_monorepo_enabled" "tpl-monorepo profile toggles should remain metadata-only at L2"
 
 assert_command_fails "root ROCS doctor must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing "$repo_root/scripts/rocs.sh" --doctor
 assert_command_fails "root ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing "$repo_root/scripts/rocs.sh" --which

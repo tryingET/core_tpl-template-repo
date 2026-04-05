@@ -61,17 +61,17 @@ org_docs_profile:
 enable_community_pack:
   type: bool
   default: false
-  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo."
+  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo (no extra file overlays)."
 
 enable_release_pack:
   type: bool
   default: false
-  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo."
+  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo (no extra file overlays)."
 
 enable_vouch_gate:
   type: bool
   default: false
-  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo."
+  help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo (no extra file overlays)."
 
 kernel_ontology_ref:
   type: str

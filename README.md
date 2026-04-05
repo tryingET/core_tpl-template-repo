@@ -120,7 +120,7 @@ Generated `tpl-project-repo` / `tpl-monorepo` repositories can still override wi
 
 ## Community pack (optional by profile)
 
-When `enable_community_pack=true`, generated L1/L2 repositories include:
+When `enable_community_pack=true`, generated L1 template repositories include:
 - `.github/ISSUE_TEMPLATE/` issue forms
 - `.github/pull_request_template.md`
 - `CODE_OF_CONDUCT.md`
@@ -130,13 +130,14 @@ Defaults stay conservative (`false`) for internal/private template lines.
 
 ## Release pack (optional by profile)
 
-When `enable_release_pack=true`, generated L1/L2 repositories include:
+When `enable_release_pack=true`, generated L1 template repositories include:
 - release workflows (`release-please`, `release-check`, `publish`)
 - release metadata (`.release-please-config.json`, `.release-please-manifest.json`)
 - baseline release/security docs (`CHANGELOG.md`, `SECURITY.md`)
 - release helper scripts (`scripts/release/check.sh`, `scripts/release/publish.sh`)
 
 Defaults stay conservative (`false`) and should be enabled when repository governance requires release automation.
+Current L2 archetypes (`tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-monorepo`) still inherit `enable_community_pack`, `enable_release_pack`, and `enable_vouch_gate` as compatibility metadata only; they do not scaffold extra L2 overlay files yet.
 
 Run full L0 validations:
 

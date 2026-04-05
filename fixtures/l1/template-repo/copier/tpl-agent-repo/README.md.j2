@@ -55,9 +55,8 @@ agent-<slug>/
 - `repo_slug`: Agent identifier (e.g., `agent-triage`)
 - `agent_owner_handle`: CODEOWNERS entry for agent paths
 - `core_owner_handle`: CODEOWNERS entry for core paths
-- `enable_vouch_gate`: Enable trust gating
-- `enable_community_pack`: Enable community collaboration
-- `enable_release_pack`: Enable release automation
+- `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:
+  inherited compatibility flags from the parent L1 profile; currently metadata-only in `tpl-agent-repo` (no extra file overlays)
 
 ## Optional explicit task-scope snapshots
 

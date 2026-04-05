@@ -58,6 +58,7 @@ If a change moves a repo across trust boundaries (internal -> public, or ungated
 ## Operational notes
 
 - Always keep `.copier-answers.yml` committed so selected profile choices are auditable.
+- Current L2 archetypes (`tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, `tpl-monorepo`) inherit `enable_community_pack`, `enable_release_pack`, and `enable_vouch_gate` as compatibility metadata only; the concrete community/release/vouch file overlays are not scaffolded there yet.
 - Document non-standard combinations in repo `README.md` and/or `AGENTS.md`.
 - Validate after profile changes:
 

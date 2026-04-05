@@ -63,9 +63,8 @@ From an L1 templates repository:
 - `repo_slug`: Organization identifier
 - `org_owner_handle`: CODEOWNERS entry for org paths
 - `core_owner_handle`: CODEOWNERS entry for core paths
-- `enable_vouch_gate`: Enable trust gating
-- `enable_community_pack`: Enable community collaboration
-- `enable_release_pack`: Enable release automation
+- `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:
+  inherited compatibility flags from the parent L1 profile; currently metadata-only in `tpl-org-repo` (no extra file overlays)
 
 ## Consent Model
 
