@@ -347,6 +347,17 @@ if [ "$template_name" = "tpl-project-repo" ] || [ "$template_name" = "tpl-monore
   fi
 fi
 
+if [ "$template_name" = "tpl-package" ]; then
+  if ! has_data_override package_owner_handle "$@"; then
+    inherited_owner=""
+    inherited_owner_status=0
+    inherited_owner="$(read_inherited_value "$answers_file" project_owner_handle)" || inherited_owner_status=$?
+    if [ "$inherited_owner_status" -eq 0 ] && [ -n "$inherited_owner" ]; then
+      set -- -d "package_owner_handle=$inherited_owner" "$@"
+    fi
+  fi
+fi
+
 if ! has_data_override template_source_sha "$@"; then
   template_source_sha="$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || true)"
   [ -n "$template_source_sha" ] || template_source_sha="unknown"

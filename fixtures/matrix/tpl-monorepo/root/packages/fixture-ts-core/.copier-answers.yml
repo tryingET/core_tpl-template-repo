@@ -5,5 +5,7 @@ kernel_ontology_ref: <gitlab:org/ontology-kernel@v0.1.0>
 language: typescript
 package_description: ''
 package_name: fixture-ts-core
+package_owner_handle: '@project-owners'
 package_type: library
+template_source_sha: __VOLATILE_TEMPLATE_SOURCE_SHA__
 

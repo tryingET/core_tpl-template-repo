@@ -23,12 +23,19 @@ scripts/         # CI/utility scripts
 - `org_docs_profile=compact`: `docs/org_context/org-summary.md`
 - `org_docs_profile=rich`: adds mission / purpose / vision / strategic objectives / governance context files
 
+## Profile Compatibility Flags
+
+- `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:
+  inherited compatibility flags from the parent L1 profile; currently metadata-only in `tpl-monorepo` (no extra file overlays at the monorepo root)
+
 ## Quick Commands
 
 ```bash
 # Agent Kernel tooling
 ./scripts/ak.sh --doctor
 ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+# Optional ambient fallback only when explicitly intended
+AK_ALLOW_PATH_FALLBACK=1 ./scripts/ak.sh --which
 
 # ROCS tooling
 ./scripts/rocs.sh --doctor

@@ -178,6 +178,7 @@ scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/lib/check-template-ak.py
+scripts/lib/check-task-scope-snapshots.py
 scripts/lib/copier-answers.sh
 scripts/lib/repo-surface.sh
 scripts/lib/suffix-policy.sh
@@ -216,6 +217,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	assert_contains "copier/$tpl/.copier-answers.yml.j2" "to_nice_yaml" "L2 template $tpl answers template should use canonical Copier YAML emission"
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_file "copier/$tpl/scripts/ak.sh"
+		assert_file "copier/$tpl/scripts/lib/check-task-scope-snapshots.py"
 		assert_file "copier/$tpl/scripts/lib/copier-answers.sh"
 		assert_file "copier/$tpl/scripts/lib/repo-surface.sh.j2"
 		assert_exec "copier/$tpl/scripts/ak.sh"
@@ -242,6 +244,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_contains "copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
 		assert_contains "copier/$tpl/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L2 template $tpl AK wrapper should source the shared copier answers helper"
+		assert_contains "copier/$tpl/scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L2 template $tpl task-scope checker should use the shared parser-backed helper"
 		assert_contains "copier/$tpl/scripts/preflight-repo-census.sh.j2" "scripts/lib/repo-surface.sh" "L2 template $tpl repo census helper should source the shared repo-surface helper"
 		assert_contains "copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
 		assert_not_contains "copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
@@ -386,9 +389,10 @@ assert_not_contains "scripts/new-repo-from-copier.sh" "uvx copier" "L1 wrapper m
 assert_line_precedes "scripts/new-repo-from-copier.sh" "$uvx_guard" "$uv_guard" "L1 wrapper must prefer uvx before uv tool run"
 assert_line_precedes "scripts/new-repo-from-copier.sh" "$uv_guard" "$copier_guard" "L1 wrapper must prefer pinned runtimes before unpinned copier"
 assert_contains "scripts/ak.sh" "deterministic resolution order" "L1 AK wrapper should document deterministic resolution order"
+assert_contains "scripts/ak.sh" "AK_ALLOW_PATH_FALLBACK=1" "L1 AK wrapper should require explicit opt-in before using ambient ak on PATH"
 assert_contains "scripts/ak.sh" "scripts/lib/copier-answers.sh" "L1 AK wrapper should source the shared copier answers helper"
 assert_contains "scripts/ak.sh" "work-items check" "L1 AK wrapper should document work-items projection commands"
-assert_contains "scripts/check-task-scope-snapshots.sh" "task-scope snapshots" "L1 task-scope checker should explain its validation target"
+assert_contains "scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L1 task-scope checker should use the shared parser-backed helper"
 assert_contains "scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
 assert_contains "scripts/check-template-ci.sh" "scripts/lib/repo-surface.sh" "L1 template CI should require the shared repo-surface helper"
 
@@ -679,6 +683,27 @@ assert_command_fails() {
 	fi
 }
 
+assert_command_fails_with_stderr() {
+	label="$1"
+	needle="$2"
+	shift 2
+
+	stderr_file="$(mktemp "$tmp_root/assert-command-fails.XXXXXX")"
+	if "$@" >/dev/null 2>"$stderr_file"; then
+		rm -f "$stderr_file"
+		fail "$label"
+	fi
+
+	if ! grep -qF -- "$needle" "$stderr_file"; then
+		echo "error: $label (missing '$needle' in stderr)" >&2
+		cat "$stderr_file" >&2 || true
+		rm -f "$stderr_file"
+		exit 1
+	fi
+
+	rm -f "$stderr_file"
+}
+
 prepare_full_ci_probe() {
 	repo_path="$1"
 
@@ -720,6 +745,9 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	assert_file "$l2_dir/scripts/ak.sh"
 	assert_file "$l2_dir/scripts/lib/copier-answers.sh"
 	assert_file "$l2_dir/scripts/lib/repo-surface.sh"
+	if [ "$tpl" != "tpl-package" ]; then
+		assert_file "$l2_dir/scripts/lib/check-task-scope-snapshots.py"
+	fi
 	assert_file "$l2_dir/scripts/rocs.sh"
 	assert_file "$l2_dir/scripts/ci/smoke.sh"
 	assert_file "$l2_dir/scripts/ci/full.sh"
@@ -754,6 +782,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	assert_contains "$l2_dir/scripts/ak.sh" "scripts/lib/copier-answers.sh" "generated $tpl AK wrapper should source the shared copier answers helper"
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_exec "$l2_dir/scripts/check-task-scope-snapshots.sh"
+		assert_contains "$l2_dir/scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "generated $tpl task-scope checker should use the shared parser-backed helper"
 	fi
 	assert_exec "$l2_dir/scripts/rocs.sh"
 	assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"
@@ -813,6 +842,90 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		fi
 	)
 done
+
+bootstrap_smoke_dir="$tmp_root/tpl-project-repo-bootstrap-smoke"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$bootstrap_smoke_dir" \
+	-d repo_slug=tpl-project-repo-bootstrap-smoke \
+	--defaults --overwrite >/dev/null
+(
+	cd "$bootstrap_smoke_dir"
+	git init -b work >/dev/null
+	git config user.name "l1-template ci" >/dev/null
+	git config user.email "ci@l1-template.local" >/dev/null
+	git add . >/dev/null
+	git commit -m "bootstrap smoke" >/dev/null
+	./scripts/ci/smoke.sh >/dev/null 2>/dev/null
+)
+
+quoted_project_repo="$tmp_root/tpl-project-repo-quote\"repo"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$quoted_project_repo" \
+	-d repo_slug=tpl-project-repo-quote-repo \
+	--defaults --overwrite >/dev/null
+quoted_project_task_id="$(create_scoped_task "$quoted_project_repo" "template-ci: quoted project task-scope snapshot")"
+write_task_scope_snapshot "$quoted_project_repo" "$quoted_project_task_id"
+run_repo_cmd "$quoted_project_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
+
+newline_task_scope_repo="$tmp_root/tpl-agent-repo-newline-snapshot"
+./scripts/new-repo-from-copier.sh tpl-agent-repo "$newline_task_scope_repo" \
+	-d repo_slug=tpl-agent-repo-newline-snapshot \
+	--defaults --overwrite >/dev/null
+newline_task_scope_id="$(create_scoped_task "$newline_task_scope_repo" "template-ci: newline snapshot filename")"
+mkdir -p "$newline_task_scope_repo/governance/task-scopes"
+newline_snapshot_path="$newline_task_scope_repo/governance/task-scopes/AK-${newline_task_scope_id}
+extra.snapshot.json"
+(
+	cd "$newline_task_scope_repo"
+	./scripts/ak.sh task scope export "$newline_task_scope_id" >"$newline_snapshot_path"
+)
+assert_command_fails_with_stderr "generated task-scope checker should fail clearly for newline-bearing snapshot filenames" "numeric task id" run_repo_cmd "$newline_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
+
+serial_full_repo="$tmp_root/tpl-project-repo-serial-full"
+./scripts/new-repo-from-copier.sh tpl-project-repo "$serial_full_repo" \
+	-d repo_slug=tpl-project-repo-serial-full \
+	--defaults --overwrite >/dev/null
+(
+	cd "$serial_full_repo"
+	git init -b main >/dev/null
+	git config user.name "l1-template ci" >/dev/null
+	git config user.email "ci@l1-template.local" >/dev/null
+	git add . >/dev/null
+	git commit -m "serial full" >/dev/null
+)
+serial_full_task_id="$(create_scoped_task "$serial_full_repo" "template-ci: serial full task-scope snapshot")"
+write_task_scope_snapshot "$serial_full_repo" "$serial_full_task_id"
+prepare_full_ci_probe "$serial_full_repo"
+serial_lock_ak="$tmp_root/serial-lock-ak.sh"
+cat >"$serial_lock_ak" <<EOF
+#!/usr/bin/env sh
+set -eu
+lock="$tmp_root/serial-lock-ak"
+repo="$serial_full_repo"
+snapshot="$serial_full_repo/governance/task-scopes/AK-$serial_full_task_id.snapshot.json"
+if ! mkdir "\$lock" 2>/dev/null; then
+	echo "error: concurrent ak invocation detected" >&2
+	exit 99
+fi
+cleanup() {
+	rmdir "\$lock"
+}
+trap cleanup EXIT INT TERM
+sleep 1
+if [ "\${1:-}" = "work-items" ] && [ "\${2:-}" = "check" ]; then
+	exit 0
+fi
+if [ "\${1:-}" = "task" ] && [ "\${2:-}" = "show" ]; then
+	printf '{\n  "repo": "%s"\n}\n' "\$repo"
+	exit 0
+fi
+if [ "\${1:-}" = "task" ] && [ "\${2:-}" = "scope" ] && [ "\${3:-}" = "export" ]; then
+	cat "\$snapshot"
+	exit 0
+fi
+echo "error: unexpected ak invocation: \$*" >&2
+exit 2
+EOF
+chmod +x "$serial_lock_ak"
+run_repo_cmd "$serial_full_repo" env AK_BIN="$serial_lock_ak" ./scripts/ci/full.sh >/dev/null
 
 project_rich_dir="$tmp_root/tpl-project-repo-rich-org-context"
 ./scripts/new-repo-from-copier.sh tpl-project-repo "$project_rich_dir" \

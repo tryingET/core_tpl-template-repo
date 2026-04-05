@@ -15,3 +15,7 @@ apps/** @tryinget
 src/** @tryinget
 tests/** @tryinget
 
+# Root control-plane files
+AGENTS.md @tryinget
+README.md @tryinget
+

@@ -3,6 +3,6 @@
 # Owner information is for documentation purposes only
 
 # Package owner
-/src/     @package-owners
-/tests/   @package-owners
-/docs/    @package-owners
+/src/     @project-owners
+/tests/   @project-owners
+/docs/    @project-owners

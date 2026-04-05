@@ -37,34 +37,25 @@ run_rocs() {
   fi
 }
 
-say "==> work-items + task-scope snapshots + rocs (parallel when they apply)"
-(
-  run_work_items >"$log_dir/work-items.log" 2>&1
-) &
-work_items_pid=$!
-(
-  run_task_scope_snapshots >"$log_dir/task-scopes.log" 2>&1
-) &
-task_scopes_pid=$!
-(
-  run_rocs >"$log_dir/rocs.log" 2>&1
-) &
-rocs_pid=$!
-
+say "==> work-items"
 work_items_status=0
-task_scopes_status=0
-rocs_status=0
-if wait "$work_items_pid"; then
+if run_work_items >"$log_dir/work-items.log" 2>&1; then
   work_items_status=0
 else
   work_items_status=$?
 fi
-if wait "$task_scopes_pid"; then
+
+say "==> task-scope snapshots"
+task_scopes_status=0
+if run_task_scope_snapshots >"$log_dir/task-scopes.log" 2>&1; then
   task_scopes_status=0
 else
   task_scopes_status=$?
 fi
-if wait "$rocs_pid"; then
+
+say "==> rocs"
+rocs_status=0
+if run_rocs >"$log_dir/rocs.log" 2>&1; then
   rocs_status=0
 else
   rocs_status=$?

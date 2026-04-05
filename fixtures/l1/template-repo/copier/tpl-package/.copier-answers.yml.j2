@@ -5,6 +5,8 @@
   "package_type": package_type,
   "language": language,
   "package_description": package_description | default(""),
+  "package_owner_handle": package_owner_handle,
   "kernel_ontology_ref": kernel_ontology_ref,
   "company_ontology_ref": company_ontology_ref,
+  "template_source_sha": template_source_sha | default("unknown"),
 } | to_nice_yaml }}

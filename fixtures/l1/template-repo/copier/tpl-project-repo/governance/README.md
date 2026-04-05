@@ -28,6 +28,8 @@ Diagnose AK resolution:
 ./scripts/ak.sh --which
 ```
 
+Ambient `ak` binaries on `PATH` are blocked by default; set `AK_ALLOW_PATH_FALLBACK=1` only when you explicitly want that fallback.
+
 Bootstrap legacy JSON into AK (migration/import path):
 
 ```bash
