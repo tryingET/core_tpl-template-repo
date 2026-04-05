@@ -34,6 +34,8 @@ scripts/         # CI/utility scripts
 # Agent Kernel tooling
 ./scripts/ak.sh --doctor
 ./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+# Optional ambient fallback only when explicitly intended
+AK_ALLOW_PATH_FALLBACK=1 ./scripts/ak.sh --which
 
 # ROCS tooling
 ./scripts/rocs.sh --doctor

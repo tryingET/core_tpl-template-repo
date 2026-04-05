@@ -107,6 +107,8 @@ Use the wrapper instead of raw `ak` when operating on repo-local AK tasks or whe
 mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ```
 
+By default the wrapper trusts `AK_BIN`, vendored `ak-cli`, or the workspace-core Agent Kernel. If you intentionally want to use an ambient `ak` from `PATH`, opt in with `AK_ALLOW_PATH_FALLBACK=1`.
+
 Author explicit task scope in AK. Frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption exports; hand-authored `AK-*.json` manifests are transitional scaffolding only.
 
 ## Organization docs profiles (L1 vs L2)

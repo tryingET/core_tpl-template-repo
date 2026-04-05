@@ -139,6 +139,8 @@ Use the repo-local wrapper so AK resolution stays explicit and reproducible:
 ./scripts/ak.sh --which
 ```
 
+By default the wrapper trusts `AK_BIN`, vendored `ak-cli`, or the workspace-core Agent Kernel. If you intentionally want to use an ambient `ak` from `PATH`, opt in with `AK_ALLOW_PATH_FALLBACK=1`.
+
 Legacy JSON-first bootstrap (one-time migration into AK):
 
 ```bash

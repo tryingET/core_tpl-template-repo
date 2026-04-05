@@ -21,6 +21,17 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+path_fallback_enabled() {
+  case "${ROCS_ALLOW_PATH_FALLBACK:-0}" in
+    1|true|TRUE|yes|YES|on|ON)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 python_cmd() {
   if has_cmd python3; then
     printf '%s\n' "python3"
@@ -44,7 +55,7 @@ Portable ROCS launcher with deterministic resolution order:
   2) vendored ./tools/rocs-cli
   3) local rocs-cli project (this repo)
   4) workspace core ~/ai-society/core/rocs-cli (or ROCS_CORE_PROJECT)
-  5) rocs on PATH
+  5) rocs on PATH only when ROCS_ALLOW_PATH_FALLBACK=1
 
 Examples:
   ./scripts/rocs.sh version
@@ -99,7 +110,11 @@ select_runner() {
   fi
 
   if has_cmd rocs; then
-    printf '%s\n' "path-rocs"
+    if path_fallback_enabled; then
+      printf '%s\n' "path-rocs"
+    else
+      printf '%s\n' "path-rocs-blocked"
+    fi
     return
   fi
 
@@ -134,7 +149,10 @@ runner_desc() {
       printf 'workspace core via uv --project %s\n' "$core_project_default"
       ;;
     path-rocs)
-      printf 'rocs on PATH (%s)\n' "$(command -v rocs)"
+      printf 'rocs on PATH (%s) with explicit ROCS_ALLOW_PATH_FALLBACK=1\n' "$(command -v rocs)"
+      ;;
+    path-rocs-blocked)
+      printf 'rocs on PATH is available (%s) but blocked by default; set ROCS_ALLOW_PATH_FALLBACK=1 or ROCS_BIN=/absolute/path/to/rocs\n' "$(command -v rocs)"
       ;;
     missing)
       printf 'unresolved (no viable rocs runner)\n'
@@ -156,13 +174,16 @@ doctor() {
   say "- has python3: $(has_cmd python3 && printf yes || printf no)"
   say "- has python: $(has_cmd python && printf yes || printf no)"
   say "- has rocs on PATH: $(has_cmd rocs && printf yes || printf no)"
+  say "- path fallback enabled: $(path_fallback_enabled && printf yes || printf no)"
   say "- has vendored tools/rocs-cli: $([ -d "$repo_root/tools/rocs-cli" ] && printf yes || printf no)"
   say "- local project is rocs-cli: $(is_local_rocs_project && printf yes || printf no)"
   say "- selected runner: $(runner_desc "$runner")"
 
-  if [ "$runner" = "missing" ] || [ "$runner" = "vendored-missing-runtime" ] || [ "$runner" = "rocs-bin-missing" ]; then
-    return 1
-  fi
+  case "$runner" in
+    missing|vendored-missing-runtime|rocs-bin-missing|path-rocs-blocked)
+      return 1
+      ;;
+  esac
   return 0
 }
 
@@ -180,9 +201,11 @@ runner="$(select_runner)"
 
 if [ "${1:-}" = "--which" ]; then
   runner_desc "$runner"
-  if [ "$runner" = "missing" ] || [ "$runner" = "vendored-missing-runtime" ] || [ "$runner" = "rocs-bin-missing" ]; then
-    exit 1
-  fi
+  case "$runner" in
+    missing|vendored-missing-runtime|rocs-bin-missing|path-rocs-blocked)
+      exit 1
+      ;;
+  esac
   exit 0
 fi
 
@@ -215,7 +238,10 @@ case "$runner" in
   path-rocs)
     exec rocs "$@"
     ;;
+  path-rocs-blocked)
+    die "rocs on PATH is available but blocked by default; set ROCS_ALLOW_PATH_FALLBACK=1 for an explicit ambient fallback, set ROCS_BIN=/absolute/path/to/rocs, or provide the vendored/workspace-core rocs-cli"
+    ;;
   *)
-    die "unable to locate rocs runner; install uv or set ROCS_BIN"
+    die "unable to locate rocs runner; set ROCS_BIN=/absolute/path/to/rocs, provide the vendored/workspace-core rocs-cli, or explicitly allow rocs on PATH with ROCS_ALLOW_PATH_FALLBACK=1"
     ;;
 esac
