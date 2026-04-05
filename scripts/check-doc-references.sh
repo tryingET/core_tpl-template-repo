@@ -22,7 +22,7 @@ resolve_override() {
 
   [ -f "$candidate" ] || {
     echo "error: docs-ref-check override points to missing file: $candidate" >&2
-    exit 2
+    return 2
   }
 
   printf '%s\n' "$candidate"
@@ -30,14 +30,20 @@ resolve_override() {
 }
 
 resolve_checker() {
-  if path="$(resolve_override "${DOC_REF_CHECK_SCRIPT:-}" 2>/dev/null)"; then
+  if path="$(resolve_override "${DOC_REF_CHECK_SCRIPT:-}")"; then
     printf '%s\n' "$path"
     return 0
+  else
+    status=$?
+    [ "$status" -eq 1 ] || return "$status"
   fi
 
-  if path="$(resolve_override "${AGENT_SCRIPTS_DOC_REF_CHECK:-}" 2>/dev/null)"; then
+  if path="$(resolve_override "${AGENT_SCRIPTS_DOC_REF_CHECK:-}")"; then
     printf '%s\n' "$path"
     return 0
+  else
+    status=$?
+    [ "$status" -eq 1 ] || return "$status"
   fi
 
   for candidate in \
@@ -54,12 +60,18 @@ resolve_checker() {
   return 1
 }
 
-checker="$(resolve_checker || true)"
-[ -n "$checker" ] || {
+if checker="$(resolve_checker)"; then
+  :
+else
+  status=$?
+  if [ "$status" -ne 1 ]; then
+    exit "$status"
+  fi
+
   echo "error: could not resolve docs-ref-check script." >&2
   echo "hint: set DOC_REF_CHECK_SCRIPT or AGENT_SCRIPTS_DOC_REF_CHECK, vendor tools/agent-scripts, or clone $workspace_root/core/agent-scripts." >&2
   exit 2
-}
+fi
 
 need_cmd node
 

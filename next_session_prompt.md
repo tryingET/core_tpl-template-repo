@@ -32,35 +32,45 @@ Re-run the FCOS resolver first. If it still returns no runnable head, only fall 
 6. `diary/2026-04-04--ops-fcos-m43-01-tpl-template-repo-closeout.md`
 7. `diary/2026-04-05--fix-nexus-helper-parity-language-matrix-and-stack-wording.md`
 8. `diary/2026-04-05--ops-task-851-generic-launcher-wrapper-template-authority.md`
-9. latest `diary/YYYY-MM-DD--type-scope-summary.md`
+9. `diary/2026-04-05--review-full-adversarial-stack.md`
+10. `diary/2026-04-05--feat-negative-path-nexus-hardening.md`
+11. latest `diary/YYYY-MM-DD--type-scope-summary.md`
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Resumed and completed repo-local AK task `#851` on explicit operator request, codifying `core/tpl-template-repo` as the canonical distribution authority for the generic launcher wrappers against the M45 convergence receipt.
+  - First, resumed and completed repo-local AK task `#851`, codifying `core/tpl-template-repo` as the canonical distribution authority for the generic launcher wrappers against the M45 convergence receipt.
+  - Then reviewed and hardened the negative-path shell/wrapper surfaces that still failed open despite the main L0 suite passing.
 - Outcome:
   - Updated `AGENTS.md`, `README.md`, and new note `docs/project/2026-04-05-generic-launcher-wrapper-template-authority.md` so the launcher-wrapper authority split is explicit: runtime/reference owner in `softwareco/owned/agent-kernel`, canonical distribution authority in `core/tpl-template-repo`, rollout/proof reporting in `holdingco/infra/template-propagator`.
-  - Updated all four L2 governance README templates plus synced fixtures so generated repos keep the same owner/distribution/reporting split for `scripts/ak.sh` and `scripts/cargo-operator.sh`.
-  - Added deterministic assertions to `copier-template/scripts/check-template-ci.sh` and propagated the generated fixture copy.
-  - Re-ran `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` and confirmed the live FCOS resolver currently returns `[]` / `none`, so this repo should return to mirror-only / operator-directed posture after task `#851` closeout.
-  - Captured the session in `diary/2026-04-05--ops-task-851-generic-launcher-wrapper-template-authority.md`.
+  - Captured the adversarial review in `diary/2026-04-05--review-full-adversarial-stack.md`.
+  - Fixed `scripts/check-doc-references.sh` to fail closed on invalid override paths instead of silently falling back.
+  - Hardened `scripts/rocs.sh` so empty/invalid vendored `tools/rocs-cli/` directories no longer hijack runner selection.
+  - Hardened `scripts/lib/repo-surface.sh` so repo census follows symlinked repo surfaces.
+  - Added early `rsync` dependency preflight to `scripts/migrate-l1-structure.sh`.
+  - Strengthened `scripts/check-l0-adversarial.sh`, `scripts/check-l0-generation.sh`, `scripts/check-l0-guardrails.sh`, and `copier-template/scripts/check-template-ci.sh`, then propagated the shared helper/wrapper changes through templates and fixtures.
+  - Captured the hardening slice in `diary/2026-04-05--feat-negative-path-nexus-hardening.md`.
+  - Re-ran `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` and confirmed the live FCOS resolver still returns `[]` / `none`, so this repo should stay in mirror-only / operator-directed posture unless the operator picks backlog work explicitly.
 - Validation run:
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`
-  - `bash ./scripts/check-l0-generation.sh`
-  - `bash ./scripts/check-l0-fixtures.sh`
-  - `bash ./scripts/check-doc-references.sh`
+  - `git diff --check --cached`
   - `bash ./scripts/check-l0.sh`
 - Files of interest:
-  - `AGENTS.md`
-  - `README.md`
-  - `docs/project/2026-04-05-generic-launcher-wrapper-template-authority.md`
+  - `scripts/check-doc-references.sh`
+  - `scripts/rocs.sh`
+  - `scripts/lib/repo-surface.sh`
+  - `scripts/migrate-l1-structure.sh`
+  - `scripts/check-l0-adversarial.sh`
+  - `scripts/check-l0-generation.sh`
+  - `scripts/check-l0-guardrails.sh`
   - `copier-template/scripts/check-template-ci.sh`
-  - `diary/2026-04-05--ops-task-851-generic-launcher-wrapper-template-authority.md`
+  - `diary/2026-04-05--review-full-adversarial-stack.md`
+  - `diary/2026-04-05--feat-negative-path-nexus-hardening.md`
   - `next_session_prompt.md`
 - Blockers / follow-up:
   - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; the current resolver returns `none`, so operator direction should choose the next slice explicitly.
   - In this repo, treat repo-local tasks `#738`, `#820`, `#821`, and `#851` as closed implementation slices. If the operator wants backlog work here, pick explicitly from `AK-281` or `#791`; if `#794` still appears in `task ready`, treat that as stale local AK state until the DB/storage drift is repaired.
 - Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md AGENTS.md README.md docs/project/2026-04-05-generic-launcher-wrapper-template-authority.md copier-template/copier/tpl-agent-repo/governance/README.md copier-template/copier/tpl-monorepo/governance/README.md copier-template/copier/tpl-org-repo/governance/README.md copier-template/copier/tpl-project-repo/governance/README.md copier-template/scripts/check-template-ci.sh fixtures/l1/template-repo/copier/tpl-agent-repo/governance/README.md fixtures/l1/template-repo/copier/tpl-monorepo/governance/README.md fixtures/l1/template-repo/copier/tpl-org-repo/governance/README.md fixtures/l1/template-repo/copier/tpl-project-repo/governance/README.md fixtures/l1/template-repo/scripts/check-template-ci.sh fixtures/l2/tpl-agent-repo/governance/README.md fixtures/l2/tpl-monorepo/governance/README.md fixtures/l2/tpl-org-repo/governance/README.md fixtures/l2/tpl-project-repo/governance/README.md fixtures/matrix/tpl-monorepo/root/governance/README.md fixtures/matrix/tpl-project-repo/elixir/governance/README.md fixtures/matrix/tpl-project-repo/node/governance/README.md fixtures/matrix/tpl-project-repo/python/governance/README.md fixtures/matrix/tpl-project-repo/rust/governance/README.md fixtures/matrix/tpl-project-repo/typescript/governance/README.md diary/2026-04-05--ops-task-851-generic-launcher-wrapper-template-authority.md`
+  - `git restore -- next_session_prompt.md scripts/check-doc-references.sh scripts/rocs.sh scripts/lib/repo-surface.sh scripts/migrate-l1-structure.sh scripts/check-l0-adversarial.sh scripts/check-l0-generation.sh scripts/check-l0-guardrails.sh copier-template/copier/tpl-agent-repo/scripts/lib/repo-surface.sh.j2 copier-template/copier/tpl-agent-repo/scripts/rocs.sh.j2 copier-template/copier/tpl-monorepo/scripts/lib/repo-surface.sh.j2 copier-template/copier/tpl-monorepo/scripts/rocs.sh.j2 copier-template/copier/tpl-org-repo/scripts/lib/repo-surface.sh.j2 copier-template/copier/tpl-org-repo/scripts/rocs.sh.j2 copier-template/copier/tpl-project-repo/scripts/lib/repo-surface.sh.j2 copier-template/copier/tpl-project-repo/scripts/rocs.sh.j2 copier-template/scripts/check-template-ci.sh copier-template/scripts/lib/repo-surface.sh copier-template/scripts/rocs.sh fixtures/l1/template-repo/copier/tpl-agent-repo/scripts/lib/repo-surface.sh.j2 fixtures/l1/template-repo/copier/tpl-agent-repo/scripts/rocs.sh.j2 fixtures/l1/template-repo/copier/tpl-monorepo/scripts/lib/repo-surface.sh.j2 fixtures/l1/template-repo/copier/tpl-monorepo/scripts/rocs.sh.j2 fixtures/l1/template-repo/copier/tpl-org-repo/scripts/lib/repo-surface.sh.j2 fixtures/l1/template-repo/copier/tpl-org-repo/scripts/rocs.sh.j2 fixtures/l1/template-repo/copier/tpl-project-repo/scripts/lib/repo-surface.sh.j2 fixtures/l1/template-repo/copier/tpl-project-repo/scripts/rocs.sh.j2 fixtures/l1/template-repo/scripts/check-template-ci.sh fixtures/l1/template-repo/scripts/lib/repo-surface.sh fixtures/l1/template-repo/scripts/rocs.sh fixtures/l2/tpl-agent-repo/scripts/lib/repo-surface.sh fixtures/l2/tpl-agent-repo/scripts/rocs.sh fixtures/l2/tpl-monorepo/scripts/lib/repo-surface.sh fixtures/l2/tpl-monorepo/scripts/rocs.sh fixtures/l2/tpl-org-repo/scripts/lib/repo-surface.sh fixtures/l2/tpl-org-repo/scripts/rocs.sh fixtures/l2/tpl-project-repo/scripts/lib/repo-surface.sh fixtures/l2/tpl-project-repo/scripts/rocs.sh fixtures/matrix/tpl-monorepo/root/scripts/lib/repo-surface.sh fixtures/matrix/tpl-monorepo/root/scripts/rocs.sh fixtures/matrix/tpl-project-repo/elixir/scripts/lib/repo-surface.sh fixtures/matrix/tpl-project-repo/elixir/scripts/rocs.sh fixtures/matrix/tpl-project-repo/node/scripts/lib/repo-surface.sh fixtures/matrix/tpl-project-repo/node/scripts/rocs.sh fixtures/matrix/tpl-project-repo/python/scripts/lib/repo-surface.sh fixtures/matrix/tpl-project-repo/python/scripts/rocs.sh fixtures/matrix/tpl-project-repo/rust/scripts/lib/repo-surface.sh fixtures/matrix/tpl-project-repo/rust/scripts/rocs.sh fixtures/matrix/tpl-project-repo/typescript/scripts/lib/repo-surface.sh fixtures/matrix/tpl-project-repo/typescript/scripts/rocs.sh diary/2026-04-05--feat-negative-path-nexus-hardening.md`
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
   - Crystallize to `docs/learnings/`

@@ -65,9 +65,28 @@ Examples:
 EOF
 }
 
+toml_declares_rocs_cli() {
+  toml_file="$1"
+  [ -f "$toml_file" ] || return 1
+  grep -Eq "^[[:space:]]*name[[:space:]]*=[[:space:]]*['\"]?rocs-cli['\"]?[[:space:]]*(#.*)?$" "$toml_file"
+}
+
+has_vendored_rocs_dir() {
+  [ -d "$repo_root/tools/rocs-cli" ]
+}
+
+is_vendored_rocs_project() {
+  has_vendored_rocs_dir || return 1
+
+  if toml_declares_rocs_cli "$repo_root/tools/rocs-cli/pyproject.toml"; then
+    return 0
+  fi
+
+  [ -f "$repo_root/tools/rocs-cli/setup.py" ]
+}
+
 is_local_rocs_project() {
-  [ -f "$repo_root/pyproject.toml" ] || return 1
-  grep -q 'name = "rocs-cli"' "$repo_root/pyproject.toml"
+  toml_declares_rocs_cli "$repo_root/pyproject.toml"
 }
 
 select_runner() {
@@ -80,7 +99,7 @@ select_runner() {
     return
   fi
 
-  if [ -d "$repo_root/tools/rocs-cli" ]; then
+  if is_vendored_rocs_project; then
     if has_cmd uvx; then
       printf '%s\n' "vendored-uvx"
       return
@@ -175,7 +194,8 @@ doctor() {
   say "- has python: $(has_cmd python && printf yes || printf no)"
   say "- has rocs on PATH: $(has_cmd rocs && printf yes || printf no)"
   say "- path fallback enabled: $(path_fallback_enabled && printf yes || printf no)"
-  say "- has vendored tools/rocs-cli: $([ -d "$repo_root/tools/rocs-cli" ] && printf yes || printf no)"
+  say "- has vendored tools/rocs-cli dir: $(has_vendored_rocs_dir && printf yes || printf no)"
+  say "- vendored tools/rocs-cli is valid project: $(is_vendored_rocs_project && printf yes || printf no)"
   say "- local project is rocs-cli: $(is_local_rocs_project && printf yes || printf no)"
   say "- selected runner: $(runner_desc "$runner")"
 

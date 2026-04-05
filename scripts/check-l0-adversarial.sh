@@ -103,6 +103,22 @@ init_seed_repo() {
 	)
 }
 
+build_path_without_command() {
+	target_bin="$1"
+	excluded_name="$2"
+
+	mkdir -p "$target_bin"
+	for dir in /usr/bin /bin /usr/local/bin; do
+		[ -d "$dir" ] || continue
+		for path in "$dir"/*; do
+			[ -x "$path" ] || continue
+			name="${path##*/}"
+			[ "$name" = "$excluded_name" ] && continue
+			[ -e "$target_bin/$name" ] || ln -s "$path" "$target_bin/$name"
+		done
+	done
+}
+
 tmp_root="$(mktemp -d)"
 worktree_dir=""
 cleanup() {
@@ -223,8 +239,30 @@ exec /usr/bin/sed "$@"
 EOF
 chmod +x "$fake_bsd_bin/sed"
 
-workspace_root="$tmp_root/workspace-explicit"
 company_slug="demo"
+missing_rsync_bin="$tmp_root/missing-rsync-bin"
+build_path_without_command "$missing_rsync_bin" rsync
+missing_rsync_workspace="$tmp_root/workspace-missing-rsync"
+missing_rsync_company_dir="$missing_rsync_workspace/$company_slug"
+missing_rsync_templates_dir="$missing_rsync_company_dir/${company_slug}-templates"
+missing_rsync_stage_dir="$missing_rsync_workspace/${company_slug}-stage"
+missing_rsync_seed_templates_repo="$tmp_root/${company_slug}-templates-seed-missing-rsync"
+mkdir -p "$missing_rsync_company_dir"
+render_l1 "$missing_rsync_seed_templates_repo" "${company_slug}-templates" "$company_slug" "Demo Co"
+init_git_repo "$missing_rsync_seed_templates_repo" "initial render"
+git -C "$missing_rsync_seed_templates_repo" worktree add "$missing_rsync_templates_dir" >/dev/null
+init_seed_repo "$missing_rsync_company_dir/data-lane/service-x" "service init"
+if AI_SOCIETY_CUSTOM_LANES=data-lane AI_SOCIETY_WORKSPACE="$missing_rsync_workspace" PATH="$missing_rsync_bin" bash "$repo_root/scripts/migrate-l1-structure.sh" "$company_slug" "Demo Co" >"$tmp_root/migrate-missing-rsync.log" 2>&1; then
+	tail -n 200 "$tmp_root/migrate-missing-rsync.log" >&2 || true
+	fail "migrate-l1-structure.sh should fail closed before stage creation when rsync is unavailable"
+fi
+grep -qF 'missing dependency: rsync' "$tmp_root/migrate-missing-rsync.log" || {
+	tail -n 200 "$tmp_root/migrate-missing-rsync.log" >&2 || true
+	fail "migration failure should explain when rsync is unavailable"
+}
+[ ! -e "$missing_rsync_stage_dir" ] || fail "migration should fail before creating the stage when rsync is unavailable"
+
+workspace_root="$tmp_root/workspace-explicit"
 old_company_dir="$workspace_root/$company_slug"
 old_templates_dir="$old_company_dir/${company_slug}-templates"
 stage_dir="$workspace_root/${company_slug}-stage"
@@ -317,16 +355,18 @@ census_root="$tmp_root/census"
 shallow_repo="$census_root/shallow"
 deep_repo="$census_root/a/b/c/d/e/f/deep"
 worktree_repo="$census_root/worktree"
+symlink_repo="$census_root/deep-link"
 init_seed_repo "$shallow_repo" "shallow init"
 init_seed_repo "$deep_repo" "deep init"
 git -C "$shallow_repo" worktree add --detach "$worktree_repo" >/dev/null
+ln -s "$deep_repo" "$symlink_repo"
 
 root_census_output="$("$repo_root/scripts/preflight-repo-census.sh" "$census_root")"
-printf '%s\n' "$root_census_output" | grep -qF "repos: 3" || {
+printf '%s\n' "$root_census_output" | grep -qF "repos: 4" || {
 	printf '%s\n' "$root_census_output" >&2
-	fail "root preflight-repo-census should count deep repos plus git worktrees"
+	fail "root preflight-repo-census should count deep repos, git worktrees, and symlinked repo surfaces"
 }
-for expected_repo in "$shallow_repo" "$deep_repo" "$worktree_repo"; do
+for expected_repo in "$shallow_repo" "$deep_repo" "$worktree_repo" "$symlink_repo"; do
 	printf '%s\n' "$root_census_output" | grep -qF "$expected_repo" || {
 		printf '%s\n' "$root_census_output" >&2
 		fail "root preflight-repo-census should list $expected_repo"
@@ -334,11 +374,11 @@ for expected_repo in "$shallow_repo" "$deep_repo" "$worktree_repo"; do
 done
 
 generated_census_output="$("$project_census_repo/scripts/preflight-repo-census.sh" "$census_root")"
-printf '%s\n' "$generated_census_output" | grep -qF "repos: 3" || {
+printf '%s\n' "$generated_census_output" | grep -qF "repos: 4" || {
 	printf '%s\n' "$generated_census_output" >&2
-	fail "generated preflight-repo-census should count deep repos plus git worktrees"
+	fail "generated preflight-repo-census should count deep repos, git worktrees, and symlinked repo surfaces"
 }
-for expected_repo in "$shallow_repo" "$deep_repo" "$worktree_repo"; do
+for expected_repo in "$shallow_repo" "$deep_repo" "$worktree_repo" "$symlink_repo"; do
 	printf '%s\n' "$generated_census_output" | grep -qF "$expected_repo" || {
 		printf '%s\n' "$generated_census_output" >&2
 		fail "generated preflight-repo-census should list $expected_repo"

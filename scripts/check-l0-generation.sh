@@ -173,6 +173,7 @@ for tool_name in sh dirname pwd; do
 done
 missing_node_checker="$tmp_root/docs-ref-check.mjs"
 printf 'console.log("ok")\n' >"$missing_node_checker"
+assert_command_fails_with_stderr "check-doc-references should fail closed on invalid DOC_REF_CHECK_SCRIPT overrides" "docs-ref-check override points to missing file" env DOC_REF_CHECK_SCRIPT=/definitely/missing sh "$repo_root/scripts/check-doc-references.sh"
 assert_command_fails_with_stderr "check-doc-references should fail clearly when node is unavailable" "missing dependency: node" env PATH="$missing_node_bin" DOC_REF_CHECK_SCRIPT="$missing_node_checker" sh "$repo_root/scripts/check-doc-references.sh"
 
 dummy_ak_dir="$tmp_root/dummy-ak-bin"
@@ -570,12 +571,13 @@ assert_file_contains "$bootstrap_l1/team-data/governance/work-items.json" '"owne
 	}
 )
 
+# Regression: an invalid vendored tools/rocs-cli directory must not block the local-project fallback.
 rocs_python_l1="$tmp_root/l1-template-rocs-python"
 "$repo_root/scripts/new-l1-from-copier.sh" "$rocs_python_l1" \
 	-d repo_slug=l1-template-rocs-python \
 	-d maintainer_handle=@template-owner \
 	--defaults --overwrite >/dev/null
-mkdir -p "$rocs_python_l1/src/rocs_cli" "$rocs_python_l1/bin"
+mkdir -p "$rocs_python_l1/src/rocs_cli" "$rocs_python_l1/bin" "$rocs_python_l1/tools/rocs-cli"
 cat >"$rocs_python_l1/pyproject.toml" <<'EOF'
 [project]
 name = "rocs-cli"
@@ -607,7 +609,7 @@ printf '%s\n' "$rocs_python_output" | grep -qF "ok: rocs python fallback" || {
 }
 
 rocs_python_root="$tmp_root/root-rocs-python"
-mkdir -p "$rocs_python_root/scripts" "$rocs_python_root/src/rocs_cli" "$rocs_python_root/bin"
+mkdir -p "$rocs_python_root/scripts" "$rocs_python_root/src/rocs_cli" "$rocs_python_root/bin" "$rocs_python_root/tools/rocs-cli"
 cp "$repo_root/scripts/rocs.sh" "$rocs_python_root/scripts/rocs.sh"
 chmod +x "$rocs_python_root/scripts/rocs.sh"
 cat >"$rocs_python_root/pyproject.toml" <<'EOF'

@@ -15,7 +15,7 @@ repo_surface_find_repo_roots() {
   repo_surface__scope="$1"
   [ -d "$repo_surface__scope" ] || return 1
 
-  find "$repo_surface__scope" \( -type d -o -type f \) -name .git -print | while IFS= read -r repo_surface__git_marker; do
+  find -L "$repo_surface__scope" \( -type d -o -type f \) -name .git -print | while IFS= read -r repo_surface__git_marker; do
     [ -n "$repo_surface__git_marker" ] || continue
     repo_surface__repo_path="${repo_surface__git_marker%/.git}"
     repo_surface_is_git_repo "$repo_surface__repo_path" || continue
@@ -27,7 +27,7 @@ repo_surface_find_nested_repo_roots() {
   repo_surface__scope="$1"
   [ -d "$repo_surface__scope" ] || return 1
 
-  find "$repo_surface__scope" -mindepth 2 \( -type d -o -type f \) -name .git -print | while IFS= read -r repo_surface__git_marker; do
+  find -L "$repo_surface__scope" -mindepth 2 \( -type d -o -type f \) -name .git -print | while IFS= read -r repo_surface__git_marker; do
     [ -n "$repo_surface__git_marker" ] || continue
     repo_surface__repo_path="${repo_surface__git_marker%/.git}"
     repo_surface_is_git_repo "$repo_surface__repo_path" || continue

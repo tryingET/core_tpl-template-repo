@@ -25,6 +25,16 @@ if [[ -z "$company_slug" ]]; then
 	exit 2
 fi
 
+need_cmd() {
+	command -v "$1" >/dev/null 2>&1 || {
+		echo "error: missing dependency: $1" >&2
+		exit 2
+	}
+}
+
+need_cmd git
+need_cmd rsync
+
 workspace_root="${AI_SOCIETY_WORKSPACE:-$HOME/ai-society}"
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 repo_surface_lib="$repo_root/scripts/lib/repo-surface.sh"

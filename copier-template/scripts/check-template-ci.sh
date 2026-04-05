@@ -257,6 +257,10 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	fi
 	assert_file "copier/$tpl/scripts/rocs.sh.j2"
 	assert_exec "copier/$tpl/scripts/rocs.sh.j2"
+	if [ "$tpl" = "tpl-package" ]; then
+		assert_contains "copier/$tpl/scripts/rocs.sh.j2" "ROCS commands should be run from the monorepo root." "L2 template $tpl ROCS wrapper should remain a monorepo-root placeholder"
+		assert_contains "copier/$tpl/scripts/rocs.sh.j2" "Use: ../../scripts/rocs.sh <args>" "L2 template $tpl ROCS wrapper should redirect to the monorepo-root launcher"
+	fi
 	assert_contains "copier/$tpl/contracts/layer-contract.yml" "layer: L2" "L2 template $tpl contract must declare layer L2"
 	assert_contains "copier/$tpl/contracts/layer-contract.yml" "L1 -> L2" "L2 template $tpl contract must include allowed L1 -> L2 transition"
 	assert_contains "copier/$tpl/contracts/layer-contract.yml" "L2 -> L1" "L2 template $tpl contract must include forbidden L2 -> L1 transition"
@@ -1127,6 +1131,8 @@ assert_file "$l2_dir/diary/README.md"
 assert_contains "$l2_dir/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "generated $tpl diary README should enforce descriptive filename convention"
 assert_not_dir "$l2_dir/docs/diary"
 assert_exec "$l2_dir/scripts/rocs.sh"
+assert_contains "$l2_dir/scripts/rocs.sh" "ROCS commands should be run from the monorepo root." "generated $tpl ROCS wrapper should remain a monorepo-root placeholder"
+assert_contains "$l2_dir/scripts/rocs.sh" "Use: ../../scripts/rocs.sh <args>" "generated $tpl ROCS wrapper should redirect to the monorepo-root launcher"
 assert_contains "$l2_dir/AGENTS.md" "Deterministic tooling policy" "generated $tpl AGENTS should include deterministic tooling policy"
 assert_contains "$l2_dir/AGENTS.md" "scripts/rocs.sh" "generated $tpl AGENTS should reference scripts/rocs.sh"
 assert_contains "$l2_dir/AGENTS.md" "diary/" "generated $tpl AGENTS should reference repo-local diary"
