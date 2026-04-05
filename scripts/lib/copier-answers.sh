@@ -188,8 +188,22 @@ copier_answers__scalar_fallback() {
         exit
       }
 
+      # Reject block-scalar markers, flow collections, and anchors/tags.
+      # These are not simple scalars and the fallback cannot parse them correctly.
+      if (value ~ /^[|>]$/ || value ~ /^[|>][[:space:]]/ || value ~ /^[\[\{]/ || value ~ /^&/ || value ~ /^\*/) {
+        status = 2
+        exit
+      }
+
       sub(/[[:space:]]+#.*$/, "", value)
       value = trim(value)
+
+      # Also reject unquoted values that look like block/folded markers after trim.
+      if (value == "|" || value == ">" || value ~ /^[\[\{]/ || value ~ /^&/ || value ~ /^\*/) {
+        status = 2
+        exit
+      }
+
       print value
       status = 0
       exit

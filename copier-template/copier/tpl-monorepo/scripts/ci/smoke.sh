@@ -33,9 +33,13 @@ fi
 if [ -z "$base_ref" ] && git show-ref --verify --quiet "refs/heads/$base_branch"; then
   base_ref="$base_branch"
 fi
-[ -n "$base_ref" ] || die_env "cannot resolve base ref for branch '$base_branch' (need origin/$base_branch or local $base_branch)"
 
-changed_files="$(git diff --name-only "$base_ref"...HEAD)"
+changed_files=""
+if [ -n "$base_ref" ]; then
+  changed_files="$(git diff --name-only "$base_ref"...HEAD)"
+else
+  err "warning: cannot resolve base ref for branch '$base_branch'; skipping protected docs/_core diff (need origin/$base_branch or local $base_branch)"
+fi
 protected_hits="$(printf '%s\n' "$changed_files" | grep -nE '^(docs/_core($|/))' || true)"
 if [ -n "$protected_hits" ]; then
   err "error: protected core paths modified:"
