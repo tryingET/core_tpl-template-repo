@@ -204,6 +204,21 @@ exit 0
 EOF
 chmod +x "$ak_parse_root/bin/ak"
 assert_command_fails_with_stderr "AK wrapper should fail closed on unsupported multiline answers when PyYAML is unavailable" "unable to parse 'repo_slug'" env PATH="$no_yaml_bin:$ak_parse_root/bin:$PATH" "$ak_parse_root/scripts/ak.sh" --doctor
+assert_command_fails_with_stderr "AK wrapper should block ambient PATH fallback unless explicitly enabled" "AK_ALLOW_PATH_FALLBACK=1" env PATH="$dummy_ak_dir:$PATH" AK_CORE_PROJECT=/definitely/missing "$repo_root/scripts/ak.sh" task ready
+
+path_opt_in_ak_dir="$tmp_root/path-opt-in-ak-bin"
+mkdir -p "$path_opt_in_ak_dir"
+cat >"$path_opt_in_ak_dir/ak" <<'EOF'
+#!/usr/bin/env sh
+printf 'ambient-ak-ok\n'
+EOF
+chmod +x "$path_opt_in_ak_dir/ak"
+path_opt_in_output="$(env PATH="$path_opt_in_ak_dir:$PATH" AK_CORE_PROJECT=/definitely/missing AK_ALLOW_PATH_FALLBACK=1 "$repo_root/scripts/ak.sh" --which)"
+printf '%s\n' "$path_opt_in_output" | grep -qF "AK_ALLOW_PATH_FALLBACK=1" || {
+	echo "error: AK wrapper should report explicit ambient PATH opt-in when enabled" >&2
+	printf '%s\n' "$path_opt_in_output" >&2
+	exit 1
+}
 
 render_l1_case() {
 	case_name="$1"

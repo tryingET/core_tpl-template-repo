@@ -10,7 +10,7 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    ```bash
    bash ./scripts/check-l0.sh
    ```
-   Optional fail-fast timeout per sub-check (default `180` seconds):
+   Optional fail-fast timeout per sub-check (default `300` seconds):
    ```bash
    L0_CHECK_TIMEOUT_SECONDS=120 bash ./scripts/check-l0.sh
    ```

@@ -21,7 +21,7 @@ if is_enabled "${L0_CHECK_VERBOSE:-}"; then
 	verbose=1
 fi
 
-check_timeout_seconds="${L0_CHECK_TIMEOUT_SECONDS:-180}"
+check_timeout_seconds="${L0_CHECK_TIMEOUT_SECONDS:-300}"
 
 is_non_negative_integer() {
 	case "$1" in

@@ -12,7 +12,7 @@ Top-level check orchestrators should bound execution time per subcheck to avoid 
 
 ## Guardrail
 - Added `L0_CHECK_TIMEOUT_SECONDS` to `scripts/check-l0.sh`:
-  - default: `180`
+  - default: `300`
   - `0` disables timeout behavior
 - Uses `timeout --preserve-status` when available.
 - Timeout failures are explicit in summary output.

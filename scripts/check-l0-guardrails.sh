@@ -149,6 +149,7 @@ copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/lib/check-template-ak.py
+copier-template/scripts/lib/check-task-scope-snapshots.py
 copier-template/scripts/lib/copier-answers.sh
 copier-template/scripts/lib/repo-surface.sh
 copier-template/scripts/lib/suffix-policy.sh
@@ -175,6 +176,7 @@ fixtures/l1/template-repo/.copier-answers.yml
 fixtures/l1/template-repo/diary/README.md
 fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 fixtures/l1/template-repo/scripts/lib/check-template-ak.py
+fixtures/l1/template-repo/scripts/lib/check-task-scope-snapshots.py
 fixtures/l1/template-repo/scripts/lib/copier-answers.sh
 fixtures/l1/template-repo/scripts/lib/repo-surface.sh
 fixtures/l1/template-repo/scripts/lib/suffix-policy.sh
@@ -213,6 +215,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	assert_file "copier-template/copier/$tpl/CODEOWNERS.j2"
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_file "copier-template/copier/$tpl/scripts/ak.sh"
+		assert_file "copier-template/copier/$tpl/scripts/lib/check-task-scope-snapshots.py"
 		assert_file "copier-template/copier/$tpl/scripts/lib/copier-answers.sh"
 		assert_file "copier-template/copier/$tpl/scripts/lib/repo-surface.sh.j2"
 		assert_exec "copier-template/copier/$tpl/scripts/ak.sh"
@@ -334,6 +337,7 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_contains "copier-template/copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
 		assert_contains "copier-template/copier/$tpl/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L2 template $tpl AK wrapper should source the shared copier answers helper"
+		assert_contains "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L2 template $tpl task-scope checker should use the shared parser-backed helper"
 		assert_contains "copier-template/copier/$tpl/scripts/preflight-repo-census.sh.j2" "scripts/lib/repo-surface.sh" "L2 template $tpl repo census helper should source the shared repo-surface helper"
 		assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "scripts/ak.sh" "L2 template $tpl full CI should use scripts/ak.sh for work-items projection checks"
 		assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
@@ -346,6 +350,7 @@ assert_not_contains "copier-template/copier/tpl-project-repo/scripts/ci/full.sh"
 # L1 wrapper script assertions
 assert_contains "scripts/rocs.sh" "--doctor" "L0 ROCS wrapper should expose doctor mode"
 assert_contains "scripts/rocs.sh" "deterministic resolution order" "L0 ROCS wrapper should document resolution order"
+assert_contains "scripts/rocs.sh" "ROCS_ALLOW_PATH_FALLBACK=1" "L0 ROCS wrapper should require explicit opt-in before using ambient rocs on PATH"
 assert_contains "scripts/new-l1-from-copier.sh" "COPIER_QUIET" "L0 L1 render wrapper must expose Copier quiet-mode toggle"
 assert_contains "scripts/new-l1-from-copier.sh" "--quiet" "L0 L1 render wrapper must default Copier execution to quiet mode"
 assert_contains "scripts/new-l1-from-copier.sh" "bootstrap-lane-root.sh" "L0 L1 render wrapper docs should include lane bootstrap workflow"
@@ -378,11 +383,13 @@ assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/copi
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/repo-surface.sh" "L1 template CI should require the shared repo-surface helper"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
 assert_contains "copier-template/scripts/ak.sh" "deterministic resolution order" "L1 AK wrapper should document deterministic resolution order"
+assert_contains "copier-template/scripts/ak.sh" "AK_ALLOW_PATH_FALLBACK=1" "L1 AK wrapper should require explicit opt-in before using ambient ak on PATH"
 assert_contains "copier-template/scripts/ak.sh" "scripts/lib/copier-answers.sh" "L1 AK wrapper should source the shared copier answers helper"
 assert_contains "copier-template/scripts/ak.sh" "work-items check" "L1 AK wrapper should document work-items projection commands"
-assert_contains "copier-template/scripts/check-task-scope-snapshots.sh" "task-scope snapshots" "L1 task-scope checker should explain its validation target"
+assert_contains "copier-template/scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L1 task-scope checker should use the shared parser-backed helper"
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
 assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
+assert_contains "copier-template/scripts/rocs.sh" "ROCS_ALLOW_PATH_FALLBACK=1" "L1 ROCS wrapper should require explicit opt-in before using ambient rocs on PATH"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/ak.sh" "L1 full CI should use scripts/ak.sh for work-items projection checks"
 assert_contains "copier-template/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L1 full CI should enforce task-scope snapshot checks"
 assert_not_contains "copier-template/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L1 full CI must not gate AK checks on vendored ak-cli"
