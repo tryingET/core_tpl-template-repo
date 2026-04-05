@@ -35,43 +35,31 @@ The next bounded follow-through here is `FCOS-M44-01` repo-local task `#820`; if
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Claimed and completed repo-local AK task `#793` to enforce `L0 -> L1 -> L2` recursion boundaries in code instead of relying on docs alone.
+  - Implemented and committed the repo-side slice for AK task `#794` to tune `check-l0` timeout and orchestration behavior for slower runners without weakening failure semantics.
 - Outcome:
-  - Added machine-readable `contracts/layer-contract.yml` files across all L2 template archetypes and regenerated the rendered L1/L2/matrix fixtures so descendants now carry an explicit layer contract.
-  - Hardened `scripts/new-l1-from-copier.sh` to verify it is running from an L0 root and to fail closed when the destination already declares a conflicting layer.
-  - Hardened generated L1 `scripts/new-repo-from-copier.sh` with the same fail-closed destination-layer guard for `L1 -> L2` renders.
-  - Updated generated `scripts/bootstrap-lane-root.sh` so lane-root baselines keep `contracts/` tracked instead of dropping the new layer contract from lane control-plane surfaces.
-  - `scripts/check-l0-generation.sh`, `scripts/check-l0-guardrails.sh`, and generated `scripts/check-template-ci.sh` now assert the new contract presence + wrapper refusal behavior.
-  - Validation evidence `#417` records `validation:check-l0 = pass` for task `#793`, and AK task `#793` is now `done`.
-  - Current ready repo-local backlog includes `FCOS-M44-01` follow-through task `#820` alongside `AK-281`, `#791`, and `#794`; do not substitute one automatically unless the operator asks.
+  - `scripts/check-l0.sh` now resolves either `timeout` or `gtimeout` instead of assuming one host binary.
+  - The consolidated L0 runner now prints the effective timeout policy up front so each run shows the base budget, heavier generation budget, and timeout runner in use.
+  - `check-l0-generation` now gets a larger default timeout budget than the lighter subchecks, while explicit env overrides still work.
+  - Timeout failures remain fail-closed, but once one timeout happens the runner aborts later heavyweight checks and records them as skipped-after-timeout instead of spending more slow-runner time on an already-failed aggregate lane.
+  - Captured the session in `diary/2026-04-05--chore-check-l0-slow-runner-timeout-orchestration.md` and crystallized the pattern in `docs/learnings/2026-04-05-check-runners-need-heavy-lane-budgets-and-timeout-aborts.md`.
+  - Intended next ready repo-local backlog is `FCOS-M44-01` follow-through task `#820` alongside `AK-281` and `#791`; local AK read paths may still show a stale `#794` pending entry because of storage/index drift during closeout.
 - Validation run:
+  - `L0_CHECK_TIMEOUT_SECONDS=1 bash ./scripts/check-l0.sh` (expected fail-closed timeout path + abort-after-timeout behavior)
   - `bash ./scripts/check-l0-generation.sh` (pass)
+  - `bash ./scripts/check-l0-adversarial.sh` (pass)
   - `bash ./scripts/check-l0-fixtures.sh` (pass)
   - `bash ./scripts/check-l0.sh` (pass)
 - Files of interest:
-  - `scripts/new-l1-from-copier.sh`
-  - `scripts/check-l0-generation.sh`
-  - `scripts/check-l0-guardrails.sh`
-  - `copier-template/scripts/new-repo-from-copier.sh`
-  - `copier-template/scripts/bootstrap-lane-root.sh`
-  - `copier-template/scripts/check-template-ci.sh`
-  - `copier-template/copier/tpl-agent-repo/contracts/layer-contract.yml`
-  - `copier-template/copier/tpl-org-repo/contracts/layer-contract.yml`
-  - `copier-template/copier/tpl-project-repo/contracts/layer-contract.yml`
-  - `copier-template/copier/tpl-monorepo/contracts/layer-contract.yml`
-  - `copier-template/copier/tpl-package/contracts/layer-contract.yml`
-  - `fixtures/l1/template-repo/`
-  - `fixtures/l2/`
-  - `fixtures/matrix/`
-  - `diary/2026-04-05--feat-layer-contract-recursion-guardrails.md`
+  - `scripts/check-l0.sh`
+  - `diary/2026-04-05--chore-check-l0-slow-runner-timeout-orchestration.md`
+  - `docs/learnings/2026-04-05-check-runners-need-heavy-lane-budgets-and-timeout-aborts.md`
   - `next_session_prompt.md`
 - Blockers / follow-up:
-  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; `FCOS-M44-01` is the mirrored runnable head right now, and operator direction still wins over backlog inference.
-  - Existing older repos without `contracts/layer-contract.yml` remain compatibility-allowed if they predate this contract; tightening brownfield migration rules would be a separate follow-up.
-  - If the operator wants backlog work here, pick explicitly from `FCOS-M44-01` task `#820`, `AK-281`, `#791`, or `#794`.
+  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; `FCOS-M44-01` is still the mirrored runnable head right now, and operator direction still wins over backlog inference.
+  - If the operator wants backlog work here, pick explicitly from `FCOS-M44-01` task `#820`, `AK-281`, or `#791`; if `#794` still appears in `task ready`, treat that as stale local AK state until the DB/storage drift is repaired.
+  - Local AK read paths around task `#794` showed inconsistent list/show/ready behavior during closeout; treat that as local `society.v2.db` storage/index drift rather than repo-code drift.
 - Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md diary/2026-04-05--feat-layer-contract-recursion-guardrails.md scripts/new-l1-from-copier.sh scripts/check-l0-generation.sh scripts/check-l0-guardrails.sh copier-template/scripts/new-repo-from-copier.sh copier-template/scripts/bootstrap-lane-root.sh copier-template/scripts/check-template-ci.sh copier-template/copier/tpl-agent-repo/contracts/layer-contract.yml copier-template/copier/tpl-org-repo/contracts/layer-contract.yml copier-template/copier/tpl-project-repo/contracts/layer-contract.yml copier-template/copier/tpl-monorepo/contracts/layer-contract.yml copier-template/copier/tpl-package/contracts/layer-contract.yml`
-  - `bash ./scripts/sync-l0-fixtures.sh`
+  - `git restore -- next_session_prompt.md scripts/check-l0.sh diary/2026-04-05--chore-check-l0-slow-runner-timeout-orchestration.md docs/learnings/2026-04-05-check-runners-need-heavy-lane-budgets-and-timeout-aborts.md`
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
   - Crystallize to `docs/learnings/`
