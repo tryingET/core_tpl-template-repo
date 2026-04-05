@@ -186,6 +186,18 @@ printf '%s\n' "$team_owner_preview_output" | grep -qF "ok: no diff between rende
 }
 (
 	cd "$preview_l1"
+	PROJECT_OWNER_HANDLE='@acme\platform-team' ./scripts/bootstrap-lane-root.sh escape-owned >/dev/null
+	drop_yaml_key "escape-owned/.copier-answers.yml" project_owner_handle
+	git add .gitignore escape-owned >/dev/null
+	git commit -m "bootstrap escaped-owner lane" >/dev/null
+)
+escaped_owner_preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1")"
+printf '%s\n' "$escaped_owner_preview_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+	printf '%s\n' "$escaped_owner_preview_output" >&2
+	fail "preview-l1-diff should decode JSON-escaped owner handles when materializing older lane baselines"
+}
+(
+	cd "$preview_l1"
 	printf '\ntracked lane drift\n' >>owned/README.md
 )
 drift_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1" 2>&1 || true)"

@@ -146,32 +146,22 @@ yaml_key_present() {
 read_preview_json_string_value() {
 	json_path="$1"
 	key="$2"
+	value=""
+	status=0
 
-	[ -f "$json_path" ] || return 1
+	value="$(copier_answers_json_scalar "$json_path" "$key" 2>/dev/null)" || status=$?
 
-	awk -v key="$key" '
-    BEGIN {
-      status = 1
-      pattern = "\"" key "\"[[:space:]]*:[[:space:]]*\"[^\"]*\""
-    }
+	if [ "$status" -eq 0 ]; then
+		printf '%s\n' "$value"
+		return 0
+	fi
 
-    {
-      if ($0 !~ pattern) {
-        next
-      }
+	if [ "$status" -eq 1 ]; then
+		return 1
+	fi
 
-      value = $0
-      sub("^.*\"" key "\"[[:space:]]*:[[:space:]]*\"", "", value)
-      sub("\".*$", "", value)
-      print value
-      status = 0
-      exit
-    }
-
-    END {
-      exit status
-    }
-  ' "$json_path"
+	echo "error: unable to parse '$key' from $json_path; install python3/python for JSON-backed extraction" >&2
+	return "$status"
 }
 
 read_lane_project_owner_handle() {
@@ -190,7 +180,7 @@ read_lane_project_owner_handle() {
 		return "$status"
 	fi
 
-	value="$(read_preview_json_string_value "$work_items_path" owner 2>/dev/null)" || status=$?
+	value="$(read_preview_json_string_value "$work_items_path" owner)" || status=$?
 	case "$status" in
 	0)
 		printf '%s\n' "$value"
