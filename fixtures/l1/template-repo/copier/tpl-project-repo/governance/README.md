@@ -57,10 +57,11 @@ Generated repos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also car
 - `governance/dist/managed-launcher-bundle.adoption-snapshot.json`
 
 Treat that file as a **consumer-side snapshot contract** for the managed launcher bundle:
-- the owner repo remains `softwareco/owned/agent-kernel`
-- the template propagation source remains `core/tpl-template-repo`
+- `softwareco/owned/agent-kernel` remains the runtime/reference owner of the launcher-bundle contract
+- `core/tpl-template-repo` remains the canonical distribution authority for the generic launcher wrappers copied into generated repos
+- `holdingco/infra/template-propagator` remains the rollout/proof reporting authority for live downstream alignment
 - downstream repos stay consumer-only unless an explicit waiver says otherwise
-- copied wrappers alone do not make a generated repo the durable owner of the launcher bundle
+- copied wrappers alone do not transfer launcher-bundle ownership or prove global rollout completion
 
 The snapshot is a deterministic checked-in contract surface, not a hand-authored claim that downstream rollout is globally complete.
 

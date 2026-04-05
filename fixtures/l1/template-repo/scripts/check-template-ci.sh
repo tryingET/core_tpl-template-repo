@@ -290,6 +290,8 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_contains "copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
 	assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 	assert_contains "copier/$tpl/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "L2 template $tpl governance README should document launcher-bundle adoption snapshots"
+	assert_contains "copier/$tpl/governance/README.md" "canonical distribution authority" "L2 template $tpl governance README should preserve template-side launcher distribution authority"
+	assert_contains "copier/$tpl/governance/README.md" "holdingco/infra/template-propagator" "L2 template $tpl governance README should preserve propagation proof/report ownership"
 	assert_contains "copier/$tpl/governance/dist/managed-launcher-bundle.adoption-snapshot.json" '"managed_artifact_slug": "managed.launcher-bundle"' "L2 template $tpl should ship the launcher-bundle adoption snapshot contract"
 done
 for tpl in tpl-project-repo tpl-monorepo; do
@@ -301,6 +303,8 @@ for tpl in tpl-project-repo tpl-monorepo; do
 	assert_contains "copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
 	assert_contains "copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
 	assert_contains "copier/$tpl/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "L2 template $tpl governance README should document launcher-bundle adoption snapshots"
+	assert_contains "copier/$tpl/governance/README.md" "canonical distribution authority" "L2 template $tpl governance README should preserve template-side launcher distribution authority"
+	assert_contains "copier/$tpl/governance/README.md" "holdingco/infra/template-propagator" "L2 template $tpl governance README should preserve propagation proof/report ownership"
 	assert_contains "copier/$tpl/governance/dist/managed-launcher-bundle.adoption-snapshot.json" '"normalized_content_rule": "strip_repo_capability_blocks"' "L2 template $tpl should ship the launcher-bundle adoption snapshot contract"
 done
 assert_contains "copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
@@ -876,6 +880,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		assert_file "$l2_dir/governance/dist/managed-launcher-bundle.adoption-snapshot.json"
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
 		assert_contains "$l2_dir/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "generated $tpl governance README should document launcher-bundle adoption snapshots"
+		assert_contains "$l2_dir/governance/README.md" "canonical distribution authority" "generated $tpl governance README should preserve template-side launcher distribution authority"
+		assert_contains "$l2_dir/governance/README.md" "holdingco/infra/template-propagator" "generated $tpl governance README should preserve propagation proof/report ownership"
 	fi
 	if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
 		assert_file "$l2_dir/governance/dist/managed-launcher-bundle.adoption-snapshot.json"
@@ -883,6 +889,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		assert_contains "$l2_dir/governance/README.md" "work-items export" "generated $tpl governance README should document projection export"
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
 		assert_contains "$l2_dir/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "generated $tpl governance README should document launcher-bundle adoption snapshots"
+		assert_contains "$l2_dir/governance/README.md" "canonical distribution authority" "generated $tpl governance README should preserve template-side launcher distribution authority"
+		assert_contains "$l2_dir/governance/README.md" "holdingco/infra/template-propagator" "generated $tpl governance README should preserve propagation proof/report ownership"
 	fi
 	if [ "$tpl" = "tpl-monorepo" ]; then
 		assert_not_contains "$l2_dir/README.md" "L2 → L3" "generated tpl-monorepo README must not advertise forbidden L3 recursion"

@@ -14,6 +14,7 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Keep generated repo-local task/issue/work-item surfaces AK-first: Agent Kernel is authoritative, while checked-in files such as `governance/work-items.json` are deterministic projections/mirrors.
 - When templates ship repo-local work-items, prefer deterministic wrappers (for example generated `./scripts/ak.sh`) and never reintroduce silent CI skips for projection drift checks.
 - When templates teach explicit task scope, keep AK as the authoring surface and treat frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files as repo-consumption exports rather than hand-authored authority.
+- For the generic launcher wrappers (`scripts/ak.sh`, `scripts/cargo-operator.sh`), this repo is the canonical distribution authority for template/generated copies while `softwareco/owned/agent-kernel` remains the runtime/reference owner of the launcher-bundle contract and `holdingco/infra/template-propagator` remains the rollout/proof reporting owner.
 - No secrets in git.
 
 ## Recursion policy (explicit)

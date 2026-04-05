@@ -119,7 +119,14 @@ This repo now carries one template-side propagation receipt at:
 
 Generated L2 repos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also seed an adoption snapshot contract (for example `copier-template/copier/tpl-project-repo/governance/dist/managed-launcher-bundle.adoption-snapshot.json`).
 
-Treat those generated files as deterministic **consumer-side snapshot contracts** for the managed launcher bundle, not as proof that generated repos have become the durable owner of the wrapper bundle.
+Treat the receipt plus generated adoption snapshots as deterministic contract surfaces, not as proof that generated repos have become the durable owner of the wrapper bundle.
+Authority stays split:
+- `softwareco/owned/agent-kernel` remains the runtime/reference owner of the launcher-bundle contract
+- `core/tpl-template-repo` is the canonical distribution authority for the generic launcher wrappers copied into templates, fixtures, and generated repos
+- `holdingco/infra/template-propagator` remains the rollout/proof reporting authority for live downstream alignment
+- generated repos stay consumer-only unless an explicit waiver says otherwise
+
+See `docs/project/2026-04-05-generic-launcher-wrapper-template-authority.md` for the bounded M45 authority note.
 
 ## Organization docs profiles (L1 vs L2)
 
