@@ -313,6 +313,8 @@ cat >"$lane_dir/.gitignore" <<'EOF'
 !ontology/**
 !policy/
 !policy/**
+!contracts/
+!contracts/**
 !scripts/
 !scripts/**
 !src/
@@ -350,6 +352,8 @@ $lane/*
 !$lane/ontology/**
 !$lane/policy/
 !$lane/policy/**
+!$lane/contracts/
+!$lane/contracts/**
 !$lane/scripts/
 !$lane/scripts/**
 !$lane/src/

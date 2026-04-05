@@ -35,41 +35,43 @@ If the operator gives an explicit repo-local AK task, follow that task. Otherwis
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Claimed repo-local AK task `#792`, expanded the tpl-project-repo language matrix to cover Node and TypeScript, aligned stack-contract wording with the emitted `workspace-local-unpinned` provenance, hardened copied `copier-answers.sh` helpers/parity checks across L0/L1/L2 surfaces, refreshed fixtures, and updated the handoff mirror now that the FCOS runnable queue is empty.
+  - Claimed and completed repo-local AK task `#793` to enforce `L0 -> L1 -> L2` recursion boundaries in code instead of relying on docs alone.
 - Outcome:
-  - `tpl-project-repo` now preserves `package.json` for both Node and TypeScript software-pack renders while keeping `tsconfig.json` TypeScript-only.
-  - `scripts/check-l0-generation.sh`, `scripts/check-l0-fixtures.sh`, and `scripts/sync-l0-fixtures.sh` now exercise/store matrix fixtures for Python, Node, TypeScript, Rust, and Elixir project repos plus the monorepo package-language matrix.
-  - Stack-contract docs/templates now describe `policy/stack-lane.json` as the source of the declared upstream lane command instead of overstating pinning when the emitted provenance is `workspace-local-unpinned`.
-  - Shared `copier-answers.sh` copies are hardened against unsupported tagged YAML fallback parsing and parity-checked across generated L0/L1/L2 surfaces.
-  - Validation evidence `#416` records `validation:check-l0 = pass` for task `#792`.
-  - `AK-281`, `#791`, `#793`, and `#794` remain ready repo-local backlog items; none should be substituted automatically for FCOS work unless the operator asks.
+  - Added machine-readable `contracts/layer-contract.yml` files across all L2 template archetypes and regenerated the rendered L1/L2/matrix fixtures so descendants now carry an explicit layer contract.
+  - Hardened `scripts/new-l1-from-copier.sh` to verify it is running from an L0 root and to fail closed when the destination already declares a conflicting layer.
+  - Hardened generated L1 `scripts/new-repo-from-copier.sh` with the same fail-closed destination-layer guard for `L1 -> L2` renders.
+  - Updated generated `scripts/bootstrap-lane-root.sh` so lane-root baselines keep `contracts/` tracked instead of dropping the new layer contract from lane control-plane surfaces.
+  - `scripts/check-l0-generation.sh`, `scripts/check-l0-guardrails.sh`, and generated `scripts/check-template-ci.sh` now assert the new contract presence + wrapper refusal behavior.
+  - Validation evidence `#417` records `validation:check-l0 = pass` for task `#793`, and AK task `#793` is now `done`.
+  - Current ready repo-local backlog is `AK-281`, `#791`, `#820`, and `#794`; do not substitute one automatically unless the operator asks.
 - Validation run:
-  - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` (`[]`, next issue id `none`)
   - `bash ./scripts/check-l0-generation.sh` (pass)
   - `bash ./scripts/check-l0-fixtures.sh` (pass)
   - `bash ./scripts/check-l0.sh` (pass)
 - Files of interest:
+  - `scripts/new-l1-from-copier.sh`
   - `scripts/check-l0-generation.sh`
-  - `scripts/check-l0-fixtures.sh`
-  - `scripts/sync-l0-fixtures.sh`
-  - `copier-template/copier/tpl-project-repo/copier.yml`
-  - `copier-template/copier/tpl-project-repo/docs/tech-stack.local.md.j2`
-  - `copier-template/copier/tpl-package/docs/tech-stack.local.md.j2`
-  - `copier-template/copier/tpl-monorepo/docs/tech-stack.local.md.j2`
+  - `scripts/check-l0-guardrails.sh`
+  - `copier-template/scripts/new-repo-from-copier.sh`
+  - `copier-template/scripts/bootstrap-lane-root.sh`
   - `copier-template/scripts/check-template-ci.sh`
-  - `scripts/lib/copier-answers.sh`
-  - `fixtures/matrix/tpl-project-repo/node/`
-  - `fixtures/matrix/tpl-project-repo/typescript/`
-  - `diary/2026-04-05--fix-nexus-helper-parity-language-matrix-and-stack-wording.md`
-  - `docs/learnings/2026-04-05-shared-helper-copies-need-parity-checks.md`
+  - `copier-template/copier/tpl-agent-repo/contracts/layer-contract.yml`
+  - `copier-template/copier/tpl-org-repo/contracts/layer-contract.yml`
+  - `copier-template/copier/tpl-project-repo/contracts/layer-contract.yml`
+  - `copier-template/copier/tpl-monorepo/contracts/layer-contract.yml`
+  - `copier-template/copier/tpl-package/contracts/layer-contract.yml`
+  - `fixtures/l1/template-repo/`
+  - `fixtures/l2/`
+  - `fixtures/matrix/`
+  - `diary/2026-04-05--feat-layer-contract-recursion-guardrails.md`
   - `next_session_prompt.md`
 - Blockers / follow-up:
-  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; the runnable FCOS queue is currently empty.
-  - Do not reopen task `#738`; that FCOS slice is already closed locally.
-  - Do not reopen task `#792` unless a regression appears in Node/TypeScript matrix coverage, stack-contract wording, or helper parity.
-  - If the operator wants backlog work in this repo, pick from the ready queue explicitly instead of inferring a new FCOS-local slice.
+  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; the runnable FCOS queue was previously empty and operator direction still wins over backlog inference.
+  - Existing older repos without `contracts/layer-contract.yml` remain compatibility-allowed if they predate this contract; tightening brownfield migration rules would be a separate follow-up.
+  - If the operator wants backlog work here, pick explicitly from `AK-281`, `#791`, `#820`, or `#794`.
 - Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md diary/2026-04-05--fix-nexus-helper-parity-language-matrix-and-stack-wording.md docs/learnings/2026-04-05-shared-helper-copies-need-parity-checks.md`
+  - `git restore -- next_session_prompt.md diary/2026-04-05--feat-layer-contract-recursion-guardrails.md scripts/new-l1-from-copier.sh scripts/check-l0-generation.sh scripts/check-l0-guardrails.sh copier-template/scripts/new-repo-from-copier.sh copier-template/scripts/bootstrap-lane-root.sh copier-template/scripts/check-template-ci.sh copier-template/copier/tpl-agent-repo/contracts/layer-contract.yml copier-template/copier/tpl-org-repo/contracts/layer-contract.yml copier-template/copier/tpl-project-repo/contracts/layer-contract.yml copier-template/copier/tpl-monorepo/contracts/layer-contract.yml copier-template/copier/tpl-package/contracts/layer-contract.yml`
+  - `bash ./scripts/sync-l0-fixtures.sh`
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
   - Crystallize to `docs/learnings/`

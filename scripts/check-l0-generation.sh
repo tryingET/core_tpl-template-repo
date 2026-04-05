@@ -335,6 +335,8 @@ colon_company_name="$(yaml_scalar_value "$colon_l2/.copier-answers.yml" company_
 	echo "error: inherited company_name should preserve colon characters (expected 'Foo: Labs', got '$colon_company_name')" >&2
 	exit 1
 }
+assert_file_contains "$colon_l2/contracts/layer-contract.yml" "layer: L2" "generated tpl-project-repo should declare layer L2"
+assert_command_fails_with_stderr "L0 wrapper should reject L2 destinations" "destination already declares layer L2" "$repo_root/scripts/new-l1-from-copier.sh" "$colon_l2" -d repo_slug=forbidden-l1-over-l2 --defaults --overwrite
 
 apostrophe_l1="$tmp_root/l1-template-apostrophe"
 apostrophe_l2="$tmp_root/l2-template-apostrophe"
@@ -518,6 +520,8 @@ chmod +x "$bootstrap_fake_bin/sed"
 	PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh owned >/dev/null
 )
 assert_file_contains "$bootstrap_l1/owned/.copier-answers.yml" "location: owned" "portable lane bootstrap should stamp lane location without sed"
+assert_file_contains "$bootstrap_l1/owned/contracts/layer-contract.yml" "layer: L2" "portable lane bootstrap should preserve L2 layer contract in built-in lane baselines"
+assert_file_contains "$bootstrap_l1/owned/.gitignore" "!contracts/**" "portable lane bootstrap should track contracts in built-in lane .gitignore"
 assert_file_contains "$bootstrap_l1/owned/README.md" "**Location**: owned" "portable lane bootstrap should update README location without sed"
 assert_command_fails "lane bootstrap should reject regex-bearing lane names" env PATH="$bootstrap_fake_bin:$PATH" sh -c "cd \"\$1\" && ./scripts/bootstrap-lane-root.sh \"[foo\"" sh "$bootstrap_l1"
 assert_command_fails "lane bootstrap should reject whitespace lane names" env PATH="$bootstrap_fake_bin:$PATH" sh -c "cd \"\$1\" && ./scripts/bootstrap-lane-root.sh \"data lane\"" sh "$bootstrap_l1"
@@ -528,9 +532,12 @@ assert_command_fails "lane bootstrap should reject reserved L1 control-plane lan
 	PROJECT_OWNER_HANDLE=@lane-owner PATH="$bootstrap_fake_bin:$PATH" ./scripts/bootstrap-lane-root.sh data-lane >/dev/null
 )
 assert_file_contains "$bootstrap_l1/data-lane/.copier-answers.yml" "location: data-lane" "portable lane bootstrap should stamp custom lane location in answers"
+assert_file_contains "$bootstrap_l1/data-lane/contracts/layer-contract.yml" "layer: L2" "portable lane bootstrap should preserve L2 layer contract in custom lane baselines"
+assert_file_contains "$bootstrap_l1/data-lane/.gitignore" "!contracts/**" "portable lane bootstrap should track contracts in custom lane .gitignore"
 assert_file_contains "$bootstrap_l1/data-lane/README.md" "**Location**: data-lane" "portable lane bootstrap should render custom lane location in README"
 assert_file_contains "$bootstrap_l1/data-lane/CODEOWNERS" "# Location: data-lane" "portable lane bootstrap should render custom lane location in CODEOWNERS"
 assert_file_contains "$bootstrap_l1/data-lane/CODEOWNERS" "docs/project/** @lane-owner" "portable lane bootstrap should fall back to project owner handle for custom lanes"
+assert_file_contains "$bootstrap_l1/.gitignore" "!data-lane/contracts/**" "portable lane bootstrap should unignore contracts in parent gitignore"
 data_lane_block_count="$(grep -cF '# Lane root: data-lane' "$bootstrap_l1/.gitignore" || true)"
 [ "$data_lane_block_count" = "1" ] || {
 	echo "error: lane bootstrap should remain idempotent for safe custom lane names" >&2

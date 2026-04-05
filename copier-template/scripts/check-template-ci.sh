@@ -238,6 +238,7 @@ done
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
 	assert_dir "copier/$tpl"
 	assert_file "copier/$tpl/copier.yml"
+	assert_file "copier/$tpl/contracts/layer-contract.yml"
 	assert_file "copier/$tpl/AGENTS.md.j2"
 	assert_file "copier/$tpl/CODEOWNERS.j2"
 	assert_file "copier/$tpl/.copier-answers.yml.j2"
@@ -256,6 +257,10 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	fi
 	assert_file "copier/$tpl/scripts/rocs.sh.j2"
 	assert_exec "copier/$tpl/scripts/rocs.sh.j2"
+	assert_contains "copier/$tpl/contracts/layer-contract.yml" "layer: L2" "L2 template $tpl contract must declare layer L2"
+	assert_contains "copier/$tpl/contracts/layer-contract.yml" "L1 -> L2" "L2 template $tpl contract must include allowed L1 -> L2 transition"
+	assert_contains "copier/$tpl/contracts/layer-contract.yml" "L2 -> L1" "L2 template $tpl contract must include forbidden L2 -> L1 transition"
+	assert_contains "copier/$tpl/contracts/layer-contract.yml" "max_layer_depth: 2" "L2 template $tpl contract must cap layer depth"
 	assert_file "copier/$tpl/scripts/ci/smoke.sh"
 	if [ "$tpl" = "tpl-project-repo" ]; then
 		assert_file "copier/$tpl/scripts/ci/fast.sh"
@@ -397,6 +402,8 @@ assert_contains "scripts/bootstrap-lane-root.sh" "--init-lane-git" "lane bootstr
 assert_contains "scripts/bootstrap-lane-root.sh" "tpl-project-repo" "lane bootstrap helper must render tpl-project-repo baseline"
 assert_contains "scripts/bootstrap-lane-root.sh" "scripts/lib/repo-surface.sh" "lane bootstrap helper should source the shared repo-surface helper"
 assert_contains "scripts/bootstrap-lane-root.sh" "repo_surface_lane_root_src_path" "lane bootstrap helper should derive a stable lane-root source path"
+assert_contains "scripts/bootstrap-lane-root.sh" "!contracts/**" "lane bootstrap helper should track layer contracts in lane-root baselines"
+assert_contains "scripts/bootstrap-lane-root.sh" '!$lane/contracts/**' "lane bootstrap helper should unignore lane-root contracts in parent gitignore"
 assert_not_contains "scripts/bootstrap-lane-root.sh" "sed -i" "lane bootstrap helper must not rely on GNU sed -i"
 
 expected_pin="COPIER_VERSION=\"\${COPIER_VERSION:-9.11.1}\""
@@ -409,6 +416,8 @@ copier_guard='if command -v copier >/dev/null 2>&1; then'
 
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_pin" "L1 wrapper must pin Copier version"
 assert_contains "scripts/new-repo-from-copier.sh" "scripts/lib/copier-answers.sh" "L1 wrapper should source the shared copier answers helper"
+assert_contains "scripts/new-repo-from-copier.sh" "assert_repo_layer \"\$repo_root\" \"L1\"" "L1 wrapper should verify it is running from an L1 contract root"
+assert_contains "scripts/new-repo-from-copier.sh" "destination already declares layer" "L1 wrapper should fail closed on destination layer mismatches"
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvx" "L1 wrapper must use pinned uvx invocation"
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvtool" "L1 wrapper must use pinned uv tool invocation"
 assert_contains "scripts/new-repo-from-copier.sh" "$fallback_warning" "L1 wrapper must surface unpinned fallback warning"
@@ -784,6 +793,7 @@ write_task_scope_snapshot "$repo_root" "$l1_task_scope_id"
 run_repo_cmd "$repo_root" ./scripts/check-task-scope-snapshots.sh >/dev/null
 run_repo_cmd "$repo_root" ./scripts/ci/full.sh >/dev/null
 restore_l1_task_scope_dir
+assert_command_fails_with_stderr "generated L1 wrapper should reject L1 destinations" "destination already declares layer L1" ./scripts/new-repo-from-copier.sh tpl-project-repo "$repo_root" -d repo_slug=forbidden-l1-destination --defaults --overwrite
 
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	l2_dir="$tmp_root/$tpl"
@@ -793,6 +803,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 
 	# Basic L2 checks
 	assert_file "$l2_dir/.copier-answers.yml"
+	assert_file "$l2_dir/contracts/layer-contract.yml"
+	assert_contains "$l2_dir/contracts/layer-contract.yml" "layer: L2" "generated $tpl contract must declare layer L2"
 	assert_file "$l2_dir/AGENTS.md"
 	assert_file "$l2_dir/CODEOWNERS"
 	assert_file "$l2_dir/scripts/ak.sh"

@@ -139,6 +139,66 @@ is_enabled() {
 }
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+answers_lib="$repo_root/scripts/lib/copier-answers.sh"
+[ -f "$answers_lib" ] || {
+	echo "error: missing dependency: $answers_lib" >&2
+	exit 2
+}
+# shellcheck source=/dev/null
+. "$answers_lib"
+
+fail() {
+	echo "error: $*" >&2
+	exit 2
+}
+
+layer_contract_path() {
+	printf '%s/contracts/layer-contract.yml\n' "$1"
+}
+
+layer_contract_read_layer() {
+	contract_path="$(layer_contract_path "$1")"
+	[ -f "$contract_path" ] || return 1
+
+	layer="$(copier_answers_try_scalar "$contract_path" layer)" || return $?
+	[ -n "$layer" ] || return 2
+	printf '%s\n' "$layer"
+}
+
+assert_repo_layer() {
+	root="$1"
+	expected_layer="$2"
+	label="$3"
+	contract_path="$(layer_contract_path "$root")"
+	layer="$(layer_contract_read_layer "$root")" || fail "$label must declare layer $expected_layer via $contract_path"
+	[ "$layer" = "$expected_layer" ] || fail "$label must declare layer $expected_layer (found $layer in $contract_path)"
+}
+
+guard_destination_layer() {
+	dest_root="$1"
+	expected_layer="$2"
+	transition_label="$3"
+	[ -e "$dest_root" ] || return 0
+
+	dest_layer=""
+	dest_status=0
+	dest_layer="$(layer_contract_read_layer "$dest_root")" || dest_status=$?
+	case "$dest_status" in
+	0)
+		if [ "$dest_layer" != "$expected_layer" ]; then
+			fail "refusing $transition_label render into $dest_root: destination already declares layer $dest_layer"
+		fi
+		;;
+	1)
+		;;
+	*)
+		fail "unable to parse layer contract at $(layer_contract_path "$dest_root")"
+		;;
+	esac
+}
+
+assert_repo_layer "$repo_root" "L0" "L0 render wrapper"
+guard_destination_layer "$dest_dir" "L1" "L0 -> L1"
 
 # Inject L0 source SHA for provenance tracking.
 # Resolve through git directly so normal clones and git worktrees both preserve provenance.
