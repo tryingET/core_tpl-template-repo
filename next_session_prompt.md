@@ -4,11 +4,11 @@
 Reading this file is authorization to start immediately.
 Do not ask for permission to begin.
 
-## CURRENT MISSION: RUNTIME FCOS HEAD CURRENTLY RESOLVES ELSEWHERE; KEEP THIS REPO IN MIRROR-ONLY / OPERATOR-DIRECTED POSTURE
+## CURRENT MISSION: NO RUNTIME FCOS HEAD IS CURRENTLY RESOLVED; KEEP THIS REPO IN MIRROR-ONLY / OPERATOR-DIRECTED POSTURE
 
-The live runtime-resolved FCOS queue currently points at `FCOS-M46-01`, and its repo set does **not** include this repo (`cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`).
-Repo-local FCOS slices `#738`, `#820`, `#821`, `#851`, and `#281` are closed; do not reopen them for mirror-only work.
-Re-run the FCOS resolver first. If the live head still excludes this repo, only fall back to the repo-local ready queue when the operator explicitly asks for backlog work here.
+The live runtime-resolved FCOS queue currently resolves to `none` (`cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`).
+Repo-local FCOS slices `#738`, `#820`, `#821`, `#851`, `#281`, and `#791` are closed; do not reopen them for mirror-only work.
+Re-run the FCOS resolver first. If it still returns no runnable head, only fall back to the repo-local ready queue when the operator explicitly asks for backlog work here.
 
 ## RUNTIME-RESOLVED PRIORITY / NEXT ISSUE
 
@@ -17,12 +17,9 @@ Re-run the FCOS resolver first. If the live head still excludes this repo, only 
 - Next issue resolver (same command, mirror-only):
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`
 - Last synced runtime-resolved FCOS issue id (mirror-only, rerun the resolver instead of trusting this line):
-  - `FCOS-M46-01`
+  - `none`
 - Last synced runtime-resolved FCOS repo set (mirror-only, rerun the resolver instead of trusting this line):
-  - `holdingco/governance-kernel`
-  - `softwareco/owned/email-copilot`
-  - `softwareco/infra/workstation`
-  - `softwareco/infra/ds1621-admin`
+  - `none`
 - Anti-drift cadence policy:
   - loop-owned via `~/ai-society/holdingco/governance-kernel/governance/fcos/loops-registry.json` plugin `loop.fcos.drift.audit`
 
@@ -41,34 +38,27 @@ Re-run the FCOS resolver first. If the live head still excludes this repo, only 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Completed repo-local AK task `#281`, removing template-shipped ROCS GitLab baseline/ref-resolution behavior from `tpl-project-repo` and moving the template contract to workspace-only `<repo:...>` locators.
+  - Attended repo-local AK task `#791` and determined it had already been implemented in a different way via commit `9f98e48` (`docs(l2): clarify profile toggles are metadata-only`), then reconciled AK/runtime state and closed the task.
 - Outcome:
-  - Refreshed `copier-template/copier/tpl-project-repo/tools/rocs-cli/` from `~/ai-society/core/rocs-cli` via `scripts/vendor-to.sh`, which removed the vendored `gitlab.py` helper and brought in workspace-aware ref resolution.
-  - Updated `copier-template/copier/tpl-project-repo/copier.yml` so default ontology refs are now `<repo:core/ontology-kernel@main>` and `<repo:{{ company_slug }}/ontology@main>`.
-  - Updated `copier-template/copier/tpl-project-repo/README.md.j2`, `ontology/index.md`, and `copier-template/docs/dev/tpl-project-repo-file-contract.md` so operators are pointed at `ROCS_WORKSPACE_ROOT` + `./scripts/rocs.sh` instead of legacy GitLab assumptions.
-  - Strengthened `scripts/check-l0-guardrails.sh` and `copier-template/scripts/check-template-ci.sh` to require repo-locator defaults, workspace-aware vendored sources, and absence of the legacy vendored `gitlab.py` surface.
-  - Regenerated L1/L2/matrix fixtures with `bash ./scripts/sync-l0-fixtures.sh`.
-  - Captured the slice in `diary/2026-04-06--feat-tpl-project-repo-rocs-workspace-ref-migration.md`.
-  - Re-ran `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` and confirmed the live runtime FCOS head now resolves to `FCOS-M46-01` in other repos, so this repo should remain mirror-only / operator-directed unless the operator explicitly selects backlog work here.
+  - Verified the landed implementation already chose the `metadata-only` path for L2 `enable_community_pack`, `enable_release_pack`, and `enable_vouch_gate` toggles across `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, and `tpl-monorepo`.
+  - Confirmed the regression in `scripts/check-l0-generation.sh` still proves toggle-on vs toggle-off L2 renders are identical apart from answers files while README text documents the metadata-only contract.
+  - Closed AK task `#791` with evidence pointing at the original implementation commit plus current validation.
+  - Captured the operational closeout in `diary/2026-04-06--ops-task-791-metadata-only-closeout.md`.
+  - Re-ran `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` and confirmed the live FCOS resolver currently returns `[]` / `none`, so this repo should remain mirror-only / operator-directed unless the operator explicitly selects backlog work here.
 - Validation run:
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`
-  - `bash ./scripts/sync-l0-fixtures.sh`
   - `bash ./scripts/check-l0.sh`
 - Files of interest:
-  - `copier-template/copier/tpl-project-repo/copier.yml`
-  - `copier-template/copier/tpl-project-repo/README.md.j2`
-  - `copier-template/copier/tpl-project-repo/ontology/index.md`
-  - `copier-template/copier/tpl-project-repo/tools/rocs-cli/README.md`
-  - `copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py`
-  - `scripts/check-l0-guardrails.sh`
-  - `copier-template/scripts/check-template-ci.sh`
-  - `diary/2026-04-06--feat-tpl-project-repo-rocs-workspace-ref-migration.md`
+  - `diary/2026-04-05--docs-l2-toggle-metadata-only-contract.md`
+  - `scripts/check-l0-generation.sh`
+  - `docs/profile-governance-policy.md`
   - `next_session_prompt.md`
+  - `diary/2026-04-06--ops-task-791-metadata-only-closeout.md`
 - Blockers / follow-up:
-  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; the live head currently targets other repos, so backlog work here should stay operator-directed.
-  - In this repo, treat repo-local tasks `#738`, `#820`, `#821`, `#851`, and `#281` as closed implementation slices. If the operator wants backlog work here next, pick explicitly from `#791`; if `#794` still appears in `task ready`, treat it as stale local AK state until the DB/storage drift is repaired.
+  - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; the live resolver currently returns `none`, so operator direction should choose the next slice explicitly.
+  - In this repo, treat repo-local tasks `#738`, `#820`, `#821`, `#851`, `#281`, and `#791` as closed implementation slices. If `#794` still appears in `task ready`, treat that as stale local AK state until the DB/storage drift is repaired.
 - Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md scripts/check-l0-guardrails.sh copier-template/scripts/check-template-ci.sh copier-template/docs/dev/tpl-project-repo-file-contract.md copier-template/copier/tpl-project-repo fixtures/l1/template-repo/copier/tpl-project-repo fixtures/l1/template-repo/docs/dev/tpl-project-repo-file-contract.md fixtures/l1/template-repo/scripts/check-template-ci.sh fixtures/l2/tpl-project-repo fixtures/matrix/tpl-project-repo diary/2026-04-06--feat-tpl-project-repo-rocs-workspace-ref-migration.md`
+  - `git restore -- next_session_prompt.md diary/2026-04-06--ops-task-791-metadata-only-closeout.md`
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
   - Crystallize to `docs/learnings/`
