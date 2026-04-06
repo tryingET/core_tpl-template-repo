@@ -75,13 +75,13 @@ enable_vouch_gate:
 
 kernel_ontology_ref:
   type: str
-  default: "<gitlab:org/ontology-kernel@v0.1.0>"
-  help: "ROCS core/kernel ontology ref (GitLab locator)"
+  default: "<repo:core/ontology-kernel@main>"
+  help: "ROCS core/kernel ontology ref (workspace repo locator)"
 
 company_ontology_ref:
   type: str
-  default: "<gitlab:org/ontology@v0.1.0>"
-  help: "ROCS company overlay ref (GitLab locator)"
+  default: "<repo:{{ company_slug }}/ontology@main>"
+  help: "ROCS company overlay ref (workspace repo locator)"
 
 core_owner_handle:
   type: str

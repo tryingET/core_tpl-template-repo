@@ -8,4 +8,4 @@ Start here when browsing manually.
 - `ontology/src/bridge/mapping.yaml` — map concepts to code symbols
 - `ontology/dist/` — generated artifacts (tool-first)
 
-Tip: Use `uvx --from ./tools/rocs-cli rocs pack <concept_id>` instead of opening many files.
+Tip: Set `ROCS_WORKSPACE_ROOT=~/ai-society` (or your local workspace root) and use `./scripts/rocs.sh pack <concept_id> --repo . --resolve-refs` instead of opening many files.

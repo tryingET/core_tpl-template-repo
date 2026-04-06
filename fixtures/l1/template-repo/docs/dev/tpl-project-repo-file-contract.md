@@ -79,8 +79,9 @@ Default L2 output is intentionally split into 7 domains:
 
 ### E. Ontology + validation toolchain
 - `ontology/manifest.yaml`, `ontology/src/**`
+  - layered defaults use workspace-only `<repo:...@main>` locators (`core/ontology-kernel` + `<company>/ontology`)
 - `scripts/rocs.sh`
-- `tools/rocs-cli/` (vendored deterministic runner source)
+- `tools/rocs-cli/` (vendored deterministic runner source; workspace-only ref resolution, no legacy GitLab fallback)
 
 ### F. CI surface
 - `scripts/ak.sh` (deterministic AK launcher for repo-local work-items projection)
@@ -195,6 +196,7 @@ git restore -- \
 3. **Aligned** `work-items.cue`, `work-items.json`, and governance README semantics.
 4. **Corrected** L1 docs that referenced non-existent governance overlay paths.
 5. **Consolidated** authority here; other docs now link instead of duplicating outdated explanations.
+6. **Migrated** tpl-project-repo ROCS defaults from legacy `<gitlab:...>` locators to workspace-only `<repo:...>` locators and refreshed the vendored `tools/rocs-cli` accordingly.
 
 ---
 

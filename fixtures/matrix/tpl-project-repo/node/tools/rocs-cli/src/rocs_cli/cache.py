@@ -39,10 +39,7 @@ def list_cache_entries() -> list[CacheEntry]:
     if not root.exists():
         return []
     entries: list[CacheEntry] = []
-    gitlab_root = root / "gitlab"
-    if not gitlab_root.exists():
-        return []
-    for p in sorted(gitlab_root.glob("*/*")):
+    for p in sorted(root.iterdir()):
         if p.is_dir():
             entries.append(CacheEntry(path=p, bytes=_dir_size_bytes(p)))
     return entries
@@ -58,13 +55,10 @@ def prune_cache(*, max_age_days: int) -> int:
     root = cache_dir()
     if not root.exists():
         return 0
-    cutoff = (max_age_days * 24 * 60 * 60)
+    cutoff = max_age_days * 24 * 60 * 60
     removed = 0
     now = int(time.time())
-    gitlab_root = root / "gitlab"
-    if not gitlab_root.exists():
-        return 0
-    for p in sorted(gitlab_root.glob("*/*")):
+    for p in sorted(root.iterdir()):
         if not p.is_dir():
             continue
         try:

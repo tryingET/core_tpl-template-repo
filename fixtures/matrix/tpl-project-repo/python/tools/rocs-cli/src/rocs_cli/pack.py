@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, cast
 
+from rocs_cli.errors import RocsCliError
 from rocs_cli.model import OntDoc, relation_label_index
 
 
@@ -22,42 +24,58 @@ class PackedDoc:
     text: str
 
 
+def _int_or_error(v: object, *, field: str, minimum: int | None = None, allow_none: bool = False) -> int | None:
+    if v is None:
+        if allow_none:
+            return None
+        raise RocsCliError(kind="config", message=f"pack.{field} must be set")
+    value = cast(Any, v)
+    try:
+        out = int(value)
+    except Exception as e:
+        raise RocsCliError(kind="config", message=f"pack.{field} must be an integer") from e
+    if minimum is not None and out < minimum:
+        comparator = ">=" if minimum == 0 else f">= {minimum}"
+        raise RocsCliError(kind="config", message=f"pack.{field} must be {comparator}")
+    return out
+
+
+def _bool_or_error(v: object, *, field: str) -> bool:
+    if v is None:
+        return False
+    if isinstance(v, bool):
+        return v
+    raise RocsCliError(kind="config", message=f"pack.{field} must be a boolean")
+
+
 def _parse_profile_pack_cfg(profile_def: dict | None) -> PackConfig:
     if not isinstance(profile_def, dict):
         return PackConfig()
     pack = profile_def.get("pack")
-    if not isinstance(pack, dict):
+    if pack is None:
         return PackConfig()
+    if not isinstance(pack, dict):
+        raise RocsCliError(kind="config", message="pack profile config must be a mapping")
 
-    max_depth = pack.get("max_depth")
-    if max_depth is None:
-        max_depth = 0
-    try:
-        max_depth = int(max_depth)
-    except Exception:
-        max_depth = 0
+    max_depth = _int_or_error(pack.get("max_depth", 0), field="max_depth", minimum=0)
 
     rel_types = None
     raw_rel_types = pack.get("rel_types")
-    if isinstance(raw_rel_types, list):
+    if raw_rel_types is not None:
+        if not isinstance(raw_rel_types, list):
+            raise RocsCliError(kind="config", message="pack.rel_types must be a list")
         rel_types = {str(x) for x in raw_rel_types if str(x).strip()}
 
-    include_relation_defs = bool(pack.get("include_relation_defs") or False)
-
-    def _maybe_int(v) -> int | None:
-        if v is None:
-            return None
-        try:
-            return int(v)
-        except Exception:
-            return None
+    include_relation_defs = _bool_or_error(pack.get("include_relation_defs"), field="include_relation_defs")
+    max_docs = _int_or_error(pack.get("max_docs"), field="max_docs", minimum=1, allow_none=True)
+    max_bytes = _int_or_error(pack.get("max_bytes"), field="max_bytes", minimum=1, allow_none=True)
 
     return PackConfig(
-        max_depth=max_depth,
+        max_depth=max_depth or 0,
         rel_types=rel_types,
         include_relation_defs=include_relation_defs,
-        max_docs=_maybe_int(pack.get("max_docs")),
-        max_bytes=_maybe_int(pack.get("max_bytes")),
+        max_docs=max_docs,
+        max_bytes=max_bytes,
     )
 
 
@@ -74,14 +92,29 @@ def build_pack(
     packed: list[PackedDoc] = []
     bytes_used = 0
 
-    def add_doc(ont_id: str, kind: str, doc: OntDoc) -> None:
+    def add_doc(ont_id: str, kind: str, doc: OntDoc, *, required: bool = False) -> bool:
         nonlocal bytes_used
+        if config.max_docs is not None and len(packed) >= config.max_docs:
+            if required:
+                raise RocsCliError(
+                    kind="usage",
+                    message=f"pack limits exclude requested root doc: {ont_id} (max_docs={config.max_docs})",
+                )
+            return False
         text = doc.path.read_text("utf-8")
         b = len(text.encode("utf-8"))
         if config.max_bytes is not None and bytes_used + b > config.max_bytes:
-            return
+            if required:
+                raise RocsCliError(
+                    kind="usage",
+                    message=f"pack limits exclude requested root doc: {ont_id} (max_bytes={config.max_bytes})",
+                )
+            return False
         bytes_used += b
         packed.append(PackedDoc(ont_id=ont_id, kind=kind, path=str(doc.path), text=text))
+        return True
+
+    relation_root_id = root_id if root_id in relations else None
 
     # Concepts first: root, then BFS expansion.
     included_concepts: set[str] = set()
@@ -92,8 +125,6 @@ def build_pack(
 
     while frontier:
         cid, depth = frontier.pop(0)
-        if config.max_docs is not None and len(included_concepts) >= config.max_docs:
-            break
         if depth >= config.max_depth:
             continue
         cdoc = concepts.get(cid)
@@ -125,7 +156,7 @@ def build_pack(
         cdoc = concepts.get(cid)
         if not cdoc:
             continue
-        add_doc(cid, "concept", cdoc)
+        add_doc(cid, "concept", cdoc, required=(cid == root_id))
 
     included_relation_labels: set[str] = set()
     if config.include_relation_defs:
@@ -143,12 +174,19 @@ def build_pack(
                 if rtype:
                     included_relation_labels.add(rtype)
 
+    if relation_root_id is not None:
+        rdoc = relations.get(relation_root_id)
+        if rdoc is not None:
+            add_doc(relation_root_id, "relation", rdoc, required=True)
+
     rel_label_to_ids = relation_label_index(relations)
     included_relation_ids: set[str] = set()
     if config.include_relation_defs:
         for lbl in sorted(included_relation_labels):
             for rid in sorted(rel_label_to_ids.get(lbl) or []):
                 included_relation_ids.add(rid)
+    if relation_root_id is not None:
+        included_relation_ids.discard(relation_root_id)
 
     for rid in sorted(included_relation_ids):
         rdoc = relations.get(rid)
@@ -179,8 +217,14 @@ def pack_config_from_profile(*, profile_def: dict | None, overrides: dict) -> Pa
     cfg = _parse_profile_pack_cfg(profile_def)
     max_depth = overrides.get("max_depth")
     if max_depth is not None:
+        try:
+            parsed_max_depth = int(max_depth)
+        except Exception as e:
+            raise RocsCliError(kind="usage", message="--depth must be an integer >= 0") from e
+        if parsed_max_depth < 0:
+            raise RocsCliError(kind="usage", message="--depth must be an integer >= 0")
         cfg = PackConfig(
-            max_depth=int(max_depth),
+            max_depth=parsed_max_depth,
             rel_types=cfg.rel_types,
             include_relation_defs=cfg.include_relation_defs,
             max_docs=cfg.max_docs,
@@ -209,22 +253,34 @@ def pack_config_from_profile(*, profile_def: dict | None, overrides: dict) -> Pa
 
     max_docs = overrides.get("max_docs")
     if max_docs is not None:
+        try:
+            parsed_max_docs = int(max_docs)
+        except Exception as e:
+            raise RocsCliError(kind="usage", message="--max-docs must be an integer >= 1") from e
+        if parsed_max_docs < 1:
+            raise RocsCliError(kind="usage", message="--max-docs must be an integer >= 1")
         cfg = PackConfig(
             max_depth=cfg.max_depth,
             rel_types=cfg.rel_types,
             include_relation_defs=cfg.include_relation_defs,
-            max_docs=int(max_docs),
+            max_docs=parsed_max_docs,
             max_bytes=cfg.max_bytes,
         )
 
     max_bytes = overrides.get("max_bytes")
     if max_bytes is not None:
+        try:
+            parsed_max_bytes = int(max_bytes)
+        except Exception as e:
+            raise RocsCliError(kind="usage", message="--max-bytes must be an integer >= 1") from e
+        if parsed_max_bytes < 1:
+            raise RocsCliError(kind="usage", message="--max-bytes must be an integer >= 1")
         cfg = PackConfig(
             max_depth=cfg.max_depth,
             rel_types=cfg.rel_types,
             include_relation_defs=cfg.include_relation_defs,
             max_docs=cfg.max_docs,
-            max_bytes=int(max_bytes),
+            max_bytes=parsed_max_bytes,
         )
 
     return cfg

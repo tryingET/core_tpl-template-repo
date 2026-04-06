@@ -286,9 +286,15 @@ assert_contains "copier-template/copier/tpl-package/AGENTS.md.j2" "Deferred work
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "ROCS commands should be run from the monorepo root." "tpl-package ROCS wrapper should remain a monorepo-root placeholder"
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "Use: ../../scripts/rocs.sh <args>" "tpl-package ROCS wrapper should redirect to the monorepo-root launcher"
 assert_absent "copier-template/copier/tpl-package/scripts/ak.sh"
-assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py" "def _safe_cache_component" "tpl-project-repo GitLab cache helper should sanitize cache path components"
-assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py" "safe_ref = _safe_cache_component(ref, label=\"ref\")" "tpl-project-repo GitLab cache path should sanitize ref names"
-assert_contains "fixtures/l2/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py" "def _safe_cache_component" "fixture tpl-project-repo GitLab cache helper should stay synchronized"
+assert_contains "copier-template/copier/tpl-project-repo/copier.yml" 'default: "<repo:core/ontology-kernel@main>"' "tpl-project-repo should default core ontology refs to workspace repo locators"
+assert_contains "copier-template/copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
+assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
+assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
+assert_file "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/workspace.py"
+assert_absent "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py"
+assert_contains "fixtures/l2/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "fixture tpl-project-repo vendored rocs-cli README should stay synchronized"
+assert_file "fixtures/l2/tpl-project-repo/tools/rocs-cli/src/rocs_cli/workspace.py"
+assert_absent "fixtures/l2/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py"
 
 check_multi_pass_suffix_policy
 

@@ -313,6 +313,12 @@ for tpl in tpl-project-repo tpl-monorepo; do
 done
 assert_contains "copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
+assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:core/ontology-kernel@main>"' "tpl-project-repo should default core ontology refs to workspace repo locators"
+assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
+assert_contains "copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
+assert_contains "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
+assert_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/workspace.py"
+assert_not_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py"
 
 check_multi_pass_suffix_policy
 

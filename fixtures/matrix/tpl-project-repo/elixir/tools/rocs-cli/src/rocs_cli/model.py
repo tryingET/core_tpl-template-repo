@@ -17,7 +17,10 @@ class OntDoc:
 
     @property
     def ont(self) -> dict:
-        return self.fm.get("ont") or {}
+        ont = self.fm.get("ont")
+        if isinstance(ont, dict):
+            return ont
+        return {}
 
     @property
     def ont_id(self) -> str:
@@ -55,6 +58,12 @@ def load_doc(path: Path, *, layer: LayerSpec) -> OntDoc:
 
 
 def collect_docs(layers: list[LayerSpec]) -> tuple[dict[str, OntDoc], dict[str, OntDoc]]:
+    # Optional incremental cache (offline-first; local-only; deterministic outputs).
+    from rocs_cli.index_cache import collect_docs_cached, index_cache_enabled  # noqa: PLC0415
+
+    if index_cache_enabled():
+        return collect_docs_cached(layers)
+
     concepts: dict[str, OntDoc] = {}
     relations: dict[str, OntDoc] = {}
     for layer in layers:
@@ -82,4 +91,3 @@ def relation_label_index(relations: dict[str, OntDoc]) -> dict[str, set[str]]:
         for lbl in labels:
             rel_label_to_ids.setdefault(str(lbl), set()).add(rid)
     return rel_label_to_ids
-

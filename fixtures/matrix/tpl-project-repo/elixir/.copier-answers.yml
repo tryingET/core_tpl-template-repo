@@ -1,13 +1,13 @@
 _src_path: __VOLATILE_SRC_PATH__
 company_name: Holding Company
-company_ontology_ref: <gitlab:org/ontology@v0.1.0>
+company_ontology_ref: <repo:holdingco/ontology@main>
 company_slug: holdingco
 core_owner_handle: '@core-owner'
 enable_community_pack: false
 enable_release_pack: false
 enable_software_pack: true
 enable_vouch_gate: false
-kernel_ontology_ref: <gitlab:org/ontology-kernel@v0.1.0>
+kernel_ontology_ref: <repo:core/ontology-kernel@main>
 language: elixir
 location: owned
 org_docs_profile: compact

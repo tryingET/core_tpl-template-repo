@@ -113,12 +113,16 @@ def compute_layout(nodes: list[str], edges: list[GraphEdge], *, layout: str) -> 
     return out
 
 
+def _dot_escape(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
 def export_dot(nodes: list[str], edges: list[GraphEdge]) -> str:
     lines = ["digraph rocs {", "  rankdir=LR;"]
     for n in nodes:
-        lines.append(f'  "{n}";')
+        lines.append(f'  "{_dot_escape(n)}";')
     for e in edges:
-        lines.append(f'  "{e.src}" -> "{e.dst}" [label="{e.rel}"];')
+        lines.append(f'  "{_dot_escape(e.src)}" -> "{_dot_escape(e.dst)}" [label="{_dot_escape(e.rel)}"];')
     lines.append("}")
     return "\n".join(lines) + "\n"
 

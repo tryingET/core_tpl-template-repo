@@ -147,21 +147,28 @@ Use the staged CI lanes:
   - if not passed explicitly, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config
 - `org_owner_handle`: CODEOWNERS entry for org paths
 - `org_docs_profile`: `compact` keeps a short org-context snapshot; `rich` adds mission/purpose/vision/strategic-objectives/governance context files
-- `kernel_ontology_ref`: ROCS core ontology reference
-- `company_ontology_ref`: ROCS company ontology reference
+- `kernel_ontology_ref`: ROCS core ontology reference (default: `<repo:core/ontology-kernel@main>`)
+- `company_ontology_ref`: ROCS company ontology reference (default: `<repo:holdingco/ontology@main>`)
 - `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:
   inherited compatibility flags from the parent L1 profile; currently metadata-only in `tpl-project-repo` (no extra file overlays)
 
 ## ROCS command flow
 
-Use the repository wrapper for deterministic execution:
+Use the repository wrapper for deterministic execution. Default layered manifests resolve refs from local workspace clones only, so set the workspace root before running ref-aware commands:
 
 ```bash
+export ROCS_WORKSPACE_ROOT="${ROCS_WORKSPACE_ROOT:-$HOME/ai-society}"
 ./scripts/rocs.sh --doctor
 ./scripts/rocs.sh build --repo . --resolve-refs --clean
 ./scripts/rocs.sh validate --repo . --resolve-refs
 ```
 
+Default locator contract:
+- core layer: `<repo:core/ontology-kernel@main>`
+- company layer: `<repo:holdingco/ontology@main>`
+- legacy `<gitlab:...>` locators are unsupported
+
+If your workspace root lives somewhere else, point `ROCS_WORKSPACE_ROOT` at that clone root explicitly.
 This wrapper prefers vendored `tools/rocs-cli` and falls back to workspace/global runners.
 
 ## Knowledge Evolution
