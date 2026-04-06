@@ -38,27 +38,31 @@ Re-run the FCOS resolver first. If it still returns no runnable head, only fall 
 
 ## SESSION CHECKPOINT (UPDATE BEFORE /commit)
 - Work package executed this session:
-  - Attended repo-local AK task `#791` and determined it had already been implemented in a different way via commit `9f98e48` (`docs(l2): clarify profile toggles are metadata-only`), then reconciled AK/runtime state and closed the task.
+  - Attended repo-local AK task `#794` and determined it had already been implemented and committed via `2618656` (`fix(check-l0): tune slow-runner timeout orchestration`), then revalidated the landed behavior on current `HEAD` without reopening the code slice.
 - Outcome:
-  - Verified the landed implementation already chose the `metadata-only` path for L2 `enable_community_pack`, `enable_release_pack`, and `enable_vouch_gate` toggles across `tpl-agent-repo`, `tpl-org-repo`, `tpl-project-repo`, and `tpl-monorepo`.
-  - Confirmed the regression in `scripts/check-l0-generation.sh` still proves toggle-on vs toggle-off L2 renders are identical apart from answers files while README text documents the metadata-only contract.
-  - Closed AK task `#791` with evidence pointing at the original implementation commit plus current validation.
-  - Captured the operational closeout in `diary/2026-04-06--ops-task-791-metadata-only-closeout.md`.
-  - Re-ran `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` and confirmed the live FCOS resolver currently returns `[]` / `none`, so this repo should remain mirror-only / operator-directed unless the operator explicitly selects backlog work here.
+  - Confirmed `scripts/check-l0.sh` still resolves `timeout` / `gtimeout`, reports the effective timeout policy, budgets `check-l0-generation` above the base timeout, and aborts remaining heavyweight checks after a timeout while staying fail-closed.
+  - Verified the forced-timeout negative path still behaves as intended: `L0_CHECK_TIMEOUT_SECONDS=1 bash ./scripts/check-l0.sh` times out `check-l0-generation`, marks the aggregate run failed, and skips later heavyweight checks instead of creating a false green.
+  - Re-ran the original focused validations (`check-l0-generation`, `check-l0-adversarial`, `check-l0-fixtures`) and confirmed the full `bash ./scripts/check-l0.sh` gate now passes cleanly on current `HEAD`.
+  - Captured the operational closeout in `diary/2026-04-06--ops-task-794-timeout-orchestration-closeout.md` and recorded `validation:ak-task-794-reverify = pass` in the society evidence ledger.
+  - Re-ran `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` and confirmed the live FCOS resolver still returns `[]` / `none`, so this repo should remain mirror-only / operator-directed unless the operator explicitly selects backlog work here.
 - Validation run:
   - `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable`
+  - `L0_CHECK_TIMEOUT_SECONDS=1 bash ./scripts/check-l0.sh` (expected fail-closed timeout path)
+  - `bash ./scripts/check-l0-generation.sh`
+  - `bash ./scripts/check-l0-adversarial.sh`
+  - `bash ./scripts/check-l0-fixtures.sh`
   - `bash ./scripts/check-l0.sh`
 - Files of interest:
-  - `diary/2026-04-05--docs-l2-toggle-metadata-only-contract.md`
-  - `scripts/check-l0-generation.sh`
-  - `docs/profile-governance-policy.md`
+  - `scripts/check-l0.sh`
+  - `diary/2026-04-05--chore-check-l0-slow-runner-timeout-orchestration.md`
+  - `docs/learnings/2026-04-05-check-runners-need-heavy-lane-budgets-and-timeout-aborts.md`
+  - `diary/2026-04-06--ops-task-794-timeout-orchestration-closeout.md`
   - `next_session_prompt.md`
-  - `diary/2026-04-06--ops-task-791-metadata-only-closeout.md`
 - Blockers / follow-up:
   - Re-run `cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable` before starting another session; the live resolver currently returns `none`, so operator direction should choose the next slice explicitly.
-  - In this repo, treat repo-local tasks `#738`, `#820`, `#821`, `#851`, `#281`, and `#791` as closed implementation slices. If `#794` still appears in `task ready`, treat that as stale local AK state until the DB/storage drift is repaired.
+  - In this repo, treat repo-local tasks `#738`, `#820`, `#821`, `#851`, `#281`, `#791`, and `#794` as closed implementation slices unless the operator explicitly requests a follow-on change.
 - Rollback path (mirror-only correction):
-  - `git restore -- next_session_prompt.md diary/2026-04-06--ops-task-791-metadata-only-closeout.md`
+  - `git restore -- next_session_prompt.md diary/2026-04-06--ops-task-794-timeout-orchestration-closeout.md`
 - KES crystallization flow:
   - Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
   - Crystallize to `docs/learnings/`
