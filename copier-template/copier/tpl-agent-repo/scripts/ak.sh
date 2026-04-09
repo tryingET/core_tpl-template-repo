@@ -34,7 +34,8 @@ repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 answers_file="$repo_root/.copier-answers.yml"
 answers_lib="$repo_root/scripts/lib/copier-answers.sh"
 core_project_default="${AK_CORE_PROJECT:-$HOME/ai-society/softwareco/owned/agent-kernel}"
-operator_cargo="$repo_root/scripts/cargo-operator.sh"
+repo_operator_cargo="$repo_root/scripts/cargo-operator.sh"
+core_operator_cargo="$core_project_default/scripts/cargo-operator.sh"
 
 if [ -f "$answers_lib" ]; then
   # shellcheck source=/dev/null
@@ -58,8 +59,49 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
-has_operator_cargo() {
-  [ -x "$operator_cargo" ] && "$operator_cargo" --available >/dev/null 2>&1
+has_operator_cargo_at() {
+  wrapper="$1"
+  [ -x "$wrapper" ] && "$wrapper" --available >/dev/null 2>&1
+}
+
+select_cargo_wrapper() {
+  preferred="$1"
+  secondary="$2"
+
+  if has_operator_cargo_at "$preferred"; then
+    printf '%s\n' "$preferred"
+    return 0
+  fi
+
+  if [ "$secondary" != "$preferred" ] && has_operator_cargo_at "$secondary"; then
+    printf '%s\n' "$secondary"
+    return 0
+  fi
+
+  return 1
+}
+
+vendored_cargo_wrapper() {
+  select_cargo_wrapper "$repo_operator_cargo" "$core_operator_cargo"
+}
+
+workspace_core_cargo_wrapper() {
+  select_cargo_wrapper "$core_operator_cargo" "$repo_operator_cargo"
+}
+
+operator_cargo_status() {
+  wrapper="$1"
+
+  if [ -x "$wrapper" ]; then
+    if "$wrapper" --available >/dev/null 2>&1; then
+      printf 'available (%s)\n' "$wrapper"
+    else
+      printf 'present but unavailable (%s)\n' "$wrapper"
+    fi
+    return 0
+  fi
+
+  printf 'missing (%s)\n' "$wrapper"
 }
 
 path_fallback_enabled() {
@@ -84,14 +126,90 @@ path_shim_active() {
   esac
 }
 
+vendored_manifest_path() {
+  printf '%s\n' "$repo_root/crates/ak-cli/Cargo.toml"
+}
+
+workspace_core_manifest_path() {
+  printf '%s\n' "$core_project_default/crates/ak-cli/Cargo.toml"
+}
+
+ak_bin_status() {
+  if [ -z "${AK_BIN:-}" ]; then
+    printf 'unset\n'
+    return 0
+  fi
+
+  if [ -x "$AK_BIN" ] || command -v "$AK_BIN" >/dev/null 2>&1; then
+    printf 'runnable (%s)\n' "$AK_BIN"
+    return 0
+  fi
+
+  printf 'set but not executable/resolvable (%s)\n' "$AK_BIN"
+}
+
+vendored_candidate_status() {
+  manifest="$(vendored_manifest_path)"
+  if [ ! -f "$manifest" ]; then
+    printf 'missing (%s)\n' "$manifest"
+    return 0
+  fi
+
+  wrapper="$(vendored_cargo_wrapper 2>/dev/null || true)"
+  if [ -n "$wrapper" ]; then
+    printf 'runnable (%s via %s)\n' "$manifest" "$wrapper"
+    return 0
+  fi
+
+  printf 'present but no explicit nightly cargo wrapper is available (%s)\n' "$manifest"
+}
+
+workspace_core_candidate_status() {
+  manifest="$(workspace_core_manifest_path)"
+  if [ ! -f "$manifest" ]; then
+    printf 'missing (%s)\n' "$manifest"
+    return 0
+  fi
+
+  wrapper="$(workspace_core_cargo_wrapper 2>/dev/null || true)"
+  if [ -n "$wrapper" ]; then
+    printf 'runnable (%s via %s)\n' "$manifest" "$wrapper"
+    return 0
+  fi
+
+  printf 'present but no explicit nightly cargo wrapper is available (%s)\n' "$manifest"
+}
+
+path_candidate_status() {
+  if ! has_cmd ak; then
+    printf 'missing\n'
+    return 0
+  fi
+
+  ak_path="$(command -v ak)"
+  if ! path_fallback_enabled; then
+    printf 'present but blocked (%s)\n' "$ak_path"
+    return 0
+  fi
+
+  if path_shim_active; then
+    printf 'recursive fallback blocked (%s)\n' "$ak_path"
+    return 0
+  fi
+
+  printf 'runnable (%s)\n' "$ak_path"
+}
+
 usage() {
   cat <<'EOF'
 usage: scripts/ak.sh [--doctor|--which|--help] [ak args...]
 
 Portable Agent Kernel launcher with deterministic resolution order:
   1) AK_BIN override
-  2) vendored ./crates/ak-cli/Cargo.toml via the repo's explicit nightly cargo wrapper
-  3) workspace core ~/ai-society/softwareco/owned/agent-kernel via the same nightly cargo wrapper
+  2) vendored ./crates/ak-cli/Cargo.toml via the first available explicit nightly cargo wrapper
+     (repo-local scripts/cargo-operator.sh, then workspace-core scripts/cargo-operator.sh)
+  3) workspace core ~/ai-society/softwareco/owned/agent-kernel via the first available
+     explicit nightly cargo wrapper (workspace-core script, then repo-local script)
   4) ak on PATH only when AK_ALLOW_PATH_FALLBACK=1
 
 When invoked as:
@@ -243,8 +361,9 @@ select_runner() {
     return
   fi
 
-  if [ -f "$repo_root/crates/ak-cli/Cargo.toml" ]; then
-    if has_operator_cargo; then
+  vendored_manifest="$(vendored_manifest_path)"
+  if [ -f "$vendored_manifest" ]; then
+    if vendored_cargo_wrapper >/dev/null 2>&1; then
       printf '%s\n' "vendored-cargo"
       return
     fi
@@ -252,8 +371,9 @@ select_runner() {
     return
   fi
 
-  if [ -f "$core_project_default/crates/ak-cli/Cargo.toml" ]; then
-    if has_operator_cargo; then
+  workspace_core_manifest="$(workspace_core_manifest_path)"
+  if [ -f "$workspace_core_manifest" ]; then
+    if workspace_core_cargo_wrapper >/dev/null 2>&1; then
       printf '%s\n' "workspace-core-cargo"
       return
     fi
@@ -286,16 +406,18 @@ runner_desc() {
       printf 'AK_BIN is set but not executable/resolvable (%s)\n' "$AK_BIN"
       ;;
     vendored-cargo)
-      printf 'vendored via nightly cargo wrapper: %s\n' "$repo_root/crates/ak-cli/Cargo.toml"
+      wrapper="$(vendored_cargo_wrapper 2>/dev/null || true)"
+      printf 'vendored via nightly cargo wrapper (%s): %s\n' "${wrapper:-unavailable}" "$(vendored_manifest_path)"
       ;;
     vendored-missing-cargo)
-      printf 'vendored crates/ak-cli found but nightly cargo wrapper is unavailable: %s\n' "$repo_root/crates/ak-cli/Cargo.toml"
+      printf 'vendored crates/ak-cli found but nightly cargo wrapper is unavailable: %s\n' "$(vendored_manifest_path)"
       ;;
     workspace-core-cargo)
-      printf 'workspace core via nightly cargo wrapper: %s\n' "$core_project_default/crates/ak-cli/Cargo.toml"
+      wrapper="$(workspace_core_cargo_wrapper 2>/dev/null || true)"
+      printf 'workspace core via nightly cargo wrapper (%s): %s\n' "${wrapper:-unavailable}" "$(workspace_core_manifest_path)"
       ;;
     workspace-core-missing-cargo)
-      printf 'workspace core found but nightly cargo wrapper is unavailable: %s\n' "$core_project_default/crates/ak-cli/Cargo.toml"
+      printf 'workspace core found but nightly cargo wrapper is unavailable: %s\n' "$(workspace_core_manifest_path)"
       ;;
     path-ak)
       printf 'ak on PATH (%s) with explicit AK_ALLOW_PATH_FALLBACK=1\n' "$(command -v ak)"
@@ -343,12 +465,14 @@ doctor() {
   say "ak launcher doctor"
   say "- repo_root: $repo_root"
   say "- core_project_default: $core_project_default"
-  say "- has operator cargo: $(has_operator_cargo && printf yes || printf no)"
-  say "- has ak on PATH: $(has_cmd ak && printf yes || printf no)"
+  say "- AK_BIN candidate: $(ak_bin_status)"
+  say "- repo operator cargo: $(operator_cargo_status "$repo_operator_cargo")"
+  say "- workspace core operator cargo: $(operator_cargo_status "$core_operator_cargo")"
+  say "- vendored manifest candidate: $(vendored_candidate_status)"
+  say "- workspace core manifest candidate: $(workspace_core_candidate_status)"
+  say "- PATH ak candidate: $(path_candidate_status)"
   say "- path fallback enabled: $(path_fallback_enabled && printf yes || printf no)"
   say "- has answers file: $([ -f "$answers_file" ] && printf yes || printf no)"
-  say "- has vendored crates/ak-cli: $([ -f "$repo_root/crates/ak-cli/Cargo.toml" ] && printf yes || printf no)"
-  say "- has workspace core ak-cli: $([ -f "$core_project_default/crates/ak-cli/Cargo.toml" ] && printf yes || printf no)"
   say "- derived work-items owner: ${work_items_owner:-<unset>}"
   say "- derived work-items project name: ${work_items_project_name:-<unset>}"
   say "- selected runner: $(runner_desc "$runner")"
@@ -429,13 +553,17 @@ case "$runner" in
     die "AK_BIN is set but not executable/resolvable: $AK_BIN"
     ;;
   vendored-cargo)
-    exec "$operator_cargo" run --quiet --manifest-path "$repo_root/crates/ak-cli/Cargo.toml" --bin ak -- "$@"
+    cargo_wrapper="$(vendored_cargo_wrapper 2>/dev/null || true)"
+    [ -n "$cargo_wrapper" ] || die "vendored crates/ak-cli/Cargo.toml is present but no explicit nightly cargo wrapper is available; run './scripts/ak.sh --doctor' for candidate diagnostics"
+    exec "$cargo_wrapper" run --quiet --manifest-path "$repo_root/crates/ak-cli/Cargo.toml" --bin ak -- "$@"
     ;;
   vendored-missing-cargo)
     die "vendored crates/ak-cli/Cargo.toml detected but the nightly cargo wrapper is unavailable"
     ;;
   workspace-core-cargo)
-    exec "$operator_cargo" run --quiet --manifest-path "$core_project_default/crates/ak-cli/Cargo.toml" --bin ak -- "$@"
+    cargo_wrapper="$(workspace_core_cargo_wrapper 2>/dev/null || true)"
+    [ -n "$cargo_wrapper" ] || die "workspace core agent-kernel is present but no explicit nightly cargo wrapper is available; run './scripts/ak.sh --doctor' for candidate diagnostics"
+    exec "$cargo_wrapper" run --quiet --manifest-path "$core_project_default/crates/ak-cli/Cargo.toml" --bin ak -- "$@"
     ;;
   workspace-core-missing-cargo)
     die "workspace core agent-kernel detected but the nightly cargo wrapper is unavailable"

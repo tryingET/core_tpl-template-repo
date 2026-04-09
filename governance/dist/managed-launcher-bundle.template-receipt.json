@@ -59,10 +59,10 @@
     ]
   },
   "normalized_member_fingerprints": {
-    "scripts/ak.sh": "sha256:e86e7b5dcdc69e5350e545b9bc3407dd652ff1ad5d954e9de11842f34e639cb7",
-    "scripts/cargo-operator.sh": "sha256:afe69dee2c222138c7d49eaecff518b448785a2fbb4369971f808942bcaba451"
+    "scripts/ak.sh": "sha256:5720e288acfa644cc1961c98b20debd80d38026208fcce0fffed907e5e7f13c7",
+    "scripts/cargo-operator.sh": "sha256:9a4ece288768951469c52a53f008ba0df396d6b3bdecc195b5c2e9ffe9aeb039"
   },
-  "normalized_bundle_fingerprint": "sha256:bdb786d7f1a17444058d0ba0bf90737611f3c4f075878f8d94798b6ac76cea80",
+  "normalized_bundle_fingerprint": "sha256:361f079dd32cbf7aefe998e1b36a0efe402b3821ddc52c4ae9366a3f5a6f10d1",
   "normalized_content_rule": "strip_repo_capability_blocks",
   "downstream_posture": "consumer_only_until_explicit_waiver",
   "propagation_mode": "template_propagation",
