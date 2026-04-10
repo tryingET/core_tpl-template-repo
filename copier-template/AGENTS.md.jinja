@@ -15,14 +15,14 @@ Coordinate {{ company_name }} work across explicit lanes:
 
 ## Shared tooling
 - Docs discovery: `./scripts/docs-list.sh --task "<task>" --top 8`
-- AK launcher: `./scripts/ak.sh <ak args...>` (for repo-local AK work-items projection and task-scope snapshot flows when in scope)
+- AK CLI: `ak <ak args...>` (canonical operator path for repo-local AK work-items projection and task-scope snapshot flows when in scope; if a generated repo still ships `./scripts/ak.sh`, treat it as the launcher implementation behind plain installed `ak`)
 - ROCS launcher: `./scripts/rocs.sh <rocs args...>`
 - New L2 repo: `./scripts/new-repo-from-copier.sh <template> <dest> -d repo_slug=<slug> --defaults`
 - Lane bootstrap: `./scripts/bootstrap-lane-root.sh <lane> [--init-lane-git]`
 
 ## Deterministic tooling policy (ROCS-first)
-- Prefer `./scripts/ak.sh work-items <import|export|check> ...` when repo-local work-items projection is in scope.
-- When explicit task scope is in scope, author it in AK and freeze repo-consumption snapshots via `./scripts/ak.sh task scope show|export ...`; treat hand-authored `governance/task-scopes/AK-*.json` files as transitional, not authoritative.
+- Prefer `ak work-items <import|export|check> ...` when repo-local work-items projection is in scope.
+- When explicit task scope is in scope, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export ...`; treat hand-authored `governance/task-scopes/AK-*.json` files as transitional, not authoritative.
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
 - For ontology/policy checks, use ROCS commands as the default execution path.
 - Use inline Python only as an explicit escape hatch when no deterministic command exists.

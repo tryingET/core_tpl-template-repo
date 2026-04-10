@@ -12,7 +12,7 @@ Package inside monorepo: library (elixir)
 
 ## Deterministic tooling policy (ROCS-first)
 - Run ROCS commands from monorepo root: `../../scripts/rocs.sh <args...>`
-- When package work needs AK context, run it from the monorepo root: `../../scripts/ak.sh <args...>`
+- When package work needs AK context, run it from the monorepo root with plain installed `ak <args...>`. If the monorepo still ships `./scripts/ak.sh`, treat it as launcher implementation detail behind installed `ak`, not as a second AK family.
 - For ontology/policy checks, use ROCS commands as the default execution path.
 
 ## Stack contract

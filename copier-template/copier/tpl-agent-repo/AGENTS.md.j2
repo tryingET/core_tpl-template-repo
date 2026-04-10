@@ -11,7 +11,7 @@ Template for an **agent repo**: one repo per agent, no hierarchy, work via propo
 ## Deterministic tooling policy (ROCS-first)
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
 - Use `./scripts/preflight-repo-census.sh [scope]` for shallow multi-repo status checks.
-- When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots via `./scripts/ak.sh task scope show|export <TASK-ID> ...`; treat `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as AK exports, not hand-authored truth.
+- When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export <TASK-ID> ...`; treat `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as AK exports, not hand-authored truth. If a generated repo still ships `./scripts/ak.sh`, treat it as launcher implementation detail behind plain installed `ak`, not as a second AK family.
 - For ontology/policy checks, use ROCS commands as the default execution path.
 - Use inline Python only as an explicit escape hatch when no deterministic command exists.
 
