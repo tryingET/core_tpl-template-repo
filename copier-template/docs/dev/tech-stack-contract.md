@@ -41,6 +41,15 @@ When an operator or agent needs stack guidance, use this order:
    - source of truth for repo/package-local deltas
 3. upstream lane output returned by `policy/stack-lane.json` -> `tech_stack_core.command`
 
+## Conditional lane companions
+
+Upstream lane docs may ship conditional companions for narrower concerns.
+
+Current relevant pattern:
+- `tech-stack-<lane>.ts-quality.md` is a lane-specific `ts-quality` adoption addendum
+- generated repos/packages should read it only when they are explicitly adopting deterministic screening with `ts-quality`
+- generated repos/packages should keep only lightweight local rollout truth and link back to the upstream `ts-quality` adoption docs instead of copying that doctrine into every repo
+
 ## Retrieval rule
 
 - Generated repos currently resolve `tech-stack-core` from a workspace-local checkout.

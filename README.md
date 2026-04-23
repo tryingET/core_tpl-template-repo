@@ -19,13 +19,13 @@ For the detailed L0 -> L1 -> L2 file contract (deep review + what goes where):
 - wikilink: `[[copier-template/docs/dev/tpl-project-repo-file-contract.md]]`
 
 Repo-local work-items in generated `tpl-project-repo` / `tpl-monorepo` repos are now AK-first:
-the generated work-items JSON file is a deterministic checked-in projection/mirror, and generated repos use repo-local `scripts/ak.sh` wrappers for `ak work-items import|export|check`.
-When repo-local task-scope snapshots are in play, the same wrapper fronts `ak task scope show|export`, and frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption artifacts rather than hand-authored authority.
+the generated work-items JSON file is a deterministic checked-in projection/mirror, and generated repos use plain installed `ak` for `ak work-items import|export|check`.
+When repo-local task-scope snapshots are in play, the same public path fronts `ak task scope show|export`, and frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption artifacts rather than hand-authored authority.
 For the template-side brownfield migration/deprecation path, see `copier-template/docs/dev/task-scope-migration-playbook.md`.
 
 ## Canonical tech-stack contract map
 
-For how `tech-stack-core` lane metadata and local overrides propagate through generated repos:
+For how `tech-stack-core` lane metadata, local overrides, and conditional companions such as `tech-stack-<lane>.ts-quality.md` propagate through generated repos:
 - `copier-template/docs/dev/tech-stack-contract.md`
 - wikilink: `[[copier-template/docs/dev/tech-stack-contract.md]]`
 
@@ -95,38 +95,22 @@ Diagnostics:
 ./scripts/rocs.sh --which
 ```
 
-## Deterministic Agent Kernel launcher (agent-safe)
+## Agent Kernel command flow
 
-Use the wrapper instead of raw `ak` when operating on repo-local AK tasks or when changing the L0/L1 helper contract:
+Use plain installed `ak` when operating on repo-local AK tasks or task-scope snapshots:
 
 ```bash
-./scripts/ak.sh --doctor
-./scripts/ak.sh --which
-./scripts/ak.sh task show 546
-./scripts/ak.sh task scope show <TASK-ID>
-mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
+ak task show 546
+ak task scope show <TASK-ID>
+mkdir -p governance/task-scopes && ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ```
-
-By default the wrapper trusts `AK_BIN`, vendored `ak-cli`, or the workspace-core Agent Kernel. If you intentionally want to use an ambient `ak` from `PATH`, opt in with `AK_ALLOW_PATH_FALLBACK=1`.
 
 Author explicit task scope in AK. Frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption exports; hand-authored `AK-*.json` manifests are transitional scaffolding only.
 
-## Managed launcher-bundle rollout surfaces
+## AK launcher distribution simplification
 
-This repo now carries one template-side propagation receipt at:
-
-- `governance/dist/managed-launcher-bundle.template-receipt.json`
-
-Generated L2 repos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also seed an adoption snapshot contract (for example `copier-template/copier/tpl-project-repo/governance/dist/managed-launcher-bundle.adoption-snapshot.json`).
-
-Treat the receipt plus generated adoption snapshots as deterministic contract surfaces, not as proof that generated repos have become the durable owner of the wrapper bundle.
-Authority stays split:
-- `softwareco/owned/agent-kernel` remains the runtime/reference owner of the launcher-bundle contract
-- `core/tpl-template-repo` is the canonical distribution authority for the generic launcher wrappers copied into templates, fixtures, and generated repos
-- `holdingco/infra/template-propagator` remains the rollout/proof reporting authority for live downstream alignment
-- generated repos stay consumer-only unless an explicit waiver says otherwise
-
-See `docs/project/2026-04-05-generic-launcher-wrapper-template-authority.md` for the bounded M45 authority note.
+Generic copied AK launcher/build bundles are being removed from templates, fixtures, and generated repos.
+The public/operator path is plain installed `ak`, and template guidance should stay aligned to that surface rather than preserving copied repo-local launcher-resolution logic.
 
 ## Organization docs profiles (L1 vs L2)
 
