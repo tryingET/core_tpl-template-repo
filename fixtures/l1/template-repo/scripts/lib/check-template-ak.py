@@ -225,8 +225,47 @@ def cmd_task(db_path: str, argv: list[str]) -> None:
     die(f"unsupported task subcommand: {subcommand}", code=2)
 
 
+def copier_scalar(repo_root: Path, key: str) -> str | None:
+    answers_path = repo_root / ".copier-answers.yml"
+    if not answers_path.exists():
+        return None
+    prefix = f"{key}:"
+    for line in answers_path.read_text(encoding="utf-8").splitlines():
+        if not line.startswith(prefix):
+            continue
+        value = line[len(prefix) :].strip().strip('"').strip("'")
+        return value or None
+    return None
+
+
+def default_work_items_owner(repo_root: Path) -> str:
+    for key in (
+        "project_owner_handle",
+        "maintainer_handle",
+        "agent_owner_handle",
+        "org_owner_handle",
+        "core_owner_handle",
+    ):
+        value = copier_scalar(repo_root, key)
+        if value:
+            return value
+    return "@project-owners"
+
+
+def default_work_items_project_name(repo_root: Path) -> str:
+    for key in ("repo_slug", "package_name"):
+        value = copier_scalar(repo_root, key)
+        if value:
+            return value
+    return repo_root.name
+
+
 def work_items_projection(repo_value: str, owner: str, project_name: str) -> dict[str, Any]:
-    _ = resolve_repo(repo_value)
+    repo_root = Path(resolve_repo(repo_value))
+    if not owner:
+        owner = default_work_items_owner(repo_root)
+    if not project_name:
+        project_name = default_work_items_project_name(repo_root)
     return {
         "schema_version": 1,
         "updated_at": "1970-01-01",

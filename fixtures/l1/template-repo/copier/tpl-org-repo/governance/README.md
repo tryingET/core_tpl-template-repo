@@ -2,26 +2,11 @@
 
 This directory holds consent/approval docs and optional AK task-scope snapshots when a repo-local slice needs explicit scope.
 
-## Managed launcher-bundle adoption snapshot
-
-Generated org repos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also carry:
-
-- `governance/dist/managed-launcher-bundle.adoption-snapshot.json`
-
-Treat that file as a **consumer-side snapshot contract** for the managed launcher bundle:
-- `softwareco/owned/agent-kernel` remains the runtime/reference owner of the launcher-bundle contract
-- `core/tpl-template-repo` remains the canonical distribution authority for the generic launcher wrappers copied into generated repos
-- `holdingco/infra/template-propagator` remains the rollout/proof reporting authority for live downstream alignment
-- downstream repos stay consumer-only unless an explicit waiver says otherwise
-- copied wrappers alone do not transfer launcher-bundle ownership or prove global rollout completion
-
-The snapshot is a deterministic checked-in contract surface, not a hand-authored claim that downstream rollout is globally complete.
-
 ## Optional explicit task-scope snapshots
 
-- author/update the scope in AK via `./scripts/ak.sh task scope show|set|update ...`
+- author/update the scope in AK via `ak task scope show|set|update ...`
 - keep repo-side copies under `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as frozen exports
-- refresh a checked-in snapshot with `mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- refresh a checked-in snapshot with `mkdir -p governance/task-scopes && ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
 - verify checked-in snapshots with `./scripts/check-task-scope-snapshots.sh` before commit or in CI
 - treat any hand-authored `governance/task-scopes/AK-*.json` file that is not an AK export as transitional scaffolding, not authoritative truth
 

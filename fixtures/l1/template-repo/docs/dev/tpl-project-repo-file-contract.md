@@ -85,7 +85,7 @@ Default L2 output is intentionally split into 7 domains:
 - `tools/rocs-cli/` (vendored deterministic runner source; workspace-only ref resolution, no legacy GitLab fallback)
 
 ### F. CI surface
-- `scripts/ak.sh` (deterministic AK launcher for repo-local work-items projection)
+- plain installed `ak` (canonical AK operator path for repo-local work-items projection)
 - `scripts/ci/smoke.sh`, `scripts/ci/full.sh`
 
 ### G. Product-code placeholders

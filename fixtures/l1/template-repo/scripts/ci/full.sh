@@ -2,6 +2,7 @@
 set -eu
 
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
+AK_CMD="${AK_CMD:-ak}"
 
 deep=0
 case "${1:-}" in
@@ -16,7 +17,7 @@ esac
 "$repo_root/scripts/ci/smoke.sh"
 
 if [ -f "$repo_root/governance/work-items.json" ]; then
-  "$repo_root/scripts/ak.sh" work-items check --repo . --path "./governance/work-items.json"
+  "$AK_CMD" work-items check --repo . --path "./governance/work-items.json"
 fi
 
 if [ -f "$repo_root/scripts/check-task-scope-snapshots.sh" ]; then

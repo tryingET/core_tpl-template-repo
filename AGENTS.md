@@ -12,9 +12,9 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Treat `enable_release_pack` as profile policy (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as profile policy (default disabled, enable for trust-gated/public repos).
 - Keep generated repo-local task/issue/work-item surfaces AK-first: Agent Kernel is authoritative, while checked-in files such as `governance/work-items.json` are deterministic projections/mirrors.
-- When templates ship repo-local work-items, prefer plain installed `ak` as the canonical operator path in generated repos. If a generated repo still ships `./scripts/ak.sh`, treat it as the launcher implementation behind installed `ak`, not as a second AK family. Never reintroduce silent CI skips for projection drift checks.
+- When templates ship repo-local work-items, prefer plain installed `ak` as the canonical operator path in generated repos. Never reintroduce silent CI skips for projection drift checks.
 - When templates teach explicit task scope, keep AK as the authoring surface and treat frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files as repo-consumption exports rather than hand-authored authority.
-- For the generic launcher wrappers (`scripts/ak.sh`, `scripts/cargo-operator.sh`), this repo is the canonical distribution authority for template/generated copies while `softwareco/owned/agent-kernel` remains the runtime/reference owner of the launcher-bundle contract and `holdingco/infra/template-propagator` remains the rollout/proof reporting owner.
+- Generic AK launcher/build wrapper distribution is being removed from template/generated repos; keep plain installed `ak` as the public path and do not reintroduce copied launcher-resolution bundles.
 - No secrets in git.
 
 ## Recursion policy (explicit)
@@ -36,7 +36,7 @@ Forbidden:
 
 ## Deterministic tooling policy (ROCS-first)
 - Prefer deterministic wrappers (`./scripts/rocs.sh`, repo `scripts/*`) over ad-hoc inline scripts, but keep plain installed `ak` as the public operator path in generated repos.
-- When task/work-item or task-scope surfaces are in scope, use `ak ...` by default. If a generated repo still carries `./scripts/ak.sh`, treat it as launcher implementation detail rather than the public operator surface, and keep repo-local task-scope files as frozen AK exports rather than hand-authored truth.
+- When task/work-item or task-scope surfaces are in scope, use `ak ...` by default, and keep repo-local task-scope files as frozen AK exports rather than hand-authored truth.
 - For ontology/policy checks, run ROCS before custom Python one-offs.
 - Use inline Python only as an explicit escape hatch when no deterministic command exists.
 

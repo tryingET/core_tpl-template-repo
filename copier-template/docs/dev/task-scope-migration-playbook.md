@@ -77,21 +77,21 @@ Use this when an existing company template repo is adopting the updated L0 surfa
 Use this when an existing repo already has local workflow text or files under `governance/task-scopes/`.
 
 1. Render the current template baseline from the parent L1 repo.
-2. Merge control-plane changes first (`README.md`, `AGENTS.md`, `governance/README.md`, `next_session_prompt.md`, `scripts/ci/*`, `scripts/ak.sh`).
+2. Merge control-plane changes first (`README.md`, `AGENTS.md`, `governance/README.md`, `next_session_prompt.md`, `scripts/ci/*`).
 3. Check whether the task actually needs explicit scope.
    - If not, stop here and keep repo-default scope.
 4. If explicit scope is needed, author it in AK first:
    ```bash
-   ./scripts/ak.sh task show <TASK-ID>
-   ./scripts/ak.sh task scope show <TASK-ID>
-   ./scripts/ak.sh task scope set <TASK-ID> ...
+   ak task show <TASK-ID>
+   ak task scope show <TASK-ID>
+   ak task scope set <TASK-ID> ...
    # or
-   ./scripts/ak.sh task scope update <TASK-ID> ...
+   ak task scope update <TASK-ID> ...
    ```
 5. Export the repo-consumption snapshot:
    ```bash
    mkdir -p governance/task-scopes
-   ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
+   ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
    ```
 6. Validate the repo on the snapshot path:
    ```bash

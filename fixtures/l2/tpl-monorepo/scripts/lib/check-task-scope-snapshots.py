@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Parser-backed task-scope snapshot validation.
 
-This helper exists because the shell wrappers are part of the repo control plane and
-must not parse JSON or iterate snapshot paths with newline-delimited shell strings.
+This helper exists because shell entrypoints should not parse JSON or iterate
+snapshot paths with newline-delimited shell strings.
 """
 
 from __future__ import annotations
@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -48,9 +49,22 @@ def json_text(payload: Any) -> str:
     return json.dumps(payload, indent=2, sort_keys=True) + "\n"
 
 
-def run_ak(repo_root: Path, ak_path: Path, args: list[str], label: str) -> str:
+def resolve_ak_command(raw_value: str) -> list[str]:
+    if "/" in raw_value:
+        ak_path = Path(raw_value)
+        if not ak_path.exists():
+            die(f"missing executable: {ak_path}")
+        return [str(ak_path)]
+
+    resolved = shutil.which(raw_value)
+    if resolved is None:
+        die(f"missing ak command on PATH: {raw_value}")
+    return [resolved]
+
+
+def run_ak(repo_root: Path, ak_cmd: list[str], args: list[str], label: str) -> str:
     result = subprocess.run(
-        [str(ak_path), *args],
+        [*ak_cmd, *args],
         cwd=str(repo_root),
         text=True,
         capture_output=True,
@@ -64,8 +78,8 @@ def run_ak(repo_root: Path, ak_path: Path, args: list[str], label: str) -> str:
     return result.stdout
 
 
-def run_ak_json(repo_root: Path, ak_path: Path, args: list[str], label: str) -> Any:
-    stdout = run_ak(repo_root, ak_path, args, label)
+def run_ak_json(repo_root: Path, ak_cmd: list[str], args: list[str], label: str) -> Any:
+    stdout = run_ak(repo_root, ak_cmd, args, label)
     try:
         return json.loads(stdout)
     except json.JSONDecodeError as exc:
@@ -89,7 +103,7 @@ def iter_snapshots(snapshots_dir: Path) -> list[Path]:
     )
 
 
-def validate_snapshot(repo_root: Path, ak_path: Path, snapshot_path: Path) -> None:
+def validate_snapshot(repo_root: Path, ak_cmd: list[str], snapshot_path: Path) -> None:
     snapshot_name = snapshot_path.name
     prefix = "AK-"
     suffix = ".snapshot.json"
@@ -102,7 +116,7 @@ def validate_snapshot(repo_root: Path, ak_path: Path, snapshot_path: Path) -> No
 
     task_payload = run_ak_json(
         repo_root,
-        ak_path,
+        ak_cmd,
         ["task", "show", task_id, "-F", "json"],
         f"unable to load AK task {task_id} for snapshot {snapshot_path}",
     )
@@ -119,7 +133,7 @@ def validate_snapshot(repo_root: Path, ak_path: Path, snapshot_path: Path) -> No
 
     exported_payload = run_ak_json(
         repo_root,
-        ak_path,
+        ak_cmd,
         ["task", "scope", "export", task_id],
         f"unable to export AK task scope for task {task_id}",
     )
@@ -142,7 +156,7 @@ def validate_snapshot(repo_root: Path, ak_path: Path, snapshot_path: Path) -> No
     ):
         sys.stderr.write(line)
     print(
-        f"hint: refresh with ./scripts/ak.sh task scope export {task_id} > "
+        f"hint: refresh with ak task scope export {task_id} > "
         f"governance/task-scopes/AK-{task_id}.snapshot.json",
         file=sys.stderr,
     )
@@ -157,11 +171,9 @@ def main() -> None:
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve(strict=True)
-    ak_path = Path(args.ak)
+    ak_cmd = resolve_ak_command(args.ak)
     snapshots_dir = Path(args.snapshots_dir)
 
-    if not ak_path.exists():
-        die(f"missing executable: {ak_path}")
     if not snapshots_dir.is_dir():
         print("ok: no task-scope snapshots")
         return
@@ -172,7 +184,7 @@ def main() -> None:
         return
 
     for snapshot_path in snapshots:
-        validate_snapshot(repo_root, ak_path, snapshot_path)
+        validate_snapshot(repo_root, ak_cmd, snapshot_path)
 
     print(f"ok: task-scope snapshots ({len(snapshots)} checked)")
 

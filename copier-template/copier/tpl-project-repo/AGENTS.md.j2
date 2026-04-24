@@ -7,7 +7,7 @@ Template for a delivery project repo (project context + code + tests).
 - No secrets in git.
 - Never push to `main`; MRs only.
 - Treat `docs/_core/**` as immutable.
-- Track deferred work in Agent Kernel; keep `governance/work-items.json` as the exported projection via plain installed `ak` (avoid ad-hoc TODO comments and manual JSON authority confusion). If a generated repo still ships `./scripts/ak.sh`, treat it as launcher implementation detail behind installed `ak`, not as a second AK family.
+- Track deferred work in Agent Kernel; keep `governance/work-items.json` as the exported projection via plain installed `ak` (avoid ad-hoc TODO comments and manual JSON authority confusion).
 - When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export ...`; treat `governance/task-scopes/AK-*.snapshot.json` as AK exports, not hand-authored truth.
 
 ## Deterministic tooling policy (ROCS-first)

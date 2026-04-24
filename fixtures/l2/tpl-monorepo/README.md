@@ -32,10 +32,8 @@ scripts/         # CI/utility scripts
 
 ```bash
 # Agent Kernel tooling
-./scripts/ak.sh --doctor
-./scripts/ak.sh work-items check --repo . --path governance/work-items.json
-# Optional ambient fallback only when explicitly intended
-AK_ALLOW_PATH_FALLBACK=1 ./scripts/ak.sh --which
+ak work-items check --repo . --path governance/work-items.json
+ak task ready
 
 # ROCS tooling
 ./scripts/rocs.sh --doctor
@@ -53,24 +51,24 @@ Repo-local deferred work is **AK-first**.
 
 ```bash
 # One-time legacy JSON bootstrap into AK
-./scripts/ak.sh work-items import --repo . --path governance/work-items.json
+ak work-items import --repo . --path governance/work-items.json
 
 # Refresh projection from AK after work-items change
-./scripts/ak.sh work-items export --repo . --path governance/work-items.json
+ak work-items export --repo . --path governance/work-items.json
 
 # CI/local drift gate
-./scripts/ak.sh work-items check --repo . --path governance/work-items.json
+ak work-items check --repo . --path governance/work-items.json
 ```
 
-`./scripts/ak.sh` derives stable `--owner` / `--project-name` defaults from `.copier-answers.yml`, so the projection stays reproducible even if the checkout directory name differs from `repo_slug`.
+Plain installed `ak` is the canonical operator path for repo-local projection and task-scope flows.
 
 ## Optional explicit task-scope snapshots
 
 If a monorepo AK task carries explicit scope, author/update that scope in AK and keep repo-side copies as frozen exports at the monorepo root:
 
 ```bash
-./scripts/ak.sh task scope show <TASK-ID>
-mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
+ak task scope show <TASK-ID>
+mkdir -p governance/task-scopes && ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ```
 
 Packages/apps consume the monorepo-root snapshot; they do not author standalone AK task-scope files. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
@@ -108,7 +106,7 @@ Use `tpl-package` from your L1 templates to add packages:
 
 ## Governance
 
-- Work-items projection: `governance/work-items.json` (AK-backed; use `./scripts/ak.sh`)
+- Work-items projection: `governance/work-items.json` (AK-backed; use plain installed `ak`)
 - Task-scope snapshots: `governance/task-scopes/AK-<TASK-ID>.snapshot.json` (when explicit task scope is in play)
 - Projection schema: `governance/work-items.cue`
 - Policies: `policy/`

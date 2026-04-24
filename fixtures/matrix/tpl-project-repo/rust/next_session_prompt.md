@@ -32,12 +32,11 @@ Do not ask for permission to start.
 - Queryable live state: runtime commands / DB / CI outputs (reference commands, do not copy snapshots)
 
 ## WORK-ITEMS COMMANDS
-- Diagnose AK resolution: `./scripts/ak.sh --doctor`
-- Check projection drift: `./scripts/ak.sh work-items check --repo . --path governance/work-items.json`
-- Refresh projection from AK: `./scripts/ak.sh work-items export --repo . --path governance/work-items.json`
-- Legacy JSON bootstrap only: `./scripts/ak.sh work-items import --repo . --path governance/work-items.json`
-- Show explicit task scope (when used): `./scripts/ak.sh task scope show <TASK-ID>`
-- Refresh task-scope snapshot (when used): `mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- Check projection drift: `ak work-items check --repo . --path governance/work-items.json`
+- Refresh projection from AK: `ak work-items export --repo . --path governance/work-items.json`
+- Legacy JSON bootstrap only: `ak work-items import --repo . --path governance/work-items.json`
+- Show explicit task scope (when used): `ak task scope show <TASK-ID>`
+- Refresh task-scope snapshot (when used): `mkdir -p governance/task-scopes && ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
 - Legacy `governance/task-scopes/AK-*.json` files are compatibility-only; do not treat them as primary authored truth.
 
 ## SESSION PREFLIGHT (FILL BEFORE EXECUTION)

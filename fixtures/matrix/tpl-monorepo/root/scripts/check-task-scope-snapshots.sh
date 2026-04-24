@@ -24,11 +24,13 @@ for candidate in python3 python; do
 done
 [ -n "$python_exec" ] || fail "missing dependency: python3 or python"
 
+AK_CMD="${AK_CMD:-ak}"
+command -v "$AK_CMD" >/dev/null 2>&1 || fail "missing ak command: $AK_CMD"
+
 helper="./scripts/lib/check-task-scope-snapshots.py"
 [ -f "$helper" ] || fail "missing required helper: $helper"
-[ -x "./scripts/ak.sh" ] || fail "missing executable: ./scripts/ak.sh"
 
 exec "$python_exec" "$helper" \
   --repo-root "$repo_root" \
-  --ak "./scripts/ak.sh" \
+  --ak "$AK_CMD" \
   --snapshots-dir "./governance/task-scopes"

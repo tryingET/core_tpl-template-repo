@@ -31,8 +31,8 @@ When a package/app slice needs explicit task scope, author/export it from the mo
 
 ```bash
 # from monorepo root
-./scripts/ak.sh task scope show <TASK-ID>
-mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
+ak task scope show <TASK-ID>
+mkdir -p governance/task-scopes && ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ```
 
 ## Development

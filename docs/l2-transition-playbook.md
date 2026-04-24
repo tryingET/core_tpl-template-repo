@@ -81,15 +81,15 @@ If the repo currently uses `governance/task-scopes/AK-*.json` as a legacy author
    - If the task stays on repo-default scope, do **not** create a snapshot or a replacement legacy manifest.
 3. If explicit scope is needed, author/update it in AK first:
    ```bash
-   ./scripts/ak.sh task scope show <TASK-ID>
-   ./scripts/ak.sh task scope set <TASK-ID> ...
+   ak task scope show <TASK-ID>
+   ak task scope set <TASK-ID> ...
    # or
-   ./scripts/ak.sh task scope update <TASK-ID> ...
+   ak task scope update <TASK-ID> ...
    ```
 4. Export the frozen repo-consumption snapshot:
    ```bash
    mkdir -p governance/task-scopes
-   ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
+   ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
    ```
 5. Validate on the snapshot path:
    ```bash

@@ -15,55 +15,21 @@ If you are migrating a legacy JSON-first monorepo, import once, then continue fr
 
 ## Workflow
 
-Diagnose AK resolution:
+Use plain installed `ak` as the canonical operator path:
 
 ```bash
-./scripts/ak.sh --doctor
-./scripts/ak.sh --which
+ak work-items import --repo . --path governance/work-items.json
+ak work-items export --repo . --path governance/work-items.json
+ak work-items check --repo . --path governance/work-items.json
 ```
-
-Ambient `ak` binaries on `PATH` are blocked by default; set `AK_ALLOW_PATH_FALLBACK=1` only when you explicitly want that fallback.
-
-Bootstrap legacy JSON into AK:
-
-```bash
-./scripts/ak.sh work-items import --repo . --path governance/work-items.json
-```
-
-Refresh the checked-in projection from AK:
-
-```bash
-./scripts/ak.sh work-items export --repo . --path governance/work-items.json
-```
-
-Check that the committed projection matches AK (used by `./scripts/ci/full.sh`):
-
-```bash
-./scripts/ak.sh work-items check --repo . --path governance/work-items.json
-```
-
-## Managed launcher-bundle adoption snapshot
-
-Generated monorepos that ship `scripts/ak.sh` + `scripts/cargo-operator.sh` also carry:
-
-- `governance/dist/managed-launcher-bundle.adoption-snapshot.json`
-
-Treat that file as a **consumer-side snapshot contract** for the managed launcher bundle:
-- `softwareco/owned/agent-kernel` remains the runtime/reference owner of the launcher-bundle contract
-- `core/tpl-template-repo` remains the canonical distribution authority for the generic launcher wrappers copied into generated repos
-- `holdingco/infra/template-propagator` remains the rollout/proof reporting authority for live downstream alignment
-- downstream repos stay consumer-only unless an explicit waiver says otherwise
-- copied wrappers alone do not transfer launcher-bundle ownership or prove global rollout completion
-
-The snapshot is a deterministic checked-in contract surface, not a hand-authored claim that downstream rollout is globally complete.
 
 ## Optional explicit task-scope snapshots
 
 When a monorepo AK task needs explicit scope:
 
-- author/update it in AK via `./scripts/ak.sh task scope show|set|update ...`
+- author/update it in AK via `ak task scope show|set|update ...`
 - keep repo-side copies under `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as frozen exports
-- refresh a checked-in snapshot with `mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
+- refresh a checked-in snapshot with `mkdir -p governance/task-scopes && ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json`
 - verify checked-in snapshots with `./scripts/check-task-scope-snapshots.sh` before commit or in CI
 - keep package/app consumers pointed at the monorepo-root snapshot instead of inventing per-member task-scope files
 

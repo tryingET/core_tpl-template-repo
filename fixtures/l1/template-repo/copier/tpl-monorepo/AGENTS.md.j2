@@ -19,7 +19,7 @@ governance/      # AK work-items projection, optional task-scope snapshots, poli
 - Treat `docs/_core/**` as immutable.
 - Packages in `packages/` have NO `.git` (managed by monorepo).
 - Apps in `apps/` have NO `.git` (managed by monorepo).
-- If this repo ships `governance/work-items.json`, treat it as an AK projection via plain installed `ak`, not as the live authority. If the repo still ships `./scripts/ak.sh`, treat it as launcher implementation detail behind installed `ak`.
+- If this repo ships `governance/work-items.json`, treat it as an AK projection via plain installed `ak`, not as the live authority.
 - When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots at the monorepo root; packages/apps do not create standalone AK task-scope files.
 
 ## Deterministic tooling policy (ROCS-first)

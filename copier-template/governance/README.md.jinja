@@ -48,17 +48,17 @@ Generated `tpl-project-repo` and `tpl-monorepo` repos treat repo-local work-item
 
 - live operational authority stays in Agent Kernel
 - `governance/work-items.json` is a deterministic checked-in projection/mirror
-- `./scripts/ak.sh work-items import` is the legacy JSON bootstrap path
-- `./scripts/ak.sh work-items export` refreshes the checked-in projection
-- `./scripts/ak.sh work-items check` is the drift gate used by repo CI
+- `ak work-items import` is the legacy JSON bootstrap path
+- `ak work-items export` refreshes the checked-in projection
+- `ak work-items check` is the drift gate used by repo CI
 
 ## Repo-local task-scope snapshots (AK-authored)
 
 When a generated repo opts into explicit AK task scope:
 
-- AK remains the authoring surface via `./scripts/ak.sh task scope show|set|update ...`
+- AK remains the authoring surface via `ak task scope show|set|update ...`
 - repo-side consumers use frozen exports under `governance/task-scopes/AK-<TASK-ID>.snapshot.json`
-- `./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json` refreshes the checked-in snapshot
+- `ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json` refreshes the checked-in snapshot
 - `./scripts/check-task-scope-snapshots.sh` verifies checked-in snapshots against live AK state and repo ownership when snapshots are present
 - missing snapshots remain acceptable while a task still inherits repo-default scope
 - any hand-authored `governance/task-scopes/AK-*.json` file that is not an AK export is transitional scaffolding, not authoritative truth

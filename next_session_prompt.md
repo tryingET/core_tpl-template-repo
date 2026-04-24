@@ -7,7 +7,8 @@ Do not ask for permission to begin.
 ## CURRENT MISSION: NO RUNTIME FCOS HEAD IS CURRENTLY RESOLVED; KEEP THIS REPO IN MIRROR-ONLY / OPERATOR-DIRECTED POSTURE
 
 The live runtime-resolved FCOS queue currently resolves to `none` (`cd ~/ai-society/holdingco/governance-kernel && just fcos-runnable | jq -r '.[0].id // "none"'`).
-Repo-local FCOS slices `#738`, `#820`, `#821`, `#851`, `#281`, and `#791` are closed; do not reopen them for mirror-only work.
+The current live cross-repo FCOS wave is `FCOS-M47-01` elsewhere, and the preserved next cross-repo follow-on is `FCOS-M48-01` in `triage`; neither currently resolves to `core/tpl-template-repo` as a runnable head.
+This repo's recent template-side FCOS carriers were `FCOS-M43-01`, `FCOS-M44-01`, and `FCOS-M45-01`, which closed through repo-local AK slices `#738`, `#820`, `#821`, `#851`, `#281`, and `#791`; do not reopen them for mirror-only work.
 Re-run the FCOS resolver first. If it still returns no runnable head, only fall back to the repo-local ready queue when the operator explicitly asks for backlog work here.
 
 ## RUNTIME-RESOLVED PRIORITY / NEXT ISSUE

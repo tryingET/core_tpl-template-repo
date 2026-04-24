@@ -6,10 +6,11 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 "$script_dir/smoke.sh"
 
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "error: not a git repo" >&2; exit 1; }
+AK_CMD="${AK_CMD:-ak}"
 cd "$repo_root"
 
 if [ -f "./governance/work-items.json" ]; then
-  ./scripts/ak.sh work-items check --repo . --path "./governance/work-items.json"
+  "$AK_CMD" work-items check --repo . --path "./governance/work-items.json"
 fi
 
 if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then

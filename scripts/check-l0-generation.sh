@@ -117,11 +117,6 @@ replace_first_match_in_file() {
 
 "$repo_root/scripts/check-l0-guardrails.sh"
 
-assert_file_contains "$repo_root/governance/dist/managed-launcher-bundle.template-receipt.json" '"receipt_kind": "managed_launcher_bundle_template_receipt"' "template repo should carry the managed launcher bundle propagation receipt"
-assert_file_contains "$repo_root/governance/dist/managed-launcher-bundle.template-receipt.json" '"managed_artifact_slug": "managed.launcher-bundle"' "template repo propagation receipt should name the managed launcher bundle"
-assert_file_contains "$repo_root/governance/dist/managed-launcher-bundle.template-receipt.json" '"normalized_bundle_fingerprint": "sha256:' "template repo propagation receipt should record the normalized bundle fingerprint"
-assert_file_contains "$repo_root/governance/dist/managed-launcher-bundle.template-receipt.json" 'copier-template/copier/tpl-project-repo/scripts/ak.sh' "template repo propagation receipt should include tpl-project-repo launcher targets"
-assert_file_contains "$repo_root/governance/dist/managed-launcher-bundle.template-receipt.json" 'fixtures/l2/tpl-project-repo/scripts/cargo-operator.sh' "template repo propagation receipt should include generated tpl-project-repo cargo targets"
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
@@ -195,37 +190,6 @@ EOF
 	chmod +x "$no_yaml_bin/$fake_python"
 done
 
-ak_parse_root="$tmp_root/ak-parse-root"
-mkdir -p "$ak_parse_root/scripts/lib" "$ak_parse_root/bin"
-cp "$repo_root/scripts/ak.sh" "$ak_parse_root/scripts/ak.sh"
-chmod +x "$ak_parse_root/scripts/ak.sh"
-cp "$repo_root/scripts/lib/copier-answers.sh" "$ak_parse_root/scripts/lib/copier-answers.sh"
-cat >"$ak_parse_root/.copier-answers.yml" <<'EOF'
-repo_slug: 'Line1
-
-    Line2'
-EOF
-cat >"$ak_parse_root/bin/ak" <<'EOF'
-#!/usr/bin/env sh
-exit 0
-EOF
-chmod +x "$ak_parse_root/bin/ak"
-assert_command_fails_with_stderr "AK wrapper should fail closed on unsupported multiline answers when PyYAML is unavailable" "unable to parse 'repo_slug'" env PATH="$no_yaml_bin:$ak_parse_root/bin:$PATH" "$ak_parse_root/scripts/ak.sh" --doctor
-assert_command_fails_with_stderr "AK wrapper should block ambient PATH fallback unless explicitly enabled" "AK_ALLOW_PATH_FALLBACK=1" env PATH="$dummy_ak_dir:$PATH" AK_CORE_PROJECT=/definitely/missing "$repo_root/scripts/ak.sh" task ready
-
-path_opt_in_ak_dir="$tmp_root/path-opt-in-ak-bin"
-mkdir -p "$path_opt_in_ak_dir"
-cat >"$path_opt_in_ak_dir/ak" <<'EOF'
-#!/usr/bin/env sh
-printf 'ambient-ak-ok\n'
-EOF
-chmod +x "$path_opt_in_ak_dir/ak"
-path_opt_in_output="$(env PATH="$path_opt_in_ak_dir:$PATH" AK_CORE_PROJECT=/definitely/missing AK_ALLOW_PATH_FALLBACK=1 "$repo_root/scripts/ak.sh" --which)"
-printf '%s\n' "$path_opt_in_output" | grep -qF "AK_ALLOW_PATH_FALLBACK=1" || {
-	echo "error: AK wrapper should report explicit ambient PATH opt-in when enabled" >&2
-	printf '%s\n' "$path_opt_in_output" >&2
-	exit 1
-}
 
 render_l1_case() {
 	case_name="$1"
@@ -920,8 +884,6 @@ for generated_project in \
 	"$matrix_project_elixir"; do
 	assert_file_contains "$generated_project/README.md" "governance/task-scopes/AK-<TASK-ID>.snapshot.json" "generated tpl-project-repo README should describe frozen AK task-scope snapshots"
 	assert_file_contains "$generated_project/governance/README.md" "transitional scaffolding" "generated tpl-project-repo governance README should describe non-authoritative hand-authored task-scope files"
-	assert_file_contains "$generated_project/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "generated tpl-project-repo governance README should document launcher-bundle adoption snapshots"
-	assert_file_contains "$generated_project/governance/dist/managed-launcher-bundle.adoption-snapshot.json" '"adoption_authority": "consumer_snapshot_only"' "generated tpl-project-repo repos should ship the launcher-bundle adoption snapshot contract"
 	assert_file_contains "$generated_project/next_session_prompt.md" "Refresh task-scope snapshot" "generated tpl-project-repo next-session prompt should document AK task-scope refresh"
 done
 
@@ -930,16 +892,12 @@ for generated_repo in \
 	"$matrix_org"; do
 	assert_file_contains "$generated_repo/README.md" "check-task-scope-snapshots.sh" "generated agent/org README should document task-scope snapshot validation"
 	assert_file_contains "$generated_repo/governance/README.md" "transitional scaffolding" "generated agent/org governance README should describe non-authoritative hand-authored task-scope files"
-	assert_file_contains "$generated_repo/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "generated agent/org governance README should document launcher-bundle adoption snapshots"
-	assert_file_contains "$generated_repo/governance/dist/managed-launcher-bundle.adoption-snapshot.json" '"managed_artifact_slug": "managed.launcher-bundle"' "generated agent/org repos should ship the launcher-bundle adoption snapshot contract"
 done
 
 generated_monorepo="$matrix_monorepo"
 assert_file_contains "$generated_monorepo/README.md" "Packages/apps consume the monorepo-root snapshot" "generated tpl-monorepo README should keep member task-scope authority at the root"
 assert_file_contains "$generated_monorepo/AGENTS.md" "packages/apps do not create standalone AK task-scope files" "generated tpl-monorepo AGENTS should forbid standalone member task-scope files"
 assert_file_contains "$generated_monorepo/governance/README.md" "monorepo-root snapshot" "generated tpl-monorepo governance README should point members at the root snapshot"
-assert_file_contains "$generated_monorepo/governance/README.md" "managed-launcher-bundle.adoption-snapshot.json" "generated tpl-monorepo governance README should document launcher-bundle adoption snapshots"
-assert_file_contains "$generated_monorepo/governance/dist/managed-launcher-bundle.adoption-snapshot.json" '"normalized_content_rule": "strip_repo_capability_blocks"' "generated tpl-monorepo repos should ship the launcher-bundle adoption snapshot contract"
 
 for generated_package in \
 	"$matrix_monorepo/packages/fixture-py-core" \

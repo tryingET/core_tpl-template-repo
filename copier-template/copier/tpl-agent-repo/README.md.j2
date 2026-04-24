@@ -63,8 +63,8 @@ agent-<slug>/
 When a repo-local AK task carries explicit scope, author/update that scope in AK and keep repo copies as frozen exports only:
 
 ```bash
-./scripts/ak.sh task scope show <TASK-ID>
-mkdir -p governance/task-scopes && ./scripts/ak.sh task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
+ak task scope show <TASK-ID>
+mkdir -p governance/task-scopes && ak task scope export <TASK-ID> > governance/task-scopes/AK-<TASK-ID>.snapshot.json
 ```
 
 Treat `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as repo-consumption artifacts for operators/agents/CI, not as hand-authored authority. When snapshots are checked in, `./scripts/check-task-scope-snapshots.sh` and `./scripts/ci/full.sh` verify repo ownership + drift against live AK state.
