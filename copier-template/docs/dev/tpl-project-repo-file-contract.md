@@ -63,7 +63,8 @@ Default L2 output is intentionally split into 7 domains:
 - `docs/org_context/` (org constraints snapshot)
   - compact baseline: `README.md`, `org-summary.md`
   - rich profile (`org_docs_profile=rich`): adds `mission.md`, `purpose.md`, `vision.md`, `strategic_objectives.md`, `governance.md`
-- `docs/project/` (purpose/mission/vision/model/goals)
+- `docs/project/` (purpose/mission/vision/product_posture/model/goals)
+  - `product_posture.md` is a product-wide maturity bridge between durable vision and active direction; it is not runtime authority and not a task/release log.
 - `docs/system4d/` (container/compass/engine/fog)
 - `next_session_prompt.md` (single active handoff prompt; replaces status/next-steps split and must not mirror queryable runtime state)
 - `docs/decisions/`, `docs/learnings/`
@@ -197,6 +198,7 @@ git restore -- \
 4. **Corrected** L1 docs that referenced non-existent governance overlay paths.
 5. **Consolidated** authority here; other docs now link instead of duplicating outdated explanations.
 6. **Migrated** tpl-project-repo ROCS defaults from legacy `<gitlab:...>` locators to workspace-only `<repo:...>` locators and refreshed the vendored `tools/rocs-cli` accordingly.
+7. **Added** `docs/project/product_posture.md` as the product-wide maturity posture bridge for project repos, while preserving AK/tasks/decisions and shipped runtime artifacts as execution/source authority.
 
 ---
 
