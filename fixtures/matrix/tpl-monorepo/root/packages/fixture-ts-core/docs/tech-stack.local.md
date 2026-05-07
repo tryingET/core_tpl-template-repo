@@ -29,3 +29,4 @@ Package-local emphasis:
 - Keep package docs and package-level scripts aligned with the declared lane contract.
 - Prefer monorepo/package deterministic wrappers before ad-hoc commands.
 - Update this file when local practice intentionally diverges from the upstream lane.
+- If the upstream lane ships a conditional `tech-stack-<lane>.ts-quality.md` addendum and this package adopts `ts-quality`, keep package-local rollout truth in `docs/project/ts-quality-current-vs-target.md` and keep the detailed adoption doctrine upstream in the `ts-quality` repo.

@@ -28,3 +28,4 @@ Practical rule:
 - Use root commands for monorepo-wide validation.
 - Use package/app local checks for language-specific validation.
 - Use each package/app `policy/stack-lane.json` as the source of truth for the declared upstream lane command; root docs should not hardcode package lane commands.
+- If a package/app lane ships a conditional `tech-stack-<lane>.ts-quality.md` addendum and that member adopts `ts-quality`, keep rollout truth in that member's docs surface (for example `docs/project/ts-quality-current-vs-target.md`) rather than duplicating the doctrine at the monorepo root.
