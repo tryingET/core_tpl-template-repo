@@ -8,6 +8,14 @@ Template for an org/company handbook repo (consent-gated).
 - Never push to `main`; MRs only.
 - Treat `docs/_core/**` as immutable.
 
+## AK-native route guardrails
+- If this repo declares AK-native task, direction, or route authority, read the relevant AK task and route/open-frame status before inventing new work.
+- Generic operator input such as `proceed` continues the active execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
+- Treat closeout/readiness rows as gate inputs, not lifecycle authorization.
+- Treat docs, task-scope snapshots, and direction explorer exports as projections unless the repo declares otherwise; AK DB remains runtime authority for AK tasks, direction, evidence, and decisions.
+- Handoff instead of editing by convenience when facts belong to Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, or another repo.
+- Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared.
+
 ## Deterministic tooling policy (ROCS-first)
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
 - Use `./scripts/preflight-repo-census.sh [scope]` for shallow multi-repo status checks.

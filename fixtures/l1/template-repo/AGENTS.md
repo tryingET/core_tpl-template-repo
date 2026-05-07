@@ -13,6 +13,14 @@ Coordinate Holding Company work across explicit lanes:
 - No secrets in git.
 - Keep `.copier-answers.yml` committed in all repos.
 
+## AK-native route guardrails
+- In repos that declare AK-native task, direction, or route authority, read the relevant AK task and route/open-frame status before inventing new work.
+- Generic operator input such as `proceed` continues the active execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
+- Treat closeout/readiness rows as gate inputs, not lifecycle authorization.
+- Treat docs, work-items JSON, task-scope snapshots, and direction explorer exports as projections unless the repo declares otherwise; AK DB remains runtime authority for AK tasks, direction, evidence, and decisions.
+- Handoff instead of editing by convenience when facts belong to Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, or another repo.
+- Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared.
+
 ## Shared tooling
 - Docs discovery: `./scripts/docs-list.sh --task "<task>" --top 8`
 - AK CLI: `ak <ak args...>` (canonical operator path for repo-local AK work-items projection and task-scope snapshot flows when in scope)

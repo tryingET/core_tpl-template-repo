@@ -10,6 +10,12 @@ Package inside monorepo: library (typescript)
 - NO release tooling — released from monorepo root.
 - Deferred work and explicit task scope live at the monorepo root; do not create standalone AK/task-scope state in this member.
 
+## AK-native route guardrails
+- Package AK route checks run from the monorepo root: read the root AK task and route/open-frame status before inventing package work.
+- Generic operator input such as `proceed` continues the active root execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
+- Treat package docs and generated files as projections unless the monorepo declares otherwise; hand off Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, and other repo facts to their owners.
+- Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared.
+
 ## Deterministic tooling policy (ROCS-first)
 - Run ROCS commands from monorepo root: `../../scripts/rocs.sh <args...>`
 - When package work needs AK context, run it from the monorepo root with plain installed `ak <args...>`.
