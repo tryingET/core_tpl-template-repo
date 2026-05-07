@@ -1,3 +1,10 @@
+---
+summary: "Session note: README."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: readme."
+type: "reference"
+---
+
 # Diary
 
 Repo-local session capture for KES (Knowledge Evolution System).

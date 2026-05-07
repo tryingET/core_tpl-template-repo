@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 13 Docs Agents Ak Authority Distribution."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 13 docs agents ak authority distribution."
+type: "reference"
+---
+
 # 2026-03-13 — AGENTS distribution for AK authority model
 
 ## What I Did

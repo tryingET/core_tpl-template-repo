@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Feat Negative Path Nexus Hardening."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 feat negative path nexus hardening."
+type: "reference"
+---
+
 # 2026-04-05 — Negative-path nexus hardening
 
 ## What I Did

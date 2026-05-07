@@ -1,3 +1,10 @@
+---
+summary: "2026-04-04 — Control-plane shell edges need parser-backed trust boundaries and bootstrap-safe CI."
+read_when:
+  - "Read when you need 2026-04-04 — control-plane shell edges need parser-backed trust boundaries and bootstrap-safe ci."
+type: "reference"
+---
+
 # 2026-04-04 — Control-plane shell edges need parser-backed trust boundaries and bootstrap-safe CI
 
 ## Context

@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 13 Feat Ak First Work Items Slice."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 13 feat ak first work items slice."
+type: "reference"
+---
+
 # 2026-03-13 — AK-first work-items slice at L0
 
 ## What I Did

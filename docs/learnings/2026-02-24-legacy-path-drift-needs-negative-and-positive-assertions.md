@@ -1,3 +1,10 @@
+---
+summary: "2026-02-24 — Legacy-path drift needs both negative and positive assertions."
+read_when:
+  - "Read when you need 2026-02-24 — legacy-path drift needs both negative and positive assertions."
+type: "reference"
+---
+
 # 2026-02-24 — Legacy-path drift needs both negative and positive assertions
 
 ## Context

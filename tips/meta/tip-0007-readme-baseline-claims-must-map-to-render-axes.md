@@ -1,3 +1,10 @@
+---
+summary: "TIP-0007: README Baseline Claims Must Map to Render Axes."
+read_when:
+  - "Read when you need tip-0007: readme baseline claims must map to render axes."
+type: "reference"
+---
+
 # TIP-0007: README Baseline Claims Must Map to Render Axes
 
 ## Metadata

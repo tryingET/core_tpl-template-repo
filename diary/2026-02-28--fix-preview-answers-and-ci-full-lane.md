@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 28 Fix Preview Answers And Ci Full Lane."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 28 fix preview answers and ci full lane."
+type: "reference"
+---
+
 # 2026-02-28 — Fix preview fidelity, inheritance parsing, and full-lane CI prerequisites
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 28 Deep Review Hardening Fixtures Supply Chain."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 28 deep review hardening fixtures supply chain."
+type: "reference"
+---
+
 # 2026-02-28 — Deep Review + Hardening: Fixtures & Supply Chain
 
 ## What I Did

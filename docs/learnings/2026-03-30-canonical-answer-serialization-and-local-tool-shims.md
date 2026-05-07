@@ -1,3 +1,10 @@
+---
+summary: "2026-03-30 — Canonical answer serialization and local tool shims for template CI."
+read_when:
+  - "Read when you need 2026-03-30 — canonical answer serialization and local tool shims for template ci."
+type: "reference"
+---
+
 # 2026-03-30 — Canonical answer serialization and local tool shims for template CI
 
 ## Context

@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Chore Tpl Project Validation Lanes And Doc Refs."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 chore tpl project validation lanes and doc refs."
+type: "reference"
+---
+
 # 2026-03-30 — tpl-project validation lanes + doc-reference gate hardening
 
 ## What I Did

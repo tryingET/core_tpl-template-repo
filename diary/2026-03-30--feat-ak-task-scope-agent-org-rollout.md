@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Feat Ak Task Scope Agent Org Rollout."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 feat ak task scope agent org rollout."
+type: "reference"
+---
+
 # 2026-03-30 — extend AK-native task-scope rollout to agent/org templates and fix task-id guidance
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "README for generated agent repositories."
+read_when:
+  - "Read when changing generated tpl-agent-repo overview guidance."
+type: "reference"
+---
+
 # tpl-agent-repo
 
 L2 template for AI agent repositories.

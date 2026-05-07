@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 01 Deep Review Tpl Project Repo File Contract And Surface Cleanup."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 01 deep review tpl project repo file contract and surface cleanup."
+type: "reference"
+---
+
 # 2026-03-01 — tpl-project-repo deep review and contract consolidation
 
 ## What I Did

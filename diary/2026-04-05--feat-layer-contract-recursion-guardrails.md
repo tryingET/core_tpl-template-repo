@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Feat Layer Contract Recursion Guardrails."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 feat layer contract recursion guardrails."
+type: "reference"
+---
+
 # 2026-04-05 — Layer-contract recursion guardrails
 
 ## What I Did

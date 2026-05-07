@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 06 Ops Task 791 Metadata Only Closeout."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 06 ops task 791 metadata only closeout."
+type: "reference"
+---
+
 # 2026-04-06 — task 791 metadata-only contract closeout
 
 ## What I Did

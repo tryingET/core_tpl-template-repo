@@ -1,3 +1,10 @@
+---
+summary: "2026-02-24 — Wrapper contract regressions hide outside CI unless encoded."
+read_when:
+  - "Read when you need 2026-02-24 — wrapper contract regressions hide outside ci unless encoded."
+type: "reference"
+---
+
 # 2026-02-24 — Wrapper contract regressions hide outside CI unless encoded
 
 ## Context

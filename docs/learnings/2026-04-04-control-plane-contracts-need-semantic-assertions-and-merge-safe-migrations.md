@@ -1,3 +1,10 @@
+---
+summary: "2026-04-04 — Control-plane contracts need semantic assertions and merge-safe migrations."
+read_when:
+  - "Read when you need 2026-04-04 — control-plane contracts need semantic assertions and merge-safe migrations."
+type: "reference"
+---
+
 # 2026-04-04 — Control-plane contracts need semantic assertions and merge-safe migrations
 
 ## Context

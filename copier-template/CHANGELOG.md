@@ -1,3 +1,10 @@
+---
+summary: "Changelog."
+read_when:
+  - "Read when changing L1 template output related to changelog."
+type: "reference"
+---
+
 # Changelog
 
 All notable changes to this project should be documented here.

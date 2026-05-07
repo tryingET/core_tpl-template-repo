@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 06 Feat Tpl Project Repo Rocs Workspace Ref Migration."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 06 feat tpl project repo rocs workspace ref migration."
+type: "reference"
+---
+
 # 2026-04-06 — tpl-project-repo ROCS workspace-ref migration
 
 ## What I Did

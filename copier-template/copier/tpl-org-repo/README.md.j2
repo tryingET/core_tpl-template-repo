@@ -1,3 +1,10 @@
+---
+summary: "README for generated organization repositories."
+read_when:
+  - "Read when changing generated tpl-org-repo overview guidance."
+type: "reference"
+---
+
 # tpl-org-repo
 
 L2 template for organization/company handbook repositories.

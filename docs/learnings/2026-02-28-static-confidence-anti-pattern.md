@@ -1,3 +1,10 @@
+---
+summary: "Static Confidence Anti-Pattern."
+read_when:
+  - "Read when you need static confidence anti-pattern."
+type: "reference"
+---
+
 # Static Confidence Anti-Pattern
 
 **Discovered**: 2026-02-28

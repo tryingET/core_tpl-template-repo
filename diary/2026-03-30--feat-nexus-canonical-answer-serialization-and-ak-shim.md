@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Feat Nexus Canonical Answer Serialization And Ak Shim."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 feat nexus canonical answer serialization and ak shim."
+type: "reference"
+---
+
 # 2026-03-30 — Nexus remediation for canonical answer serialization and deterministic AK coverage
 
 ## What I Did

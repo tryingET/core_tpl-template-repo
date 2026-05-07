@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Test Ak Task Scope Regression Coverage."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 test ak task scope regression coverage."
+type: "reference"
+---
+
 # 2026-03-30 — harden AK-native task-scope regression coverage
 
 ## What I Did

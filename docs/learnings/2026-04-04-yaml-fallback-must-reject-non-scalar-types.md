@@ -1,3 +1,10 @@
+---
+summary: "YAML Fallback Parsers Must Reject Non-Scalar Types."
+read_when:
+  - "Read when you need yaml fallback parsers must reject non-scalar types."
+type: "reference"
+---
+
 # YAML Fallback Parsers Must Reject Non-Scalar Types
 
 **Date:** 2026-04-04

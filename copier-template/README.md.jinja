@@ -1,3 +1,10 @@
+---
+summary: "README for generated L1 template repositories."
+read_when:
+  - "Read when changing the generated L1 repository overview."
+type: "reference"
+---
+
 {% set resolved_l1_profile =
   'internal-lean' if l1_org_docs_profile == 'compact' and l2_org_docs_default == 'compact' and not enable_community_pack and not enable_release_pack and not enable_vouch_gate
   else 'internal-standard' if l1_org_docs_profile == 'rich' and l2_org_docs_default == 'compact' and not enable_community_pack and not enable_release_pack and not enable_vouch_gate

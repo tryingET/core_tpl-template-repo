@@ -1,3 +1,10 @@
+---
+summary: "TIP-0003: Repo-Local Diary by Structural Template."
+read_when:
+  - "Read when you need tip-0003: repo-local diary by structural template."
+type: "reference"
+---
+
 # TIP-0003: Repo-Local Diary by Structural Template
 
 ## Metadata

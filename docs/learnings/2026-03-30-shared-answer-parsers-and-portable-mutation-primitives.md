@@ -1,3 +1,10 @@
+---
+summary: "2026-03-30 — Shared answer parsers and portable mutation primitives for template control planes."
+read_when:
+  - "Read when you need 2026-03-30 — shared answer parsers and portable mutation primitives for template control planes."
+type: "reference"
+---
+
 # 2026-03-30 — Shared answer parsers and portable mutation primitives for template control planes
 
 ## Context

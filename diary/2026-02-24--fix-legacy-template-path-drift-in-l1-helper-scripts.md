@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 24 Fix Legacy Template Path Drift In L1 Helper Scripts."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 24 fix legacy template path drift in l1 helper scripts."
+type: "reference"
+---
+
 # 2026-02-24 — Legacy template path drift in L1 helper scripts
 
 ## What I Did

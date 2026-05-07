@@ -1,3 +1,10 @@
+---
+summary: "README for generated monorepo packages."
+read_when:
+  - "Read when changing generated tpl-package overview guidance."
+type: "reference"
+---
+
 # fixture-core
 
 

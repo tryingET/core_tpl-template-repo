@@ -1,3 +1,10 @@
+---
+summary: "nextsessionprompt.md."
+read_when:
+  - "Read when you need nextsessionprompt.md."
+type: "reference"
+---
+
 # next_session_prompt.md
 
 ## SESSION TRIGGER (AUTO-START)

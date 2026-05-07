@@ -1,3 +1,10 @@
+---
+summary: "README for generated L1 template repositories."
+read_when:
+  - "Read when changing the generated L1 repository overview."
+type: "reference"
+---
+
 
 # fixture-template-repo
 

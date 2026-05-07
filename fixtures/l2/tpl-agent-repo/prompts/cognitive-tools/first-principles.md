@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: FIRST PRINCIPLES — Axiomatic Reconstruction."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: first principles — axiomatic reconstruction."
+type: "reference"
+---
+
 # FIRST PRINCIPLES — Axiomatic Reconstruction
 
 ## Invoke When

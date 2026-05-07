@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: ELEVATE — Document Transcendence."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: elevate — document transcendence."
+type: "reference"
+---
+
 # ELEVATE — Document Transcendence
 
 ## Invoke When

@@ -1,3 +1,10 @@
+---
+summary: "2026-02-24 — README baseline contracts must match rendered topology."
+read_when:
+  - "Read when you need 2026-02-24 — readme baseline contracts must match rendered topology."
+type: "reference"
+---
+
 # 2026-02-24 — README baseline contracts must match rendered topology
 
 ## Context

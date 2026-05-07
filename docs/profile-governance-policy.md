@@ -1,3 +1,10 @@
+---
+summary: "Profile governance policy internal vs public."
+read_when:
+  - "Read when you need profile governance policy internal vs public."
+type: "reference"
+---
+
 # Profile governance policy (internal vs public)
 
 ## Purpose

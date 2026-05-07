@@ -1,3 +1,10 @@
+---
+summary: "Agent operating contract for generated project repositories."
+read_when:
+  - "Read when changing the generated tpl-project-repo AGENTS.md operating contract."
+type: "reference"
+---
+
 # AGENTS.md — fixture-project-rust
 
 ## Intent

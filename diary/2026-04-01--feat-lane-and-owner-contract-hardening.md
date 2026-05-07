@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 01 Feat Lane And Owner Contract Hardening."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 01 feat lane and owner contract hardening."
+type: "reference"
+---
+
 # 2026-04-01 — Lane and owner contract hardening
 
 ## What I Did

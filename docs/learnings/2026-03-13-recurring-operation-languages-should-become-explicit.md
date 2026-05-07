@@ -1,3 +1,10 @@
+---
+summary: "2026-03-13 — Recurring operation languages should become explicit inside the core."
+read_when:
+  - "Read when you need 2026-03-13 — recurring operation languages should become explicit inside the core."
+type: "reference"
+---
+
 # 2026-03-13 — Recurring operation languages should become explicit inside the core
 
 ## Context

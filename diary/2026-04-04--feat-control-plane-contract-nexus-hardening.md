@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 04 Feat Control Plane Contract Nexus Hardening."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 04 feat control plane contract nexus hardening."
+type: "reference"
+---
+
 # 2026-04-04 — Control-plane contract nexus hardening
 
 ## What I Did

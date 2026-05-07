@@ -1,3 +1,10 @@
+---
+summary: "Learnings guidance for copier-template / copier / tpl-org-repo / docs / learnings."
+read_when:
+  - "Read when changing or validating generated tpl-org-repo documentation for learnings guidance for copier-template / copier / tpl-org-repo / docs / learnings."
+type: "reference"
+---
+
 # Learnings
 
 Capture organizational learnings about governance, culture, and operations.

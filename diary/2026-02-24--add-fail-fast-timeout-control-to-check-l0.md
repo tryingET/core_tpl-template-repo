@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 24 Add Fail Fast Timeout Control To Check L0."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 24 add fail fast timeout control to check l0."
+type: "reference"
+---
+
 # 2026-02-24 — Add fail-fast timeout control to check-l0
 
 ## What I Did

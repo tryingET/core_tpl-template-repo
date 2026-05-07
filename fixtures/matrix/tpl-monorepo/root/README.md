@@ -1,3 +1,10 @@
+---
+summary: "README for generated monorepositories."
+read_when:
+  - "Read when changing generated tpl-monorepo overview guidance."
+type: "reference"
+---
+
 # fixture-monorepo-matrix
 
 Holding Company monorepo workspace.

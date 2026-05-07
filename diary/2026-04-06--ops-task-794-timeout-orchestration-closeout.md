@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 06 Ops Task 794 Timeout Orchestration Closeout."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 06 ops task 794 timeout orchestration closeout."
+type: "reference"
+---
+
 # 2026-04-06 — Close out task 794 timeout orchestration verification
 
 ## What I Did

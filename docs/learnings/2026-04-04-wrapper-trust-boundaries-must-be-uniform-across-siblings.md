@@ -1,3 +1,10 @@
+---
+summary: "Wrapper Trust Boundaries Must Be Uniform Across Siblings."
+read_when:
+  - "Read when you need wrapper trust boundaries must be uniform across siblings."
+type: "reference"
+---
+
 # Wrapper Trust Boundaries Must Be Uniform Across Siblings
 
 **Date:** 2026-04-04

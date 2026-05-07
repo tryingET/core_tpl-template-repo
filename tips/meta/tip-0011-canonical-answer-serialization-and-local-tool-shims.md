@@ -1,3 +1,10 @@
+---
+summary: "TIP-0011: Canonical Answer Serialization and Local Tool Shims."
+read_when:
+  - "Read when you need tip-0011: canonical answer serialization and local tool shims."
+type: "reference"
+---
+
 # TIP-0011: Canonical Answer Serialization and Local Tool Shims
 
 ## Metadata

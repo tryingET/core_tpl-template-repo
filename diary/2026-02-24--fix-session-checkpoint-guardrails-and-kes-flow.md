@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 24 Fix Session Checkpoint Guardrails And Kes Flow."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 24 fix session checkpoint guardrails and kes flow."
+type: "reference"
+---
+
 # 2026-02-24 — Session checkpoint guardrails + KES flow closure
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "tpl-template-repo L0."
+read_when:
+  - "Read when you need tpl-template-repo l0."
+type: "reference"
+---
+
 # tpl-template-repo (L0)
 
 `core/tpl-template-repo` is the **L0 meta-template** that scaffolds **L1 template repos**.

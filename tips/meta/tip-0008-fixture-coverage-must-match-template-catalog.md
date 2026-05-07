@@ -1,3 +1,10 @@
+---
+summary: "TIP-0008: Fixture Coverage Must Match Template Catalog."
+read_when:
+  - "Read when you need tip-0008: fixture coverage must match template catalog."
+type: "reference"
+---
+
 # TIP-0008: Fixture Coverage Must Match Template Catalog
 
 ## Metadata

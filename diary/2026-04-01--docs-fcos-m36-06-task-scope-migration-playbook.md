@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 01 Docs Fcos M36 06 Task Scope Migration Playbook."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 01 docs fcos m36 06 task scope migration playbook."
+type: "reference"
+---
+
 # 2026-04-01 — publish template-side task-scope migration playbook
 
 ## What I Did

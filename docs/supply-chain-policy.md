@@ -1,3 +1,10 @@
+---
+summary: "Supply-chain policy L0."
+read_when:
+  - "Read when you need supply-chain policy l0."
+type: "reference"
+---
+
 # Supply-chain policy (L0)
 
 ## Objective

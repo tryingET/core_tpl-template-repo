@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 04 Chore Preflight Census Upstream Seeding."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 04 chore preflight census upstream seeding."
+type: "reference"
+---
+
 # 2026-03-04 — Seed preflight repo-census helper upstream
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 04 Chore Single File Propagation Preflight Census."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 04 chore single file propagation preflight census."
+type: "reference"
+---
+
 # 2026-03-04 — Single-file propagation for preflight census helper
 
 ## What I Did

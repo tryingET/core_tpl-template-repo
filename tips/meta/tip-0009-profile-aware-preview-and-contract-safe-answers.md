@@ -1,3 +1,10 @@
+---
+summary: "TIP-0009: Profile-Aware Preview and Contract-Safe Answers Parsing."
+read_when:
+  - "Read when you need tip-0009: profile-aware preview and contract-safe answers parsing."
+type: "reference"
+---
+
 # TIP-0009: Profile-Aware Preview and Contract-Safe Answers Parsing
 
 ## Metadata

@@ -1,3 +1,10 @@
+---
+summary: "Contributing."
+read_when:
+  - "Read when you need contributing."
+type: "reference"
+---
+
 # Contributing
 
 This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).

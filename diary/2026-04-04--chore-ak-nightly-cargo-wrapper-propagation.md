@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 04 Chore Ak Nightly Cargo Wrapper Propagation."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 04 chore ak nightly cargo wrapper propagation."
+type: "reference"
+---
+
 # 2026-04-04 — Propagate nightly cargo operator wrapper before main merge
 
 ## What I Did

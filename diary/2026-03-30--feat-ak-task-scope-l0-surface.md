@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Feat Ak Task Scope L0 Surface."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 feat ak task scope l0 surface."
+type: "reference"
+---
+
 # 2026-03-30 — AK-native task-scope L0/L1 helper surface
 
 ## What I Did

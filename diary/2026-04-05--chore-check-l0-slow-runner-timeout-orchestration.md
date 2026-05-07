@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Chore Check L0 Slow Runner Timeout Orchestration."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 chore check l0 slow runner timeout orchestration."
+type: "reference"
+---
+
 # 2026-04-05 — Tune check-l0 timeout orchestration for slower runners
 
 ## What I Did

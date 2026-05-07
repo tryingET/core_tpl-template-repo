@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Ops Fcos M44 01 Template Receipt And Adoption Snapshot Contract."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 ops fcos m44 01 template receipt and adoption snapshot contract."
+type: "reference"
+---
+
 # 2026-04-05 — FCOS-M44-01 template receipt + adoption snapshot contract
 
 - Closed the template-side `FCOS-M44-01` follow-through packet by adding:

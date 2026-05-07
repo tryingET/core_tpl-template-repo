@@ -1,3 +1,10 @@
+---
+summary: "Governance guidance for generated L1 template repositories."
+read_when:
+  - "Read when changing generated L1 governance guidance."
+type: "reference"
+---
+
 # Governance
 
 Template governance layer for this company.

@@ -1,3 +1,10 @@
+---
+summary: "Governance guidance for copier-template / copier / tpl-project-repo / governance."
+read_when:
+  - "Read when changing or validating generated tpl-project-repo documentation for governance guidance for copier-template / copier / tpl-project-repo / governance."
+type: "reference"
+---
+
 # Project Work Items
 
 `governance/work-items.json` is the checked-in deterministic projection/mirror for this repository's Agent Kernel work-items state.

@@ -1,3 +1,10 @@
+---
+summary: "AGENTS.md — tpl-template-repo."
+read_when:
+  - "Read when you need agents.md — tpl-template-repo."
+type: "reference"
+---
+
 # AGENTS.md — tpl-template-repo
 
 ## Intent

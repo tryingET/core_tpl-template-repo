@@ -1,3 +1,10 @@
+---
+summary: "Diary guidance for generated L1 template repositories."
+read_when:
+  - "Read when changing generated L1 diary guidance."
+type: "reference"
+---
+
 # Diary
 
 Repo-local session capture for this L1 template repository.

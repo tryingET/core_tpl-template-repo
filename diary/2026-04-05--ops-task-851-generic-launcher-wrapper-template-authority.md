@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Ops Task 851 Generic Launcher Wrapper Template Authority."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 ops task 851 generic launcher wrapper template authority."
+type: "reference"
+---
+
 # 2026-04-05 — task 851 generic launcher wrapper template authority
 
 ## What I Did

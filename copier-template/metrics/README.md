@@ -1,3 +1,10 @@
+---
+summary: "Metrics."
+read_when:
+  - "Read when changing L1 template output related to metrics."
+type: "reference"
+---
+
 # Metrics
 
 Track template health and TIP effectiveness.

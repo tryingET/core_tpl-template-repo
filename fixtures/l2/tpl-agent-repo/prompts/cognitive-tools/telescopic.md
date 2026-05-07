@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: TELESCOPIC — Simultaneous Micro-Macro Analysis."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: telescopic — simultaneous micro-macro analysis."
+type: "reference"
+---
+
 # TELESCOPIC — Simultaneous Micro-Macro Analysis
 
 ## Invoke When

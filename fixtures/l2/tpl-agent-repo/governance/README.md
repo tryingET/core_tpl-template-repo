@@ -1,3 +1,10 @@
+---
+summary: "Governance guidance for copier-template / copier / tpl-agent-repo / governance."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for governance guidance for copier-template / copier / tpl-agent-repo / governance."
+type: "reference"
+---
+
 # Governance README
 
 Agent repos stay lightweight, but if a repo-local AK task needs explicit scope, keep repo copies under `governance/task-scopes/` as frozen exports only.

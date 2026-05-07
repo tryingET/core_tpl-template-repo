@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 24 Align Readme Baseline Contracts With Rendered Output."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 24 align readme baseline contracts with rendered output."
+type: "reference"
+---
+
 # 2026-02-24 — Align README baseline claims with rendered L1/L2 reality
 
 ## What I Did

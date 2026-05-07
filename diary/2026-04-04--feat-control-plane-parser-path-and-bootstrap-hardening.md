@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 04 Feat Control Plane Parser Path And Bootstrap Hardening."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 04 feat control plane parser path and bootstrap hardening."
+type: "reference"
+---
+
 # 2026-04-04 — Control-plane parser, path-trust, and bootstrap hardening
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "Organization purpose for generated L1 template repositories."
+read_when:
+  - "Read when changing generated organization purpose guidance."
+type: "reference"
+---
+
 # Organization purpose
 
 Describe why the organization exists independent of any single project.

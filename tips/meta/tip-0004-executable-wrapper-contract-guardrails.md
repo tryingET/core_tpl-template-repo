@@ -1,3 +1,10 @@
+---
+summary: "TIP-0004: Executable Wrapper Contract Guardrails."
+read_when:
+  - "Read when you need tip-0004: executable wrapper contract guardrails."
+type: "reference"
+---
+
 # TIP-0004: Executable Wrapper Contract Guardrails
 
 ## Metadata

@@ -1,3 +1,10 @@
+---
+summary: "Profile-Aware Preview and Contract-Safe Answers Parsing."
+read_when:
+  - "Read when you need profile-aware preview and contract-safe answers parsing."
+type: "reference"
+---
+
 # Profile-Aware Preview and Contract-Safe Answers Parsing
 
 **Discovered**: 2026-02-28

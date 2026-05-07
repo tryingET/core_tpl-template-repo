@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 24 Tighten Check Aggregator Warning Signal."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 24 tighten check aggregator warning signal."
+type: "reference"
+---
+
 # 2026-02-24 — Tighten check aggregator warning signal
 
 ## What I Did

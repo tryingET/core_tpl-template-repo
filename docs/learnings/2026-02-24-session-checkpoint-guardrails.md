@@ -1,3 +1,10 @@
+---
+summary: "2026-02-24 — Session checkpoint guardrails are control-plane quality gates."
+read_when:
+  - "Read when you need 2026-02-24 — session checkpoint guardrails are control-plane quality gates."
+type: "reference"
+---
+
 # 2026-02-24 — Session checkpoint guardrails are control-plane quality gates
 
 ## Context

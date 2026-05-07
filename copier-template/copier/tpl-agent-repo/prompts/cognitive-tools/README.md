@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: Cognitive Tools."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: cognitive tools."
+type: "reference"
+---
+
 # Cognitive Tools
 
 Invocable frameworks for higher-order thinking.

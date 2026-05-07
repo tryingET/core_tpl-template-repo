@@ -1,3 +1,10 @@
+---
+summary: "README for generated project repositories."
+read_when:
+  - "Read when changing generated tpl-project-repo overview guidance."
+type: "reference"
+---
+
 # fixture-product-repo
 
 Holding Company project repository.

@@ -1,3 +1,10 @@
+---
+summary: "2026-04-05 — Check runners need heavy-lane budgets and timeout aborts."
+read_when:
+  - "Read when you need 2026-04-05 — check runners need heavy-lane budgets and timeout aborts."
+type: "reference"
+---
+
 # 2026-04-05 — Check runners need heavy-lane budgets and timeout aborts
 
 ## Context

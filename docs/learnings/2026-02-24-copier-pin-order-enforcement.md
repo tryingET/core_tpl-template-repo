@@ -1,3 +1,10 @@
+---
+summary: "2026-02-24 — Pinned toolchain checks must verify execution order, not only string presence."
+read_when:
+  - "Read when you need 2026-02-24 — pinned toolchain checks must verify execution order, not only string presence."
+type: "reference"
+---
+
 # 2026-02-24 — Pinned toolchain checks must verify execution order, not only string presence
 
 ## Context

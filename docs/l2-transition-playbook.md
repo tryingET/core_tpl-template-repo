@@ -1,3 +1,10 @@
+---
+summary: "L2 transition playbook existing repo -> templated baseline."
+read_when:
+  - "Read when you need l2 transition playbook existing repo -> templated baseline."
+type: "reference"
+---
+
 # L2 transition playbook (existing repo -> templated baseline)
 
 ## Goal

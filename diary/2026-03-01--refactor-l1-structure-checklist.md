@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 01 Refactor L1 Structure Checklist."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 01 refactor l1 structure checklist."
+type: "reference"
+---
+
 # L1 Restructure Checklist: `<company>-templates/` → `<company>/`
 
 **Goal:** Make the company folder THE git repo, with templates living inside it. AGENTS.md and scripts at company level work for all projects via pi's upward traversal.

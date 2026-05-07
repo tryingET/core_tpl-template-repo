@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Feat Atomic Completion Nexus Hardening."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 feat atomic completion nexus hardening."
+type: "reference"
+---
+
 # 2026-03-30 — Atomic completion hardening after nexus implementation
 
 ## What I Did

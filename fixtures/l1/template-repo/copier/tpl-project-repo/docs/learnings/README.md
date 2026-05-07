@@ -1,3 +1,10 @@
+---
+summary: "Learnings guidance for copier-template / copier / tpl-project-repo / docs / learnings."
+read_when:
+  - "Read when changing or validating generated tpl-project-repo documentation for learnings guidance for copier-template / copier / tpl-project-repo / docs / learnings."
+type: "reference"
+---
+
 # Learnings
 
 Capture what works, what doesn't, and what to try next.

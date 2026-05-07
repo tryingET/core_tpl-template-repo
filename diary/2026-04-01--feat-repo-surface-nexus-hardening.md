@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 01 Feat Repo Surface Nexus Hardening."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 01 feat repo surface nexus hardening."
+type: "reference"
+---
+
 # 2026-04-01 — Repo-surface nexus hardening
 
 ## What I Did

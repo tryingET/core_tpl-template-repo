@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 02 Ops Holdingco Root Transition Backup First."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 02 ops holdingco root transition backup first."
+type: "reference"
+---
+
 # 2026-03-02 — ops — holdingco root transition (backup-first)
 
 ## Context

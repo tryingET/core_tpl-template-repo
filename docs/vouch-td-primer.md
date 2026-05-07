@@ -1,3 +1,10 @@
+---
+summary: "Vouch .td primer for AI Society templates."
+read_when:
+  - "Read when you need vouch .td primer for ai society templates."
+type: "reference"
+---
+
 # Vouch `.td` primer for AI Society templates
 
 ## What is a `.td` file here?

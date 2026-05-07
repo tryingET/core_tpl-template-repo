@@ -1,3 +1,10 @@
+---
+summary: "Organization mission for generated L1 template repositories."
+read_when:
+  - "Read when changing generated organization mission guidance."
+type: "reference"
+---
+
 # Organization mission
 
 Describe what the organization is actively doing now to realize its purpose.

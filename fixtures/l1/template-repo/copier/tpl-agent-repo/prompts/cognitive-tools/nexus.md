@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: NEXUS — The Single Highest-Leverage Intervention."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: nexus — the single highest-leverage intervention."
+type: "reference"
+---
+
 # NEXUS — The Single Highest-Leverage Intervention
 
 ## Invoke When

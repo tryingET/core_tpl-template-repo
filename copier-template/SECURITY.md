@@ -1,3 +1,10 @@
+---
+summary: "Security Policy."
+read_when:
+  - "Read when changing L1 template output related to security policy."
+type: "reference"
+---
+
 # Security Policy
 
 ## Supported versions

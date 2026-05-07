@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: ESCAPE HATCH — Rollback-First Design."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: escape hatch — rollback-first design."
+type: "reference"
+---
+
 # ESCAPE HATCH — Rollback-First Design
 
 ## Invoke When

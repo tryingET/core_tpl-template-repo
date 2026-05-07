@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Review Ak Task Scope Adversarial."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 review ak task scope adversarial."
+type: "reference"
+---
+
 # 2026-03-30 — adversarial review of AK task-scope adoption commits
 
 ## Scope

@@ -1,3 +1,10 @@
+---
+summary: "2026-03-13 — Stable core + thin adapters is the durable multi-surface pattern."
+read_when:
+  - "Read when you need 2026-03-13 — stable core + thin adapters is the durable multi-surface pattern."
+type: "reference"
+---
+
 # 2026-03-13 — Stable core + thin adapters is the durable multi-surface pattern
 
 ## Context

@@ -1,3 +1,10 @@
+---
+summary: "2026-04-01 — Lane and owner contracts need explicit typing."
+read_when:
+  - "Read when you need 2026-04-01 — lane and owner contracts need explicit typing."
+type: "reference"
+---
+
 # 2026-04-01 — Lane and owner contracts need explicit typing
 
 ## Context

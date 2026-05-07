@@ -1,3 +1,10 @@
+---
+summary: "TIP-0001: Universal Learnings + Decisions Structure."
+read_when:
+  - "Read when you need tip-0001: universal learnings + decisions structure."
+type: "reference"
+---
+
 # TIP-0001: Universal Learnings + Decisions Structure
 
 ## Metadata

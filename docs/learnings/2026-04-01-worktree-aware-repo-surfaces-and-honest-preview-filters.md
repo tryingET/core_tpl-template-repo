@@ -1,3 +1,10 @@
+---
+summary: "2026-04-01 — Worktree-aware repo surfaces and honest preview filters."
+read_when:
+  - "Read when you need 2026-04-01 — worktree-aware repo surfaces and honest preview filters."
+type: "reference"
+---
+
 # 2026-04-01 — Worktree-aware repo surfaces and honest preview filters
 
 ## Context

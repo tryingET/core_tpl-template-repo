@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 24 Fix Copier Pin Order And Fallback Visibility."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 24 fix copier pin order and fallback visibility."
+type: "reference"
+---
+
 # 2026-02-24 — Copier pin order + fallback visibility hardening
 
 ## What I Did

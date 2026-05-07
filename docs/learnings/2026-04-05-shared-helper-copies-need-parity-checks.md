@@ -1,3 +1,10 @@
+---
+summary: "Shared Helper Copies Need Parity Checks."
+read_when:
+  - "Read when you need shared helper copies need parity checks."
+type: "reference"
+---
+
 # Shared Helper Copies Need Parity Checks
 
 **Date:** 2026-04-05

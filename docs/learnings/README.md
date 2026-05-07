@@ -1,3 +1,10 @@
+---
+summary: "Learnings L0."
+read_when:
+  - "Read when you need learnings l0."
+type: "reference"
+---
+
 # Learnings (L0)
 
 Capture durable lessons for `core/tpl-template-repo`.

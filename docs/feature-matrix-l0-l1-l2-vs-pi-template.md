@@ -1,3 +1,10 @@
+---
+summary: "Feature matrix — core/tpl-template-repo vs pi-extensions/template."
+read_when:
+  - "Read when you need feature matrix — core/tpl-template-repo vs pi-extensions/template."
+type: "reference"
+---
+
 # Feature matrix — `core/tpl-template-repo` vs `pi-extensions/template`
 
 Scope:

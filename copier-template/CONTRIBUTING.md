@@ -1,3 +1,10 @@
+---
+summary: "Contributing L1 generated repo."
+read_when:
+  - "Read when changing L1 template output related to contributing l1 generated repo."
+type: "reference"
+---
+
 # Contributing (L1 generated repo)
 
 This repository is an **L1 template repo** generated from AI Society L0.

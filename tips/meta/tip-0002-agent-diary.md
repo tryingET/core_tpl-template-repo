@@ -1,3 +1,10 @@
+---
+summary: "TIP-0002: Agent Diary for Knowledge Crystallization."
+read_when:
+  - "Read when you need tip-0002: agent diary for knowledge crystallization."
+type: "reference"
+---
+
 # TIP-0002: Agent Diary for Knowledge Crystallization
 
 ## Metadata

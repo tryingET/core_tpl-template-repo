@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Docs L2 Toggle Metadata Only Contract."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 docs l2 toggle metadata only contract."
+type: "reference"
+---
+
 # 2026-04-05 — docs/l2-toggle-metadata-only-contract
 
 ## Context

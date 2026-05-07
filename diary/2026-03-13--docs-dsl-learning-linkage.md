@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 13 Docs Dsl Learning Linkage."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 13 docs dsl learning linkage."
+type: "reference"
+---
+
 # 2026-03-13 — DSL learning linkage from architecture pattern
 
 ## What I Did

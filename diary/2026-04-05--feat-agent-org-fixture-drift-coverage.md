@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Feat Agent Org Fixture Drift Coverage."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 feat agent org fixture drift coverage."
+type: "reference"
+---
+
 # 2026-04-05 — Expand tpl-agent-repo and tpl-org-repo fixture drift coverage
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "TIP-0006: Fail-Fast Timeout Conventions for Check Runners."
+read_when:
+  - "Read when you need tip-0006: fail-fast timeout conventions for check runners."
+type: "reference"
+---
+
 # TIP-0006: Fail-Fast Timeout Conventions for Check Runners
 
 ## Metadata

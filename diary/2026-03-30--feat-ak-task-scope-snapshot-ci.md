@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Feat Ak Task Scope Snapshot Ci."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 feat ak task scope snapshot ci."
+type: "reference"
+---
+
 # 2026-03-30 — enforce AK task-scope snapshot drift checks in generated repo CI
 
 ## What I Did

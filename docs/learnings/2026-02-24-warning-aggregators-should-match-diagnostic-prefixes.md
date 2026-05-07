@@ -1,3 +1,10 @@
+---
+summary: "2026-02-24 — Warning aggregators should match diagnostic prefixes, not generic tokens."
+read_when:
+  - "Read when you need 2026-02-24 — warning aggregators should match diagnostic prefixes, not generic tokens."
+type: "reference"
+---
+
 # 2026-02-24 — Warning aggregators should match diagnostic prefixes, not generic tokens
 
 ## Context

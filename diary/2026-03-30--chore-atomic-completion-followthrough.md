@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Chore Atomic Completion Followthrough."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 chore atomic completion followthrough."
+type: "reference"
+---
+
 # 2026-03-30 — Atomic completion follow-through
 
 ## What I Did

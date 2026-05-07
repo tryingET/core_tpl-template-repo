@@ -1,5 +1,8 @@
 ---
 summary: "Refreshed the managed launcher-bundle propagation from agent-kernel into tpl-template-repo source surfaces, regenerated fixtures, and revalidated the L0 template gate after the newer owner-side hardening drift surfaced."
+read_when:
+  - "Read when reconstructing the launcher-bundle propagation refresh from agent-kernel into tpl-template-repo."
+type: "reference"
 ---
 
 # 2026-04-09 — launcher-bundle propagation refresh

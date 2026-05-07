@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Review Adversarial Stack Template Controls."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 review adversarial stack template controls."
+type: "reference"
+---
+
 # 2026-03-30 — Adversarial review of template control-plane surfaces
 
 ## What I Did

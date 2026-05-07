@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 01 Ops Fcos M36 06 Closeout And Queue Advance."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 01 ops fcos m36 06 closeout and queue advance."
+type: "reference"
+---
+
 # 2026-04-01 — FCOS-M36-06 closeout and queue advance mirror
 
 ## What I Did

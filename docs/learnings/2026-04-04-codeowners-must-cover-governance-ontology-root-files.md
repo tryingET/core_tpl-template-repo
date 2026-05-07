@@ -1,3 +1,10 @@
+---
+summary: "CODEOWNERS Templates Must Cover All Governed Surfaces."
+read_when:
+  - "Read when you need codeowners templates must cover all governed surfaces."
+type: "reference"
+---
+
 # CODEOWNERS Templates Must Cover All Governed Surfaces
 
 **Date:** 2026-04-04

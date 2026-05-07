@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 04 Fix Deep Review Bugs Codeowners Provenance Answers."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 04 fix deep review bugs codeowners provenance answers."
+type: "reference"
+---
+
 # Deep Review Bug Fix Batch
 
 **Date:** 2026-04-04

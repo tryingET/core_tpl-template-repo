@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Review Full Adversarial Stack Followup."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 review full adversarial stack followup."
+type: "reference"
+---
+
 # 2026-03-30 — Full adversarial stack follow-up
 
 ## What I Did

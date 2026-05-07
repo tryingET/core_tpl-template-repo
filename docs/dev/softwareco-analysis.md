@@ -1,3 +1,10 @@
+---
+summary: "softwareco Analysis archived."
+read_when:
+  - "Read when you need softwareco analysis archived."
+type: "reference"
+---
+
 # softwareco Analysis (archived)
 
 **Date:** 2026-02-21  

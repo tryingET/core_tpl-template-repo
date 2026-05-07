@@ -1,3 +1,10 @@
+---
+summary: "Ontology Index repo."
+read_when:
+  - "Read when changing or validating generated tpl-project-repo documentation for ontology index repo."
+type: "reference"
+---
+
 # Ontology Index (repo)
 
 Start here when browsing manually.

@@ -1,3 +1,10 @@
+---
+summary: "TIPs — Template Improvement Proposals."
+read_when:
+  - "Read when changing L1 template output related to tips — template improvement proposals."
+type: "reference"
+---
+
 # TIPs — Template Improvement Proposals
 
 TIPs are the genome for template evolution. They capture learnings from agents

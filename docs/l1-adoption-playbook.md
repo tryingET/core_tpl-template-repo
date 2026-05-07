@@ -1,3 +1,10 @@
+---
+summary: "L1 adoption playbook from L0."
+read_when:
+  - "Read when you need l1 adoption playbook from l0."
+type: "reference"
+---
+
 # L1 adoption playbook (from L0)
 
 Operator entrypoint: docs/dev/README.md (relative from here: `./dev/README.md`)

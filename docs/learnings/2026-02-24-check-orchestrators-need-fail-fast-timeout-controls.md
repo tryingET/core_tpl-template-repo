@@ -1,3 +1,10 @@
+---
+summary: "2026-02-24 — Check orchestrators need fail-fast timeout controls."
+read_when:
+  - "Read when you need 2026-02-24 — check orchestrators need fail-fast timeout controls."
+type: "reference"
+---
+
 # 2026-02-24 — Check orchestrators need fail-fast timeout controls
 
 ## Context

@@ -1,3 +1,10 @@
+---
+summary: "TIP-0005: Diagnostic Prefix Contracts for Check Aggregators."
+read_when:
+  - "Read when you need tip-0005: diagnostic prefix contracts for check aggregators."
+type: "reference"
+---
+
 # TIP-0005: Diagnostic Prefix Contracts for Check Aggregators
 
 ## Metadata

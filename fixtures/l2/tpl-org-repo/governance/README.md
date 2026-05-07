@@ -1,3 +1,10 @@
+---
+summary: "Governance guidance for copier-template / copier / tpl-org-repo / governance."
+read_when:
+  - "Read when changing or validating generated tpl-org-repo documentation for governance guidance for copier-template / copier / tpl-org-repo / governance."
+type: "reference"
+---
+
 # Governance README
 
 This directory holds consent/approval docs and optional AK task-scope snapshots when a repo-local slice needs explicit scope.

@@ -1,3 +1,10 @@
+---
+summary: "Agent operating contract for generated monorepositories."
+read_when:
+  - "Read when changing the generated tpl-monorepo AGENTS.md operating contract."
+type: "reference"
+---
+
 # AGENTS.md — fixture-monorepo
 
 ## Intent

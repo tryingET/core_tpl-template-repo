@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 04 Ops Fcos M43 01 Tpl Template Repo Closeout."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 04 ops fcos m43 01 tpl template repo closeout."
+type: "reference"
+---
+
 # 2026-04-04 — Close out FCOS-M43-01 tpl-template-repo slice
 
 ## What I Did

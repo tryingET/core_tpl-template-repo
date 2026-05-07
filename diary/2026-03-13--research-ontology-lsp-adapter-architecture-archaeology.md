@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 13 Research Ontology Lsp Adapter Architecture Archaeology."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 13 research ontology lsp adapter architecture archaeology."
+type: "reference"
+---
+
 # 2026-03-13 — Ontology-LSP adapter architecture archaeology
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "Diary guidance for copier-template / copier / tpl-package / diary."
+read_when:
+  - "Read when changing or validating generated tpl-package documentation for diary guidance for copier-template / copier / tpl-package / diary."
+type: "reference"
+---
+
 # Diary
 
 Repo-local session capture for KES (Knowledge Evolution System).

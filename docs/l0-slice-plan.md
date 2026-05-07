@@ -1,3 +1,10 @@
+---
+summary: "L0 slice plan — tpl-template-repo."
+read_when:
+  - "Read when you need l0 slice plan — tpl-template-repo."
+type: "reference"
+---
+
 # L0 slice plan — tpl-template-repo
 
 ## 1) Abductive pass (observed state from existing L1 repos)

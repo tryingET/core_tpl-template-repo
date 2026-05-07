@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Feat Ak Task Scope Descendant Propagation."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 feat ak task scope descendant propagation."
+type: "reference"
+---
+
 # 2026-03-30 — propagate AK-native task-scope flow across descendant templates
 
 ## What I Did

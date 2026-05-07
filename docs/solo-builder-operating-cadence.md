@@ -1,3 +1,10 @@
+---
+summary: "Solo-builder operating cadence family-safe."
+read_when:
+  - "Read when you need solo-builder operating cadence family-safe."
+type: "reference"
+---
+
 # Solo-builder operating cadence (family-safe)
 
 ## Purpose

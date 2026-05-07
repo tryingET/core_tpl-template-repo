@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: TEMPORAL DEGRADATION — Future-Proofing via Time Travel."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: temporal degradation — future-proofing via time travel."
+type: "reference"
+---
+
 # TEMPORAL DEGRADATION — Future-Proofing via Time Travel
 
 ## Invoke When

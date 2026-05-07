@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 04 Feat Rocs Path Fallback Consent Gate."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 04 feat rocs path fallback consent gate."
+type: "reference"
+---
+
 # ROCS PATH Fallback Consent Gate
 
 **Date:** 2026-04-04

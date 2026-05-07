@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 13 Docs Global Agents Intent Over Wording."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 13 docs global agents intent over wording."
+type: "reference"
+---
+
 # 2026-03-13 — Add intent-over-wording rule to global AGENTS
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Ops Runtime Fcos Queue Sync."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 ops runtime fcos queue sync."
+type: "reference"
+---
+
 # 2026-03-30 — runtime FCOS queue sync for tpl-template-repo
 
 ## What I Did

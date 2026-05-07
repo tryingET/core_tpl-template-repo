@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 02 24 Refactor Kes Repo Local Diary Contract."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 02 24 refactor kes repo local diary contract."
+type: "reference"
+---
+
 # 2026-02-24 — Repo-local diary policy correction
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "Governance guidance for copier-template / copier / tpl-monorepo / governance."
+read_when:
+  - "Read when changing or validating generated tpl-monorepo documentation for governance guidance for copier-template / copier / tpl-monorepo / governance."
+type: "reference"
+---
+
 # Monorepo Work Items
 
 `governance/work-items.json` is the checked-in deterministic projection/mirror for this monorepo's Agent Kernel work-items state.

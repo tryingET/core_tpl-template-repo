@@ -1,3 +1,10 @@
+---
+summary: "Organization operating model for generated L1 template repositories."
+read_when:
+  - "Read when changing generated organization operating-model guidance."
+type: "reference"
+---
+
 # Organization operating model
 
 This repository defines organization guidance for the template line.

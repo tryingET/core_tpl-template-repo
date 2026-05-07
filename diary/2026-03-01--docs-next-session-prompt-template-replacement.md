@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 01 Docs Next Session Prompt Template Replacement."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 01 docs next session prompt template replacement."
+type: "reference"
+---
+
 # 2026-03-01 — Replace stale status/next-steps with next-session prompt in tpl-project baseline
 
 ## What I Did

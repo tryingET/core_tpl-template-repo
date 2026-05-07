@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 03 30 Feat L0 Adversarial Operator Surface Suite."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 03 30 feat l0 adversarial operator surface suite."
+type: "reference"
+---
+
 # 2026-03-30 — L0 adversarial operator-surface suite
 
 ## What I Did

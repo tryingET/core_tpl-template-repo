@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 05 Fix Nexus Helper Parity Language Matrix And Stack Wording."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 05 fix nexus helper parity language matrix and stack wording."
+type: "reference"
+---
+
 # 2026-04-05 — Nexus helper parity, language matrix, and stack wording
 
 ## What I Did

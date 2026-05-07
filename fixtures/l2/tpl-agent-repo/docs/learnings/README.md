@@ -1,3 +1,10 @@
+---
+summary: "Learnings guidance for copier-template / copier / tpl-agent-repo / docs / learnings."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for learnings guidance for copier-template / copier / tpl-agent-repo / docs / learnings."
+type: "reference"
+---
+
 # Learnings
 
 Capture what the agent learns through operation.

@@ -1,3 +1,10 @@
+---
+summary: "TIP-0010: Stable Core, Thin Adapters for Multi-Surface Systems."
+read_when:
+  - "Read when you need tip-0010: stable core, thin adapters for multi-surface systems."
+type: "reference"
+---
+
 # TIP-0010: Stable Core, Thin Adapters for Multi-Surface Systems
 
 ## Metadata

@@ -1,3 +1,10 @@
+---
+summary: "Session note: 2026 04 24 Docs Product Posture Template Propagation."
+read_when:
+  - "Read when reconstructing repo-local session context for session note: 2026 04 24 docs product posture template propagation."
+type: "reference"
+---
+
 # 2026-04-24 — Product posture template propagation
 
 ## What I Did

@@ -1,3 +1,10 @@
+---
+summary: "Adoption preview report — HoldingCo + SoftwareCo templates 2026-02-11."
+read_when:
+  - "Read when you need adoption preview report — holdingco + softwareco templates 2026-02-11."
+type: "reference"
+---
+
 # Adoption preview report — HoldingCo + SoftwareCo templates (2026-02-11)
 
 ## Scope

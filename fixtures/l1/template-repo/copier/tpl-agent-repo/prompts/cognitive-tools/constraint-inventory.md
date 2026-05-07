@@ -1,3 +1,10 @@
+---
+summary: "Prompt guidance: CONSTRAINT INVENTORY — Real vs Imagined."
+read_when:
+  - "Read when changing or validating generated tpl-agent-repo documentation for prompt guidance: constraint inventory — real vs imagined."
+type: "reference"
+---
+
 # CONSTRAINT INVENTORY — Real vs Imagined
 
 ## Invoke When
