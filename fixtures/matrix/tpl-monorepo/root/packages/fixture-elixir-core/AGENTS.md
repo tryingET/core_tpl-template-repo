@@ -11,7 +11,7 @@ Package inside monorepo: library (elixir)
 - Deferred work and explicit task scope live at the monorepo root; do not create standalone AK/task-scope state in this member.
 
 ## AK-native route guardrails
-- Package AK route checks run from the monorepo root: read the root AK task and route/open-frame status before inventing package work.
+- If the parent monorepo declares AK-native task, direction, or route authority, run package AK route checks from the monorepo root: read the root AK task and route/open-frame status before inventing package work.
 - Generic operator input such as `proceed` continues the active root execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
 - Treat package docs and generated files as projections unless the monorepo declares otherwise; hand off Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, and other repo facts to their owners.
 - Prefer parent/root `docs/project/vision.md` as durable product direction where present and `docs/project/product_posture.md` as a product-maturity bridge, not a queue, roadmap, changelog, or execution authority.
