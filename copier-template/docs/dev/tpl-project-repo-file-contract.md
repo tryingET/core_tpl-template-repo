@@ -63,8 +63,9 @@ Default L2 output is intentionally split into 7 domains:
 - `docs/org_context/` (org constraints snapshot)
   - compact baseline: `README.md`, `org-summary.md`
   - rich profile (`org_docs_profile=rich`): adds `mission.md`, `purpose.md`, `vision.md`, `strategic_objectives.md`, `governance.md`
-- `docs/project/` (purpose/mission/vision/product_posture/model/goals)
-  - `product_posture.md` is a product-wide maturity bridge between durable vision and active direction; it is not runtime authority and not a task/release log.
+- `docs/project/` (purpose/mission/vision/product_posture/model)
+  - `product_posture.md` is a product-wide maturity bridge below durable vision; it is not runtime authority, a queue, a roadmap, or a task/release log.
+  - SG/TG/OP markdown planning files are no longer scaffolded by default for AK-native project repos.
 - `docs/system4d/` (container/compass/engine/fog)
 - `next_session_prompt.md` (single active handoff prompt; replaces status/next-steps split and must not mirror queryable runtime state)
 - `docs/decisions/`, `docs/learnings/`

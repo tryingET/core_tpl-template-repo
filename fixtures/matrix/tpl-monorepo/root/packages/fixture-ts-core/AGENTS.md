@@ -14,7 +14,8 @@ Package inside monorepo: library (typescript)
 - Package AK route checks run from the monorepo root: read the root AK task and route/open-frame status before inventing package work.
 - Generic operator input such as `proceed` continues the active root execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
 - Treat package docs and generated files as projections unless the monorepo declares otherwise; hand off Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, and other repo facts to their owners.
-- Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared.
+- Prefer parent/root `docs/project/vision.md` as durable product direction where present and `docs/project/product_posture.md` as a product-maturity bridge, not a queue, roadmap, changelog, or execution authority.
+- Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared; legacy `strategic_goals.md`, `tactical_goals.md`, `operating_plan.md`, or `operational_plan.md` files are archive/projection only unless a repo-local owner decision explicitly says otherwise.
 
 ## Deterministic tooling policy (ROCS-first)
 - Run ROCS commands from monorepo root: `../../scripts/rocs.sh <args...>`

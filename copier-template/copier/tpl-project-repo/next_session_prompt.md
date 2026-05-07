@@ -22,7 +22,7 @@ Do not ask for permission to start.
 
 ## SOURCE-OF-TRUTH MAP
 - Repo operating contract: `AGENTS.md`
-- Mission and goals: `docs/project/`
+- Durable direction and product posture: `docs/project/vision.md` and `docs/project/product_posture.md`
 - Active/deferred work authority: Agent Kernel work-items state
 - Checked-in work-items projection: `governance/work-items.json`
 - Explicit task-scope snapshots (when present; frozen exports, not hand-authored truth): `governance/task-scopes/AK-<TASK-ID>.snapshot.json`
@@ -50,8 +50,8 @@ Do not ask for permission to start.
 2. `README.md`
 3. `governance/work-items.json` (projection only; query AK if you need live state)
 4. Relevant `governance/task-scopes/AK-<TASK-ID>.snapshot.json` (when explicit task scope is in play; frozen export only)
-5. `docs/project/mission.md`
-6. `docs/project/tactical_goals.md`
+5. `docs/project/vision.md`
+6. `docs/project/product_posture.md`
 7. Most recent `diary/YYYY-MM-DD--type-scope-summary.md`
 
 ## EXECUTION MODE (ONE SESSION = ONE SLICE)

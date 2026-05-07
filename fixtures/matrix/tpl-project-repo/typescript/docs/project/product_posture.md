@@ -2,7 +2,7 @@
 summary: "Product posture snapshot: current maturity, target product experience, major gaps, and proof signals."
 read_when:
   - "When deciding where the project stands relative to its durable vision"
-  - "When selecting or reviewing strategic goals from product maturity rather than task history"
+  - "When selecting or reviewing work from product maturity rather than task history"
   - "When checking whether active work converges on the intended product experience"
 type: "reference"
 ---
@@ -11,19 +11,18 @@ type: "reference"
 
 ## Purpose
 
-This file is the status-bearing bridge between durable vision and active direction.
+This file is the product-maturity bridge below durable vision.
 
 It captures where the product stands, what target experience it is converging toward, which gaps matter most, and what proof would close those gaps.
 
 It does **not** replace:
 
 - shipped runtime/source truth in code, tests, READMEs, architecture docs, or generated artifacts
-- AK task or decision authority
-- `docs/project/strategic_goals.md`
-- `docs/project/tactical_goals.md`
-- a repo-local `docs/project/operating_plan.md` when the repo profile ships one
+- AK task, direction, evidence, or decision authority
+- `docs/project/vision.md` as durable product direction
+- a repo-local owner decision, packet, or runtime source of truth
 
-Use this file only when a product-wide maturity snapshot helps strategy. Do not turn it into a task log, release log, changelog, or second operating plan.
+Use this file only when a product-wide maturity snapshot helps strategy. Do not turn it into a task log, release log, changelog, roadmap, operating plan, or queue mirror. Do not recreate `strategic_goals.md`, `tactical_goals.md`, `operating_plan.md`, or `operational_plan.md` as planning authority in AK-native repos.
 
 ## Posture in one sentence
 
@@ -75,7 +74,7 @@ Describe the intended user, operator, or system journey in concrete terms:
 - Durable ambition: `docs/project/vision.md`
 - Product posture: this file
 - Shipped runtime/source truth: README, architecture/configuration docs, source code, tests, and generated artifacts owned by the repo
-- Active direction: `docs/project/strategic_goals.md`, `docs/project/tactical_goals.md`, and a repo-local operating plan when present
-- Live execution truth: repo-local AK tasks and decisions
+- Durable product direction: `docs/project/vision.md`
+- Live execution truth: repo-local AK tasks, direction rows where present, evidence, and decisions
 - Raw session evidence: `diary/`
 - Crystallized learning: `docs/learnings/`
