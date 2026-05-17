@@ -46,10 +46,10 @@ uv run pytest        # Run tests
 uv run ruff check .  # Lint
 ```
 
-Explicit stack contract surface:
-- `policy/stack-lane.json`
-- `docs/tech-stack.local.md`
-- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
+Explicit engineering contract surface:
+- `policy/engineering-lane.json`
+- `docs/engineering.local.md`
+- `policy/engineering-lane.json` -> `engineering_core.command` retrieves the upstream lane
 {%- elif language in ["node", "typescript"] %}
 
 {{ "TypeScript" if language == "typescript" else "Node" }} project scaffolded with:
@@ -63,10 +63,10 @@ npm install          # Install dependencies
 npm test             # Run tests
 ```
 
-Explicit stack contract surface:
-- `policy/stack-lane.json`
-- `docs/tech-stack.local.md`
-- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
+Explicit engineering contract surface:
+- `policy/engineering-lane.json`
+- `docs/engineering.local.md`
+- `policy/engineering-lane.json` -> `engineering_core.command` retrieves the upstream lane
 {%- elif language == "rust" %}
 
 Rust project scaffolded with:
@@ -77,10 +77,10 @@ cargo build          # Build
 cargo test           # Run tests
 ```
 
-Explicit stack contract surface:
-- `policy/stack-lane.json`
-- `docs/tech-stack.local.md`
-- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
+Explicit engineering contract surface:
+- `policy/engineering-lane.json`
+- `docs/engineering.local.md`
+- `policy/engineering-lane.json` -> `engineering_core.command` retrieves the upstream lane
 {%- elif language == "go" %}
 
 Go project scaffolded with:
@@ -91,10 +91,10 @@ go build ./...       # Build
 go test ./...        # Run tests
 ```
 
-Explicit stack contract surface:
-- `policy/stack-lane.json`
-- `docs/tech-stack.local.md`
-- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
+Explicit engineering contract surface:
+- `policy/engineering-lane.json`
+- `docs/engineering.local.md`
+- `policy/engineering-lane.json` -> `engineering_core.command` retrieves the upstream lane
 {%- elif language == "elixir" %}
 
 Elixir project scaffolded with:
@@ -106,15 +106,15 @@ mix test             # Run tests
 mix format           # Format code
 ```
 
-Explicit stack contract surface:
-- `policy/stack-lane.json`
-- `docs/tech-stack.local.md`
-- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
+Explicit engineering contract surface:
+- `policy/engineering-lane.json`
+- `docs/engineering.local.md`
+- `policy/engineering-lane.json` -> `engineering_core.command` retrieves the upstream lane
 {%- elif language == "bash" %}
 
 Bash project scaffolded with:
 - script-first control plane (no language-specific package manifest)
-- no shared `tech-stack-core` lane is emitted yet for bash; keep local workflow notes in project docs/scripts instead of pretending a shared lane contract exists
+- no shared `engineering-core` lane is emitted yet for bash; keep local workflow notes in project docs/scripts instead of pretending a shared lane contract exists
 
 ```bash
 bash ./scripts/ci/fast.sh

@@ -59,8 +59,8 @@ npm test --workspace=packages/fixture-rust-core
 - NO `.github` workflows — CI from monorepo root
 - NO release config — released from monorepo root
 - Stack contract surface:
-  - `policy/stack-lane.json` when an upstream `tech-stack-core` lane exists
-  - `docs/tech-stack.local.md` for package-local overrides
+  - `policy/engineering-lane.json` when an upstream `engineering-core` lane exists
+  - `docs/engineering.local.md` for package-local overrides
 
 ## ROCS command flow
 

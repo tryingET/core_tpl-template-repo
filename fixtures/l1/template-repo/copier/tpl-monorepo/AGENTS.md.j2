@@ -50,10 +50,10 @@ governance/      # AK work-items projection, optional task-scope snapshots, poli
 - Package manager: **{{ package_manager }}**
 - Languages: Defined per-package in `packages/` and `apps/` (via tpl-package)
 - Workspace config at root; packages inherit workspace settings.
-- Keep the stack contract explicit:
-  - root `docs/tech-stack.local.md` records monorepo control-plane overrides
-  - generated packages/apps should carry `policy/stack-lane.json` + `docs/tech-stack.local.md`
-  - package/app `policy/stack-lane.json` is the source of truth for the declared upstream lane command
+- Keep the engineering contract explicit:
+  - root `docs/engineering.local.md` records monorepo control-plane overrides
+  - generated packages/apps should carry `policy/engineering-lane.json` + `docs/engineering.local.md`
+  - package/app `policy/engineering-lane.json` is the source of truth for the declared upstream lane command
 
 ## Agent/operator prompts
 - Repo-local commit workflow prompt lives at `.pi/prompts/commit.md`.
@@ -87,7 +87,7 @@ Forbidden:
 ## Read order
 1) `docs/_core/`
 2) `docs/org_context/`
-3) `docs/tech-stack.local.md`
+3) `docs/engineering.local.md`
 4) `governance/`
 5) `ontology/`
 6) `diary/`               ← recent work sessions

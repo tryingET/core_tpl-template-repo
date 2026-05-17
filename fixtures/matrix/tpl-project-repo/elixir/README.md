@@ -40,10 +40,10 @@ mix test             # Run tests
 mix format           # Format code
 ```
 
-Explicit stack contract surface:
-- `policy/stack-lane.json`
-- `docs/tech-stack.local.md`
-- `policy/stack-lane.json` -> `tech_stack_core.command` retrieves the upstream lane
+Explicit engineering contract surface:
+- `policy/engineering-lane.json`
+- `docs/engineering.local.md`
+- `policy/engineering-lane.json` -> `engineering_core.command` retrieves the upstream lane
 
 ## Usage
 

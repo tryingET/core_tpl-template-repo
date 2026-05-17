@@ -39,7 +39,7 @@ Forbidden:
 - Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
 - Repo census preflight: `./scripts/preflight-repo-census.sh [scope]`
 - ROCS command launcher (deterministic + portable): `./scripts/rocs.sh <rocs args...>`
-- Tech-stack contract authoring (when stack guidance is in scope): generated repos should treat `policy/stack-lane.json` as the source of truth for the declared upstream lane command and `docs/tech-stack.local.md` as the local override; do not emit `--prefer-repo` unless a repo ships trusted local `lanes/`
+- Engineering contract authoring (when engineering guidance is in scope): generated repos should treat `policy/engineering-lane.json` as the source of truth for the declared upstream lane command and `docs/engineering.local.md` as the local override; do not emit `--prefer-repo` unless a repo ships trusted local `lanes/`
 
 ## Deterministic tooling policy (ROCS-first)
 - Prefer deterministic wrappers (`./scripts/rocs.sh`, repo `scripts/*`) over ad-hoc inline scripts, but keep plain installed `ak` as the public operator path in generated repos.

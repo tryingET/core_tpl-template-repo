@@ -30,11 +30,11 @@ the generated work-items JSON file is a deterministic checked-in projection/mirr
 When repo-local task-scope snapshots are in play, the same public path fronts `ak task scope show|export`, and frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files are repo-consumption artifacts rather than hand-authored authority.
 For the template-side brownfield migration/deprecation path, see `copier-template/docs/dev/task-scope-migration-playbook.md`.
 
-## Canonical tech-stack contract map
+## Canonical engineering contract map
 
-For how `tech-stack-core` lane metadata, local overrides, and conditional companions such as `tech-stack-<lane>.ts-quality.md` propagate through generated repos:
-- `copier-template/docs/dev/tech-stack-contract.md`
-- wikilink: `[[copier-template/docs/dev/tech-stack-contract.md]]`
+For how `engineering-core` lane metadata, local overrides, and conditional companions such as `engineering-<lane>.ts-quality.md` propagate through generated repos:
+- `copier-template/docs/dev/engineering-contract.md`
+- wikilink: `[[copier-template/docs/dev/engineering-contract.md]]`
 
 ## Quickstart
 

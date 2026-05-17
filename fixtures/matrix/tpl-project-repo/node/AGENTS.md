@@ -35,10 +35,10 @@ Template for a delivery project repo (project context + code + tests).
 - Use inline Python only as an explicit escape hatch when no deterministic command exists.
 
 ## Stack contract
-- If this repo ships a language-specific software pack, keep the stack contract explicit:
-  - `policy/stack-lane.json` declares the upstream `tech-stack-core` lane reference and the executable retrieval command
-  - `docs/tech-stack.local.md` records repo-local overrides on top of that lane contract
-  - consult `policy/stack-lane.json` before invoking `tech-stack-core` directly; do not assume repo-local `lanes/` overrides exist
+- If this repo ships a language-specific software pack, keep the engineering contract explicit:
+  - `policy/engineering-lane.json` declares the upstream `engineering-core` lane reference and the executable retrieval command
+  - `docs/engineering.local.md` records repo-local overrides on top of that lane contract
+  - consult `policy/engineering-lane.json` before invoking `engineering-core` directly; do not assume repo-local `lanes/` overrides exist
 
 ## Knowledge Crystallization Flow
 

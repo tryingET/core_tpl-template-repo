@@ -1,0 +1,10 @@
+{
+  "lane": "elixir",
+  "engineering_core": {
+    "tool": "engineering-core",
+    "lane": "elixir",
+    "repository": "https://github.com/lightningralf/engineering-core",
+    "ref": "workspace-local-unpinned",
+    "command": "uv tool -n run --from ~/ai-society/core/engineering-core engineering-core show elixir"
+  }
+}

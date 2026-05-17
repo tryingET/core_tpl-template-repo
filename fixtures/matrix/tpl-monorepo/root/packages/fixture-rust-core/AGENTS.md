@@ -30,10 +30,10 @@ Package inside monorepo: library (rust)
 - For ontology/policy checks, use ROCS commands as the default execution path.
 
 ## Stack contract
-- When this package language maps to a shared `tech-stack-core` lane, keep it explicit:
-  - `policy/stack-lane.json` declares the upstream lane reference and the executable retrieval command
-  - `docs/tech-stack.local.md` records package-local overrides on top of that lane contract
-  - consult `policy/stack-lane.json` before invoking `tech-stack-core` directly; do not assume package-local `lanes/` overrides exist
+- When this package language maps to a shared `engineering-core` lane, keep it explicit:
+  - `policy/engineering-lane.json` declares the upstream lane reference and the executable retrieval command
+  - `docs/engineering.local.md` records package-local overrides on top of that lane contract
+  - consult `policy/engineering-lane.json` before invoking `engineering-core` directly; do not assume package-local `lanes/` overrides exist
 
 ## Structure
 ```

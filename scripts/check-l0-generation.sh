@@ -788,47 +788,47 @@ assert_command_fails "root ROCS which must fail closed when ROCS_BIN is invalid"
 [ -s "$matrix_project_typescript/tsconfig.json" ] || fail "expected typescript project tsconfig"
 
 for required_file in \
-	"$matrix_project_python/policy/stack-lane.json" \
-	"$matrix_project_python/docs/tech-stack.local.md" \
+	"$matrix_project_python/policy/engineering-lane.json" \
+	"$matrix_project_python/docs/engineering.local.md" \
 	"$matrix_project_node/package.json" \
-	"$matrix_project_node/policy/stack-lane.json" \
-	"$matrix_project_node/docs/tech-stack.local.md" \
+	"$matrix_project_node/policy/engineering-lane.json" \
+	"$matrix_project_node/docs/engineering.local.md" \
 	"$matrix_project_typescript/package.json" \
 	"$matrix_project_typescript/tsconfig.json" \
-	"$matrix_project_typescript/policy/stack-lane.json" \
-	"$matrix_project_typescript/docs/tech-stack.local.md" \
-	"$matrix_project_rust/policy/stack-lane.json" \
-	"$matrix_project_rust/docs/tech-stack.local.md" \
+	"$matrix_project_typescript/policy/engineering-lane.json" \
+	"$matrix_project_typescript/docs/engineering.local.md" \
+	"$matrix_project_rust/policy/engineering-lane.json" \
+	"$matrix_project_rust/docs/engineering.local.md" \
 	"$matrix_project_elixir/mix.exs" \
-	"$matrix_project_elixir/policy/stack-lane.json" \
-	"$matrix_project_elixir/docs/tech-stack.local.md" \
-	"$matrix_monorepo/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-py-core/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-py-core/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-ts-core/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-ts-core/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-rust-core/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-rust-core/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-elixir-core/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-elixir-core/docs/tech-stack.local.md"; do
+	"$matrix_project_elixir/policy/engineering-lane.json" \
+	"$matrix_project_elixir/docs/engineering.local.md" \
+	"$matrix_monorepo/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-py-core/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-py-core/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-ts-core/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-ts-core/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-rust-core/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-rust-core/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-elixir-core/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-elixir-core/docs/engineering.local.md"; do
 	[ -s "$required_file" ] || {
-		echo "error: expected non-empty stack contract artifact in language matrix: $required_file" >&2
+		echo "error: expected non-empty engineering contract artifact in language matrix: $required_file" >&2
 		exit 1
 	}
 done
 
 for generated_policy in \
-	"$matrix_project_python/policy/stack-lane.json" \
-	"$matrix_project_node/policy/stack-lane.json" \
-	"$matrix_project_typescript/policy/stack-lane.json" \
-	"$matrix_project_rust/policy/stack-lane.json" \
-	"$matrix_project_elixir/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-py-core/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-ts-core/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-rust-core/policy/stack-lane.json" \
-	"$matrix_monorepo/packages/fixture-elixir-core/policy/stack-lane.json"; do
+	"$matrix_project_python/policy/engineering-lane.json" \
+	"$matrix_project_node/policy/engineering-lane.json" \
+	"$matrix_project_typescript/policy/engineering-lane.json" \
+	"$matrix_project_rust/policy/engineering-lane.json" \
+	"$matrix_project_elixir/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-py-core/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-ts-core/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-rust-core/policy/engineering-lane.json" \
+	"$matrix_monorepo/packages/fixture-elixir-core/policy/engineering-lane.json"; do
 	grep -qF '"ref": "workspace-local-unpinned"' "$generated_policy" || {
-		echo "error: expected workspace-local-unpinned stack provenance in $generated_policy" >&2
+		echo "error: expected workspace-local-unpinned engineering provenance in $generated_policy" >&2
 		exit 1
 	}
 	if grep -qF -- "--prefer-repo" "$generated_policy"; then
@@ -838,16 +838,16 @@ for generated_policy in \
 done
 
 for generated_doc in \
-	"$matrix_project_python/docs/tech-stack.local.md" \
-	"$matrix_project_node/docs/tech-stack.local.md" \
-	"$matrix_project_typescript/docs/tech-stack.local.md" \
-	"$matrix_project_rust/docs/tech-stack.local.md" \
-	"$matrix_project_elixir/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-py-core/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-ts-core/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-rust-core/docs/tech-stack.local.md" \
-	"$matrix_monorepo/packages/fixture-elixir-core/docs/tech-stack.local.md"; do
-	grep -qF "tech_stack_core.command" "$generated_doc" || {
+	"$matrix_project_python/docs/engineering.local.md" \
+	"$matrix_project_node/docs/engineering.local.md" \
+	"$matrix_project_typescript/docs/engineering.local.md" \
+	"$matrix_project_rust/docs/engineering.local.md" \
+	"$matrix_project_elixir/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-py-core/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-ts-core/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-rust-core/docs/engineering.local.md" \
+	"$matrix_monorepo/packages/fixture-elixir-core/docs/engineering.local.md"; do
+	grep -qF "engineering_core.command" "$generated_doc" || {
 		echo "error: generated stack override doc should point to the declared lane command: $generated_doc" >&2
 		exit 1
 	}
@@ -861,15 +861,15 @@ for generated_doc in \
 	fi
 done
 
-grep -qF "policy/stack-lane.json" "$matrix_monorepo/docs/tech-stack.local.md" || {
-	echo "error: monorepo stack doc should point packages/apps at policy/stack-lane.json" >&2
+grep -qF "policy/engineering-lane.json" "$matrix_monorepo/docs/engineering.local.md" || {
+	echo "error: monorepo stack doc should point packages/apps at policy/engineering-lane.json" >&2
 	exit 1
 }
-if grep -qF "pinned upstream lane" "$matrix_monorepo/docs/tech-stack.local.md"; then
+if grep -qF "pinned upstream lane" "$matrix_monorepo/docs/engineering.local.md"; then
 	echo "error: monorepo stack doc should not overstate lane pinning" >&2
 	exit 1
 fi
-if grep -qF -- "--prefer-repo" "$matrix_monorepo/docs/tech-stack.local.md"; then
+if grep -qF -- "--prefer-repo" "$matrix_monorepo/docs/engineering.local.md"; then
 	echo "error: monorepo stack doc should not hardcode repo-preferred lane resolution" >&2
 	exit 1
 fi

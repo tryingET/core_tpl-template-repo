@@ -14,7 +14,7 @@ Holding Company monorepo workspace.
 ```
 packages/        # Reusable libraries
 apps/            # Deployable services/applications
-docs/            # Documentation (_core, org_context, tech-stack.local)
+docs/            # Documentation (_core, org_context, engineering.local)
 ontology/        # ROCS ontology
 governance/      # AK work-items projection, optional task-scope snapshots, policies
 scripts/         # CI/utility scripts
@@ -119,8 +119,8 @@ Use `tpl-package` from your L1 templates to add packages:
 - Policies: `policy/`
 - Ontology: `ontology/`
 - Repo-local org-context snapshot: `docs/org_context/`
-- Repo-local stack note: `docs/tech-stack.local.md`
-- Package/app stack contracts live inside generated members (for example `policy/stack-lane.json` and `docs/tech-stack.local.md` from `tpl-package`)
+- Repo-local engineering note: `docs/engineering.local.md`
+- Package/app engineering contracts live inside generated members (for example `policy/engineering-lane.json` and `docs/engineering.local.md` from `tpl-package`)
 
 ## Diary
 

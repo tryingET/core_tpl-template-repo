@@ -74,10 +74,10 @@ Default L2 output is intentionally split into 7 domains:
 - `governance/work-items.cue` (checked-in projection contract)
 - `governance/work-items.json` (deterministic checked-in AK projection/mirror; not the live authority)
 - `governance/README.md` (AK-first workflow + projection boundaries)
-- `policy/stack-lane.json` (conditional: emitted when the selected language maps to a shared `tech-stack-core` lane)
+- `policy/engineering-lane.json` (conditional: emitted when the selected language maps to a shared `engineering-core` lane)
 
 ### D. Stack contract
-- `docs/tech-stack.local.md` (conditional: repo-local override on top of the shared lane)
+- `docs/engineering.local.md` (conditional: repo-local override on top of the shared lane)
 
 ### E. Ontology + validation toolchain
 - `ontology/manifest.yaml`, `ontology/src/**`
@@ -103,7 +103,7 @@ Enabled only when `enable_software_pack=true`:
 - Rust: `Cargo.toml`
 - Go: `go.mod`
 - Elixir: `mix.exs`
-- Bash: no language-specific package manifest and no shared `tech-stack-core` lane emitted yet; the repo remains script-first without `policy/stack-lane.json` / `docs/tech-stack.local.md`
+- Bash: no language-specific package manifest and no shared `engineering-core` lane emitted yet; the repo remains script-first without `policy/engineering-lane.json` / `docs/engineering.local.md`
 
 ---
 
