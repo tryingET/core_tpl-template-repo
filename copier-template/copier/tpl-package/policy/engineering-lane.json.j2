@@ -4,9 +4,19 @@
   "engineering_core": {
     "tool": "engineering-core",
     "lane": "{{ "py" if language == "python" else "go" if language == "go" else "rust" if language == "rust" else "elixir" if language == "elixir" else "ts" }}",
-    "repository": "https://github.com/lightningralf/engineering-core",
+    "repository": "https://github.com/tryingET/core_engineering-core",
     "ref": "workspace-local-unpinned",
-    "command": "uv tool -n run --from ~/ai-society/core/engineering-core engineering-core show {{ "py" if language == "python" else "go" if language == "go" else "rust" if language == "rust" else "elixir" if language == "elixir" else "ts" }}"
+    "command": "uv tool -n run --from ~/ai-society/core/engineering-core engineering-core show {{ "py" if language == "python" else "go" if language == "go" else "rust" if language == "rust" else "elixir" if language == "elixir" else "ts" }}",
+    "catalog_command": "uv tool -n run --from ~/ai-society/core/engineering-core engineering-core catalog --pretty",
+    "list_disciplines_command": "uv tool -n run --from ~/ai-society/core/engineering-core engineering-core list-disciplines",
+    "list_templates_command": "uv tool -n run --from ~/ai-society/core/engineering-core engineering-core list-templates",
+    "disciplines": [
+      "validation",
+      "testing",
+      "security-privacy",
+      "documentation",
+      "dependency-governance"
+    ]
   }
 }
 {%- endif -%}

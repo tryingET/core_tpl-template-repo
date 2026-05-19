@@ -19,6 +19,7 @@ Primary model:
 
 Executable contract surface:
 
+- root `policy/engineering-lane.json` declares the monorepo control-plane posture, catalog/list commands, and scanner-visible root disciplines
 - root `docs/engineering.local.md` explains monorepo control-plane deltas
 - package/app `policy/engineering-lane.json` declares the upstream `engineering-core` lane reference when one exists
 - package/app `docs/engineering.local.md` records local overrides

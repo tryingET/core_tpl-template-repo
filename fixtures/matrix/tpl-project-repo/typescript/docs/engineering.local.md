@@ -17,9 +17,17 @@ Primary lane:
 - `ts`
 - executable upstream retrieval lives in `policy/engineering-lane.json` -> `engineering_core.command`
 
+Default selected disciplines:
+
+- `validation`
+- `testing`
+- `security-privacy`
+- `documentation`
+- `dependency-governance`
+
 Executable contract surface:
 
-- `policy/engineering-lane.json` declares the upstream lane reference and retrieval command.
+- `policy/engineering-lane.json` declares the upstream lane reference, retrieval command, catalog/list commands, and selected disciplines.
 - `docs/engineering.local.md` records repo-local deltas.
 - Repo validation should at least verify the declared lane metadata and may smoke the declared command when available.
 
