@@ -43,6 +43,12 @@ When an operator or agent needs engineering guidance, use this order:
    - source of truth for repo/package-local deltas
 3. upstream lane output returned by `policy/engineering-lane.json` -> `engineering_core.command`
 
+## Normalization / hook manager defaults
+
+Generated repos should inherit the engineering-core invariant that mutation-producing normalization runs before non-mutating validation. Templates may scaffold repo-local wrappers, but the hook manager remains a lane/repo implementation detail.
+
+For Python repos that choose a Git hook runner, prefer `prek` as the default runner because it can execute `prek.toml` or compatible `.pre-commit-config.yaml` definitions through `uvx prek` without depending on ambient global installs. Use `pre-commit` only for brownfield compatibility or when a repo explicitly requires that runner. Other lanes should keep ecosystem-native equivalents: Biome/package scripts for TypeScript, `gofmt`/`goimports` for Go, `cargo fmt` for Rust, `clang-format` for C/C++, and `mix format` for Elixir.
+
 ## Conditional lane companions
 
 Upstream lane docs may ship conditional companions for narrower concerns.
