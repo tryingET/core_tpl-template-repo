@@ -622,6 +622,4 @@ if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then
 	fail "nested copier invocations are not allowed in template config files"
 fi
 
-"$repo_root/scripts/check-session-checkpoint.sh"
-
 echo "ok: l0 guardrails"

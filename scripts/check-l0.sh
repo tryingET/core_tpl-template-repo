@@ -200,6 +200,56 @@ run_check() {
 	return "$status"
 }
 
+checks_file="$tmp_root/checks.tsv"
+cat >"$checks_file" <<EOF
+check-l0-guardrails	$repo_root/scripts/check-l0-guardrails.sh
+check-doc-references	$repo_root/scripts/check-doc-references.sh
+check-session-checkpoint	$repo_root/scripts/check-session-checkpoint.sh
+check-supply-chain	$repo_root/scripts/check-supply-chain.sh
+check-l0-generation	$repo_root/scripts/check-l0-generation.sh
+check-l0-adversarial	$repo_root/scripts/check-l0-adversarial.sh
+check-l0-fixtures	$repo_root/scripts/check-l0-fixtures.sh
+EOF
+
+validate_check_manifest() {
+	duplicate_names="$(cut -f1 "$checks_file" | LC_ALL=C sort | uniq -d)"
+	[ -z "$duplicate_names" ] || {
+		err "error: duplicate aggregate check names: $duplicate_names"
+		exit 2
+	}
+
+	duplicate_scripts="$(cut -f2 "$checks_file" | LC_ALL=C sort | uniq -d)"
+	[ -z "$duplicate_scripts" ] || {
+		err "error: duplicate aggregate check scripts: $duplicate_scripts"
+		exit 2
+	}
+
+	while IFS="$(printf '\t')" read -r name script; do
+		[ -n "$name" ] || continue
+		[ -x "$script" ] || {
+			err "error: aggregate check is missing or not executable: $script"
+			exit 2
+		}
+
+		# Bounded lexical defense: reject unqualified top-level sibling calls while
+		# allowing explicit harnessed calls that alter inputs/environment to prove
+		# a distinct failure mode. This is not a general shell semantic parser.
+		while IFS="$(printf '\t')" read -r sibling_name sibling_script; do
+			[ -n "$sibling_name" ] || continue
+			[ "$script" != "$sibling_script" ] || continue
+			sibling_rel="${sibling_script#"$repo_root"/}"
+			direct_pattern="^[[:space:]]*(\"\\\$repo_root/$sibling_rel\"|\\./$sibling_rel)([[:space:]]|$)"
+			shell_pattern="^[[:space:]]*(sh|bash)[[:space:]]+(\"\\\$repo_root/$sibling_rel\"|\\./$sibling_rel)([[:space:]]|$)"
+			if grep -qE -- "$direct_pattern" "$script" || grep -qE -- "$shell_pattern" "$script"; then
+				err "error: aggregate leaf $name directly invokes sibling $sibling_name without a distinct proof harness"
+				exit 2
+			fi
+		done <"$checks_file"
+	done <"$checks_file"
+}
+
+validate_check_manifest
+
 failed=0
 
 while IFS="$(printf '\t')" read -r name script; do
@@ -215,15 +265,7 @@ while IFS="$(printf '\t')" read -r name script; do
 	fi
 
 	run_check "$name" "$script" || failed=$((failed + 1))
-done <<EOF
-check-l0-guardrails	$repo_root/scripts/check-l0-guardrails.sh
-check-doc-references	$repo_root/scripts/check-doc-references.sh
-check-session-checkpoint	$repo_root/scripts/check-session-checkpoint.sh
-check-supply-chain	$repo_root/scripts/check-supply-chain.sh
-check-l0-generation	$repo_root/scripts/check-l0-generation.sh
-check-l0-adversarial	$repo_root/scripts/check-l0-adversarial.sh
-check-l0-fixtures	$repo_root/scripts/check-l0-fixtures.sh
-EOF
+done <"$checks_file"
 
 passed="$(awk -F '\t' '$2 == "ok" { c++ } END { print c + 0 }' "$summary_file")"
 failed_count="$(awk -F '\t' '$2 == "failed" { c++ } END { print c + 0 }' "$summary_file")"

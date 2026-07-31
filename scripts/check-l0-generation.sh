@@ -115,9 +115,6 @@ replace_first_match_in_file() {
 	mv "$tmp_file" "$file"
 }
 
-"$repo_root/scripts/check-l0-guardrails.sh"
-
-
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
