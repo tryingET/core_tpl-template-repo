@@ -12,8 +12,6 @@ if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then
   ./scripts/check-task-scope-snapshots.sh
 fi
 
-fi
-
 if [ -x "./scripts/rocs.sh" ] && [ -f "./ontology/manifest.yaml" ]; then
   ./scripts/rocs.sh version
   ./scripts/rocs.sh validate --repo . --resolve-refs

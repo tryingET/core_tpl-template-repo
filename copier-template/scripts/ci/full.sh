@@ -16,8 +16,6 @@ esac
 
 "$repo_root/scripts/ci/smoke.sh"
 
-fi
-
 if [ -f "$repo_root/scripts/check-task-scope-snapshots.sh" ]; then
   "$repo_root/scripts/check-task-scope-snapshots.sh"
 fi

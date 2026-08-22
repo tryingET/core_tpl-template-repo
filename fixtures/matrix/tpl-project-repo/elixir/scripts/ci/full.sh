@@ -18,9 +18,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-  fi
-}
-
 run_task_scope_snapshots() {
   if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then
     ./scripts/check-task-scope-snapshots.sh
@@ -34,9 +31,6 @@ run_rocs() {
     ./scripts/rocs.sh validate --repo . --resolve-refs
   fi
 }
-
-else
-fi
 
 say "==> task-scope snapshots"
 task_scopes_status=0
@@ -59,6 +53,7 @@ cat "$log_dir/task-scopes.log"
 say "--- rocs output ---"
 cat "$log_dir/rocs.log"
 
+if [ "$task_scopes_status" -ne 0 ] || [ "$rocs_status" -ne 0 ]; then
   err "error: full.sh failed"
   [ "$task_scopes_status" -eq 0 ] || err "- task-scope snapshots exit=$task_scopes_status"
   [ "$rocs_status" -eq 0 ] || err "- rocs exit=$rocs_status"

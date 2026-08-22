@@ -23,7 +23,6 @@ Project repository with:
   - `org_docs_profile=rich`: adds mission/purpose/vision/strategic objectives/governance context files
 - Decision records (`docs/decisions/`)
 - Learnings capture (`docs/learnings/`)
-- Repo-local work-items projection (`governance/work-items.json`)
 - Ontology support (`ontology/`)
 - ROCS tooling (`tools/rocs-cli/`)
 - CI baseline (`scripts/ci/`)
@@ -39,28 +38,19 @@ From an L1 templates repository:
   --defaults --overwrite
 ```
 
-## Agent Kernel work-items flow
+## Agent Kernel work flow
 
-Repo-local deferred work is **AK-first**.
-`governance/work-items.json` is a deterministic checked-in projection/mirror for review and interoperability, not the live operational authority.
+Repo-local deferred work is **AK-native**: the Agent Kernel DB is the sole work authority.
 
 Use plain installed `ak` as the canonical operator path:
 
 ```bash
-ak work-items import --repo . --path governance/work-items.json
+ak task create -r "$PWD" "<title>"
+ak task ready
+ak task complete <TASK-ID> --result '<json>'
 ```
 
-Refresh the checked-in projection after AK state changes:
-
-```bash
-ak work-items export --repo . --path governance/work-items.json
-```
-
-Fail on projection drift locally/CI:
-
-```bash
-ak work-items check --repo . --path governance/work-items.json
-```
+No checked-in work-items projection exists in this repo; do not reintroduce one.
 
 ## Optional explicit task-scope snapshots
 

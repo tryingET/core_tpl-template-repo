@@ -24,17 +24,20 @@ Coordinate Holding Company work across explicit lanes:
 - In repos that declare AK-native task, direction, or route authority, read the relevant AK task and route/open-frame status before inventing new work.
 - Generic operator input such as `proceed` continues the active execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
 - Treat closeout/readiness rows as gate inputs, not lifecycle authorization.
+- Treat docs, work-items JSON, task-scope snapshots, and direction explorer exports as projections unless the repo declares otherwise; AK DB remains runtime authority for AK tasks, direction, evidence, and decisions.
 - Handoff instead of editing by convenience when facts belong to Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, or another repo.
 - Prefer `docs/project/vision.md` as durable product direction where present and `docs/project/product_posture.md` as a product-maturity bridge, not a queue, roadmap, changelog, or execution authority.
 - Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared; legacy `strategic_goals.md`, `tactical_goals.md`, `operating_plan.md`, or `operational_plan.md` files are archive/projection only unless a repo-local owner decision explicitly says otherwise.
 
 ## Shared tooling
-- Docs discovery: `./scripts/docs-list.sh --task "<task>" --top 8`
+- Docs discovery: `node ~/ai-society/core/agent-scripts/scripts/docs-list.mjs --task "<task>" --top 8`
+- Do not add company- or repo-local docs-list wrappers; `core/agent-scripts` owns the sole implementation.
 - ROCS launcher: `./scripts/rocs.sh <rocs args...>`
 - New L2 repo: `./scripts/new-repo-from-copier.sh <template> <dest> -d repo_slug=<slug> --defaults`
 - Lane bootstrap: `./scripts/bootstrap-lane-root.sh <lane> [--init-lane-git]`
 
 ## Deterministic tooling policy (ROCS-first)
+- Prefer `ak work-items <import|export|check> ...` when repo-local work-items projection is in scope.
 - When explicit task scope is in scope, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export ...`; treat hand-authored `governance/task-scopes/AK-*.json` files as transitional, not authoritative.
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
 - For ontology/policy checks, use ROCS commands as the default execution path.
