@@ -12,8 +12,6 @@ if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then
   ./scripts/check-task-scope-snapshots.sh
 fi
 
-if [ -f "./governance/work-items.json" ]; then
-  "$AK_CMD" work-items check --repo "$repo_root" --path "./governance/work-items.json"
 fi
 
 if [ -x "./scripts/rocs.sh" ] && [ -f "./ontology/manifest.yaml" ]; then

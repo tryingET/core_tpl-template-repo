@@ -180,7 +180,6 @@ read_lane_project_owner_handle() {
 		return "$status"
 	fi
 
-	value="$(read_preview_json_string_value "$work_items_path" owner)" || status=$?
 	case "$status" in
 	0)
 		printf '%s\n' "$value"

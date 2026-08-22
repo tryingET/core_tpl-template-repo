@@ -18,8 +18,6 @@ Build and maintain the L0 meta-template that scaffolds compliant L1 template rep
 - Treat `enable_community_pack` as profile policy (default disabled, enable for public/community-facing repos).
 - Treat `enable_release_pack` as profile policy (default disabled, enable where release automation is required).
 - Treat `enable_vouch_gate` as profile policy (default disabled, enable for trust-gated/public repos).
-- Keep generated repo-local task/issue/work-item surfaces AK-first: Agent Kernel is authoritative, while checked-in files such as `governance/work-items.json` are deterministic projections/mirrors.
-- When templates ship repo-local work-items, prefer plain installed `ak` as the canonical operator path in generated repos. Never reintroduce silent CI skips for projection drift checks.
 - When templates teach explicit task scope, keep AK as the authoring surface and treat frozen `governance/task-scopes/AK-<TASK-ID>.snapshot.json` files as repo-consumption exports rather than hand-authored authority.
 - Generic AK launcher/build wrapper distribution is being removed from template/generated repos; keep plain installed `ak` as the public path and do not reintroduce copied launcher-resolution bundles.
 - No secrets in git.

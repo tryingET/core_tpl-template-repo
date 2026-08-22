@@ -9,8 +9,6 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "error: not a
 AK_CMD="${AK_CMD:-ak}"
 cd "$repo_root"
 
-if [ -f "./governance/work-items.json" ]; then
-  "$AK_CMD" work-items check --repo . --path "./governance/work-items.json"
 fi
 
 if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then

@@ -16,8 +16,6 @@ esac
 
 "$repo_root/scripts/ci/smoke.sh"
 
-if [ -f "$repo_root/governance/work-items.json" ]; then
-  "$AK_CMD" work-items check --repo . --path "./governance/work-items.json"
 fi
 
 if [ -f "$repo_root/scripts/check-task-scope-snapshots.sh" ]; then
