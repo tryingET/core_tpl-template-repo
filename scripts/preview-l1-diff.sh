@@ -167,7 +167,6 @@ read_preview_json_string_value() {
 read_lane_project_owner_handle() {
 	lane_dir="$1"
 	answers_path="$lane_dir/.copier-answers.yml"
-	work_items_path="$lane_dir/governance/work-items.json"
 	value=""
 	status=0
 
