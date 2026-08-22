@@ -33,8 +33,9 @@ Forbidden:
 - any cycle
 
 ## Shared tooling
-- Docs discovery/scoping: `./scripts/docs-list.sh --task "<task>" --top 8`
-- Prompt read-scope allowlist: `./scripts/docs-list.sh --from-prompt <prompt-file> --paths-only --wikilink`
+- Docs discovery/scoping: `node ~/ai-society/core/agent-scripts/scripts/docs-list.mjs --task "<task>" --top 8`
+- Prompt read-scope allowlist: `node ~/ai-society/core/agent-scripts/scripts/docs-list.mjs --from-prompt <prompt-file> --paths-only --wikilink`
+- Do not emit L0/L1/L2 docs-list wrappers; `core/agent-scripts` owns the sole implementation.
 - Repo census preflight: `./scripts/preflight-repo-census.sh [scope]`
 - ROCS command launcher (deterministic + portable): `./scripts/rocs.sh <rocs args...>`
 - Engineering contract authoring (when engineering guidance is in scope): generated repos should treat `policy/engineering-lane.json` as the source of truth for the declared upstream lane command and `docs/engineering.local.md` as the local override; do not emit `--prefer-repo` unless a repo ships trusted local `lanes/`
