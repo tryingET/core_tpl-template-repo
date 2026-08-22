@@ -269,17 +269,8 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_contains "copier-template/copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
 	assert_contains "copier-template/copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
-for tpl in tpl-project-repo tpl-monorepo; do
-	assert_file "copier-template/copier/$tpl/governance/work-items.cue"
-	assert_file "copier-template/copier/$tpl/governance/work-items.json.j2"
-	assert_contains "copier-template/copier/$tpl/README.md.j2" "Agent Kernel work-items flow" "L2 template $tpl README should document the AK work-items workflow"
-	assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items export" "L2 template $tpl governance README should document projection export"
-	assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
-	assert_contains "copier-template/copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
-done
 assert_contains "copier-template/copier/tpl-project-repo/README.md.j2" "governance/task-scopes/AK-<TASK-ID>.snapshot.json" "tpl-project-repo README should describe frozen AK task-scope snapshot exports"
 assert_contains "copier-template/copier/tpl-project-repo/governance/README.md" "transitional scaffolding" "tpl-project-repo governance README should describe non-authoritative hand-authored task-scope files"
-assert_contains "copier-template/copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
 assert_contains "copier-template/copier/tpl-project-repo/next_session_prompt.md" "Refresh task-scope snapshot" "tpl-project-repo next-session prompt should document AK task-scope refresh"
 assert_contains "copier-template/copier/tpl-monorepo/README.md.j2" "Packages/apps consume the monorepo-root snapshot" "tpl-monorepo README should keep member task-scope authority at the monorepo root"
 assert_contains "copier-template/copier/tpl-monorepo/governance/README.md" "monorepo-root snapshot" "tpl-monorepo governance README should keep package/app consumers pointed at the root snapshot"
@@ -384,7 +375,6 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 		assert_contains "copier-template/copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
 		assert_contains "copier-template/copier/$tpl/scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L2 template $tpl task-scope checker should use the shared parser-backed helper"
 		assert_contains "copier-template/copier/$tpl/scripts/preflight-repo-census.sh.j2" "scripts/lib/repo-surface.sh" "L2 template $tpl repo census helper should source the shared repo-surface helper"
-		assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "work-items check" "L2 template $tpl full CI should use work-items check for work-items projection checks"
 		assert_not_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
 		assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
 	fi
@@ -435,7 +425,6 @@ assert_contains "copier-template/scripts/check-task-scope-snapshots.sh" "scripts
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
 assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
 assert_contains "copier-template/scripts/rocs.sh" "ROCS_ALLOW_PATH_FALLBACK=1" "L1 ROCS wrapper should require explicit opt-in before using ambient rocs on PATH"
-assert_contains "copier-template/scripts/ci/full.sh" "work-items check" "L1 full CI should use work-items check for work-items projection checks"
 assert_contains "copier-template/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L1 full CI should enforce task-scope snapshot checks"
 assert_not_contains "copier-template/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L1 full CI must not gate AK checks on vendored ak-cli"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"

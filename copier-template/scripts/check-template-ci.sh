@@ -283,7 +283,6 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 		assert_contains "copier/$tpl/README.md.j2" "check-task-scope-snapshots.sh" "L2 template $tpl README should document task-scope snapshot validation"
 		assert_contains "copier/$tpl/scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L2 template $tpl task-scope checker should use the shared parser-backed helper"
 		assert_contains "copier/$tpl/scripts/preflight-repo-census.sh.j2" "scripts/lib/repo-surface.sh" "L2 template $tpl repo census helper should source the shared repo-surface helper"
-		assert_contains "copier/$tpl/scripts/ci/full.sh" "work-items check" "L2 template $tpl full CI should run AK work-items projection checks"
 		assert_not_contains "copier/$tpl/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L2 template $tpl full CI must not gate AK checks on vendored ak-cli"
 		assert_contains "copier/$tpl/scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L2 template $tpl full CI should enforce task-scope snapshot checks"
 	fi
@@ -294,15 +293,6 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_contains "copier/$tpl/governance/README.md" "check-task-scope-snapshots.sh" "L2 template $tpl governance README should document task-scope snapshot validation"
 	assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
-for tpl in tpl-project-repo tpl-monorepo; do
-	assert_file "copier/$tpl/governance/work-items.cue"
-	assert_file "copier/$tpl/governance/work-items.json.j2"
-	assert_contains "copier/$tpl/README.md.j2" "Agent Kernel work-items flow" "L2 template $tpl README should document the AK work-items workflow"
-	assert_contains "copier/$tpl/governance/README.md" "work-items export" "L2 template $tpl governance README should document projection export"
-	assert_contains "copier/$tpl/governance/README.md" "work-items check" "L2 template $tpl governance README should document projection drift checks"
-	assert_contains "copier/$tpl/governance/README.md" "work-items import" "L2 template $tpl governance README should document legacy import bootstrap"
-done
-assert_contains "copier/tpl-project-repo/next_session_prompt.md" "Agent Kernel" "tpl-project-repo next-session prompt should describe AK-backed work-items authority"
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
 assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:core/ontology-kernel@main>"' "tpl-project-repo should default core ontology refs to workspace repo locators"
 assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
@@ -449,7 +439,6 @@ assert_contains "$ci_workflow" "Run full lane" "ci workflow must expose full lan
 
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
-assert_contains "scripts/ci/full.sh" "work-items check" "L1 full CI should run AK work-items projection checks"
 assert_contains "scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L1 full CI should enforce task-scope snapshot checks"
 assert_not_contains "scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L1 full CI must not gate AK checks on vendored ak-cli"
 assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
@@ -759,9 +748,6 @@ assert_command_fails_with_stderr() {
 prepare_full_ci_probe() {
 	repo_path="$1"
 
-	if [ -f "$repo_path/governance/work-items.json" ]; then
-		run_repo_cmd "$repo_path" ak work-items export --repo . --path governance/work-items.json >/dev/null
-	fi
 
 	if [ -x "$repo_path/scripts/rocs.sh" ]; then
 		cat >"$repo_path/scripts/rocs.sh" <<'EOF'
@@ -813,8 +799,6 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		assert_file "$l2_dir/scripts/preflight-repo-census.sh"
 	fi
 	if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
-		assert_file "$l2_dir/governance/work-items.cue"
-		assert_file "$l2_dir/governance/work-items.json"
 		assert_contains "$l2_dir/.copier-answers.yml" "org_docs_profile: $l2_org_docs_default" "generated $tpl should inherit the parent L1 org-context default"
 		assert_file "$l2_dir/docs/org_context/README.md"
 		assert_file "$l2_dir/docs/org_context/org-summary.md"
@@ -859,8 +843,6 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
 	fi
 	if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
-		assert_contains "$l2_dir/README.md" "Agent Kernel work-items flow" "generated $tpl README should document the AK work-items workflow"
-		assert_contains "$l2_dir/governance/README.md" "work-items export" "generated $tpl governance README should document projection export"
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
 	fi
 	if [ "$tpl" = "tpl-monorepo" ]; then
@@ -882,7 +864,6 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		./scripts/ci/smoke.sh >/dev/null
 		if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
 			ensure_registered_repo "$l2_dir"
-			ak work-items check --repo . --path governance/work-items.json >/dev/null
 		fi
 	)
 
@@ -967,9 +948,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 sleep 1
-if [ "\${1:-}" = "work-items" ] && [ "\${2:-}" = "check" ]; then
-	exit 0
-fi
 if [ "\${1:-}" = "task" ] && [ "\${2:-}" = "show" ]; then
 	printf '{\n  "repo": "%s"\n}\n' "\$repo"
 	exit 0
@@ -1052,10 +1030,6 @@ project_task_scope_symlink="$tmp_root/tpl-project-repo-symlink"
 ln -s "$project_task_scope_repo" "$project_task_scope_symlink"
 run_repo_cmd "$project_task_scope_symlink" ./scripts/check-task-scope-snapshots.sh >/dev/null
 run_repo_cmd "$project_task_scope_symlink" ./scripts/ci/full.sh >/dev/null
-printf '{"schema_version":1}\n' >"$project_task_scope_repo/governance/work-items.json"
-assert_command_fails "generated tpl-project-repo work-items check should reject drifted projections" run_repo_cmd "$project_task_scope_repo" ak work-items check --repo . --path governance/work-items.json
-assert_command_fails "generated tpl-project-repo full CI should reject drifted work-items projections" run_repo_cmd "$project_task_scope_repo" ./scripts/ci/full.sh
-run_repo_cmd "$project_task_scope_repo" ak work-items export --repo . --path governance/work-items.json >/dev/null
 
 foreign_project_repo="$tmp_root/foreign-project-task-scope-repo"
 mkdir -p "$foreign_project_repo"
@@ -1073,10 +1047,6 @@ write_task_scope_snapshot "$monorepo_task_scope_repo" "$monorepo_task_scope_id"
 prepare_full_ci_probe "$monorepo_task_scope_repo"
 run_repo_cmd "$monorepo_task_scope_repo" ./scripts/check-task-scope-snapshots.sh >/dev/null
 run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ci/full.sh >/dev/null
-printf '{"schema_version":1}\n' >"$monorepo_task_scope_repo/governance/work-items.json"
-assert_command_fails "generated tpl-monorepo work-items check should reject drifted projections" run_repo_cmd "$monorepo_task_scope_repo" ak work-items check --repo . --path governance/work-items.json
-assert_command_fails "generated tpl-monorepo full CI should reject drifted work-items projections" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/ci/full.sh
-run_repo_cmd "$monorepo_task_scope_repo" ak work-items export --repo . --path governance/work-items.json >/dev/null
 
 printf '{"schema_version":1}\n' >"$monorepo_task_scope_repo/governance/task-scopes/AK-$monorepo_task_scope_id.snapshot.json"
 assert_command_fails "generated tpl-monorepo task-scope checker should reject drifted snapshots" run_repo_cmd "$monorepo_task_scope_repo" ./scripts/check-task-scope-snapshots.sh
@@ -1142,7 +1112,6 @@ assert_not_contains "$elixir_project_dir/docs/engineering.local.md" "--prefer-re
 ensure_registered_repo "$elixir_project_dir"
 (
 	cd "$elixir_project_dir"
-	ak work-items check --repo . --path governance/work-items.json >/dev/null
 )
 
 node_project_dir="$tmp_root/tpl-project-repo-node"

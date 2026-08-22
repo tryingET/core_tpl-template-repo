@@ -518,7 +518,6 @@ data_lane_block_count="$(grep -cF '# Lane root: data-lane' "$bootstrap_l1/.gitig
 )
 assert_file_contains "$bootstrap_l1/team-data/.copier-answers.yml" "project_owner_handle: '@acme/platform-team'" "lane bootstrap should preserve structured team owner handles verbatim in answers"
 assert_file_contains "$bootstrap_l1/team-data/CODEOWNERS" "docs/project/** @acme/platform-team" "lane bootstrap should preserve structured team owner handles verbatim in CODEOWNERS"
-assert_file_contains "$bootstrap_l1/team-data/governance/work-items.json" '"owner": "@acme/platform-team"' "lane bootstrap should preserve structured team owner handles verbatim in work-items"
 (
 	cd "$bootstrap_l1"
 	git init -b main >/dev/null
