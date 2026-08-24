@@ -178,6 +178,29 @@ printf '%s\n' "$preview_output" | grep -qF "ignored nested child repos" || {
 	fail "preview-l1-diff should report ignored nested child repos"
 }
 
+# A symlink copied into the preview tree must never let nested-repo pruning delete outside it.
+external_parent="$tmp_root/external-parent"
+external_repo="$external_parent/repo"
+mkdir -p "$external_repo"
+(
+	cd "$external_repo"
+	git init -b main >/dev/null
+	printf 'must survive\n' >survival-marker
+)
+ln -s "$external_parent" "$preview_l1/linked-external"
+set +e
+symlink_preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1" 2>&1)"
+symlink_preview_status=$?
+set -e
+rm -f "$preview_l1/linked-external"
+[ -f "$external_repo/survival-marker" ] || fail "preview-l1-diff escaped its temporary tree and deleted an external nested repo"
+if [ "$symlink_preview_status" -ne 0 ]; then
+	printf '%s\n' "$symlink_preview_output" | grep -qF "refusing to prune nested repo outside preview tree" || {
+		printf '%s\n' "$symlink_preview_output" >&2
+		fail "preview-l1-diff failed symlink safety check without a containment refusal"
+	}
+fi
+
 drop_yaml_key "$preview_l1/owned/.copier-answers.yml" project_owner_handle
 (
 	cd "$preview_l1"
@@ -189,6 +212,36 @@ printf '%s\n' "$legacy_lane_output" | grep -qF "ok: no diff between rendered L1 
 	printf '%s\n' "$legacy_lane_output" >&2
 	fail "preview-l1-diff should stay clean for older lane baselines that omit project_owner_handle"
 }
+
+(
+	cd "$preview_l1"
+	PROJECT_OWNER_HANDLE='@empty/team' ./scripts/bootstrap-lane-root.sh empty-owned >/dev/null
+	drop_yaml_key "empty-owned/.copier-answers.yml" project_owner_handle
+	printf 'project_owner_handle:\n' >>empty-owned/.copier-answers.yml
+	git add .gitignore empty-owned >/dev/null
+	git commit -m "bootstrap empty-owner lane" >/dev/null
+)
+empty_owner_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1")"
+printf '%s\n' "$empty_owner_output" | grep -qF "ok: no diff between rendered L1 and target" || {
+	printf '%s\n' "$empty_owner_output" >&2
+	fail "preview-l1-diff should normalize an empty owner key and preserve the canonical CODEOWNERS owner"
+}
+(
+	cd "$preview_l1"
+	rm -rf empty-owned
+	awk -v start="# Lane root: empty-owned" -v end="# End lane root: empty-owned" '
+		$0 == start { skip = 1; next }
+		$0 == end { skip = 0; drop_blank = 1; next }
+		drop_blank && $0 == "" { drop_blank = 0; next }
+		{ drop_blank = 0 }
+		!skip { print }
+	' .gitignore >.gitignore.tmp
+	mv .gitignore.tmp .gitignore
+	awk '{ lines[NR] = $0 } END { end = NR; while (end > 0 && lines[end] ~ /^[[:space:]]*$/) end--; for (i = 1; i <= end; i++) print lines[i] }' .gitignore >.gitignore.tmp
+	mv .gitignore.tmp .gitignore
+	git add -A >/dev/null
+	git commit -m "remove empty-owner test lane" >/dev/null
+)
 (
 	cd "$preview_l1"
 	PROJECT_OWNER_HANDLE='@acme/platform-team' ./scripts/bootstrap-lane-root.sh data >/dev/null
@@ -210,8 +263,42 @@ printf '%s\n' "$team_owner_preview_output" | grep -qF "ok: no diff between rende
 escaped_owner_preview_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1")"
 printf '%s\n' "$escaped_owner_preview_output" | grep -qF "ok: no diff between rendered L1 and target" || {
 	printf '%s\n' "$escaped_owner_preview_output" >&2
-	fail "preview-l1-diff should decode JSON-escaped owner handles when materializing older lane baselines"
+	fail "preview-l1-diff should preserve the canonical CODEOWNERS owner when YAML metadata is absent"
 }
+
+(
+	cd "$preview_l1"
+	PROJECT_OWNER_HANDLE='@codeowners/team' ./scripts/bootstrap-lane-root.sh legacy-json-owned >/dev/null
+	drop_yaml_key "legacy-json-owned/.copier-answers.yml" project_owner_handle
+	mkdir -p legacy-json-owned/governance
+	printf '%s\n' '{"owner":"@json\\team"}' >legacy-json-owned/governance/work-items.json
+	awk '$1 == "docs/project/**" { print "docs/project/** @decoy/team"; next } { print }' \
+		legacy-json-owned/CODEOWNERS >legacy-json-owned/CODEOWNERS.tmp
+	mv legacy-json-owned/CODEOWNERS.tmp legacy-json-owned/CODEOWNERS
+	git add .gitignore legacy-json-owned >/dev/null
+	git commit -m "bootstrap legacy JSON owner lane" >/dev/null
+)
+legacy_json_output="$("$repo_root/scripts/preview-l1-diff.sh" "$preview_l1")"
+printf '%s\n' "$legacy_json_output" | grep -qF -- '-docs/project/** @jsonteam' || {
+	printf '%s\n' "$legacy_json_output" >&2
+	fail "preview-l1-diff should decode legacy JSON owner metadata before consulting CODEOWNERS"
+}
+(
+	cd "$preview_l1"
+	rm -rf legacy-json-owned
+	awk -v start="# Lane root: legacy-json-owned" -v end="# End lane root: legacy-json-owned" '
+		$0 == start { skip = 1; next }
+		$0 == end { skip = 0; drop_blank = 1; next }
+		drop_blank && $0 == "" { drop_blank = 0; next }
+		{ drop_blank = 0 }
+		!skip { print }
+	' .gitignore >.gitignore.tmp
+	mv .gitignore.tmp .gitignore
+	awk '{ lines[NR] = $0 } END { end = NR; while (end > 0 && lines[end] ~ /^[[:space:]]*$/) end--; for (i = 1; i <= end; i++) print lines[i] }' .gitignore >.gitignore.tmp
+	mv .gitignore.tmp .gitignore
+	git add -A >/dev/null
+	git commit -m "remove legacy JSON owner test lane" >/dev/null
+)
 (
 	cd "$preview_l1"
 	printf '\ntracked lane drift\n' >>owned/README.md

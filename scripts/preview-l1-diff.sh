@@ -38,6 +38,7 @@ need_cmd git
 need_cmd grep
 need_cmd mkdir
 need_cmd mktemp
+need_cmd mv
 need_cmd rm
 need_cmd sort
 
@@ -90,7 +91,22 @@ materialize_lane_root_baselines() {
 			project_owner_handle=""
 			project_owner_status=0
 			preserve_missing_project_owner_handle=0
-			if ! yaml_key_present "$dir/.copier-answers.yml" project_owner_handle; then
+			lane_answers_path="$dir/.copier-answers.yml"
+			if yaml_key_present "$lane_answers_path" project_owner_handle; then
+				explicit_owner=""
+				explicit_owner_status=0
+				explicit_owner="$(copier_answers_try_scalar "$lane_answers_path" project_owner_handle 2>/dev/null)" || explicit_owner_status=$?
+				[ "$explicit_owner_status" -eq 0 ] || return "$explicit_owner_status"
+				if [ -z "$explicit_owner" ]; then
+					normalized_answers="$lane_answers_path.preview.$$"
+					awk '$0 !~ /^[[:space:]]*project_owner_handle:[[:space:]]*/' "$lane_answers_path" >"$normalized_answers" || {
+						rm -f "$normalized_answers"
+						return 1
+					}
+					mv "$normalized_answers" "$lane_answers_path"
+					preserve_missing_project_owner_handle=1
+				fi
+			else
 				preserve_missing_project_owner_handle=1
 			fi
 			project_owner_handle="$(read_lane_project_owner_handle "$dir")" || project_owner_status=$?
@@ -119,13 +135,23 @@ EOF
 prune_nested_child_repos() {
 	tree="$1"
 	pruned=0
+	tree_physical="$(CDPATH='' cd -- "$tree" 2>/dev/null && pwd -P)" || return 1
 
 	nested_repo_dirs="$(repo_surface_find_nested_repo_roots "$tree" || true)"
 	if [ -n "$nested_repo_dirs" ]; then
 		while IFS= read -r child_repo_dir; do
 			[ -n "$child_repo_dir" ] || continue
 			[ -d "$child_repo_dir" ] || continue
-			rm -rf "$child_repo_dir"
+			child_physical="$(CDPATH='' cd -- "$child_repo_dir" 2>/dev/null && pwd -P)" || return 1
+			case "$child_physical" in
+			"$tree_physical"/*)
+				;;
+			*)
+				echo "error: refusing to prune nested repo outside preview tree: $child_physical" >&2
+				return 1
+				;;
+			esac
+			rm -rf -- "$child_repo_dir"
 			pruned=$((pruned + 1))
 		done <<EOF
 $nested_repo_dirs

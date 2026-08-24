@@ -5,9 +5,9 @@
 
 repo_surface_is_git_repo() {
   repo_surface__repo_path="$1"
-  repo_surface__repo_root="$(CDPATH= cd -- "$repo_surface__repo_path" 2>/dev/null && pwd -P)" || return 1
+  repo_surface__repo_root="$(CDPATH='' cd -- "$repo_surface__repo_path" 2>/dev/null && pwd -P)" || return 1
   repo_surface__git_root="$(git -C "$repo_surface__repo_path" rev-parse --show-toplevel 2>/dev/null)" || return 1
-  repo_surface__git_root="$(CDPATH= cd -- "$repo_surface__git_root" 2>/dev/null && pwd -P)" || return 1
+  repo_surface__git_root="$(CDPATH='' cd -- "$repo_surface__git_root" 2>/dev/null && pwd -P)" || return 1
   [ "$repo_surface__repo_root" = "$repo_surface__git_root" ]
 }
 
@@ -27,7 +27,7 @@ repo_surface_find_nested_repo_roots() {
   repo_surface__scope="$1"
   [ -d "$repo_surface__scope" ] || return 1
 
-  find -L "$repo_surface__scope" -mindepth 2 \( -type d -o -type f \) -name .git -print | while IFS= read -r repo_surface__git_marker; do
+  find -P "$repo_surface__scope" -mindepth 2 \( -type d -o -type f \) -name .git -print | while IFS= read -r repo_surface__git_marker; do
     [ -n "$repo_surface__git_marker" ] || continue
     repo_surface__repo_path="${repo_surface__git_marker%/.git}"
     repo_surface_is_git_repo "$repo_surface__repo_path" || continue
