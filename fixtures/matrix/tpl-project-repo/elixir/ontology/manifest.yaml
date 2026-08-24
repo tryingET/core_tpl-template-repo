@@ -1,7 +1,7 @@
 rocs:
   layers:
     - name: core
-      ref: "<repo:core/ontology-kernel@main>"
+      ref: "<repo:core/ontology-kernel@v0.2.0>"
     - name: company
       ref: "<repo:holdingco/ontology@main>"
     - name: repo

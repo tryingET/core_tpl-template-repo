@@ -24,7 +24,7 @@ Coordinate Holding Company work across explicit lanes:
 - In repos that declare AK-native task, direction, or route authority, read the relevant AK task and route/open-frame status before inventing new work.
 - Generic operator input such as `proceed` continues the active execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
 - Treat closeout/readiness rows as gate inputs, not lifecycle authorization.
-- Treat docs, work-items JSON, task-scope snapshots, and direction explorer exports as projections unless the repo declares otherwise; AK DB remains runtime authority for AK tasks, direction, evidence, and decisions.
+- Treat docs, task-scope snapshots, and direction explorer exports as projections unless the repo declares otherwise; AK DB remains runtime authority for AK tasks, direction, evidence, and decisions. The legacy work-items projection is retired; never reintroduce a checked-in `governance/work-items.json`.
 - Handoff instead of editing by convenience when facts belong to Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, or another repo.
 - Prefer `docs/project/vision.md` as durable product direction where present and `docs/project/product_posture.md` as a product-maturity bridge, not a queue, roadmap, changelog, or execution authority.
 - Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared; legacy `strategic_goals.md`, `tactical_goals.md`, `operating_plan.md`, or `operational_plan.md` files are archive/projection only unless a repo-local owner decision explicitly says otherwise.
@@ -37,7 +37,6 @@ Coordinate Holding Company work across explicit lanes:
 - Lane bootstrap: `./scripts/bootstrap-lane-root.sh <lane> [--init-lane-git]`
 
 ## Deterministic tooling policy (ROCS-first)
-- Prefer `ak work-items <import|export|check> ...` when repo-local work-items projection is in scope.
 - When explicit task scope is in scope, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export ...`; treat hand-authored `governance/task-scopes/AK-*.json` files as transitional, not authoritative.
 - Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
 - For ontology/policy checks, use ROCS commands as the default execution path.

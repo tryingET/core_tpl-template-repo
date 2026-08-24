@@ -7,7 +7,7 @@ enable_community_pack: false
 enable_release_pack: false
 enable_software_pack: true
 enable_vouch_gate: false
-kernel_ontology_ref: <repo:core/ontology-kernel@main>
+kernel_ontology_ref: <repo:core/ontology-kernel@v0.2.0>
 language: typescript
 location: owned
 org_docs_profile: compact

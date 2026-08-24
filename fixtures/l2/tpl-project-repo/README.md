@@ -117,7 +117,7 @@ Plain installed `ak` is the canonical operator path for repo-local projection an
   - if not passed explicitly, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config
 - `org_owner_handle`: CODEOWNERS entry for org paths
 - `org_docs_profile`: `compact` keeps a short org-context snapshot; `rich` adds mission/purpose/vision/strategic-objectives/governance context files
-- `kernel_ontology_ref`: ROCS core ontology reference (default: `<repo:core/ontology-kernel@main>`)
+- `kernel_ontology_ref`: ROCS core ontology reference (default: `<repo:core/ontology-kernel@v0.2.0>`)
 - `company_ontology_ref`: ROCS company ontology reference (default: `<repo:holdingco/ontology@main>`)
 - `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:
   inherited compatibility flags from the parent L1 profile; currently metadata-only in `tpl-project-repo` (no extra file overlays)
@@ -134,7 +134,7 @@ export ROCS_WORKSPACE_ROOT="${ROCS_WORKSPACE_ROOT:-$HOME/ai-society}"
 ```
 
 Default locator contract:
-- core layer: `<repo:core/ontology-kernel@main>`
+- core layer: `<repo:core/ontology-kernel@v0.2.0>`
 - company layer: `<repo:holdingco/ontology@main>`
 - legacy `<gitlab:...>` locators are unsupported
 

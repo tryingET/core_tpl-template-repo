@@ -38,7 +38,7 @@ Scope (MVP):
 
 Layer refs (optional):
 - Supported locator form: `<repo:<workspace-relative-project-path>@<ref>>`
-  - example: `<repo:core/ontology-kernel@main>`
+  - example: `<repo:core/ontology-kernel@v0.2.0>`
   - example: `<repo:softwareco/ontology@main>`
 - Legacy `<gitlab:...>` locators are no longer supported.
 - `--resolve-refs` enables resolving ref layers from the local workspace.
@@ -68,11 +68,11 @@ Layer refs (optional):
 Examples:
 - `rocs resolve --repo . --resolve-refs --workspace-root ~/ai-society --workspace-ref-mode strict --show-resolve-sources`
 - `rocs summary --repo . --resolve-refs --workspace-root ~/ai-society --json`
-- `rocs diff --repo . --baseline <repo:core/ontology-kernel@main> --resolve-refs --workspace-root ~/ai-society`
+- `rocs diff --repo . --baseline <repo:core/ontology-kernel@v0.2.0> --resolve-refs --workspace-root ~/ai-society`
 
 AI Society convention (recommended):
 - Set `ROCS_WORKSPACE_ROOT=~/ai-society`.
-- Use `<repo:core/ontology-kernel@main>` and `<repo:softwareco/ontology@main>` in manifests for layered repos.
+- Use `<repo:core/ontology-kernel@v0.2.0>` and `<repo:softwareco/ontology@main>` in manifests for layered repos.
 - Wire `scripts/ci/full.sh` into your preferred local gate runner (for example a Pi task or a git hook) instead of relying on remote ref fetches.
 
 Graph export:

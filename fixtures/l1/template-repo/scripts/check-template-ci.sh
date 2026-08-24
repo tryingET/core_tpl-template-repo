@@ -294,7 +294,7 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
-assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:core/ontology-kernel@main>"' "tpl-project-repo should default core ontology refs to workspace repo locators"
+assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:core/ontology-kernel@v0.2.0>"' "tpl-project-repo should default core ontology refs to workspace repo locators"
 assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
 assert_contains "copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
 assert_contains "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
