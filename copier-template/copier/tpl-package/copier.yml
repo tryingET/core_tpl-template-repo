@@ -49,7 +49,7 @@ package_description:
 kernel_ontology_ref:
   type: str
   default: "<repo:core/ontology-kernel@v0.2.0>"
-  help: "ROCS core/kernel ontology ref (GitLab locator)"
+  help: "ROCS core/kernel ontology ref (workspace repo locator)"
 
 company_ontology_ref:
   type: str

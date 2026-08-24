@@ -74,6 +74,25 @@ assert_not_contains() {
 	fi
 }
 
+
+assert_yaml_default() {
+	path="$1"
+	section="$2"
+	expected="$3"
+	label="$4"
+	actual="$(awk -v section="$section:" '''
+		$0 == section { inside = 1; next }
+		inside && /^[^[:space:]]/ { exit }
+		inside && $1 == "default:" {
+			sub(/^[[:space:]]*default:[[:space:]]*/, "")
+			gsub(/^"|"$/, "")
+			print
+			exit
+		}
+	''' "$path")"
+	[ "$actual" = "$expected" ] || fail "$label (found ${actual:-<missing>} in $path)"
+}
+
 assert_files_equal() {
 	left="$1"
 	right="$2"
@@ -294,9 +313,9 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
-assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:core/ontology-kernel@v0.2.0>"' "tpl-project-repo should default core ontology refs to workspace repo locators"
-assert_contains "copier/tpl-monorepo/copier.yml" 'default: "<repo:core/ontology-kernel@v0.2.0>"' "tpl-monorepo should default core ontology refs to the protected release tag"
-assert_contains "copier/tpl-package/copier.yml" 'default: "<repo:core/ontology-kernel@v0.2.0>"' "tpl-package should default core ontology refs to the protected release tag"
+assert_yaml_default "copier/tpl-project-repo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-project-repo should default core ontology refs to the protected release tag"
+assert_yaml_default "copier/tpl-monorepo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-monorepo should default core ontology refs to the protected release tag"
+assert_yaml_default "copier/tpl-package/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-package should default core ontology refs to the protected release tag"
 assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
 assert_contains "copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
 assert_contains "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
