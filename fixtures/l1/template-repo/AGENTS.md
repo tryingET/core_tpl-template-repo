@@ -32,6 +32,7 @@ Coordinate Holding Company work across explicit lanes:
 ## Shared tooling
 - Docs discovery: `node ~/ai-society/core/agent-scripts/scripts/docs-list.mjs --task "<task>" --top 8`
 - Do not add company- or repo-local docs-list wrappers; `core/agent-scripts` owns the sole implementation.
+- AK CLI: `ak <ak args...>` (plain installed command; do not add a repo-local launcher).
 - ROCS launcher: `./scripts/rocs.sh <rocs args...>`
 - New L2 repo: `./scripts/new-repo-from-copier.sh <template> <dest> -d repo_slug=<slug> --defaults`
 - Lane bootstrap: `./scripts/bootstrap-lane-root.sh <lane> [--init-lane-git]`

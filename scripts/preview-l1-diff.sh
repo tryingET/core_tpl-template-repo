@@ -179,19 +179,24 @@ read_lane_project_owner_handle() {
 		return "$status"
 	fi
 
+	value="$(read_preview_json_string_value "$lane_dir/governance/work-items.json" owner)" || status=$?
 	case "$status" in
 	0)
 		printf '%s\n' "$value"
 		return 0
 		;;
 	1)
-		printf '\n'
-		return 0
 		;;
 	*)
 		return "$status"
 		;;
 	esac
+
+	if [ -f "$lane_dir/CODEOWNERS" ]; then
+		value="$(awk '$1 == "docs/project/**" { print $2; exit }' "$lane_dir/CODEOWNERS")"
+	fi
+	printf '%s\n' "$value"
+	return 0
 }
 
 read_preview_answer_value() {
