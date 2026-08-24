@@ -8,3 +8,7 @@ type: diary
 AK task `4959` changes only the `tpl-project-repo` core-ontology default from rolling `@main` to
 immutable release `@v0.2.0`, updates the assertions that guard that default, and regenerates L0
 fixtures. Other template archetypes retain their independent defaults.
+
+Follow-up AK task `4963` aligns `tpl-monorepo` and `tpl-package`: their unsupported legacy GitLab
+`v0.1.0` defaults now use the same workspace locator and protected `v0.2.0` release as project
+repositories. Other configuration remains unchanged.

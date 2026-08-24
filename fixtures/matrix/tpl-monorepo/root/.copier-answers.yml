@@ -5,7 +5,7 @@ core_owner_handle: '@core-owner'
 enable_community_pack: false
 enable_release_pack: false
 enable_vouch_gate: false
-kernel_ontology_ref: <gitlab:org/ontology-kernel@v0.1.0>
+kernel_ontology_ref: <repo:core/ontology-kernel@v0.2.0>
 org_docs_profile: compact
 org_owner_handle: '@org-owners'
 package_manager: uv

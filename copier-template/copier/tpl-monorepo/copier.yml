@@ -59,7 +59,7 @@ enable_vouch_gate:
 
 kernel_ontology_ref:
   type: str
-  default: "<gitlab:org/ontology-kernel@v0.1.0>"
+  default: "<repo:core/ontology-kernel@v0.2.0>"
   help: "ROCS core/kernel ontology ref (GitLab locator)"
 
 company_ontology_ref:

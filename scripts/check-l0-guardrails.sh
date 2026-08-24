@@ -281,6 +281,8 @@ assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "ROCS co
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "Use: ../../scripts/rocs.sh <args>" "tpl-package ROCS wrapper should redirect to the monorepo-root launcher"
 assert_absent "copier-template/copier/tpl-package/scripts/ak.sh"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" 'default: "<repo:core/ontology-kernel@v0.2.0>"' "tpl-project-repo should default core ontology refs to workspace repo locators"
+assert_contains "copier-template/copier/tpl-monorepo/copier.yml" 'default: "<repo:core/ontology-kernel@v0.2.0>"' "tpl-monorepo should default core ontology refs to the protected release tag"
+assert_contains "copier-template/copier/tpl-package/copier.yml" 'default: "<repo:core/ontology-kernel@v0.2.0>"' "tpl-package should default core ontology refs to the protected release tag"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
 assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
 assert_contains "copier-template/copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
