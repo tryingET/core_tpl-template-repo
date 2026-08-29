@@ -1,11 +1,22 @@
 _src_path: __VOLATILE_SRC_PATH__
+agent_extensions: '[]'
+agent_model: ''
+agent_name: fixture-agent
 agent_owner_handle: '@agent-owner'
+agent_role: fixture-agent-role
+agent_scope: '{"repos": [], "forbidden": [], "note": ""}'
+agent_thinking: medium
+agent_tools: '[]'
 company_name: Holding Company
 company_slug: holdingco
 core_owner_handle: '@core-owner'
+creation_task_id: AK-5105
 enable_community_pack: false
 enable_release_pack: false
 enable_vouch_gate: false
 repo_slug: fixture-agent
+skill_extras: '[]'
+skill_profile: ''
+system_prompt_file: docs/person/system-prompt.md
 
 

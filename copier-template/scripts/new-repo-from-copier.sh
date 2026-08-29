@@ -13,8 +13,11 @@ Templates:
   tpl-package          Packages inside monorepos (NO .git, NO .github)
 
 Example:
-  ./scripts/new-repo-from-copier.sh tpl-agent-repo /tmp/my-agent \
-    -d repo_slug=my-agent --defaults --overwrite
+  ./scripts/new-repo-from-copier.sh tpl-agent-repo /path/to/agent-example \
+    -d repo_slug=agent-example \
+    -d agent_role='Example Role' \
+    -d creation_task_id=AK-1234 \
+    --defaults --overwrite
 
   ./scripts/new-repo-from-copier.sh tpl-project-repo /tmp/my-product \
     -d repo_slug=my-product --defaults --overwrite
@@ -173,6 +176,86 @@ has_data_override() {
   done
 
   return 1
+}
+
+data_override_value() {
+  key="$1"
+  shift
+
+  expect_data_value=0
+  for arg in "$@"; do
+    if [ "$expect_data_value" = "1" ]; then
+      case "$arg" in
+        "$key="*) printf '%s\n' "${arg#*=}"; return 0 ;;
+      esac
+      expect_data_value=0
+      continue
+    fi
+
+    case "$arg" in
+      -d|--data)
+        expect_data_value=1
+        ;;
+      -d"$key="*)
+        value="${arg#-d$key=}"
+        printf '%s\n' "$value"
+        return 0
+        ;;
+      --data="$key="*)
+        value="${arg#--data=$key=}"
+        printf '%s\n' "$value"
+        return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+data_override_count() {
+  key="$1"
+  shift
+  count=0
+  expect_data_value=0
+  for arg in "$@"; do
+    if [ "$expect_data_value" = "1" ]; then
+      case "$arg" in
+        "$key="*) count=$((count + 1)) ;;
+      esac
+      expect_data_value=0
+      continue
+    fi
+    case "$arg" in
+      -d|--data) expect_data_value=1 ;;
+      -d"$key="*|--data="$key="*) count=$((count + 1)) ;;
+    esac
+  done
+  printf '%s\n' "$count"
+}
+
+validate_agent_creation_gate() {
+  creation_count="$(data_override_count creation_task_id "$@")"
+  role_count="$(data_override_count agent_role "$@")"
+  [ "$creation_count" = "1" ] || fail "tpl-agent-repo requires exactly one creation_task_id override"
+  [ "$role_count" = "1" ] || fail "tpl-agent-repo requires exactly one agent_role override"
+  role_ref="$(data_override_value agent_role "$@" || true)"
+  role_compact="$(printf '%s' "$role_ref" | tr -d '[:space:]')"
+  [ -n "$role_compact" ] || fail "tpl-agent-repo agent_role must be non-empty"
+  creation_ref="$(data_override_value creation_task_id "$@" || true)"
+  case "$creation_ref" in
+    AK-*) ;;
+    *) fail "tpl-agent-repo requires -d creation_task_id=AK-<positive integer>" ;;
+  esac
+  task_id="${creation_ref#AK-}"
+  case "$task_id" in
+    ''|0|0*|*[!0-9]*) fail "invalid AK creation task id: $creation_ref" ;;
+  esac
+
+  ak_cmd="${AK_CMD:-ak}"
+  command -v "$ak_cmd" >/dev/null 2>&1 || fail "AK creation gate requires installed '$ak_cmd'"
+  if ! "$ak_cmd" task show "$task_id" >/dev/null 2>&1; then
+    fail "AK creation task does not exist or is not visible: $creation_ref"
+  fi
 }
 
 yaml_scalar_from_answers() {
@@ -339,6 +422,9 @@ guard_destination_layer() {
 
 assert_repo_layer "$repo_root" "L1" "L1 render wrapper"
 guard_destination_layer "$dest_dir" "L2" "L1 -> L2"
+if [ "$template_name" = "tpl-agent-repo" ]; then
+  validate_agent_creation_gate "$@"
+fi
 
 for key in enable_vouch_gate enable_community_pack enable_release_pack; do
   if has_data_override "$key" "$@"; then

@@ -82,6 +82,8 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 	# Baseline L2 fixtures (one per template archetype)
 	run_step ./scripts/new-repo-from-copier.sh tpl-agent-repo "$l2_render_agent" \
 		-d repo_slug=fixture-agent \
+		-d agent_role=fixture-agent-role \
+		-d creation_task_id=AK-5105 \
 		-d enable_community_pack=false \
 		-d enable_release_pack=false \
 		-d enable_vouch_gate=false \

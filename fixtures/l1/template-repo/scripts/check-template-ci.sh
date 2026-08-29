@@ -291,6 +291,17 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 		assert_file "copier/$tpl/scripts/ci/fast.sh"
 	fi
 	assert_file "copier/$tpl/scripts/ci/full.sh"
+	if [ "$tpl" = "tpl-agent-repo" ]; then
+		assert_file "copier/$tpl/agent.json.j2"
+		assert_file "copier/$tpl/contracts/template-ownership.yml"
+		assert_file "copier/$tpl/scripts/compile-system-prompt.py"
+		assert_file "copier/$tpl/scripts/lib/propagate_template.py"
+		assert_file "copier/$tpl/scripts/propagate-template.sh"
+		assert_exec "copier/$tpl/scripts/compile-system-prompt.py"
+		assert_exec "copier/$tpl/scripts/lib/propagate_template.py"
+		assert_exec "copier/$tpl/scripts/propagate-template.sh"
+		assert_contains "copier/$tpl/scripts/ci/full.sh" "compile-system-prompt.py --check" "tpl-agent-repo full CI must validate manifest and compiled prompt freshness"
+	fi
 	assert_file "copier/$tpl/diary/README.md"
 	assert_contains "copier/$tpl/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 template $tpl diary README should enforce descriptive filename convention"
 	assert_not_dir "copier/$tpl/docs/diary"
@@ -419,6 +430,7 @@ assert_contains "scripts/new-repo-from-copier.sh" "tpl-org-repo" "L1 wrapper mus
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-project-repo" "L1 wrapper must list tpl-project-repo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-monorepo" "L1 wrapper must list tpl-monorepo template"
 assert_contains "scripts/new-repo-from-copier.sh" "tpl-package" "L1 wrapper must list tpl-package template"
+assert_contains "scripts/new-repo-from-copier.sh" 'task show "$task_id"' "L1 wrapper must verify the exact AK agent-creation task exists"
 assert_contains "scripts/bootstrap-lane-root.sh" "--init-lane-git" "lane bootstrap helper must support lane git initialization"
 assert_contains "scripts/bootstrap-lane-root.sh" "tpl-project-repo" "lane bootstrap helper must render tpl-project-repo baseline"
 assert_contains "scripts/bootstrap-lane-root.sh" "scripts/lib/repo-surface.sh" "lane bootstrap helper should source the shared repo-surface helper"
@@ -467,6 +479,8 @@ assert_not_contains "scripts/install-hooks.sh" "copier/template-repo" "install-h
 assert_contains "scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "install-hooks must normalize executable bit for lane bootstrap helper"
 assert_contains "scripts/install-hooks.sh" "scripts/rocs.sh" "install-hooks must normalize executable bit for the L1 ROCS wrapper"
 assert_contains "scripts/install-hooks.sh" "scripts/check-task-scope-snapshots.sh" "install-hooks must normalize executable bit for the L1 task-scope checker"
+assert_contains "scripts/install-hooks.sh" "copier/tpl-agent-repo/scripts/compile-system-prompt.py" "install-hooks must normalize the agent prompt compiler"
+assert_contains "scripts/install-hooks.sh" "copier/tpl-agent-repo/scripts/propagate-template.sh" "install-hooks must normalize agent propagation tooling"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_contains "scripts/install-hooks.sh" "copier/$tpl/scripts/check-task-scope-snapshots.sh" "install-hooks must include executable bit normalization for $tpl task-scope checker"
@@ -791,12 +805,21 @@ run_repo_cmd "$repo_root" ./scripts/check-task-scope-snapshots.sh >/dev/null
 run_repo_cmd "$repo_root" ./scripts/ci/full.sh >/dev/null
 restore_l1_task_scope_dir
 assert_command_fails_with_stderr "generated L1 wrapper should reject L1 destinations" "destination already declares layer L1" ./scripts/new-repo-from-copier.sh tpl-project-repo "$repo_root" -d repo_slug=forbidden-l1-destination --defaults --overwrite
+agent_creation_task_id="$(create_scoped_task "$repo_root" "template-ci agent role: recurring pain and differentiation from existing agents")"
 
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	l2_dir="$tmp_root/$tpl"
-	./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
-		-d repo_slug="$tpl" \
-		--defaults --overwrite >/dev/null
+	if [ "$tpl" = "tpl-agent-repo" ]; then
+		./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
+			-d repo_slug="$tpl" \
+			-d agent_role=template-ci-agent-role \
+			-d creation_task_id="AK-$agent_creation_task_id" \
+			--defaults --overwrite >/dev/null
+	else
+		./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
+			-d repo_slug="$tpl" \
+			--defaults --overwrite >/dev/null
+	fi
 
 	# Basic L2 checks
 	assert_file "$l2_dir/.copier-answers.yml"
@@ -863,6 +886,14 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		assert_file "$l2_dir/governance/README.md"
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
 	fi
+	if [ "$tpl" = "tpl-agent-repo" ]; then
+		assert_file "$l2_dir/agent.json"
+		assert_file "$l2_dir/contracts/template-ownership.yml"
+		assert_file "$l2_dir/docs/person/system-prompt.md"
+		assert_exec "$l2_dir/scripts/compile-system-prompt.py"
+		assert_exec "$l2_dir/scripts/propagate-template.sh"
+		run_repo_cmd "$l2_dir" ./scripts/compile-system-prompt.py --check >/dev/null
+	fi
 	if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
 		assert_contains "$l2_dir/governance/README.md" "check-task-scope-snapshots.sh" "generated $tpl governance README should document task-scope snapshot validation"
 	fi
@@ -888,9 +919,17 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 		fi
 	)
 
-	./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
-		-d repo_slug="$tpl" \
-		--defaults --overwrite >/dev/null
+	if [ "$tpl" = "tpl-agent-repo" ]; then
+		./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
+			-d repo_slug="$tpl" \
+			-d agent_role=template-ci-agent-role \
+			-d creation_task_id="AK-$agent_creation_task_id" \
+			--defaults --overwrite >/dev/null
+	else
+		./scripts/new-repo-from-copier.sh "$tpl" "$l2_dir" \
+			-d repo_slug="$tpl" \
+			--defaults --overwrite >/dev/null
+	fi
 
 	(
 		cd "$l2_dir"
@@ -927,6 +966,8 @@ run_repo_cmd "$quoted_project_repo" ./scripts/check-task-scope-snapshots.sh >/de
 newline_task_scope_repo="$tmp_root/tpl-agent-repo-newline-snapshot"
 ./scripts/new-repo-from-copier.sh tpl-agent-repo "$newline_task_scope_repo" \
 	-d repo_slug=tpl-agent-repo-newline-snapshot \
+	-d agent_role=template-ci-newline-role \
+	-d creation_task_id="AK-$agent_creation_task_id" \
 	--defaults --overwrite >/dev/null
 newline_task_scope_id="$(create_scoped_task "$newline_task_scope_repo" "template-ci: newline snapshot filename")"
 mkdir -p "$newline_task_scope_repo/governance/task-scopes"

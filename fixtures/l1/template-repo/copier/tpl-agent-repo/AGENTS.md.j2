@@ -8,7 +8,14 @@ type: "reference"
 # AGENTS.md — {{ repo_slug }}
 
 ## Intent
-Template for an **agent repo**: one repo per agent, no hierarchy, work via proposals + merge requests.
+This is one agent repository in the workspace fleet home: `ai-society/agents/agent-<name>`. Keep exactly one repository and one canonical role per agent; do not nest agents. Work through exact AK tasks plus proposals and merge requests.
+
+## Authority and fleet lifecycle
+- This agent is advisory by default. Its persona may narrow this authority, never broaden it.
+- Keep one role in one `ai-society/agents/agent-<name>` repository; do not nest agents or combine roles.
+- Creating an agent requires an AK task naming its role, the recurring pain it removes, and how it differs from existing agents.
+- Writes to another repository require an exact active AK task owned by that target repository. AK is runtime authority; proposals and merge requests are review surfaces.
+- Template refresh is plan-first: review `./scripts/propagate-template.sh`, then explicitly rerun it with `--apply`.
 
 ## Guardrails
 - No secrets in git (use CI variables + local secret manager references).

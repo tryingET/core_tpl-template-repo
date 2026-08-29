@@ -1,0 +1,28 @@
+schema: ai-society.template-ownership/1
+template_owned:
+  - .gitignore
+  - AGENTS.md
+  - CODEOWNERS
+  - README.md
+  - contracts/**
+  - docs/_core/**
+  - governance/README.md
+  - prompts/cognitive-tools/**
+  - scripts/check-task-scope-snapshots.sh
+  - scripts/compile-system-prompt.py
+  - scripts/ci/**
+  - scripts/lib/**
+  - scripts/preflight-repo-census.sh
+  - scripts/propagate-template.sh
+  - scripts/rocs.sh
+agent_owned:
+  - .copier-answers.yml
+  - agent.json
+  - diary/**
+  - docs/decisions/**
+  - docs/learnings/**
+  - docs/person/**
+  - docs/system4d/**
+  - governance/task-scopes/**
+  - policy/**
+  - prompts/activities/**

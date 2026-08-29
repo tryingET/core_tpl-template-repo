@@ -40,3 +40,59 @@ agent_owner_handle:
   type: str
   default: "@agent-owner"
   help: "CODEOWNERS entry for agent-owned paths"
+
+agent_name:
+  type: str
+  default: "{{ repo_slug }}"
+  help: "Canonical agent name recorded in agent.json."
+
+agent_role:
+  type: str
+  help: "Required single role-card name for this one-agent repository."
+
+creation_task_id:
+  type: str
+  help: "Required AK creation task id (AK-<number>) naming the role, recurring pain, and differentiation."
+
+system_prompt_file:
+  type: str
+  default: docs/person/system-prompt.md
+  help: "Compiled system prompt path recorded in agent.json."
+
+skill_profile:
+  type: str
+  default: ""
+  help: "Published skill profile key, or empty for no profile."
+
+skill_extras:
+  type: str
+  default: "[]"
+  help: "JSON array of extra skill keys."
+
+agent_tools:
+  type: str
+  default: "[]"
+  help: "JSON array of tool names."
+
+agent_extensions:
+  type: str
+  default: "[]"
+  help: "JSON array of extension names."
+
+agent_model:
+  type: str
+  default: ""
+  help: "Default model name, or empty for runtime selection."
+
+agent_thinking:
+  type: str
+  default: medium
+  help: "Default thinking level."
+
+agent_scope:
+  type: str
+  default: '{"repos": [], "forbidden": [], "note": ""}'
+  help: "JSON object describing advisory scope; it grants no authority."
+
+_tasks:
+  - command: "python3 scripts/compile-system-prompt.py"

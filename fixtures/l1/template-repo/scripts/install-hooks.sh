@@ -26,6 +26,9 @@ chmod +x \
 	"$repo_root/.githooks/pre-commit" \
 	"$repo_root/.githooks/pre-push" \
 	"$repo_root/copier/tpl-agent-repo/scripts/check-task-scope-snapshots.sh" \
+	"$repo_root/copier/tpl-agent-repo/scripts/compile-system-prompt.py" \
+	"$repo_root/copier/tpl-agent-repo/scripts/lib/propagate_template.py" \
+	"$repo_root/copier/tpl-agent-repo/scripts/propagate-template.sh" \
 	"$repo_root/copier/tpl-agent-repo/scripts/rocs.sh.j2" \
 	"$repo_root/copier/tpl-agent-repo/scripts/ci/smoke.sh" \
 	"$repo_root/copier/tpl-agent-repo/scripts/ci/full.sh" \

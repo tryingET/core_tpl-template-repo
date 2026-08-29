@@ -1,14 +1,22 @@
-# Core references (vendored snapshot or submodule)
-docs/_core/** @core-owner
+# Template-owned fleet contract and tooling
+/AGENTS.md @core-owner
+/CODEOWNERS @core-owner
+/README.md @core-owner
+/.gitignore @core-owner
+/contracts/** @core-owner
+/docs/_core/** @core-owner
+/governance/README.md @core-owner
+/prompts/cognitive-tools/** @core-owner
+/scripts/** @core-owner
 
-# Agent-owned content
-docs/person/** @agent-owner
-docs/system4d/** @agent-owner
-docs/learnings/** @agent-owner
-policy/** @agent-owner
-governance/** @agent-owner
-
-# Root control-plane files
-AGENTS.md @agent-owner
-README.md @agent-owner
-
+# Agent-owned canonical identity, manifest values, memory, and work
+/.copier-answers.yml @agent-owner
+/agent.json @agent-owner
+/diary/** @agent-owner
+/docs/person/** @agent-owner
+/docs/system4d/** @agent-owner
+/docs/learnings/** @agent-owner
+/docs/decisions/** @agent-owner
+/governance/task-scopes/** @agent-owner
+/policy/** @agent-owner
+/prompts/activities/** @agent-owner

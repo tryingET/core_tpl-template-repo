@@ -8,6 +8,8 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "error: not a
 AK_CMD="${AK_CMD:-ak}"
 cd "$repo_root"
 
+./scripts/compile-system-prompt.py --check
+
 if [ -x "./scripts/check-task-scope-snapshots.sh" ]; then
   ./scripts/check-task-scope-snapshots.sh
 fi

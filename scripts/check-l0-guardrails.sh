@@ -192,6 +192,7 @@ copier-template/scripts/lib/check-template-ak.py
 copier-template/scripts/lib/check-task-scope-snapshots.py
 copier-template/scripts/lib/copier-answers.sh
 copier-template/scripts/lib/repo-surface.sh
+tests/test_agent_template_v2.py
 copier-template/scripts/lib/suffix-policy.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
@@ -277,6 +278,19 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	assert_contains "copier-template/copier/$tpl/contracts/layer-contract.yml" "max_layer_depth: 2" "L2 template $tpl contract must cap layer depth"
 	assert_file "copier-template/copier/$tpl/scripts/ci/smoke.sh"
 	assert_file "copier-template/copier/$tpl/scripts/ci/full.sh"
+	if [ "$tpl" = "tpl-agent-repo" ]; then
+		assert_file "copier-template/copier/$tpl/agent.json.j2"
+		assert_file "copier-template/copier/$tpl/contracts/template-ownership.yml"
+		assert_file "copier-template/copier/$tpl/scripts/compile-system-prompt.py"
+		assert_file "copier-template/copier/$tpl/scripts/lib/propagate_template.py"
+		assert_file "copier-template/copier/$tpl/scripts/propagate-template.sh"
+		assert_exec "copier-template/copier/$tpl/scripts/compile-system-prompt.py"
+		assert_exec "copier-template/copier/$tpl/scripts/lib/propagate_template.py"
+		assert_exec "copier-template/copier/$tpl/scripts/propagate-template.sh"
+		assert_contains "copier-template/copier/$tpl/scripts/ci/full.sh" "compile-system-prompt.py --check" "tpl-agent-repo full CI must validate the manifest and compiled prompt"
+		assert_contains "copier-template/copier/$tpl/contracts/template-ownership.yml" "template_owned:" "tpl-agent-repo ownership map must define template-owned paths"
+		assert_contains "copier-template/copier/$tpl/contracts/template-ownership.yml" "agent_owned:" "tpl-agent-repo ownership map must define agent-owned paths"
+	fi
 	assert_file "copier-template/copier/$tpl/diary/README.md"
 	assert_contains "copier-template/copier/$tpl/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 template $tpl diary README should enforce descriptive filename convention"
 	assert_absent "copier-template/copier/$tpl/docs/diary"
@@ -378,6 +392,13 @@ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "repo_slug:
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "company_slug:" "L2 copier config must have company_slug"
 assert_contains "copier-template/copier/tpl-org-repo/copier.yml" "company_slug:" "L2 tpl-org-repo copier config must have company_slug"
 assert_contains "copier-template/copier/tpl-agent-repo/copier.yml" "company_slug:" "L2 tpl-agent-repo copier config must have company_slug"
+for field in agent_name agent_role creation_task_id system_prompt_file skill_profile skill_extras agent_tools agent_extensions agent_model agent_thinking agent_scope; do
+	assert_contains "copier-template/copier/tpl-agent-repo/copier.yml" "$field:" "tpl-agent-repo copier config must expose manifest field $field"
+done
+assert_contains "copier-template/copier/tpl-agent-repo/agent.json.j2" '"schema": "ai-society.agent/1"' "tpl-agent-repo manifest must declare schema v1"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "ai-society/agents/agent-<name>" "tpl-agent-repo AGENTS must declare fleet home"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "AK is runtime authority" "tpl-agent-repo AGENTS must preserve AK runtime authority"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "persona may narrow" "tpl-agent-repo persona may only narrow authority"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "org_docs_profile" "L2 tpl-project-repo copier config must expose org-context profile toggle"
 assert_contains "copier-template/copier/tpl-monorepo/copier.yml" "org_docs_profile" "L2 tpl-monorepo copier config must expose org-context profile toggle"
 assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
@@ -428,6 +449,7 @@ assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_QUIET"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "--quiet" "L1 wrapper must default Copier execution to quiet mode"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "COPIER_VERSION" "L1 wrapper must pin Copier version"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "scripts/lib/copier-answers.sh" "L1 wrapper should source the shared copier answers helper"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'task show "$task_id"' "L1 wrapper must verify the exact AK agent-creation task exists"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "uvx --from \"copier==\${COPIER_VERSION}\" copier" "L1 wrapper must include pinned uvx invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "uv tool run --from \"copier==\${COPIER_VERSION}\" copier" "L1 wrapper must include pinned uv tool invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "warning: uvx/uv not found; falling back to unpinned copier on PATH" "L1 wrapper must surface unpinned fallback warning"
@@ -514,6 +536,7 @@ assert_contains "docs/l1-adoption-playbook.md" "docs/l2-transition-playbook.md" 
 assert_contains "scripts/check-l0.sh" "check-session-checkpoint" "consolidated L0 check should run session checkpoint guardrails"
 assert_contains "scripts/check-l0.sh" "check-l0-adversarial" "consolidated L0 check should run adversarial operator-surface checks"
 assert_contains "scripts/check-l0.sh" "L0_CHECK_TIMEOUT_SECONDS" "consolidated L0 check should expose fail-fast timeout control"
+assert_contains "scripts/check-l0-generation.sh" "tests/test_agent_template_v2.py" "generation gate must run agent template v2 behavior tests"
 assert_contains "scripts/check-l0-adversarial.sh" "git worktree add --detach" "adversarial suite should exercise git worktree provenance"
 assert_contains "scripts/check-l0-adversarial.sh" "preview-l1-diff.sh" "adversarial suite should exercise adoption preview filtering"
 assert_contains "scripts/check-l0-adversarial.sh" "tracked lane drift" "adversarial suite should force tracked lane-root drift through preview"
@@ -560,6 +583,13 @@ assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-sc
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
 assert_file "fixtures/l2/tpl-agent-repo/contracts/layer-contract.yml"
 assert_contains "fixtures/l2/tpl-agent-repo/contracts/layer-contract.yml" "layer: L2" "tpl-agent-repo fixture contract must declare layer L2"
+assert_file "fixtures/l2/tpl-agent-repo/agent.json"
+assert_file "fixtures/l2/tpl-agent-repo/contracts/template-ownership.yml"
+assert_file "fixtures/l2/tpl-agent-repo/docs/person/system-prompt.md"
+assert_exec "fixtures/l2/tpl-agent-repo/scripts/compile-system-prompt.py"
+assert_exec "fixtures/l2/tpl-agent-repo/scripts/propagate-template.sh"
+assert_contains "fixtures/l2/tpl-agent-repo/agent.json" '"schema": "ai-society.agent/1"' "tpl-agent-repo fixture manifest must declare schema v1"
+assert_contains "fixtures/l2/tpl-agent-repo/docs/person/system-prompt.md" "<!-- compiled: do not edit -->" "tpl-agent-repo fixture prompt must carry the compiled marker"
 assert_file "fixtures/l2/tpl-org-repo/contracts/layer-contract.yml"
 assert_contains "fixtures/l2/tpl-org-repo/contracts/layer-contract.yml" "layer: L2" "tpl-org-repo fixture contract must declare layer L2"
 assert_file "fixtures/l2/tpl-project-repo/contracts/layer-contract.yml"

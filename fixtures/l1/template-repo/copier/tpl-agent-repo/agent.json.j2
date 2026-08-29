@@ -1,0 +1,22 @@
+{
+  "activities": [
+    "prompts/activities/*.md"
+  ],
+  "creation_task": {{ creation_task_id | tojson }},
+  "defaults": {
+    "model": {% if agent_model %}{{ agent_model | tojson }}{% else %}null{% endif %},
+    "thinking": {{ agent_thinking | tojson }}
+  },
+  "extensions": {{ agent_extensions }},
+  "name": {{ agent_name | tojson }},
+  "role": {{ agent_role | tojson }},
+  "schema": "ai-society.agent/1",
+  "scope": {{ agent_scope }},
+  "skills": {
+    "extra": {{ skill_extras }},
+    "profile": {% if skill_profile %}{{ skill_profile | tojson }}{% else %}null{% endif %}
+  },
+  "system_prompt_file": {{ system_prompt_file | tojson }},
+  "tools": {{ agent_tools }},
+  "version": "0.1.0"
+}
