@@ -192,11 +192,19 @@ copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/lib/check-template-ak.py
+copier-template/scripts/lib/check-l1-ownership-state.py
 copier-template/scripts/lib/check-task-scope-snapshots.py
 copier-template/scripts/lib/copier-answers.sh
 copier-template/scripts/lib/repo-surface.sh
 tests/test_agent_template_v2.py
 tests/test_l1_template_ownership.py
+tests/fixtures/l1-company-policy/AGENTS.md
+tests/fixtures/l1-company-policy/README.md
+tests/fixtures/l1-company-policy/CONTRIBUTING.md
+tests/fixtures/l1-company-policy/.gitignore
+tests/fixtures/l1-company-policy/.github/workflows/ci.yml
+tests/fixtures/l1-company-policy/docs/org/operating_model.md
+tests/fixtures/l1-company-policy/docs/org/company-charter.md
 copier-template/scripts/lib/suffix-policy.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
@@ -227,6 +235,7 @@ fixtures/l1/template-repo/contracts/template-ownership-state.json
 fixtures/l1/template-repo/diary/README.md
 fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 fixtures/l1/template-repo/scripts/lib/check-template-ak.py
+fixtures/l1/template-repo/scripts/lib/check-l1-ownership-state.py
 fixtures/l1/template-repo/scripts/lib/check-task-scope-snapshots.py
 fixtures/l1/template-repo/scripts/lib/copier-answers.sh
 fixtures/l1/template-repo/scripts/lib/repo-surface.sh
@@ -517,6 +526,16 @@ assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must 
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/repo-surface.sh" "L1 template CI should require the shared repo-surface helper"
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
+for forbidden_policy_needle in \
+	'AK CLI: `ak <ak args...>`' \
+	'Organization docs profile' \
+	'Setup uv (full lane)' \
+	'!owned/.gitignore'; do
+	assert_not_contains "copier-template/scripts/check-template-ci.sh" "$forbidden_policy_needle" "downstream L1 gate must not impose canonical content on agent-owned policy"
+done
+assert_contains "copier-template/scripts/check-template-ci.sh" "canonical birth wording" "downstream L1 gate must document its agent-owned content boundary"
+assert_contains "tests/test_l1_template_ownership.py" "COMPANY_POLICY_FIXTURE" "ownership regression must overlay divergent company policy"
+assert_contains "tests/test_l1_template_ownership.py" "scripts/check-template-ci.sh" "divergent company policy must pass generated L1 validation"
 assert_contains "copier-template/scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L1 task-scope checker should use the shared parser-backed helper"
 assert_contains "copier-template/scripts/rocs.sh" "--doctor" "L1 ROCS wrapper should expose doctor mode"
 assert_contains "copier-template/scripts/rocs.sh" "deterministic resolution order" "L1 ROCS wrapper should document resolution order"
@@ -525,6 +544,7 @@ assert_contains "copier-template/scripts/ci/full.sh" "check-task-scope-snapshots
 assert_not_contains "copier-template/scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L1 full CI must not gate AK checks on vendored ak-cli"
 assert_contains "copier-template/scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
 assert_contains "copier-template/.github/workflows/ci.yml" "Setup uv (full lane)" "L1 CI workflow should provision uv in the full lane"
+assert_contains "copier-template/.github/workflows/ci.yml" "Run full lane" "fresh L1 CI workflow should expose its full lane"
 assert_not_contains "copier-template/scripts/install-hooks.sh" "copier/template-repo" "L1 install-hooks must not reference removed legacy template-repo path"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "L1 install-hooks should normalize executable bit for lane bootstrap helper"
 assert_contains "copier-template/scripts/install-hooks.sh" "scripts/rocs.sh" "L1 install-hooks should normalize executable bit for the L1 ROCS wrapper"
@@ -617,11 +637,18 @@ for doc in copier-template/README.md.jinja copier-template/AGENTS.md.jinja; do
 	assert_contains "$doc" "L2 -> L1" "generated L1 docs must forbid L2 -> L1"
 done
 assert_contains "copier-template/AGENTS.md.jinja" "Deterministic tooling policy" "generated L1 AGENTS should include deterministic tooling policy"
+assert_contains "copier-template/AGENTS.md.jinja" 'AK CLI: `ak <ak args...>`' "fresh L1 AGENTS should document canonical AK path"
 assert_contains "copier-template/AGENTS.md.jinja" "scripts/rocs.sh" "generated L1 AGENTS should reference scripts/rocs.sh"
 assert_contains "copier-template/AGENTS.md.jinja" "diary/" "generated L1 AGENTS should require repo-local diary"
 assert_contains "copier-template/CONTRIBUTING.md" "scripts/rocs.sh --doctor" "generated L1 contributing guide should include deterministic ROCS wrapper usage"
+assert_contains "copier-template/CONTRIBUTING.md" "check-template-ci.sh" "fresh L1 contributing guide should reference template checks"
 assert_contains "copier-template/CONTRIBUTING.md" "diary/" "generated L1 contributing guide should require repo-local diary"
 assert_contains "copier-template/README.md.jinja" "Organization docs profile" "generated L1 README should describe org docs profile"
+assert_contains "copier-template/README.md.jinja" "Governance layering" "fresh L1 README should describe governance layering"
+assert_contains "copier-template/README.md.jinja" "Community profile" "fresh L1 README should describe community profile"
+assert_contains "copier-template/README.md.jinja" "Release profile" "fresh L1 README should describe release profile"
+assert_contains "copier-template/README.md.jinja" "Baseline structure" "fresh L1 README should describe baseline structure"
+assert_contains "copier-template/README.md.jinja" ".gitattributes" "fresh L1 README should mention git baseline attributes"
 assert_contains "copier-template/README.md.jinja" "archetype/profile-specific" "generated L1 README should clarify archetype/profile-specific L2 baselines"
 assert_contains "copier-template/README.md.jinja" "Deterministic ROCS launcher" "generated L1 README should describe deterministic ROCS launcher"
 assert_contains "copier-template/README.md.jinja" "Agent Kernel command flow" "generated L1 README should describe plain ak command flow"
@@ -634,6 +661,8 @@ assert_contains "copier-template/README.md.jinja" "bootstrap-lane-root.sh" "gene
 assert_contains "copier-template/AGENTS.md.jinja" "L2 Templates" "generated L1 AGENTS should document L2 templates"
 assert_contains "copier-template/AGENTS.md.jinja" "bootstrap-lane-root.sh" "generated L1 AGENTS should document lane bootstrap helper"
 assert_contains "fixtures/l1/template-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 fixture diary README should enforce descriptive filename convention"
+assert_not_contains "fixtures/l1/template-repo/README.md" '- Profile: ``' "fresh L1 README must not render an empty profile label"
+assert_not_contains "fixtures/l1/template-repo/README.md" '- Default L2 project/monorepo org-context profile: ``' "fresh L1 README must not render an empty L2 org profile"
 assert_contains "fixtures/l2/tpl-project-repo/diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L2 fixture diary README should enforce descriptive filename convention"
 assert_file "fixtures/l2/tpl-agent-repo/contracts/layer-contract.yml"
 assert_contains "fixtures/l2/tpl-agent-repo/contracts/layer-contract.yml" "layer: L2" "tpl-agent-repo fixture contract must declare layer L2"

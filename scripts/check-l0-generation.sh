@@ -284,6 +284,14 @@ render_l1_case "l1-template-release" false true false rich
 render_l1_case "l1-template-vouch" false false true rich
 render_l1_case "l1-template-compact-org" false false false compact
 
+rich_l1="$tmp_root/l1-template-sample"
+compact_l1="$tmp_root/l1-template-compact-org"
+for org_doc in purpose.md mission.md vision.md strategic_objectives.md values_ethics.md governance.md glossary.md; do
+	[ -s "$rich_l1/docs/org/$org_doc" ] || fail "fresh rich L1 must render docs/org/$org_doc"
+	assert_path_absent "$compact_l1/docs/org/$org_doc" "fresh compact L1 must omit rich-only docs/org/$org_doc"
+done
+[ -s "$compact_l1/docs/org/operating_model.md" ] || fail "fresh compact L1 must retain docs/org/operating_model.md"
+
 # Regression check: inherited string values must preserve punctuation and quoting.
 colon_l1="$tmp_root/l1-template-colon"
 colon_l2="$tmp_root/l2-template-colon"

@@ -38,6 +38,13 @@ assert_file() {
 	[ -f "$path" ] || fail "missing file: $path"
 }
 
+assert_readable_nonempty_file() {
+	path="$1"
+	[ -f "$path" ] || fail "missing file: $path"
+	[ -r "$path" ] || fail "unreadable file: $path"
+	[ -s "$path" ] || fail "empty file: $path"
+}
+
 assert_not_file() {
 	path="$1"
 	[ ! -f "$path" ] || fail "unexpected file present: $path"
@@ -208,6 +215,7 @@ README.md
 AGENTS.md
 CONTRIBUTING.md
 .gitattributes
+.gitignore
 .copier-answers.yml
 contracts/layer-contract.yml
 contracts/provenance-seal.yml
@@ -218,6 +226,7 @@ scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/lib/check-template-ak.py
+scripts/lib/check-l1-ownership-state.py
 scripts/lib/check-task-scope-snapshots.py
 scripts/lib/copier-answers.sh
 scripts/lib/repo-surface.sh
@@ -233,7 +242,6 @@ scripts/ci/full.sh
 .githooks/pre-push
 docs/.gitkeep
 docs/dev/tpl-project-repo-file-contract.md
-docs/org/operating_model.md
 examples/.gitkeep
 external/.gitkeep
 ontology/.gitkeep
@@ -245,6 +253,10 @@ diary/README.md
 
 for path in $required_files; do
 	assert_file "$path"
+done
+
+for company_policy_path in AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml; do
+	assert_readable_nonempty_file "$company_policy_path"
 done
 
 assert_not_file "scripts/ak.sh"
@@ -359,40 +371,11 @@ for path in $required_exec; do
 	assert_exec "$path"
 done
 
-for doc in README.md AGENTS.md; do
-	assert_contains "$doc" "Recursion policy" "L1 docs must contain recursion policy section"
-	assert_contains "$doc" "L1 -> L2" "L1 docs must allow L1 -> L2"
-	assert_contains "$doc" "L1 -> L0" "L1 docs must forbid L1 -> L0"
-	assert_contains "$doc" "L2 -> L1" "L1 docs must forbid L2 -> L1"
-done
-assert_contains "CONTRIBUTING.md" "check-template-ci.sh" "L1 contributing guide should reference template checks"
-assert_contains "CONTRIBUTING.md" "scripts/rocs.sh --doctor" "L1 contributing guide should include deterministic ROCS wrapper usage"
-assert_contains "AGENTS.md" "Deterministic tooling policy" "L1 AGENTS should document deterministic tooling policy"
-assert_contains "AGENTS.md" 'AK CLI: `ak <ak args...>`' "L1 AGENTS should document plain ak as the canonical operator path"
-assert_contains "AGENTS.md" "scripts/rocs.sh" "L1 AGENTS should reference scripts/rocs.sh"
-assert_contains "README.md" "check-task-scope-snapshots.sh" "L1 README should document task-scope snapshot validation"
+# Company policy paths are agent-owned. Existing L1 validation checks only
+# their regular-file presence via required_files; canonical birth wording is
+# validated at L0 and must not be imposed after an ownership-aware refresh.
 assert_contains "governance/README.md" "check-task-scope-snapshots.sh" "L1 governance README should document task-scope snapshot validation"
-assert_contains "AGENTS.md" "diary/" "L1 AGENTS should require repo-local diary"
-assert_contains "AGENTS.md" "L2 Templates" "L1 AGENTS should document L2 templates"
-assert_contains "AGENTS.md" "bootstrap-lane-root.sh" "L1 AGENTS should document lane bootstrap helper"
-assert_contains "README.md" "Organization docs profile" "L1 README should describe organization docs profile"
-assert_contains "README.md" "Governance layering" "L1 README should describe governance layering"
-assert_contains "README.md" "Community profile" "L1 README should describe community profile toggle"
-assert_contains "README.md" "Release profile" "L1 README should describe release profile toggle"
-assert_contains "README.md" "Baseline structure" "L1 README should describe baseline directory structure"
-assert_contains "README.md" "Deterministic ROCS launcher" "L1 README should document deterministic ROCS launcher"
-assert_contains "README.md" "Agent Kernel command flow" "L1 README should document plain ak command flow"
-assert_contains "README.md" "Multi-pass template suffix policy" "L1 README should document multi-pass suffix policy"
-assert_contains "README.md" "repo-local diary" "L1 README should document repo-local diary contract"
-assert_contains "README.md" "no automatic in-place migrator" "L1 README should describe deterministic migration limitation"
-assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
 assert_contains ".gitattributes" "**/tools/rocs-cli/** -whitespace" "L1 must preserve canonical vendored ROCS bytes"
-assert_contains "README.md" "tpl-project-repo-file-contract.md" "L1 README should link canonical tpl-project-repo file contract"
-assert_contains "README.md" "bootstrap-lane-root.sh" "L1 README should document lane bootstrap workflow"
-assert_contains ".gitignore" "!owned/.gitignore" "L1 parent .gitignore must unignore owned lane-root .gitignore"
-assert_contains ".gitignore" "!contrib/.gitignore" "L1 parent .gitignore must unignore contrib lane-root .gitignore"
-assert_contains ".gitignore" "!infra/.gitignore" "L1 parent .gitignore must unignore infra lane-root .gitignore"
-assert_contains ".gitignore" "!agents/.gitignore" "L1 parent .gitignore must unignore agents lane-root .gitignore"
 assert_contains "diary/README.md" "YYYY-MM-DD--type-scope-summary.md" "L1 diary README should enforce descriptive filename convention"
 
 contract="contracts/layer-contract.yml"
@@ -408,12 +391,10 @@ ownership_state="contracts/template-ownership-state.json"
 assert_file "$ownership"
 assert_file "$ownership_state"
 assert_contains "$ownership" "schema: ai-society.template-ownership/1" "L1 ownership schema mismatch"
-for company_path in AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml 'docs/org/**'; do
+for company_path in contracts/template-ownership-adoption.json AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml 'docs/org/**'; do
 	assert_contains "$ownership" "- $company_path" "L1 ownership map must preserve company-owned $company_path"
 done
-assert_contains "$ownership_state" '"kind": "l1_contract_refresh_state"' "L1 ownership state kind mismatch"
-assert_contains "$ownership_state" '"state": "established"' "new L1 ownership state must begin established"
-assert_contains ".copier-answers.yml" "_ownership_state: established_at_birth" "new L1 answers must bind copier-birth ownership"
+python3 -I -S -B scripts/lib/check-l1-ownership-state.py
 
 provenance="contracts/provenance-seal.yml"
 assert_contains "$provenance" "schema: ai-society.template-provenance.v1" "L1 provenance seal schema mismatch"
@@ -427,8 +408,6 @@ assert_contains ".copier-answers.yml" "l0_source_sha:" "L1 answers file should p
 assert_contains ".copier-answers.yml" "l1_org_docs_profile:" "L1 answers file should persist L1 org docs profile"
 assert_contains ".copier-answers.yml" "l2_org_docs_default:" "L1 answers file should persist default L2 org-context profile"
 assert_contains ".copier-answers.yml" "l1_profile:" "L1 answers file should persist a resolved profile label"
-assert_not_contains "README.md" '- Profile: ``' "L1 README should not render an empty profile label"
-assert_not_contains "README.md" '- Default L2 project/monorepo org-context profile: ``' "L1 README should not render an empty default L2 org-context profile"
 if grep -Eq '^  profile:[[:space:]]*$' "$provenance"; then
 	fail "L1 provenance seal must not render an empty profile label"
 fi
@@ -484,10 +463,6 @@ workflow=".github/workflows/template-check.yml"
 assert_contains "$workflow" "pull_request:" "template-check workflow must run on pull requests"
 assert_contains "$workflow" "push:" "template-check workflow must run on pushes"
 assert_contains "$workflow" "./scripts/check-template-ci.sh" "template-check workflow must run template checks"
-
-ci_workflow=".github/workflows/ci.yml"
-assert_contains "$ci_workflow" "Setup uv (full lane)" "ci full lane must provision uv before running full checks"
-assert_contains "$ci_workflow" "Run full lane" "ci workflow must expose full lane"
 
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"
@@ -640,23 +615,8 @@ case "$l2_org_docs_default_status" in
 	;;
 esac
 
-if [ "$l1_org_docs_profile" = "rich" ]; then
-	assert_file "docs/org/purpose.md"
-	assert_file "docs/org/mission.md"
-	assert_file "docs/org/vision.md"
-	assert_file "docs/org/strategic_objectives.md"
-	assert_file "docs/org/values_ethics.md"
-	assert_file "docs/org/governance.md"
-	assert_file "docs/org/glossary.md"
-else
-	assert_not_file "docs/org/purpose.md"
-	assert_not_file "docs/org/mission.md"
-	assert_not_file "docs/org/vision.md"
-	assert_not_file "docs/org/strategic_objectives.md"
-	assert_not_file "docs/org/values_ethics.md"
-	assert_not_file "docs/org/governance.md"
-	assert_not_file "docs/org/glossary.md"
-fi
+# l1_org_docs_profile remains validated as template-owned answer metadata above,
+# but docs/org/** is agent-owned after birth and may diverge in names or shape.
 
 # Ensure no generated Python build/cache artifacts are committed in embedded templates
 if find copier -type d \( -name '__pycache__' -o -name '*.egg-info' \) | grep -q .; then

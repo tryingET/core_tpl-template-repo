@@ -1,0 +1,8 @@
+name: Company checks
+on:
+  workflow_dispatch:
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo company-owned

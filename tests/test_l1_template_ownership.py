@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "fixtures/l1/template-repo"
+COMPANY_POLICY_FIXTURE = ROOT / "tests/fixtures/l1-company-policy"
 ENGINE = ROOT / "scripts/lib/l1_template_ownership.py"
 ADOPTION = "contracts/template-ownership-adoption.json"
 STATE = "contracts/template-ownership-state.json"
@@ -31,7 +32,8 @@ AGENT_PATHS = (
     "CONTRIBUTING.md",
     ".gitignore",
     ".github/workflows/ci.yml",
-    "docs/org/mission.md",
+    "docs/org/company-charter.md",
+    "docs/org/operating_model.md",
 )
 
 
@@ -113,6 +115,13 @@ class L1TemplateOwnershipTests(unittest.TestCase):
             target = self.copy_fixture(parent, "target")
             rendered = self.copy_fixture(parent, "rendered")
             init_commit(target)
+            shutil.rmtree(target / "docs/org")
+            for source in COMPANY_POLICY_FIXTURE.rglob("*"):
+                if not source.is_file():
+                    continue
+                destination = target / source.relative_to(COMPANY_POLICY_FIXTURE)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, destination)
 
             for index, rel in enumerate(AGENT_PATHS):
                 path = target / rel
@@ -169,6 +178,8 @@ class L1TemplateOwnershipTests(unittest.TestCase):
             self.assertIn("template refresh sentinel", (target / "scripts/ci/full.sh").read_text())
             self.assertEqual(before, {rel: digest(target / rel) for rel in AGENT_PATHS})
             self.assertEqual(local_only.read_text(), "outside rendered surface\n")
+            gate = run("bash", "scripts/check-template-ci.sh", cwd=target)
+            self.assertNotIn("error:", gate.stderr.lower())
 
     def test_bootstrap_installs_only_map_and_census_attestation(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH_PARENT) as temp:
@@ -205,6 +216,10 @@ class L1TemplateOwnershipTests(unittest.TestCase):
             self.assertTrue((target / "contracts/template-ownership.yml").is_file())
             self.assertTrue((target / ADOPTION).is_file())
             self.assertTrue((target / STATE).is_file())
+            run(
+                "python3", "-I", "-S", "-B", "scripts/lib/check-l1-ownership-state.py",
+                cwd=target,
+            )
 
             run("git", "add", ".", cwd=target)
             run("git", "commit", "--quiet", "-m", "ownership bootstrap", cwd=target)
@@ -249,6 +264,7 @@ class L1TemplateOwnershipTests(unittest.TestCase):
                 "python3", str(ENGINE), "--repo-root", str(target), "--rendered", str(rendered),
                 "--bootstrap-map", "--evidence-ref", "evidence:7917", "--apply", cwd=ROOT,
             )
+            adoption_hash = digest(target / ADOPTION)
             run("git", "add", ".", cwd=target)
             run("git", "commit", "--quiet", "-m", "ownership bootstrap", cwd=target)
             run(
@@ -264,6 +280,7 @@ class L1TemplateOwnershipTests(unittest.TestCase):
                 {"schema", "kind", "state", "wave_id", "source_l0_commit", "ownership_map_sha256", "plan_sha256"},
             )
             self.assertTrue((target / ADOPTION).exists())
+            self.assertEqual(adoption_hash, digest(target / ADOPTION))
             self.assertEqual(readme_hash, digest(target / "README.md"))
             self.assertNotIn("censused template drift", (target / "scripts/ci/full.sh").read_text())
             run("git", "add", ".", cwd=target)
