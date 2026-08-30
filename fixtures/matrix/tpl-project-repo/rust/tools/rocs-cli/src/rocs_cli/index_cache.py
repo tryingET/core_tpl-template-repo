@@ -72,6 +72,7 @@ def _layer_desc(layer_spec: LayerSpec) -> dict:
         "kind": layer_spec.kind,
         "origin": layer_spec.origin,
         "src_root": str(layer_spec.src_root),
+        "source_contract": layer_spec.source_contract,
     }
 
 

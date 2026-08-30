@@ -9,6 +9,30 @@ from urllib.parse import urlparse
 from rocs_cli.errors import RocsCliError
 
 
+# Git exports repository-local variables while running hooks. Those variables
+# override `git -C <foreign-repo>` unless they are removed from the child
+# environment. Keep this aligned with `git rev-parse --local-env-vars`.
+_GIT_REPOSITORY_LOCAL_ENV_VARS = frozenset(
+    {
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_COMMON_DIR",
+        "GIT_CONFIG",
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_PARAMETERS",
+        "GIT_DIR",
+        "GIT_GRAFT_FILE",
+        "GIT_IMPLICIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_NO_REPLACE_OBJECTS",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_PREFIX",
+        "GIT_REPLACE_REF_BASE",
+        "GIT_SHALLOW_FILE",
+        "GIT_WORK_TREE",
+    }
+)
+
+
 def workspace_root_from_env() -> Path | None:
     raw = (os.environ.get("ROCS_WORKSPACE_ROOT") or "").strip()
     if not raw:
@@ -148,6 +172,10 @@ def workspace_repo_exists(workspace_root: Path, project_path: str) -> bool:
 
 
 def _git(repo_root: Path, args: list[str]) -> str | None:
+    env = os.environ.copy()
+    for name in _GIT_REPOSITORY_LOCAL_ENV_VARS:
+        env.pop(name, None)
+
     try:
         r = subprocess.run(
             ["git", "-C", str(repo_root), *args],
@@ -155,6 +183,7 @@ def _git(repo_root: Path, args: list[str]) -> str | None:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            env=env,
         )
     except FileNotFoundError as e:
         raise RocsCliError(kind="config", message="git is required for workspace ref checks but was not found") from e

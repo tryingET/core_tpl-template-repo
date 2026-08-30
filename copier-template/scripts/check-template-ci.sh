@@ -332,6 +332,12 @@ assert_contains "copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<git
 assert_contains "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
 assert_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/workspace.py"
 assert_not_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py"
+assert_not_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab_ci.py"
+assert_file "copier/tpl-project-repo/tools/rocs-cli/rocs.py"
+assert_contains "copier/tpl-project-repo/tools/rocs-cli/VENDORED_HASHES.json" '"schema_version": 3' "vendored rocs bundle must use receipt schema 3"
+assert_contains "copier/tpl-project-repo/tools/rocs-cli/VENDORED_HASHES.json" '"upstream_version": "0.3.0"' "vendored rocs bundle must pin release 0.3.0"
+assert_contains "copier/tpl-project-repo/tools/rocs-cli/VENDORED_HASHES.json" '"source_commit": "ecd48bbbf79c3eb8c67726ff238b70320fd4551a"' "vendored rocs bundle must bind authoritative source commit"
+python3 -I -S -B copier/tpl-project-repo/tools/rocs-cli/rocs.py vendored-check --vendored-dir copier/tpl-project-repo/tools/rocs-cli >/dev/null || fail "vendored rocs bundle integrity failed"
 
 check_multi_pass_suffix_policy
 
@@ -380,6 +386,7 @@ assert_contains "README.md" "Multi-pass template suffix policy" "L1 README shoul
 assert_contains "README.md" "repo-local diary" "L1 README should document repo-local diary contract"
 assert_contains "README.md" "no automatic in-place migrator" "L1 README should describe deterministic migration limitation"
 assert_contains "README.md" ".gitattributes" "L1 README should mention git baseline files"
+assert_contains ".gitattributes" "**/tools/rocs-cli/** -whitespace" "L1 must preserve canonical vendored ROCS bytes"
 assert_contains "README.md" "tpl-project-repo-file-contract.md" "L1 README should link canonical tpl-project-repo file contract"
 assert_contains "README.md" "bootstrap-lane-root.sh" "L1 README should document lane bootstrap workflow"
 assert_contains ".gitignore" "!owned/.gitignore" "L1 parent .gitignore must unignore owned lane-root .gitignore"

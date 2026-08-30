@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 
 from rocs_cli.errors import RocsCliError
+from rocs_cli.source_contract import SourceContractSelectorError, source_contract_for_src_root
 from rocs_cli.workspace import (
     git_head_sha,
     git_rev_sha,
@@ -27,6 +28,7 @@ class LayerSpec:
     origin: str  # path or ref locator
     kind: str  # path|ref
     source: str  # path|workspace
+    source_contract: str | None = None
 
 
 def repo_root(repo: str) -> Path:
@@ -249,6 +251,17 @@ def resolve_ref_repo_root(
     return repo, source, notes
 
 
+def _layer_source_contract(src_root: Path, *, layer_name: str) -> str | None:
+    try:
+        return source_contract_for_src_root(src_root)
+    except (OSError, UnicodeError, SourceContractSelectorError) as exc:
+        raise RocsCliError(
+            kind="config",
+            message=f"invalid source contract selector for layer {layer_name!r}: {exc}",
+            details={"layer": layer_name, "manifest": str(src_root.parent / "manifest.yaml")},
+        ) from exc
+
+
 def _src_root_for_ref(
     locator: str,
     *,
@@ -348,7 +361,16 @@ def resolve_layers(
             if only == "ref":
                 continue
             src_root = (repo_root / locator_value).resolve()
-            layers.append(LayerSpec(name=name, src_root=src_root, origin=locator_value, kind="path", source="path"))
+            layers.append(
+                LayerSpec(
+                    name=name,
+                    src_root=src_root,
+                    origin=locator_value,
+                    kind="path",
+                    source="path",
+                    source_contract=_layer_source_contract(src_root, layer_name=name),
+                )
+            )
         else:
             if only == "path":
                 continue
@@ -358,7 +380,16 @@ def resolve_layers(
                 workspace_root=ws_root,
                 workspace_ref_mode=ws_mode,
             )
-            layers.append(LayerSpec(name=name, src_root=src_root, origin=origin, kind="ref", source=source))
+            layers.append(
+                LayerSpec(
+                    name=name,
+                    src_root=src_root,
+                    origin=origin,
+                    kind="ref",
+                    source=source,
+                    source_contract=_layer_source_contract(src_root, layer_name=name),
+                )
+            )
             resolution_notes[name] = notes
 
     if layer and layer not in declared_layer_names:

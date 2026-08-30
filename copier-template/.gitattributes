@@ -1,1 +1,3 @@
 * text=auto eol=lf
+# Preserve canonical third-party bytes in self-contained ROCS bundles.
+**/tools/rocs-cli/** -whitespace

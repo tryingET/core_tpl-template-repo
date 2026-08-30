@@ -149,6 +149,7 @@ def authority_receipt_payload(
     layers: list[LayerSpec],
     result: dict | None = None,
     error: RocsCliError | None = None,
+    source_contract_conformance: dict | None = None,
 ) -> dict:
     ci_profile = _ci_profile()
     layer_sources: list[dict[str, str]] = []
@@ -172,6 +173,7 @@ def authority_receipt_payload(
                 "locator_kind": locator_kind,
                 "origin": layer_spec.origin,
                 "source": layer_spec.source,
+                "source_contract": layer_spec.source_contract or "legacy",
             }
         )
 
@@ -201,6 +203,10 @@ def authority_receipt_payload(
         "layer_sources": layer_sources,
         "locator_kinds_present": sorted(locator_kinds),
     }
+    if source_contract_conformance is not None:
+        if not ok or error is not None:
+            raise ValueError("source-contract conformance requires complete successful operation")
+        payload["source_contract_conformance"] = source_contract_conformance
     if result:
         payload["result"] = result
     err = _error_payload(error)

@@ -38,6 +38,8 @@ _ALLOWED_RELATION_KEYS = {
     "axis_default",
     "inverse",
     "lint_ignore",
+    "examples",
+    "anti_examples",
 }
 
 

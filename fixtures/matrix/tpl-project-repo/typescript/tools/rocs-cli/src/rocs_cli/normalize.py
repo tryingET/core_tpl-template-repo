@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 
 from rocs_cli.frontmatter import load_frontmatter, write_doc
+from rocs_cli.model import OntDoc
 
 
 CONCEPT_KEY_ORDER = [
@@ -52,8 +54,11 @@ def _reorder_keys(d: dict, order: list[str]) -> dict:
     return out
 
 
-def normalize_doc(path: Path, *, apply: bool) -> bool:
-    fm, body = load_frontmatter(path)
+def normalize_doc(path: Path, *, apply: bool, admitted_doc: OntDoc | None = None) -> bool:
+    if admitted_doc is None:
+        fm, body = load_frontmatter(path)
+    else:
+        fm, body = deepcopy(admitted_doc.fm), admitted_doc.body
     ont = fm.get("ont") or {}
     if not isinstance(ont, dict):
         return False
@@ -90,13 +95,20 @@ def normalize_doc(path: Path, *, apply: bool) -> bool:
     return changed
 
 
-def normalize_tree(src_root: Path, *, apply: bool) -> list[NormalizeChange]:
+def normalize_tree(
+    src_root: Path,
+    *,
+    apply: bool,
+    documents: list[OntDoc] | None = None,
+) -> list[NormalizeChange]:
     changes: list[NormalizeChange] = []
     if not src_root.exists():
         return changes
-    for p in sorted((src_root / "reference").rglob("*.md")):
-        if p.name == "README.md":
-            continue
-        changed = normalize_doc(p, apply=apply)
-        changes.append(NormalizeChange(path=p, changed=changed))
+    if documents is None:
+        candidates = [(path, None) for path in sorted((src_root / "reference").rglob("*.md")) if path.name != "README.md"]
+    else:
+        candidates = [(doc.path, doc) for doc in sorted(documents, key=lambda item: str(item.path))]
+    for path, admitted_doc in candidates:
+        changed = normalize_doc(path, apply=apply, admitted_doc=admitted_doc)
+        changes.append(NormalizeChange(path=path, changed=changed))
     return changes

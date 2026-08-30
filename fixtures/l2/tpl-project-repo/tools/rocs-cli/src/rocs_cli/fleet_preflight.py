@@ -164,7 +164,13 @@ def probe_managed_candidates(
     return probes
 
 
-def remove_stale_artifact(path: Path) -> None:
+def remove_stale_artifact(path: Path, *, root: Path | None = None) -> None:
+    if root is not None:
+        resolved_root = root.expanduser().resolve(strict=True)
+        probe_path = path / ".delete-containment-probe" if path.is_dir() and not path.is_symlink() else path
+        blocker = managed_path_blocker(resolved_root, probe_path)
+        if blocker is not None:
+            raise FleetPreflightError(f"refusing to clear stale artifact: {path} ({blocker})")
     try:
         if not path.exists() and not path.is_symlink():
             return

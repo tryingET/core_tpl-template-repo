@@ -78,7 +78,7 @@ def render_pre_push_hook(gate_mode: str) -> str:
         repo_root="$(cd -- "$(dirname -- "${{BASH_SOURCE[0]}}")/.." && pwd)"
         cd "$repo_root"
 
-        export ROCS_CMD="${{ROCS_CMD:-uv run --project ./tools/rocs-cli python -m rocs_cli}}"
+        export ROCS_CMD="${{ROCS_CMD:-uv run --frozen --project ./tools/rocs-cli python -m rocs_cli}}"
         export ROCS_CI_PROFILE="${{ROCS_CI_PROFILE:-{default_profile}}}"
         bash scripts/ci/full.sh
         """

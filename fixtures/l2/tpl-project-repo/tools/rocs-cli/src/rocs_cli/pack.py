@@ -101,8 +101,9 @@ def build_pack(
                     message=f"pack limits exclude requested root doc: {ont_id} (max_docs={config.max_docs})",
                 )
             return False
-        text = doc.path.read_text("utf-8")
-        b = len(text.encode("utf-8"))
+        raw = doc.raw if doc.raw is not None else doc.path.read_bytes()
+        text = raw.decode("utf-8", "strict")
+        b = len(raw)
         if config.max_bytes is not None and bytes_used + b > config.max_bytes:
             if required:
                 raise RocsCliError(
