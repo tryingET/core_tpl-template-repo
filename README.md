@@ -189,12 +189,24 @@ Forbidden edges:
 
 ## Adoption + release operations
 
-- Preview L1 adoption diffs (non-destructive):
+- Governed L1 contract refresh:
   ```bash
-  ./scripts/preview-l1-diff.sh /path/to/holdingco
+  # Existing brownfield L1: install and commit the map plus census attestation first.
+  ./scripts/preview-l1-diff.sh /path/to/softwareco --bootstrap-map --evidence-ref evidence:<ID>
+  ./scripts/propagate-l1-template.sh /path/to/softwareco --bootstrap-map --evidence-ref evidence:<ID> --apply
+  git -C /path/to/softwareco add contracts/template-ownership.yml contracts/template-ownership-state.json contracts/template-ownership-adoption.json
+  git -C /path/to/softwareco commit -m 'chore: admit L1 ownership census'
+
+  # Template-propagator emits canonical 01-plan.json, then explicit apply writes pending state.
   ./scripts/preview-l1-diff.sh /path/to/softwareco
+  ./scripts/propagate-l1-template.sh /path/to/softwareco \
+    --plan-sha256 <sha256-of-01-plan.json> --wave-id <wave-id> --apply
+  # Commit applied_pending_receipt + files, run both L1 gates, and record the
+  # controller-defined l1_contract_refresh_v1 AK evidence on the target-repo wave task.
+  ./scripts/propagate-l1-template.sh /path/to/softwareco \
+    --finalize-task AK-<TARGET-WAVE-TASK> --plan-artifact /path/to/01-plan.json --apply
   ```
-  The preview focuses on the pure L1 render surface, materializes canonical lane-root baselines when they exist, and ignores nested child repos so tracked lane-baseline drift stays visible.
+  The source map at `copier-template/contracts/template-ownership.yml` renders into each L1 and preserves company-owned policy bytes while classifying every incoming L0-rendered path. Brownfield bootstrap records target-specific evidence and hashes under a durable `adopting` state before the map can authorize replacement; a missing attestation or post-census drift fails closed. Apply transitions only to `applied_pending_receipt`; establishment requires target-repo AK evidence bound to the applied commit, clean L0 commit, map, canonical plan, wave, executor, and passing L1 gates. The ownership plan governs apply; the subsequent whole-tree comparison is diagnostic only. Target-only local paths and nested child repos are never deleted by this add/update refresh.
 - Contributing guide: `CONTRIBUTING.md`
 - Release/compatibility policy: `docs/release-compatibility-policy.md`
 - L1 rollout playbook: `docs/l1-adoption-playbook.md`

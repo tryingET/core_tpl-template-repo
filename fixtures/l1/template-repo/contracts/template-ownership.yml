@@ -1,0 +1,46 @@
+schema: ai-society.template-ownership/1
+template_owned:
+  - .copier-answers.yml
+  - .gitattributes
+  - .githooks/**
+  - .github/ISSUE_TEMPLATE/**
+  - .github/VOUCHED.td
+  - .github/pull_request_template.md
+  - .github/workflows/publish.yml
+  - .github/workflows/release-check.yml
+  - .github/workflows/release-please.yml
+  - .github/workflows/template-check.yml
+  - .github/workflows/vouch-check-pr.yml
+  - .github/workflows/vouch-manage.yml
+  - .release-please-config.json
+  - .release-please-manifest.json
+  - CHANGELOG.md
+  - CODE_OF_CONDUCT.md
+  - SECURITY.md
+  - SUPPORT.md
+  - contracts/layer-contract.yml
+  - contracts/provenance-seal.yml
+  - contracts/template-ownership.yml
+  - contracts/template-ownership-state.json
+  - copier/**
+  - diary/**
+  - docs/.gitkeep
+  - docs/dev/**
+  - examples/**
+  - external/**
+  - governance/**
+  - metrics/**
+  - ontology/**
+  - policy/**
+  - scripts/**
+  - src/**
+  - tests/**
+  - tips/**
+agent_owned:
+  - contracts/template-ownership-adoption.json
+  - .github/workflows/ci.yml
+  - .gitignore
+  - AGENTS.md
+  - CONTRIBUTING.md
+  - README.md
+  - docs/org/**

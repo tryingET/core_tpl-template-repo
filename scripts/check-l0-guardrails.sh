@@ -148,6 +148,8 @@ copier-template/AGENTS.md.jinja
 copier-template/CONTRIBUTING.md
 copier-template/.gitattributes
 copier-template/contracts/layer-contract.yml
+copier-template/contracts/template-ownership.yml
+copier-template/contracts/template-ownership-state.json
 copier-template/{{ _copier_conf.answers_file }}.jinja
 copier-template/.github/VOUCHED.td.jinja
 copier-template/.github/workflows/vouch-check-pr.yml.jinja
@@ -193,6 +195,7 @@ copier-template/scripts/lib/check-task-scope-snapshots.py
 copier-template/scripts/lib/copier-answers.sh
 copier-template/scripts/lib/repo-surface.sh
 tests/test_agent_template_v2.py
+tests/test_l1_template_ownership.py
 copier-template/scripts/lib/suffix-policy.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
@@ -203,6 +206,10 @@ copier-template/.github/workflows/ci.yml
 copier-template/.githooks/pre-commit
 copier-template/.githooks/pre-push
 scripts/preview-l1-diff.sh
+scripts/propagate-l1-template.sh
+scripts/lib/l1_template_ownership.py
+scripts/lib/l1_template_receipts.py
+scripts/lib/run-l1-template-refresh.sh
 scripts/rocs.sh
 scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
@@ -214,6 +221,8 @@ scripts/lib/fixture-normalization.sh
 scripts/lib/repo-surface.sh
 fixtures/l1/template-repo/README.md
 fixtures/l1/template-repo/.copier-answers.yml
+fixtures/l1/template-repo/contracts/template-ownership.yml
+fixtures/l1/template-repo/contracts/template-ownership-state.json
 fixtures/l1/template-repo/diary/README.md
 fixtures/l1/template-repo/scripts/bootstrap-lane-root.sh
 fixtures/l1/template-repo/scripts/lib/check-template-ak.py
@@ -236,6 +245,24 @@ EOF
 assert_absent "copier-template/scripts/ak.sh"
 assert_absent "copier-template/scripts/cargo-operator.sh"
 assert_absent "governance/dist/managed-launcher-bundle.template-receipt.json"
+assert_contains "copier-template/contracts/template-ownership.yml" "schema: ai-society.template-ownership/1" "L1 ownership map must pin schema v1"
+for agent_path in AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml 'docs/org/**'; do
+	assert_contains "copier-template/contracts/template-ownership.yml" "- $agent_path" "L1 ownership map must preserve company-owned $agent_path"
+done
+assert_contains "scripts/preview-l1-diff.sh" "run-l1-template-refresh.sh" "L1 preview must use the shared non-public renderer"
+assert_not_contains "scripts/preview-l1-diff.sh" "L1_TEMPLATE_APPLY" "L1 preview must be incapable of ambient apply"
+assert_contains "scripts/lib/run-l1-template-refresh.sh" "l1_template_ownership.py" "L1 shared renderer must use the ownership engine"
+assert_contains "scripts/lib/l1_template_receipts.py" "template-ownership-adoption.json" "L1 bootstrap must bind target-specific census evidence"
+assert_contains "scripts/lib/l1_template_receipts.py" "template-ownership-state.json" "L1 ownership adoption must have a durable state marker"
+assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "_ownership_state" "new L1 renders must carry a Copier birth marker"
+assert_contains "scripts/lib/l1_template_ownership.py" "applied_pending_receipt" "L1 apply must stop before external receipt finalization"
+assert_contains "scripts/lib/l1_template_receipts.py" "l1_contract_refresh_v1" "L1 finalization must require the controller-authorized AK evidence type"
+assert_contains "scripts/lib/l1_template_receipts.py" "source_l0_commit" "L1 receipt must bind the clean L0 source commit"
+assert_contains "scripts/propagate-l1-template.sh" "--finalize-task" "L1 propagation must expose explicit external-receipt finalization"
+assert_files_equal "copier-template/contracts/template-ownership-state.json" "fixtures/l1/template-repo/contracts/template-ownership-state.json" "rendered L1 ownership state must match source"
+assert_contains "scripts/propagate-l1-template.sh" "explicit --apply" "L1 propagation must never apply silently"
+assert_contains "scripts/lib/l1_template_ownership.py" "target-only paths are outside" "L1 refresh must preserve target-only local paths"
+assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
 
 # Required L2 template directories
 required_dirs="
@@ -329,6 +356,8 @@ check_multi_pass_suffix_policy
 
 required_exec="
 scripts/preview-l1-diff.sh
+scripts/propagate-l1-template.sh
+scripts/lib/run-l1-template-refresh.sh
 scripts/rocs.sh
 scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
@@ -433,11 +462,11 @@ assert_contains "scripts/new-l1-from-copier.sh" "--quiet" "L0 L1 render wrapper 
 assert_contains "scripts/new-l1-from-copier.sh" "bootstrap-lane-root.sh" "L0 L1 render wrapper docs should include lane bootstrap workflow"
 assert_contains "scripts/new-l1-from-copier.sh" "assert_repo_layer \"\$repo_root\" \"L0\"" "L0 wrapper should verify it is running from an L0 contract root"
 assert_contains "scripts/new-l1-from-copier.sh" "destination already declares layer" "L0 wrapper should fail closed on destination layer mismatches"
-assert_contains "scripts/preview-l1-diff.sh" "\"\$repo_root/scripts/new-l1-from-copier.sh\" \"\$render_dir\"" "preview-l1-diff must call new-l1 wrapper with render dir as first arg"
-assert_contains "scripts/preview-l1-diff.sh" ".copier-answers.yml" "preview-l1-diff should infer repo_slug from target answers when available"
-assert_contains "scripts/preview-l1-diff.sh" "repo_slug_from_answers" "preview-l1-diff should parse repo_slug from target answers file"
-assert_contains "scripts/preview-l1-diff.sh" "scripts/lib/copier-answers.sh" "preview-l1-diff should source the shared copier answers helper"
-assert_contains "scripts/preview-l1-diff.sh" "scripts/lib/repo-surface.sh" "preview-l1-diff should source the shared repo-surface helper"
+assert_contains "scripts/lib/run-l1-template-refresh.sh" "\"\$repo_root/scripts/new-l1-from-copier.sh\" \"\$render_dir\"" "L1 refresh renderer must call new-l1 wrapper with render dir as first arg"
+assert_contains "scripts/lib/run-l1-template-refresh.sh" ".copier-answers.yml" "L1 refresh renderer should infer repo_slug from target answers when available"
+assert_contains "scripts/lib/run-l1-template-refresh.sh" "repo_slug_from_answers" "L1 refresh renderer should parse repo_slug from target answers file"
+assert_contains "scripts/lib/run-l1-template-refresh.sh" "scripts/lib/copier-answers.sh" "L1 refresh renderer should source the shared copier answers helper"
+assert_contains "scripts/lib/run-l1-template-refresh.sh" "scripts/lib/repo-surface.sh" "L1 refresh renderer should source the shared repo-surface helper"
 assert_contains "scripts/preflight-repo-census.sh" "scripts/lib/repo-surface.sh" "repo census helper should source the shared repo-surface helper"
 assert_contains "scripts/migrate-l1-structure.sh" "scripts/lib/repo-surface.sh" "migration helper should source the shared repo-surface helper"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "tpl-agent-repo" "L1 wrapper must list tpl-agent-repo template"
@@ -537,6 +566,7 @@ assert_contains "scripts/check-l0.sh" "check-session-checkpoint" "consolidated L
 assert_contains "scripts/check-l0.sh" "check-l0-adversarial" "consolidated L0 check should run adversarial operator-surface checks"
 assert_contains "scripts/check-l0.sh" "L0_CHECK_TIMEOUT_SECONDS" "consolidated L0 check should expose fail-fast timeout control"
 assert_contains "scripts/check-l0-generation.sh" "tests/test_agent_template_v2.py" "generation gate must run agent template v2 behavior tests"
+assert_contains "scripts/check-l0-generation.sh" "tests/test_l1_template_ownership.py" "generation gate must run L1 ownership behavior tests"
 assert_contains "scripts/check-l0-adversarial.sh" "git worktree add --detach" "adversarial suite should exercise git worktree provenance"
 assert_contains "scripts/check-l0-adversarial.sh" "preview-l1-diff.sh" "adversarial suite should exercise adoption preview filtering"
 assert_contains "scripts/check-l0-adversarial.sh" "tracked lane drift" "adversarial suite should force tracked lane-root drift through preview"

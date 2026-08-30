@@ -373,12 +373,7 @@ printf '%s\n' "$hash_preview_output" | grep -qF "ok: no diff between rendered L1
 	printf '%s\n' "$hash_preview_output" >&2
 	exit 1
 }
-hash_preview_no_yaml_output="$(env PATH="$no_yaml_bin:$PATH" "$repo_root/scripts/preview-l1-diff.sh" "$hash_l1")"
-printf '%s\n' "$hash_preview_no_yaml_output" | grep -qF "ok: no diff between rendered L1 and target" || {
-	echo "error: preview-l1-diff should keep supported quoted hash values when PyYAML is unavailable" >&2
-	printf '%s\n' "$hash_preview_no_yaml_output" >&2
-	exit 1
-}
+assert_command_fails_with_stderr "ownership-aware preview should require functional stdlib Python" "missing dependency: functional python3 or python" env PATH="$no_yaml_bin:$PATH" "$repo_root/scripts/preview-l1-diff.sh" "$hash_l1"
 
 multiline_l1="$tmp_root/l1-template-multiline"
 multiline_l2="$tmp_root/l2-template-multiline"
@@ -950,6 +945,6 @@ for generated_package in \
 	assert_path_absent "$generated_package/governance/task-scopes" "generated tpl-package members must not ship standalone task-scope snapshot directories"
 done
 
-"$python_exec" -m unittest tests/test_agent_template_v2.py
+"$python_exec" -m unittest tests/test_agent_template_v2.py tests/test_l1_template_ownership.py
 
-echo "ok: l0 generation smoke + idempotency + agent template v2"
+echo "ok: l0 generation smoke + idempotency + ownership-aware template propagation"

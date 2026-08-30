@@ -33,6 +33,10 @@ This is an **L1 template repository** generated from `core/tpl-template-repo` (L
 - **KES Infrastructure**: `tips/`, `governance/`, `metrics/` for knowledge evolution.
 - **Repo-local diary contract**: `diary/README.md` in L1 and all generated L2 archetypes.
 
+## L1 ownership contract
+
+`contracts/template-ownership.yml` separates L0-managed template paths from company-owned L1 policy. Contract refresh preserves `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, `.gitignore`, `.github/workflows/ci.yml`, and `docs/org/**` byte-for-byte; all other rendered L1 paths are template-owned. A missing or invalid map blocks refresh. Existing brownfield L1 repositories bootstrap the map together with durable `contracts/template-ownership-state.json` (`adopting`) and `contracts/template-ownership-adoption.json`, which binds target-specific census evidence and existing template-path hashes; all three are committed before the first add/update refresh. Missing adoption state, missing attestation, and post-census drift fail closed. Refresh apply stops at `applied_pending_receipt`; only target-repo `l1_contract_refresh_v1` AK evidence bound to the applied commit, source L0 commit, ownership map, canonical plan, wave id, template-propagator executor, and passing L1 gates may finalize `established`.
+
 ## Quickstart
 
 Validate this L1 template repo:

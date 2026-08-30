@@ -396,6 +396,18 @@ assert_contains "$contract" "L1 -> L0" "L1 contract must include forbidden rever
 assert_contains "$contract" "L2 -> L1" "L1 contract must include forbidden reverse edge"
 assert_contains "$contract" "nested_copier_tasks_allowed: false" "L1 contract must forbid nested copier tasks"
 
+ownership="contracts/template-ownership.yml"
+ownership_state="contracts/template-ownership-state.json"
+assert_file "$ownership"
+assert_file "$ownership_state"
+assert_contains "$ownership" "schema: ai-society.template-ownership/1" "L1 ownership schema mismatch"
+for company_path in AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml 'docs/org/**'; do
+	assert_contains "$ownership" "- $company_path" "L1 ownership map must preserve company-owned $company_path"
+done
+assert_contains "$ownership_state" '"kind": "l1_contract_refresh_state"' "L1 ownership state kind mismatch"
+assert_contains "$ownership_state" '"state": "established"' "new L1 ownership state must begin established"
+assert_contains ".copier-answers.yml" "_ownership_state: established_at_birth" "new L1 answers must bind copier-birth ownership"
+
 provenance="contracts/provenance-seal.yml"
 assert_contains "$provenance" "schema: ai-society.template-provenance.v1" "L1 provenance seal schema mismatch"
 assert_contains "$provenance" "layer: L1" "L1 provenance seal layer mismatch"
