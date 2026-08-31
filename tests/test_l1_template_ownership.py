@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,18 +66,25 @@ def remove_birth_marker(repo: Path) -> None:
     answers.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def make_ak_mock(parent: Path, repo: Path, applied_commit: str, wave_id: str) -> Path:
+def make_ak_mock(
+    parent: Path,
+    repo: Path,
+    applied_commit: str,
+    wave_id: str,
+    authority_repo: Path | None = None,
+) -> Path:
     map_hash = digest(repo / "contracts/template-ownership.yml")
-    task = {"id": 123, "repo": str(repo.resolve()), "status": "done"}
+    canonical_repo = (authority_repo or repo).resolve()
+    task = {"id": 123, "repo": str(canonical_repo), "status": "done"}
     evidence = [{
         "id": 456,
         "task_id": 123,
-        "repo": str(repo.resolve()),
-        "repo_scope": str(repo.resolve()),
+        "repo": str(canonical_repo),
+        "repo_scope": str(canonical_repo),
         "check_type": "l1_contract_refresh_v1",
         "result": "pass",
         "details": {
-            "target_repo": str(repo.resolve()),
+            "target_repo": str(canonical_repo),
             "applied_commit": applied_commit,
             "source_l0_commit": L0_HEAD,
             "ownership_map_sha256": map_hash,
@@ -316,6 +324,87 @@ class L1TemplateOwnershipTests(unittest.TestCase):
             run("git", "commit", "--quiet", "-m", "ownership evidence closeout", cwd=target)
             established_payload = json.loads((target / STATE).read_text(encoding="utf-8"))
             OWNERSHIP.validate_established_provenance(target, established_payload, ak_mock)
+
+    def test_finalize_accepts_only_linked_worktree_of_canonical_task_repo(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH_PARENT) as temp:
+            parent = Path(temp)
+            target = self.copy_fixture(parent, "canonical")
+            init_commit(target)
+            plan_artifact = parent / "01-plan.json"
+            plan_artifact.write_bytes(PLAN_BYTES)
+            wave_id = "wave-linked-worktree"
+            (target / STATE).write_bytes(
+                OWNERSHIP.pending_state_bytes(target, PLAN_SHA256, wave_id, L0_HEAD)
+            )
+            run("git", "add", STATE, cwd=target)
+            run("git", "commit", "--quiet", "-m", "applied pending receipt", cwd=target)
+            applied_commit = run("git", "rev-parse", "HEAD", cwd=target).stdout.strip()
+
+            linked = parent / "linked"
+            run("git", "worktree", "add", "--quiet", "--detach", str(linked), applied_commit, cwd=target)
+            ak_mock = make_ak_mock(
+                parent, linked, applied_commit, wave_id, authority_repo=target
+            )
+            with mock.patch.dict(
+                os.environ,
+                {"GIT_DIR": str(target / ".git"), "GIT_WORK_TREE": str(target)},
+            ):
+                OWNERSHIP.finalize(linked, "AK-123", plan_artifact, ak_mock)
+            established_payload = json.loads((linked / STATE).read_text(encoding="utf-8"))
+            self.assertEqual(established_payload["state"], "established")
+            OWNERSHIP.validate_established_provenance(linked, established_payload, ak_mock)
+            self.assertEqual(
+                json.loads((target / STATE).read_text(encoding="utf-8"))["state"],
+                "applied_pending_receipt",
+            )
+
+            unregistered = parent / "unregistered-common-dir"
+            shutil.copytree(target, unregistered, ignore=shutil.ignore_patterns(".git"))
+            (unregistered / ".git").write_text(
+                f"gitdir: {(target / '.git').resolve()}\n", encoding="utf-8"
+            )
+            self.assertEqual(
+                Path(
+                    run("git", "rev-parse", "--git-common-dir", cwd=unregistered).stdout.strip()
+                ).resolve(),
+                (target / ".git").resolve(),
+            )
+            with self.assertRaisesRegex(ValueError, "same Git repository"):
+                OWNERSHIP.finalize(unregistered, "AK-123", plan_artifact, ak_mock)
+
+            shared_clone = parent / "shared-clone"
+            run("git", "clone", "--quiet", "--shared", str(target), str(shared_clone), cwd=parent)
+            alternates = shared_clone / ".git/objects/info/alternates"
+            self.assertTrue(alternates.is_file())
+            self.assertIn(str((target / ".git/objects").resolve()), alternates.read_text())
+            with self.assertRaisesRegex(ValueError, "same Git repository"):
+                OWNERSHIP.finalize(shared_clone, "AK-123", plan_artifact, ak_mock)
+
+            clone = parent / "separate-clone"
+            run("git", "clone", "--quiet", "--no-local", str(target), str(clone), cwd=parent)
+            with self.assertRaisesRegex(ValueError, "same Git repository"):
+                OWNERSHIP.finalize(clone, "AK-123", plan_artifact, ak_mock)
+
+            run("git", "worktree", "remove", "--force", str(linked), cwd=target)
+
+    def test_clean_target_ignores_ambient_status_config(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH_PARENT) as temp:
+            parent = Path(temp)
+            target = self.copy_fixture(parent, "target")
+            init_commit(target)
+            (target / "untracked-by-operator.txt").write_text("must remain visible\n")
+            with mock.patch.dict(
+                os.environ, {"GIT_CONFIG_PARAMETERS": "'status.showUntrackedFiles=no'"}
+            ):
+                hidden = subprocess.run(
+                    ["git", "-C", str(target), "status", "--porcelain"],
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                )
+                self.assertEqual(hidden.stdout, "")
+                with self.assertRaisesRegex(ValueError, "clean worktree"):
+                    OWNERSHIP.ensure_clean_git_target(target)
 
     def test_invalid_or_unclassified_render_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH_PARENT) as temp:

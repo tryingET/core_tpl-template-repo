@@ -18,10 +18,59 @@ STATE_SCHEMA = "ai-society.template-ownership-state/1"
 ADOPTION_PATH = Path("contracts/template-ownership-adoption.json")
 L0_ROOT = Path(__file__).resolve().parents[2]
 
+_GIT_REPOSITORY_ENV_KEYS = frozenset(
+    {
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_CEILING_DIRECTORIES",
+        "GIT_COMMON_DIR",
+        "GIT_CONFIG",
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_GLOBAL",
+        "GIT_CONFIG_NOSYSTEM",
+        "GIT_CONFIG_PARAMETERS",
+        "GIT_CONFIG_SYSTEM",
+        "GIT_DIR",
+        "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+        "GIT_GRAFT_FILE",
+        "GIT_INDEX_FILE",
+        "GIT_IMPLICIT_WORK_TREE",
+        "GIT_NAMESPACE",
+        "GIT_NO_REPLACE_OBJECTS",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_PREFIX",
+        "GIT_QUARANTINE_PATH",
+        "GIT_REPLACE_REF_BASE",
+        "GIT_SHALLOW_FILE",
+        "GIT_WORK_TREE",
+    }
+)
+
+
+def sanitized_git_environment() -> dict[str, str]:
+    """Remove ambient selectors that can redirect Git away from ``-C repo``."""
+    environment = os.environ.copy()
+    for key in tuple(environment):
+        if (
+            key in _GIT_REPOSITORY_ENV_KEYS
+            or key.startswith("GIT_CONFIG_KEY_")
+            or key.startswith("GIT_CONFIG_VALUE_")
+        ):
+            environment.pop(key, None)
+    return environment
+
+
+def git_run(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        text=True,
+        capture_output=True,
+        env=sanitized_git_environment(),
+    )
+
 
 def ensure_clean_git_target(repo: Path) -> None:
-    probe = subprocess.run(
-        ["git", "-C", str(repo), "status", "--porcelain"], text=True, capture_output=True
+    probe = git_run(
+        repo, "status", "--porcelain", "--untracked-files=all", "--ignore-submodules=none"
     )
     if probe.returncode != 0:
         raise ValueError("apply target must be a Git repository")
@@ -57,7 +106,7 @@ def write_atomic(content: bytes, destination: Path, mode: int = 0o644) -> None:
 
 
 def git_output(repo: Path, *args: str) -> str:
-    probe = subprocess.run(["git", "-C", str(repo), *args], text=True, capture_output=True)
+    probe = git_run(repo, *args)
     if probe.returncode != 0:
         raise ValueError(f"git provenance check failed: {' '.join(args)}")
     return probe.stdout
@@ -65,6 +114,28 @@ def git_output(repo: Path, *args: str) -> str:
 
 def git_head(repo: Path) -> str:
     return git_output(repo, "rev-parse", "HEAD").strip()
+
+
+def git_top(repo: Path) -> Path:
+    return Path(git_output(repo, "rev-parse", "--show-toplevel").strip()).resolve()
+
+
+def git_common_dir(repo: Path) -> Path:
+    """Resolve the shared Git directory used to identify linked worktrees."""
+    command_root = repo.resolve()
+    common = Path(git_output(repo, "rev-parse", "--git-common-dir").strip())
+    if not common.is_absolute():
+        common = command_root / common
+    return common.resolve()
+
+
+def registered_worktrees(repo: Path) -> set[Path]:
+    """Return worktree roots registered by the repository's shared Git directory."""
+    return {
+        Path(field.removeprefix("worktree ")).resolve()
+        for field in git_output(repo, "worktree", "list", "--porcelain", "-z").split("\0")
+        if field.startswith("worktree ")
+    }
 
 
 def verify_wave_evidence(
@@ -93,8 +164,24 @@ def verify_wave_evidence(
     except json.JSONDecodeError as exc:
         raise ValueError("AK wave task returned invalid JSON") from exc
     task_repo = task.get("repo") if isinstance(task, dict) else None
-    if not isinstance(task_repo, str) or Path(task_repo).resolve() != repo.resolve():
+    if not isinstance(task_repo, str):
         raise ValueError("AK wave task is not bound to the target L1 repository")
+    canonical_repo = Path(task_repo).resolve()
+    try:
+        canonical_is_top = git_top(canonical_repo) == canonical_repo
+        target_is_top = git_top(repo) == repo.resolve()
+        same_repository = git_common_dir(canonical_repo) == git_common_dir(repo)
+        registered_target = repo.resolve() in registered_worktrees(canonical_repo)
+    except ValueError:
+        canonical_is_top = False
+        target_is_top = False
+        same_repository = False
+        registered_target = False
+    if not canonical_is_top or not target_is_top or not same_repository or not registered_target:
+        raise ValueError(
+            "AK wave task is not bound to the same Git repository as the target L1 worktree"
+        )
+    canonical_repo_text = str(canonical_repo)
 
     evidence_probe = subprocess.run(
         [ak_cmd, "evidence", "task", str(task_id), "-F", "json"],
@@ -118,8 +205,8 @@ def verify_wave_evidence(
         if (
             record.get("check_type") != "l1_contract_refresh_v1"
             or record.get("result") != "pass"
-            or record.get("repo") != str(repo.resolve())
-            or record.get("repo_scope") != str(repo.resolve())
+            or record.get("repo") != canonical_repo_text
+            or record.get("repo_scope") != canonical_repo_text
             or not isinstance(details, dict)
         ):
             continue
@@ -127,7 +214,7 @@ def verify_wave_evidence(
         source_l0_commit = details.get("source_l0_commit")
         validation = details.get("validation")
         if (
-            details.get("target_repo") != str(repo.resolve())
+            details.get("target_repo") != canonical_repo_text
             or details.get("ownership_map_sha256") != map_hash
             or details.get("plan_sha256") != state.get("plan_sha256")
             or source_l0_commit != state.get("source_l0_commit")
@@ -148,14 +235,8 @@ def verify_wave_evidence(
             for gate in required_gates
         ):
             continue
-        target_commit = subprocess.run(
-            ["git", "-C", str(repo), "cat-file", "-e", f"{applied_commit}^{{commit}}"],
-            capture_output=True,
-        )
-        source_commit = subprocess.run(
-            ["git", "-C", str(L0_ROOT), "cat-file", "-e", f"{source_l0_commit}^{{commit}}"],
-            capture_output=True,
-        )
+        target_commit = git_run(repo, "cat-file", "-e", f"{applied_commit}^{{commit}}")
+        source_commit = git_run(L0_ROOT, "cat-file", "-e", f"{source_l0_commit}^{{commit}}")
         if target_commit.returncode == 0 and source_commit.returncode == 0:
             return record
     raise ValueError("no passing l1_contract_refresh_v1 AK evidence matches this target and plan")
@@ -225,10 +306,7 @@ def pending_state_bytes(
         raise ValueError("apply requires non-empty --wave-id")
     if re.fullmatch(r"[0-9a-f]{40}", source_l0_commit) is None:
         raise ValueError("apply requires --source-l0-commit as full 40-hex sha")
-    source_probe = subprocess.run(
-        ["git", "-C", str(L0_ROOT), "cat-file", "-e", f"{source_l0_commit}^{{commit}}"],
-        capture_output=True,
-    )
+    source_probe = git_run(L0_ROOT, "cat-file", "-e", f"{source_l0_commit}^{{commit}}")
     if source_probe.returncode != 0:
         raise ValueError("source L0 commit does not exist in L0 history")
     state = {
