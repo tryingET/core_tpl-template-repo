@@ -31,6 +31,9 @@ V2_PENDING_KEYS = {
     "ownership_map_sha256", "plan_sha256", "adr_commit",
 }
 V2_FINAL_KEYS = V2_PENDING_KEYS | {"origin", "evidence_id", "applied_commit"}
+HEX40 = re.compile(r"[0-9a-f]{40}\Z")
+HEX64 = re.compile(r"[0-9a-f]{64}\Z")
+EXECUTOR = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{2,127}\Z")
 
 
 def read_json(path: Path, label: str) -> tuple[dict[str, object], bytes]:
@@ -89,10 +92,17 @@ def validate_v2(state: dict[str, object], state_raw: bytes, map_hash: str) -> No
         raise ValueError("v2 ownership decision/task IDs must be positive integers")
     if lifecycle == "established" and (type(state.get("evidence_id")) is not int or state["evidence_id"] < 1):
         raise ValueError("v2 ownership evidence ID must be a positive integer")
+    if not isinstance(state.get("executor"), str) or EXECUTOR.fullmatch(state["executor"]) is None:
+        raise ValueError("v2 ownership executor format is invalid")
+    for key in ("predecessor_state_sha256", "predecessor_map_sha256", "ownership_map_sha256", "plan_sha256"):
+        if not isinstance(state.get(key), str) or HEX64.fullmatch(state[key]) is None:
+            raise ValueError(f"v2 ownership {key} must be lowercase sha256")
+    if not isinstance(state.get("adr_commit"), str) or HEX40.fullmatch(state["adr_commit"]) is None:
+        raise ValueError("v2 ownership adr_commit must be a full lowercase Git OID")
     if state.get("ownership_map_sha256") != map_hash or ADOPTION.exists():
         raise ValueError("v2 ownership state/map/adoption binding mismatch")
     predecessor = state.get("predecessor_commit")
-    if not isinstance(predecessor, str) or re.fullmatch(r"[0-9a-f]{40}", predecessor) is None:
+    if not isinstance(predecessor, str) or HEX40.fullmatch(predecessor) is None:
         raise ValueError("v2 ownership predecessor commit is invalid")
     old_map = git("show", f"{predecessor}:contracts/template-ownership.yml").encode()
     old_state = git("show", f"{predecessor}:contracts/template-ownership-state.json").encode()
@@ -103,7 +113,7 @@ def validate_v2(state: dict[str, object], state_raw: bytes, map_hash: str) -> No
         if any(matches(agent_pattern.removesuffix("/**"), pattern) or matches(pattern.removesuffix("/**"), agent_pattern) for pattern in new["template_owned"]):
             raise ValueError("ordinary successor validation refuses agent-to-template ownership adoption")
     applied = git("rev-parse", "HEAD").strip() if lifecycle == "ownership_transition_pending_receipt" else state.get("applied_commit")
-    if not isinstance(applied, str) or re.fullmatch(r"[0-9a-f]{40}", applied) is None:
+    if not isinstance(applied, str) or HEX40.fullmatch(applied) is None:
         raise ValueError("v2 ownership applied commit is invalid")
     parents = git("rev-list", "--parents", "-n", "1", applied).split()
     if len(parents) != 2 or parents[1] != predecessor:

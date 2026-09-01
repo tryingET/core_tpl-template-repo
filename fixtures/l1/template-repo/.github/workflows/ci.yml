@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run smoke lane
         run: bash ./scripts/ci/smoke.sh
@@ -38,6 +40,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup uv (full lane)
         uses: astral-sh/setup-uv@v5
@@ -51,6 +55,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5

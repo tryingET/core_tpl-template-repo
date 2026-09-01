@@ -86,6 +86,181 @@ assert_files_equal() {
 	fail "$label (diff command failed)"
 }
 
+checkout_full_history_ok() {
+	python3 -I -S -B - "$1" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+lines = Path(sys.argv[1]).read_text(encoding="utf-8").splitlines()
+if any("\t" in line for line in lines):
+    raise SystemExit(1)
+job_re = re.compile(r"  [A-Za-z0-9_-]+:\Z")
+name_re = re.compile(r"      - name: .+\Z")
+uses_re = re.compile(r"        uses: ([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)@([A-Za-z0-9_.-]+)\Z")
+run_re = re.compile(r"        run: [^|>].*\Z")
+option_re = re.compile(r"          ([A-Za-z0-9_-]+): (.+)\Z")
+
+jobs = steps = checkouts = 0
+in_jobs = in_steps = False
+current = None
+
+def finish_step() -> None:
+    global current, checkouts
+    if current is None:
+        return
+    if current["driver"] not in {"uses", "run"}:
+        raise ValueError("step lacks one exact driver")
+    action = current.get("action") or ""
+    if action.lower().startswith("actions/checkout@"):
+        if action != "actions/checkout@v4":
+            raise ValueError("checkout must use the approved v4 ref")
+        if current["options"].get("fetch-depth") != "0":
+            raise ValueError("checkout lacks exact fetch-depth zero")
+        checkouts += 1
+    current = None
+
+try:
+    for line in lines:
+        indent = len(line) - len(line.lstrip(" "))
+        if line == "jobs:":
+            if in_jobs:
+                raise ValueError("duplicate jobs mapping")
+            in_jobs = True
+            continue
+        if not in_jobs:
+            continue
+        if line and indent == 0:
+            finish_step()
+            in_jobs = in_steps = False
+            continue
+        if line and indent == 2:
+            finish_step()
+            if not job_re.fullmatch(line):
+                raise ValueError("unsupported job key syntax")
+            jobs += 1
+            in_steps = False
+            continue
+        if line == "    steps:":
+            finish_step()
+            steps += 1
+            in_steps = True
+            continue
+        if not in_steps or not line:
+            continue
+        if name_re.fullmatch(line):
+            finish_step()
+            current = {"driver": None, "action": None, "options": {}, "with": False}
+            continue
+        if current is None:
+            raise ValueError("unsupported steps syntax")
+        match = uses_re.fullmatch(line)
+        if match:
+            if current["driver"] is not None:
+                raise ValueError("duplicate step driver")
+            current.update({"driver": "uses", "action": f"{match.group(1)}@{match.group(2)}", "with": False})
+            continue
+        if run_re.fullmatch(line):
+            if current["driver"] is not None:
+                raise ValueError("duplicate step driver")
+            current.update({"driver": "run", "with": False})
+            continue
+        if line == "        with:":
+            if current["driver"] != "uses" or current["with"]:
+                raise ValueError("misplaced with mapping")
+            current["with"] = True
+            continue
+        match = option_re.fullmatch(line)
+        if match and current["with"]:
+            key, value = match.groups()
+            if key in current["options"]:
+                raise ValueError("duplicate action option")
+            current["options"][key] = value
+            continue
+        raise ValueError("unsupported step property or scalar encoding")
+    finish_step()
+except (OSError, UnicodeError, ValueError):
+    raise SystemExit(1)
+if jobs == 0 or steps != jobs or checkouts == 0:
+    raise SystemExit(1)
+PY
+}
+
+assert_checkout_full_history() {
+	checkout_full_history_ok "$1" || fail "workflow must use strict steps syntax and full-history checkout: $1"
+}
+
+self_test_checkout_full_history() {
+	test_root="$(mktemp -d "${TMPDIR:-$repo_root}/l0-checkout-history.XXXXXX")"
+	cat >"$test_root/valid.yml" <<'EOF'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+EOF
+	cat >"$test_root/scalar-bypass.yml" <<'EOF'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Forged checkout text
+        run: |
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+      - name: Actual shallow checkout
+        uses: actions/checkout@v4 # actual shallow checkout
+EOF
+	cat >"$test_root/escaped-bypass.yml" <<'EOF'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Escaped shallow checkout
+        uses: "actions/checkout@v\u0034"
+EOF
+	cat >"$test_root/old-ref-bypass.yml" <<'EOF'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Old shallow checkout
+        uses: actions/checkout@v3
+EOF
+	cat >"$test_root/case-bypass.yml" <<'EOF'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Case-variant shallow checkout
+        uses: Actions/Checkout@v4
+EOF
+	checkout_full_history_ok "$test_root/valid.yml" || fail "full-history workflow matcher rejected a valid checkout"
+	if checkout_full_history_ok "$test_root/scalar-bypass.yml"; then
+		rm -rf "$test_root"
+		fail "full-history workflow matcher accepted a block-scalar checkout forgery"
+	fi
+	if checkout_full_history_ok "$test_root/escaped-bypass.yml"; then
+		rm -rf "$test_root"
+		fail "full-history workflow matcher accepted an escaped checkout action"
+	fi
+	if checkout_full_history_ok "$test_root/old-ref-bypass.yml"; then
+		rm -rf "$test_root"
+		fail "full-history workflow matcher accepted a non-v4 checkout action"
+	fi
+	if checkout_full_history_ok "$test_root/case-bypass.yml"; then
+		rm -rf "$test_root"
+		fail "full-history workflow matcher accepted a case-variant checkout action"
+	fi
+	rm -rf "$test_root"
+}
+
+self_test_checkout_full_history
+
 suffix_policy_lib="$repo_root/copier-template/scripts/lib/suffix-policy.sh"
 [ -f "$suffix_policy_lib" ] || fail "missing required file: $suffix_policy_lib"
 # shellcheck source=/dev/null
@@ -292,6 +467,15 @@ assert_not_contains "scripts/lib/l1_template_ownership.py" "--ak-command" "produ
 assert_not_contains "scripts/lib/l1_template_transitions.py" "--ak-command" "production transition CLI must not accept an AK authority override"
 assert_contains "scripts/lib/l1_template_transitions.py" "REQUIRED_VALIDATION" "successor evidence must enforce the required L1 gate policy"
 assert_files_equal "copier-template/scripts/lib/check-l1-ownership-state.py" "fixtures/l1/template-repo/scripts/lib/check-l1-ownership-state.py" "generated ownership checkers must stay byte-identical"
+assert_contains "copier-template/scripts/lib/check-l1-ownership-state.py" "EXECUTOR.fullmatch" "generated ownership checker must enforce exact v2 executor format"
+assert_contains "copier-template/scripts/lib/check-l1-ownership-state.py" "HEX64.fullmatch" "generated ownership checker must enforce exact v2 digest formats"
+assert_contains "copier-template/scripts/lib/check-l1-ownership-state.py" "HEX40.fullmatch" "generated ownership checker must enforce exact v2 Git OID formats"
+assert_contains "copier-template/scripts/check-template-ci.sh" "assert_checkout_full_history" "generated template checks must lock full-history checkout policy"
+assert_files_equal "copier-template/scripts/check-template-ci.sh" "fixtures/l1/template-repo/scripts/check-template-ci.sh" "generated L1 template-check script fixture must match source"
+assert_files_equal "copier-template/.github/workflows/ci.yml" "fixtures/l1/template-repo/.github/workflows/ci.yml" "generated L1 CI workflow fixture must match source"
+assert_files_equal "copier-template/.github/workflows/template-check.yml" "fixtures/l1/template-repo/.github/workflows/template-check.yml" "generated L1 template-check workflow fixture must match source"
+assert_checkout_full_history "copier-template/.github/workflows/ci.yml"
+assert_checkout_full_history "copier-template/.github/workflows/template-check.yml"
 assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
 python3 -B -m unittest tests.test_l1_template_transitions >/dev/null || fail "L1 ownership transition behavior tests failed"
 

@@ -136,6 +136,110 @@ assert_line_precedes() {
 	[ "$first_line" -lt "$second_line" ] || fail "$label (expected '$first' before '$second' in $path)"
 }
 
+checkout_full_history_ok() {
+	python3 -I -S -B - "$1" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+lines = Path(sys.argv[1]).read_text(encoding="utf-8").splitlines()
+if any("\t" in line for line in lines):
+    raise SystemExit(1)
+job_re = re.compile(r"  [A-Za-z0-9_-]+:\Z")
+name_re = re.compile(r"      - name: .+\Z")
+uses_re = re.compile(r"        uses: ([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)@([A-Za-z0-9_.-]+)\Z")
+run_re = re.compile(r"        run: [^|>].*\Z")
+option_re = re.compile(r"          ([A-Za-z0-9_-]+): (.+)\Z")
+
+jobs = steps = checkouts = 0
+in_jobs = in_steps = False
+current = None
+
+def finish_step() -> None:
+    global current, checkouts
+    if current is None:
+        return
+    if current["driver"] not in {"uses", "run"}:
+        raise ValueError("step lacks one exact driver")
+    action = current.get("action") or ""
+    if action.lower().startswith("actions/checkout@"):
+        if action != "actions/checkout@v4":
+            raise ValueError("checkout must use the approved v4 ref")
+        if current["options"].get("fetch-depth") != "0":
+            raise ValueError("checkout lacks exact fetch-depth zero")
+        checkouts += 1
+    current = None
+
+try:
+    for line in lines:
+        indent = len(line) - len(line.lstrip(" "))
+        if line == "jobs:":
+            if in_jobs:
+                raise ValueError("duplicate jobs mapping")
+            in_jobs = True
+            continue
+        if not in_jobs:
+            continue
+        if line and indent == 0:
+            finish_step()
+            in_jobs = in_steps = False
+            continue
+        if line and indent == 2:
+            finish_step()
+            if not job_re.fullmatch(line):
+                raise ValueError("unsupported job key syntax")
+            jobs += 1
+            in_steps = False
+            continue
+        if line == "    steps:":
+            finish_step()
+            steps += 1
+            in_steps = True
+            continue
+        if not in_steps or not line:
+            continue
+        if name_re.fullmatch(line):
+            finish_step()
+            current = {"driver": None, "action": None, "options": {}, "with": False}
+            continue
+        if current is None:
+            raise ValueError("unsupported steps syntax")
+        match = uses_re.fullmatch(line)
+        if match:
+            if current["driver"] is not None:
+                raise ValueError("duplicate step driver")
+            current.update({"driver": "uses", "action": f"{match.group(1)}@{match.group(2)}", "with": False})
+            continue
+        if run_re.fullmatch(line):
+            if current["driver"] is not None:
+                raise ValueError("duplicate step driver")
+            current.update({"driver": "run", "with": False})
+            continue
+        if line == "        with:":
+            if current["driver"] != "uses" or current["with"]:
+                raise ValueError("misplaced with mapping")
+            current["with"] = True
+            continue
+        match = option_re.fullmatch(line)
+        if match and current["with"]:
+            key, value = match.groups()
+            if key in current["options"]:
+                raise ValueError("duplicate action option")
+            current["options"][key] = value
+            continue
+        raise ValueError("unsupported step property or scalar encoding")
+    finish_step()
+except (OSError, UnicodeError, ValueError):
+    raise SystemExit(1)
+if jobs == 0 or steps != jobs or checkouts == 0:
+    raise SystemExit(1)
+PY
+}
+
+assert_checkout_full_history() {
+	checkout_full_history_ok "$1" || fail "workflow must use strict steps syntax and full-history checkout: $1"
+}
+
 suffix_policy_lib="$repo_root/scripts/lib/suffix-policy.sh"
 [ -f "$suffix_policy_lib" ] || fail "missing file: $suffix_policy_lib"
 # shellcheck source=/dev/null
@@ -463,6 +567,10 @@ workflow=".github/workflows/template-check.yml"
 assert_contains "$workflow" "pull_request:" "template-check workflow must run on pull requests"
 assert_contains "$workflow" "push:" "template-check workflow must run on pushes"
 assert_contains "$workflow" "./scripts/check-template-ci.sh" "template-check workflow must run template checks"
+assert_checkout_full_history ".github/workflows/template-check.yml"
+assert_contains "scripts/lib/check-l1-ownership-state.py" "EXECUTOR.fullmatch" "ownership checker must validate the exact v2 executor format"
+assert_contains "scripts/lib/check-l1-ownership-state.py" "HEX64.fullmatch" "ownership checker must validate exact v2 digest formats"
+assert_contains "scripts/lib/check-l1-ownership-state.py" "HEX40.fullmatch" "ownership checker must validate exact v2 Git OID formats"
 
 assert_contains ".githooks/pre-commit" "scripts/ci/smoke.sh" "pre-commit must run smoke lane"
 assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run full lane"

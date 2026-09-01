@@ -40,6 +40,8 @@ def init(repo: Path) -> None:
     run("git", "init", "--quiet", cwd=repo)
     run("git", "config", "user.name", "transition test", cwd=repo)
     run("git", "config", "user.email", "test@example.invalid", cwd=repo)
+    run("git", "config", "gc.auto", "0", cwd=repo)
+    run("git", "config", "maintenance.auto", "false", cwd=repo)
     run("git", "add", ".", cwd=repo)
     run("git", "commit", "--quiet", "-m", "root with accepted ADR", cwd=repo)
 
@@ -172,6 +174,25 @@ class TransitionTests(unittest.TestCase):
             self.assertEqual(state["applied_commit"], applied)
             TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
             run("python3", "-I", "-S", "-B", "scripts/lib/check-l1-ownership-state.py", cwd=h.repo)
+            state_path = h.repo / "contracts/template-ownership-state.json"
+            for key, malformed in (
+                ("executor", "x"),
+                ("plan_sha256", "A" * 64),
+                ("adr_commit", "f" * 39),
+                ("predecessor_commit", "f" * 39),
+                ("predecessor_state_sha256", "g" * 64),
+                ("predecessor_map_sha256", "a" * 63),
+                ("ownership_map_sha256", "A" * 64),
+                ("applied_commit", "0" * 39),
+            ):
+                invalid = dict(state, **{key: malformed})
+                state_path.write_text(json.dumps(invalid, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                rejected = run(
+                    "python3", "-I", "-S", "-B", "scripts/lib/check-l1-ownership-state.py",
+                    cwd=h.repo, expect=2,
+                )
+                self.assertIn(key.split("_")[0], rejected.stderr)
+            state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
             saved_evidence = json.loads(json.dumps(h.evidence))
             h.evidence[0]["details"] = {"plan": plan, "applied_commit": applied, "validation_results": {}}
             h.write_authority()
