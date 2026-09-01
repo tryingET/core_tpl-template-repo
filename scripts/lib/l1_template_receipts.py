@@ -56,12 +56,14 @@ def sanitized_git_environment() -> dict[str, str]:
             or key.startswith("GIT_CONFIG_VALUE_")
         ):
             environment.pop(key, None)
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    environment["GIT_GRAFT_FILE"] = os.devnull
     return environment
 
 
 def git_run(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", "-C", str(repo), *args],
+        ["git", "--no-replace-objects", "-C", str(repo), *args],
         text=True,
         capture_output=True,
         env=sanitized_git_environment(),
@@ -248,6 +250,11 @@ def validate_established_provenance(
     ak_command: Path | None = None,
     allow_uncommitted_birth_plan: bool = False,
 ) -> None:
+    if state.get("schema") == "ai-society.template-ownership-state/2":
+        from l1_template_transitions import validate_v2_provenance
+
+        validate_v2_provenance(repo, state, ak_command)
+        return
     map_hash = hashlib.sha256((repo / MAP_PATH).read_bytes()).hexdigest()
     if state.get("ownership_map_sha256") != map_hash:
         raise ValueError("established ownership state does not match the active map")

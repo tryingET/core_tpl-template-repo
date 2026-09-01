@@ -248,15 +248,18 @@ def refresh(
         state = json.loads(state_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise ValueError("invalid durable ownership state JSON") from exc
-    if (
-        not isinstance(state, dict)
-        or state.get("schema") != STATE_SCHEMA
-        or state.get("kind") != "l1_contract_refresh_state"
-    ):
-        raise ValueError(f"ownership state must use {STATE_SCHEMA} / l1_contract_refresh_state")
+    if not isinstance(state, dict):
+        raise ValueError("ownership state must be a JSON object")
+    is_v1 = state.get("schema") == STATE_SCHEMA and state.get("kind") == "l1_contract_refresh_state"
+    is_v2 = (
+        state.get("schema") == "ai-society.template-ownership-state/2"
+        and state.get("kind") == "l1_ownership_transition_state"
+    )
+    if not is_v1 and not is_v2:
+        raise ValueError("ownership state must use a supported exact v1 or v2 schema/kind")
     state_name = state.get("state")
-    if state_name == "applied_pending_receipt":
-        raise ValueError("applied_pending_receipt requires external AK evidence and explicit finalize")
+    if state_name in {"applied_pending_receipt", "ownership_transition_pending_receipt"}:
+        raise ValueError(f"{state_name} requires external AK evidence and explicit finalize")
     if state_name not in {"adopting", "established"}:
         raise ValueError("ownership state must be adopting, applied_pending_receipt, or established")
 
@@ -297,6 +300,8 @@ def refresh(
         answers = repo / ".copier-answers.yml"
         if not answers.is_file() or "_ownership_state: established_at_birth" not in answers.read_text(encoding="utf-8").splitlines():
             raise ValueError("established ownership state lacks its Copier birth/refresh marker")
+        if apply and is_v2:
+            raise ValueError("ordinary contract refresh cannot replace established v2 transition provenance")
 
     current_map = load_map(repo)
     next_map = load_map(rendered)
@@ -402,9 +407,27 @@ def main() -> int:
     parser.add_argument("--source-l0-commit")
     parser.add_argument("--finalize-task")
     parser.add_argument("--plan-artifact", type=Path)
+    parser.add_argument("--transition-action", choices=("plan", "apply", "finalize"))
+    parser.add_argument("--transition-spec", type=Path)
+    parser.add_argument("--transition-output", type=Path)
     args = parser.parse_args()
     repo = args.repo_root.resolve()
     try:
+        if args.transition_action:
+            from l1_template_transitions import apply as transition_apply
+            from l1_template_transitions import create_plan, finalize as transition_finalize
+
+            if args.transition_action == "plan":
+                if args.transition_spec is None or args.transition_output is None:
+                    raise ValueError("transition plan requires --transition-spec and --transition-output")
+                return create_plan(repo, args.transition_spec.resolve(), args.transition_output.resolve(), None)
+            if args.plan_artifact is None:
+                raise ValueError("transition apply/finalize requires --plan-artifact")
+            if args.transition_action == "apply":
+                return transition_apply(repo, args.plan_artifact.resolve(), None)
+            if not args.finalize_task:
+                raise ValueError("transition finalize requires --finalize-task")
+            return transition_finalize(repo, args.plan_artifact.resolve(), args.finalize_task, None)
         if args.finalize_task:
             if args.apply or args.bootstrap_map or args.plan_artifact is None:
                 raise ValueError("finalize requires --finalize-task and --plan-artifact only")

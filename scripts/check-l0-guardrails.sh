@@ -198,6 +198,7 @@ copier-template/scripts/lib/copier-answers.sh
 copier-template/scripts/lib/repo-surface.sh
 tests/test_agent_template_v2.py
 tests/test_l1_template_ownership.py
+tests/test_l1_template_transitions.py
 tests/fixtures/l1-company-policy/AGENTS.md
 tests/fixtures/l1-company-policy/README.md
 tests/fixtures/l1-company-policy/CONTRIBUTING.md
@@ -218,6 +219,7 @@ scripts/preview-l1-diff.sh
 scripts/propagate-l1-template.sh
 scripts/lib/l1_template_ownership.py
 scripts/lib/l1_template_receipts.py
+scripts/lib/l1_template_transitions.py
 scripts/lib/run-l1-template-refresh.sh
 scripts/rocs.sh
 scripts/check-session-checkpoint.sh
@@ -279,7 +281,19 @@ assert_contains "scripts/propagate-l1-template.sh" "--finalize-task" "L1 propaga
 assert_files_equal "copier-template/contracts/template-ownership-state.json" "fixtures/l1/template-repo/contracts/template-ownership-state.json" "rendered L1 ownership state must match source"
 assert_contains "scripts/propagate-l1-template.sh" "explicit --apply" "L1 propagation must never apply silently"
 assert_contains "scripts/lib/l1_template_ownership.py" "target-only paths are outside" "L1 refresh must preserve target-only local paths"
+assert_contains "scripts/lib/l1_template_transitions.py" "ai-society.template-ownership-transition-plan/1" "successor plans must pin schema v1"
+assert_contains "scripts/lib/l1_template_transitions.py" "ai-society.template-ownership-state/2" "successor state must pin schema v2"
+assert_contains "scripts/lib/l1_template_transitions.py" "ownership_transition_pending_receipt" "successor apply must stop pending external receipt"
+assert_contains "scripts/lib/l1_template_transitions.py" "l1_ownership_transition_v1" "successor finalize must require exact AK evidence type"
+assert_contains "scripts/lib/l1_template_transitions.py" "post_adr_execution" "successor transitions must bind accepted post-ADR tasks"
+assert_contains "scripts/lib/l1_template_transitions.py" "canonical_plan_sha256" "successor transitions must bind canonical plans"
+assert_contains "scripts/lib/l1_template_ownership.py" "--transition-action" "ownership CLI must dispatch explicit successor lifecycle actions"
+assert_not_contains "scripts/lib/l1_template_ownership.py" "--ak-command" "production ownership CLI must not accept an AK authority override"
+assert_not_contains "scripts/lib/l1_template_transitions.py" "--ak-command" "production transition CLI must not accept an AK authority override"
+assert_contains "scripts/lib/l1_template_transitions.py" "REQUIRED_VALIDATION" "successor evidence must enforce the required L1 gate policy"
+assert_files_equal "copier-template/scripts/lib/check-l1-ownership-state.py" "fixtures/l1/template-repo/scripts/lib/check-l1-ownership-state.py" "generated ownership checkers must stay byte-identical"
 assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
+python3 -B -m unittest tests.test_l1_template_transitions >/dev/null || fail "L1 ownership transition behavior tests failed"
 
 # Required L2 template directories
 required_dirs="
