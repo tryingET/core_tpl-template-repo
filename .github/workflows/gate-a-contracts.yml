@@ -1,0 +1,58 @@
+name: Gate A contracts
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/gate-a-contracts.yml"
+      - "contracts/ai-society.agent-2.schema.json"
+      - "contracts/provider-qualified-resource-ref.schema.json"
+      - "contracts/canonicalization-v1-vectors.json"
+      - "contracts/fixtures/**"
+      - "scripts/canonicalization/**"
+      - "tests/canonicalization/**"
+  push:
+    branches:
+      - gate-a-formalization-2026-09-02
+    paths:
+      - ".github/workflows/gate-a-contracts.yml"
+      - "contracts/ai-society.agent-2.schema.json"
+      - "contracts/provider-qualified-resource-ref.schema.json"
+      - "contracts/canonicalization-v1-vectors.json"
+      - "contracts/fixtures/**"
+      - "scripts/canonicalization/**"
+      - "tests/canonicalization/**"
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Parse candidate JSON artifacts
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          paths = [
+              Path("contracts/ai-society.agent-2.schema.json"),
+              Path("contracts/provider-qualified-resource-ref.schema.json"),
+              Path("contracts/canonicalization-v1-vectors.json"),
+          ]
+          paths.extend(sorted(Path("contracts/fixtures").rglob("*.json")))
+          for path in paths:
+              with path.open(encoding="utf-8") as handle:
+                  json.load(handle)
+              print(f"ok: {path}")
+          PY
+      - name: Run Python and TypeScript canonicalization parity
+        run: bash tests/canonicalization/run-parity.sh

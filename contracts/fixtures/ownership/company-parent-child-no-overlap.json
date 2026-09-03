@@ -1,0 +1,20 @@
+{
+  "children": [
+    {
+      "logical_home": "~/ai-society/softwareco/agents/agent-adoption-steward",
+      "repository": "tryingET/softwareco-agent-adoption-steward",
+      "standalone_git": true
+    }
+  ],
+  "invariant": "no-overlap",
+  "parent_ignores": [
+    "agents/agent-*"
+  ],
+  "parent_repository": "tryingET/softwareco",
+  "parent_tracks": [
+    "agents/.gitignore",
+    "agents/AGENTS.md",
+    "agents/CODEOWNERS"
+  ],
+  "schema": "ai-society.git-ownership/1"
+}

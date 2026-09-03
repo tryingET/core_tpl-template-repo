@@ -1,0 +1,102 @@
+{
+  "agent_id": "urn:uuid:00000000-0000-4000-8000-000000000002",
+  "appointment": {
+    "accountable_owner": "fixture SoftwareCo operator",
+    "reference": "fixture:appointment:softwareco-adoption-steward"
+  },
+  "display_name": "Adoption Steward",
+  "home": {
+    "logical": "~/ai-society/softwareco/agents/agent-adoption-steward",
+    "path_is_authority": false,
+    "repository": "example/softwareco-agent-adoption-steward"
+  },
+  "jurisdiction": {
+    "appointing_authority": "fixture SoftwareCo accountable operator",
+    "company": "softwareco",
+    "level": "company"
+  },
+  "migration": {
+    "apply": false,
+    "from_schema": "ai-society.agent/1",
+    "mode": "inspect-plan-explicit-apply",
+    "rollback": "retain schema-1 manifest and current registry path behind the existing default until reviewed apply"
+  },
+  "name": "agent-adoption-steward",
+  "persona": {
+    "delivery": {
+      "placement": "system_prompt",
+      "resource_ref": {
+        "authority_transfer": false,
+        "content_digest": "sha256:c56e492b81e8f9a70635cc07e97b94e1bb0db7c0504e2f0aa78d29dfb2b4f7f9",
+        "kind": "persona-projection",
+        "logical_identity": "persona/agent-adoption-steward/system-prompt",
+        "name": "agent-adoption-steward/system-prompt",
+        "physical_locator": "materialized/system-prompt.md",
+        "provider": "prompt-vault",
+        "revision": "sha256:c56e492b81e8f9a70635cc07e97b94e1bb0db7c0504e2f0aa78d29dfb2b4f7f9",
+        "schema": "ai-society.resource-ref/1"
+      }
+    },
+    "generated_projection": {
+      "content_digest": "sha256:c56e492b81e8f9a70635cc07e97b94e1bb0db7c0504e2f0aa78d29dfb2b4f7f9",
+      "generated": true,
+      "path": "docs/person/system-prompt.md"
+    },
+    "source_files": [
+      "docs/person/reason.md",
+      "docs/person/main-task.md",
+      "docs/person/behavior-rules.md"
+    ]
+  },
+  "resources": {
+    "profile": {
+      "authority_transfer": false,
+      "content_digest": "sha256:3378c5fc0109bd0eb49531520a30fdad5e761adf0d44ceeae168797cf657b69b",
+      "kind": "profile",
+      "name": "ec-adoption-steward",
+      "provider": "engineering-core",
+      "revision": "sha256:3378c5fc0109bd0eb49531520a30fdad5e761adf0d44ceeae168797cf657b69b",
+      "schema": "ai-society.resource-ref/1",
+      "tree_digest": "sha256:5ef65be3f2772fc02d7cb937e47eff82108431bf98b7592de17881c42deceeba"
+    },
+    "prompt": {
+      "authority_transfer": false,
+      "content_digest": "sha256:c56e492b81e8f9a70635cc07e97b94e1bb0db7c0504e2f0aa78d29dfb2b4f7f9",
+      "kind": "prompt",
+      "name": "agent-adoption-steward/base",
+      "provider": "prompt-vault",
+      "revision": "sha256:c56e492b81e8f9a70635cc07e97b94e1bb0db7c0504e2f0aa78d29dfb2b4f7f9",
+      "schema": "ai-society.resource-ref/1"
+    },
+    "skills": [
+      {
+        "authority_transfer": false,
+        "content_digest": "sha256:5ef65be3f2772fc02d7cb937e47eff82108431bf98b7592de17881c42deceeba",
+        "invocation_policy": {
+          "entrypoints": [
+            "ec-discipline-documentation"
+          ],
+          "model_invocation": "disabled"
+        },
+        "kind": "skill-tree",
+        "name": "ec-adoption-steward",
+        "provider": "engineering-core",
+        "revision": "sha256:5ef65be3f2772fc02d7cb937e47eff82108431bf98b7592de17881c42deceeba",
+        "schema": "ai-society.resource-ref/1",
+        "tree_digest": "sha256:5ef65be3f2772fc02d7cb937e47eff82108431bf98b7592de17881c42deceeba"
+      }
+    ]
+  },
+  "role": "society engineering-core adoption steward",
+  "runtime_ceiling": {
+    "ambient_resources": false,
+    "extensions": [
+      "pi-autonomous-session-control"
+    ],
+    "session": "fresh",
+    "tools": [
+      "read"
+    ]
+  },
+  "schema": "ai-society.agent/2"
+}

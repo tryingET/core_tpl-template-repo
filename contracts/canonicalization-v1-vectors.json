@@ -1,0 +1,329 @@
+{
+  "fixture_version": "1.0.0",
+  "schema": "ai-society.canonicalization-vectors/1",
+  "vectors": [
+    {
+      "expected": {
+        "canonical_hex": "7b2261223a322c227a223a317d",
+        "digest": "sha256:c2985c5ba6f7d2a55e768f92490ca09388e95bc4cccb9fdf11b15f4d42f93e73",
+        "status": "ok"
+      },
+      "id": "json-key-order",
+      "input_hex": "7b20227a223a312c202261223a32207d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "canonical_hex": "7b226c6162656c223a22436166c3a9222c22c3a9223a317d",
+        "digest": "sha256:00a94df57e9ec0462912759826d0d98f9c9ba1dde45a34d105eda8b2ad72e385",
+        "status": "ok"
+      },
+      "id": "json-unicode-nfc",
+      "input_hex": "7b226c6162656c223a2243616665cc81222c22c3a9223a317d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "canonical_hex": "5b6e756c6c2c747275652c66616c73652c2d34322c226c696e655c6e66656564225d",
+        "digest": "sha256:4aa00f11f5e4d8c02f1a1dcf7bdcb159f66389532c9609520e00534fac4b7c88",
+        "status": "ok"
+      },
+      "id": "json-array-scalars",
+      "input_hex": "5b6e756c6c2c747275652c66616c73652c2d34322c226c696e655c6e66656564225d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "bom_forbidden",
+        "status": "error"
+      },
+      "id": "json-bom-rejected",
+      "input_hex": "efbbbf7b7d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "invalid_utf8",
+        "status": "error"
+      },
+      "id": "json-invalid-utf8-rejected",
+      "input_hex": "ff",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "invalid_surrogate",
+        "status": "error"
+      },
+      "id": "json-unpaired-surrogate-rejected",
+      "input_hex": "225c756438303022",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "duplicate_key",
+        "status": "error"
+      },
+      "id": "json-duplicate-key-after-nfc-rejected",
+      "input_hex": "7b2265cc81223a312c22c3a9223a327d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "non_integer_number",
+        "status": "error"
+      },
+      "id": "json-float-rejected",
+      "input_hex": "7b226e223a312e307d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "non_integer_number",
+        "status": "error"
+      },
+      "id": "json-exponent-rejected",
+      "input_hex": "7b226e223a3165337d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "negative_zero",
+        "status": "error"
+      },
+      "id": "json-negative-zero-rejected",
+      "input_hex": "7b226e223a2d307d",
+      "kind": "json"
+    },
+    {
+      "expected": {
+        "code": "integer_out_of_range",
+        "status": "error"
+      },
+      "id": "json-unsafe-integer-rejected",
+      "input_hex": "7b226e223a393030373139393235343734303939327d",
+      "kind": "json"
+    },
+    {
+      "entries": [
+        {
+          "content_encoding": "utf8-text-v1",
+          "content_hex": "23212f62696e2f73680d0a6563686f206f6b0d0a",
+          "kind": "file",
+          "mode": "0755",
+          "path": "bin/run.sh"
+        },
+        {
+          "content_encoding": "utf8-text-v1",
+          "content_hex": "43616665cc810d0a",
+          "kind": "file",
+          "mode": "0644",
+          "path": "docs/Café.md"
+        },
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "000102ff",
+          "kind": "file",
+          "mode": "0644",
+          "path": "asset.bin"
+        }
+      ],
+      "expected": {
+        "digest": "sha256:1f1ca4ce4133b7ab65c285cfdaec95bd3b6defee2ad0149c2228fbd5482fb867",
+        "manifest": {
+          "entries": [
+            {
+              "content_digest": "sha256:3d1f57c984978ef98a18378c8166c1cb8ede02c03eeb6aee7e2f121dfeee3e56",
+              "content_encoding": "binary-exact-v1",
+              "mode": "0644",
+              "path": "asset.bin",
+              "size": 4
+            },
+            {
+              "content_digest": "sha256:b4d644d4279594903f1a9911956432d9473041f2984fc6014c14d7402c7d126c",
+              "content_encoding": "utf8-text-v1",
+              "mode": "0755",
+              "path": "bin/run.sh",
+              "size": 18
+            },
+            {
+              "content_digest": "sha256:ab4ff0780be67e1eef32bd012331f8896311f5fbe326c1d65dc542b99987aca3",
+              "content_encoding": "utf8-text-v1",
+              "mode": "0644",
+              "path": "docs/Café.md",
+              "size": 6
+            }
+          ],
+          "schema": "ai-society.canonical-tree/1"
+        },
+        "status": "ok"
+      },
+      "id": "tree-basic",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "kind": "directory",
+          "path": "empty"
+        },
+        {
+          "content_encoding": "utf8-text-v1",
+          "content_hex": "610a",
+          "kind": "file",
+          "mode": "0644",
+          "path": "a.txt"
+        }
+      ],
+      "expected": {
+        "digest": "sha256:ab3a8b44f19fd7a3795846a2d1e146f944ad8dd738fb69b63b9f0e6757dfd906",
+        "manifest": {
+          "entries": [
+            {
+              "content_digest": "sha256:87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+              "content_encoding": "utf8-text-v1",
+              "mode": "0644",
+              "path": "a.txt",
+              "size": 2
+            }
+          ],
+          "schema": "ai-society.canonical-tree/1"
+        },
+        "status": "ok"
+      },
+      "id": "tree-empty-directories-excluded",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "",
+          "kind": "file",
+          "mode": "0644",
+          "path": "../x"
+        }
+      ],
+      "expected": {
+        "code": "path_traversal",
+        "status": "error"
+      },
+      "id": "tree-traversal-rejected",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "",
+          "kind": "file",
+          "mode": "0644",
+          "path": "a\\b"
+        }
+      ],
+      "expected": {
+        "code": "backslash_path",
+        "status": "error"
+      },
+      "id": "tree-backslash-rejected",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "kind": "symlink",
+          "path": "x",
+          "target": "y"
+        }
+      ],
+      "expected": {
+        "code": "special_file_forbidden",
+        "status": "error"
+      },
+      "id": "tree-symlink-rejected",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "",
+          "kind": "file",
+          "mode": "0644",
+          "path": "A.txt"
+        },
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "",
+          "kind": "file",
+          "mode": "0644",
+          "path": "a.txt"
+        }
+      ],
+      "expected": {
+        "code": "case_collision",
+        "status": "error"
+      },
+      "id": "tree-case-collision-rejected",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "",
+          "kind": "file",
+          "mode": "0644",
+          "path": "Café.md"
+        },
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "",
+          "kind": "file",
+          "mode": "0644",
+          "path": "Café.md"
+        }
+      ],
+      "expected": {
+        "code": "path_collision",
+        "status": "error"
+      },
+      "id": "tree-unicode-path-collision-rejected",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "content_encoding": "binary-exact-v1",
+          "content_hex": "",
+          "kind": "file",
+          "mode": "0600",
+          "path": "x"
+        }
+      ],
+      "expected": {
+        "code": "invalid_mode",
+        "status": "error"
+      },
+      "id": "tree-mode-rejected",
+      "kind": "tree"
+    },
+    {
+      "entries": [
+        {
+          "content_encoding": "utf8-text-v1",
+          "content_hex": "efbbbf7b7d",
+          "kind": "file",
+          "mode": "0644",
+          "path": "x.txt"
+        }
+      ],
+      "expected": {
+        "code": "bom_forbidden",
+        "status": "error"
+      },
+      "id": "tree-text-bom-rejected",
+      "kind": "tree"
+    }
+  ]
+}
