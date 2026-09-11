@@ -30,6 +30,8 @@ from l1_template_receipts import (  # noqa: E402
     write_atomic,
 )
 
+from l1_answer_template_upgrade import plan as retirement_plan, revalidate, retire
+
 SCHEMA = "ai-society.template-ownership/1"
 ADOPTION_SCHEMA = "ai-society.template-ownership-adoption/1"
 EVIDENCE_REF = re.compile(r"evidence:[1-9][0-9]*\Z")
@@ -188,6 +190,8 @@ def bootstrap(repo: Path, rendered: Path, apply: bool, evidence_ref: str | None)
         raise ValueError("bootstrap refused: target already has ownership state")
 
     template_paths = [path for path in sorted(rendered_files) if owner(path, mapping) == "template"]
+    # Explicit bootstrap may attest approved legacy paths, but never retires them.
+    template_paths += list(retirement_plan(repo, rendered, mapping, mapping, owner))
     ensure_safe_destinations(
         repo, template_paths + [ADOPTION_PATH.as_posix(), STATE_PATH.as_posix()]
     )
@@ -342,6 +346,7 @@ def refresh(
             ):
                 raise ValueError(f"unattested template-path collision after ownership census: {path}")
 
+    retirements = retirement_plan(repo, rendered, current_map, next_map, owner, adoption)
     actions: list[tuple[str, str]] = []
     preserved = 0
     for path in sorted(rendered_files):
@@ -361,7 +366,7 @@ def refresh(
         else:
             actions.append(("add", path))
 
-    if not actions:
+    if not actions and not retirements:
         print(f"ok: template-owned L1 paths are current; preserved agent-owned paths: {preserved}")
         return 0
 
@@ -378,7 +383,9 @@ def refresh(
     if adoption is not None:
         print(f"adoption evidence: {adoption.get('evidence_ref', '<missing>')}")
     print(f"preserve: {preserved} rendered agent-owned path(s)")
-    print("note: target-only paths are outside this add/update refresh and are never deleted")
+    print("note: target-only paths are outside this refresh except the five fingerprint-approved obsolete answer templates")
+    for path, entry in retirements.items():
+        print(f"retire: {path} (approved sha256={entry['record']['sha256']}; successor={entry['new']})")
     for action, path in actions:
         print(f"{action}: {path}")
         show_diff(path, repo / path if (repo / path).exists() else None, rendered / path)
@@ -386,8 +393,12 @@ def refresh(
     if apply:
         ensure_clean_git_target(repo)
         ensure_safe_destinations(repo, [path for _, path in actions])
+        revalidate(repo, retirements)
+        if retirements and (load_map(repo) != current_map or load_map(rendered) != next_map):
+            raise ValueError("stale retirement ownership maps")
         for _, path in actions:
             copy_atomic(rendered / path, repo / path)
+        retire(repo, retirements)
         if pending is None:
             raise ValueError("internal error: pending state was not prevalidated")
         write_atomic(pending, state_path)

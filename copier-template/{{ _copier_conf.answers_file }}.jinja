@@ -20,4 +20,5 @@
   "enable_vouch_gate": enable_vouch_gate,
   "enable_community_pack": enable_community_pack,
   "enable_release_pack": enable_release_pack,
-} | to_nice_yaml }}
+} | to_nice_yaml }}{% if company_ontology_ref %}
+{{ {"company_ontology_ref": company_ontology_ref} | to_nice_yaml }}{% endif %}

@@ -294,6 +294,25 @@ if [ -f "$answers_file" ]; then
 	done
 fi
 
+python_exec=""
+for candidate in python3 python; do
+	if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'pass' >/dev/null 2>&1; then
+		python_exec="$candidate"
+		break
+	fi
+done
+[ -n "$python_exec" ] || {
+	echo "error: missing dependency: functional python3 or python for ownership planning" >&2
+	exit 2
+}
+
+# Preserve legacy parsing diagnostics before requiring stdlib Python. This optional
+# owner-refresh question does not need distribution in every L2 helper catalog.
+value="$("$python_exec" -B "$repo_root/scripts/lib/l1_answer_template_upgrade.py" answer "$answers_file")" || exit "$?"
+if [ -n "$value" ]; then
+	set -- "$@" -d "company_ontology_ref=$value"
+fi
+
 set -- "$@" -d "repo_slug=$repo_slug"
 
 "$repo_root/scripts/new-l1-from-copier.sh" "$render_dir" "$@" >/dev/null
@@ -304,17 +323,6 @@ echo "==> target:   $target_repo"
 ownership_engine="$repo_root/scripts/lib/l1_template_ownership.py"
 [ -f "$ownership_engine" ] || {
 	echo "error: missing ownership engine: $ownership_engine" >&2
-	exit 2
-}
-python_exec=""
-for candidate in python3 python; do
-	if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'pass' >/dev/null 2>&1; then
-		python_exec="$candidate"
-		break
-	fi
-done
-[ -n "$python_exec" ] || {
-	echo "error: missing dependency: functional python3 or python for ownership planning" >&2
 	exit 2
 }
 set -- --repo-root "$target_repo" --rendered "$render_dir"

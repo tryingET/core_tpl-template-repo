@@ -378,8 +378,8 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package
 	assert_file "copier/$tpl/contracts/layer-contract.yml"
 	assert_file "copier/$tpl/AGENTS.md.j2"
 	assert_file "copier/$tpl/CODEOWNERS.j2"
-	assert_file "copier/$tpl/.copier-answers.yml.j2"
-	assert_contains "copier/$tpl/.copier-answers.yml.j2" "to_nice_yaml" "L2 template $tpl answers template should use canonical Copier YAML emission"
+	assert_file "copier/$tpl/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2"
+	assert_contains "copier/$tpl/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2" "to_nice_yaml" "L2 template $tpl answers template should use canonical Copier YAML emission"
 	if [ "$tpl" != "tpl-package" ]; then
 		assert_not_file "copier/$tpl/scripts/ak.sh"
 		assert_not_file "copier/$tpl/scripts/cargo-operator.sh"

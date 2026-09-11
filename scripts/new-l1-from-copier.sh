@@ -18,6 +18,13 @@ Example:
     --defaults --overwrite
 
 Notes:
+  - Existing-L1 upgrades: prefer owner-aware propagate-l1-template.sh for companies.
+    This overwrite-copy wrapper preflights only copier-birth v1 repositories; it
+    cannot finalize receipts or replace v2 provenance. Bare `copier copy` is NOT
+    a certified existing-L1 upgrade interface. Use separate switches: grouped
+    short forms such as -fn are rejected before rendering. Failed copies may be partial, but
+    obsolete templates are retired only after successful, verified non-pretend copying
+    confirmed by the Copier 9.11.1 adapter (uvx/uv required for retirement).
   - Generates L1 company repo with embedded L2 templates:
     - copier/tpl-agent-repo/      (AI agent repos)
     - copier/tpl-org-repo/        (Organization handbooks)
@@ -45,20 +52,32 @@ COPIER_VCS_REF="${COPIER_VCS_REF:-HEAD}"
 COPIER_QUIET="${COPIER_QUIET:-1}"
 
 run_copier() {
+	# A fresh invocation must earn its own positive completion signal.
+	: >"$copy_completion"
 	pythonwarnings="$COPIER_WARN_FILTER"
 	if [ -n "${PYTHONWARNINGS:-}" ]; then
 		pythonwarnings="$pythonwarnings,${PYTHONWARNINGS}"
 	fi
 
+	# Only retirement needs the private, version-locked adapter. Ordinary copies
+	# retain the existing COPIER_VERSION override and unpinned fallback behavior.
 	if command -v uvx >/dev/null 2>&1; then
-		if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
+		if [ "$upgrade_count" -eq 0 ]; then
+			if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
+				return
+			fi
+		elif PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" python -B "$upgrade_lib" copy "$copy_completion" "$@"; then
 			return
 		fi
 		echo "error: uvx pinned runtime (copier==${COPIER_VERSION}) failed" >&2
 		exit 2
 	fi
 	if command -v uv >/dev/null 2>&1; then
-		if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
+		if [ "$upgrade_count" -eq 0 ]; then
+			if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
+				return
+			fi
+		elif PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" python -B "$upgrade_lib" copy "$copy_completion" "$@"; then
 			return
 		fi
 		echo "error: uv tool pinned runtime (copier==${COPIER_VERSION}) failed" >&2
@@ -66,6 +85,9 @@ run_copier() {
 	fi
 	if command -v copier >/dev/null 2>&1; then
 		echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2
+		if [ "$upgrade_count" -gt 0 ]; then
+			fail "obsolete-template upgrade requires the pinned Copier completion adapter (uvx/uv)"
+		fi
 		PYTHONWARNINGS="$pythonwarnings" copier "$@"
 		return
 	fi
@@ -214,4 +236,39 @@ if is_enabled "$COPIER_QUIET" && ! has_quiet_override "$@"; then
 	set -- --quiet "$@"
 fi
 
+upgrade_lib="$repo_root/scripts/lib/l1_answer_template_upgrade.py"
+upgrade_python() {
+	for candidate in python3 python; do
+		if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'pass' >/dev/null 2>&1; then
+			"$candidate" -B "$upgrade_lib" "$@"
+			return
+		fi
+	done
+	if command -v uvx >/dev/null 2>&1; then
+		uvx --from "copier==$COPIER_VERSION" python -B "$upgrade_lib" "$@"
+	elif command -v uv >/dev/null 2>&1; then
+		uv tool run --from "copier==$COPIER_VERSION" python -B "$upgrade_lib" "$@"
+	else
+		fail "upgrade preflight requires functional Python or the pinned Copier runtime"
+	fi
+}
+# Preflight Git reads must not refresh the destination index, including on dry runs.
+export GIT_OPTIONAL_LOCKS=0
+upgrade_plan="$(mktemp)"
+copy_completion=""
+trap 'rm -f "$upgrade_plan" "$copy_completion"' EXIT
+copy_completion="$(mktemp)"
+upgrade_python prepare "$dest_dir" "$repo_root/copier-template" "$upgrade_plan" "$@"
+upgrade_python check "$dest_dir" "$upgrade_plan"
+upgrade_count="$(upgrade_python count "$upgrade_plan")"
 run_copier copy --trust -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"
+# Exit zero also means help/version/completions; only the runtime can attest copy.
+if [ ! -s "$copy_completion" ]; then
+	exit 0
+fi
+upgrade_python retire "$dest_dir" "$upgrade_plan"
+if [ "$(upgrade_python count "$upgrade_plan")" -gt 0 ]; then
+	# The owner render's provenance seal must exclude the retired target-only files.
+	# Re-render after successful retirement; an interrupted run is repairable by rerun.
+	run_copier copy --trust -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"
+fi

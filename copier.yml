@@ -17,6 +17,15 @@ company_name:
   default: Holding Company
   help: "Company display name (e.g., Holding Company, Software Company)"
 
+company_ontology_ref:
+  type: str
+  default: ""
+  help: "Optional company ontology ref inherited by project, monorepo, and package children; empty keeps archetype defaults."
+  validator: >-
+    {% if '"' in company_ontology_ref or '\\' in company_ontology_ref or (company_ontology_ref and not company_ontology_ref.isprintable()) %}
+    Company ontology ref must be printable and contain no double quotes or backslashes.
+    {% endif %}
+
 repo_slug:
   type: str
   default: "{{ company_slug }}"

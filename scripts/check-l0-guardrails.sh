@@ -477,7 +477,7 @@ assert_files_equal "copier-template/.github/workflows/template-check.yml" "fixtu
 assert_checkout_full_history "copier-template/.github/workflows/ci.yml"
 assert_checkout_full_history "copier-template/.github/workflows/template-check.yml"
 assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
-python3 -B -m unittest tests.test_l1_template_transitions >/dev/null || fail "L1 ownership transition behavior tests failed"
+uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_l1_template_transitions tests.test_company_ontology_ref_inheritance tests.test_l1_answer_template_upgrade.UpgradeSafetyTests >/dev/null || fail "L1 transition / company ontology upgrade behavior tests failed"
 
 # Required L2 template directories
 required_dirs="
@@ -649,7 +649,7 @@ assert_contains "copier.yml" "rm -rf copier/template-repo" "L0 must remove legac
 # Answers templates should use canonical Copier YAML emission.
 assert_contains "copier-template/{{ _copier_conf.answers_file }}.jinja" "to_nice_yaml" "L1 answers template must use canonical Copier YAML emission"
 for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
-	assert_contains "copier-template/copier/$tpl/{{ _copier_conf.answers_file }}.j2" "to_nice_yaml" "L2 template $tpl answers template must use canonical Copier YAML emission"
+	assert_contains "copier-template/copier/$tpl/{% raw %}{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}{% endraw %}.j2" "to_nice_yaml" "L2 template $tpl answers template must use canonical Copier YAML emission"
 done
 
 # L2 template assertions (check tpl-project-repo as the primary example)

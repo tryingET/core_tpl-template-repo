@@ -33,6 +33,8 @@ Notes:
     are inherited from this L1 repo `.copier-answers.yml` unless overridden.
   - `org_docs_profile` is inherited for `tpl-project-repo` / `tpl-monorepo`
     from `l2_org_docs_default` unless overridden.
+  - Project/monorepo/package company ontology refs use CLI > stored child > L1
+    > archetype defaults; monorepo/package persist input only (no activation).
   - `template_source_sha` is auto-injected from this L1 git HEAD unless
     overridden with `-d template_source_sha=<git-sha>`.
 EOF
@@ -95,7 +97,7 @@ esac
 have_answers=0
 for arg in "$@"; do
   case "$arg" in
-    -a|--answers-file|--answers-file=*) have_answers=1; break ;;
+    -a*|--answers-file|--answers-file=*) have_answers=1; break ;;
   esac
 done
 
@@ -258,40 +260,6 @@ validate_agent_creation_gate() {
   fi
 }
 
-yaml_scalar_from_answers() {
-  answers_file="$1"
-  key="$2"
-  value=""
-  status=0
-
-  value="$(copier_answers_try_scalar "$answers_file" "$key" 2>/dev/null)" || status=$?
-
-  if [ "$status" -eq 0 ]; then
-    printf '%s\n' "$value"
-    return 0
-  fi
-
-  echo "error: unable to parse '$key' from $answers_file; install python3/python with PyYAML for multiline or escaped Copier answers" >&2
-  return "$status"
-}
-
-read_inherited_value() {
-  answers_file="$1"
-  key="$2"
-
-  value="$(yaml_scalar_from_answers "$answers_file" "$key")"
-  [ -n "$value" ] || return 0
-
-  printf '%s\n' "$value" | tr '[:upper:]' '[:lower:]'
-}
-
-read_inherited_string() {
-  answers_file="$1"
-  key="$2"
-
-  yaml_scalar_from_answers "$answers_file" "$key"
-}
-
 structured_project_owner_handle() {
   raw="$1"
   raw="${raw#@}"
@@ -374,6 +342,8 @@ answers_lib="$repo_root/scripts/lib/copier-answers.sh"
 }
 # shellcheck source=/dev/null
 . "$answers_lib"
+# shellcheck source=/dev/null
+. "$repo_root/scripts/lib/company-ontology-ref.sh"
 
 layer_contract_path() {
   printf '%s/contracts/layer-contract.yml\n' "$1"
@@ -442,26 +412,24 @@ for key in enable_vouch_gate enable_community_pack enable_release_pack; do
   esac
 done
 
-# Inherit company_slug and company_name from L1 answers
-if ! has_data_override company_slug "$@"; then
-  inherited_slug=""
-  inherited_slug_status=0
-  inherited_slug="$(read_inherited_string "$answers_file" company_slug)" || inherited_slug_status=$?
-  [ "$inherited_slug_status" -eq 0 ] || exit "$inherited_slug_status"
-  if [ -n "$inherited_slug" ]; then
-    set -- -d "company_slug=$inherited_slug" "$@"
+# Inherit company identity from L1 answers unless explicitly supplied.
+for key in company_slug company_name; do
+  if ! has_data_override "$key" "$@"; then
+    inherited_company="$(read_inherited_string "$answers_file" "$key")" || exit "$?"
+    if [ -n "$inherited_company" ]; then
+      set -- -d "$key=$inherited_company" "$@"
+    fi
   fi
-fi
+done
 
-if ! has_data_override company_name "$@"; then
-  inherited_name=""
-  inherited_name_status=0
-  inherited_name="$(read_inherited_string "$answers_file" company_name)" || inherited_name_status=$?
-  [ "$inherited_name_status" -eq 0 ] || exit "$inherited_name_status"
-  if [ -n "$inherited_name" ]; then
-    set -- -d "company_name=$inherited_name" "$@"
-  fi
-fi
+case "$template_name" in
+  tpl-project-repo|tpl-monorepo|tpl-package)
+    ontology_default="$(company_ontology_ref_default "$@")" || exit "$?"
+    if [ -n "$ontology_default" ]; then
+      set -- -d "company_ontology_ref=$ontology_default" "$@"
+    fi
+    ;;
+esac
 
 # Default project owner handle from local git config unless explicitly provided
 # and inference is not explicitly disabled.

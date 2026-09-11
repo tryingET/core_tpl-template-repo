@@ -112,6 +112,12 @@ def make_ak_mock(
 
 
 class L1TemplateOwnershipTests(unittest.TestCase):
+    def test_base_to_candidate_answer_template_upgrade_suite(self) -> None:
+        # Keep real upgrade rendering in the declared 600s generation lane rather
+        # than adding its render matrix to the already bounded 300s guardrail lane.
+        run("uvx", "--from", "copier==9.11.1", "python", "-B", "-m", "unittest",
+            "tests.test_l1_answer_template_upgrade.UpgradeTests", cwd=ROOT)
+
     def copy_fixture(self, parent: Path, name: str) -> Path:
         target = parent / name
         shutil.copytree(FIXTURE, target)
@@ -188,6 +194,34 @@ class L1TemplateOwnershipTests(unittest.TestCase):
             self.assertEqual(local_only.read_text(), "outside rendered surface\n")
             gate = run("bash", "scripts/check-template-ci.sh", cwd=target)
             self.assertNotIn("error:", gate.stderr.lower())
+
+    def test_retirement_revalidates_all_old_templates_after_copy_before_any_delete(self) -> None:
+        from l1_answer_template_upgrade import APPROVED, OLD, NEW
+
+        with tempfile.TemporaryDirectory(dir=SCRATCH_PARENT) as temp:
+            parent = Path(temp)
+            target = self.copy_fixture(parent, "target")
+            rendered = self.copy_fixture(parent, "rendered")
+            old_paths = []
+            for name in APPROVED:
+                folder = target / "copier" / name
+                shutil.copy2(folder / NEW, folder / OLD)
+                old_paths.append(folder / OLD)
+            init_commit(target)
+            state_before = (target / STATE).read_bytes()
+            changed = rendered / "scripts/ci/full.sh"
+            changed.write_text(changed.read_text() + "\n# refresh change\n")
+            original_copy = OWNERSHIP.copy_atomic
+
+            def concurrent_drift(source, destination):
+                original_copy(source, destination)
+                old_paths[-1].write_text(old_paths[-1].read_text() + "# late drift\n")
+
+            with mock.patch.object(OWNERSHIP, "copy_atomic", side_effect=concurrent_drift):
+                with self.assertRaisesRegex(ValueError, "modified or unapproved"):
+                    OWNERSHIP.refresh(target, rendered, True, PLAN_SHA256, "test-retirement", L0_HEAD)
+            self.assertTrue(all(path.is_file() for path in old_paths))
+            self.assertEqual((target / STATE).read_bytes(), state_before)
 
     def test_bootstrap_installs_only_map_and_census_attestation(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH_PARENT) as temp:
