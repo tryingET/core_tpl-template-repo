@@ -16,7 +16,8 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from l1_template_ownership import load_map, patterns_overlap  # noqa: E402
+from l1_template_ownership import load_map  # noqa: E402
+from l1_template_transition_delta import validate_git_delta, validate_rel  # noqa: E402
 from l1_template_receipts import (  # noqa: E402
     MAP_PATH,
     STATE_PATH,
@@ -40,8 +41,6 @@ EVIDENCE_TYPE = "l1_ownership_transition_v1"
 EXECUTOR_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{2,127}\Z")
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
-CONTROL_PATHS = {MAP_PATH.as_posix(), STATE_PATH.as_posix(), ".git"}
-MODES = {"000000", "100644", "100755", "120000", "160000"}
 REQUIRED_VALIDATION = [
     {"id": "check-template-ci", "command": "bash scripts/check-template-ci.sh"},
     {"id": "ci-full", "command": "bash scripts/ci/full.sh"},
@@ -68,15 +67,6 @@ def load_object(path: Path, label: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"{label} must be a JSON object")
     return value
-def validate_rel(path: object, allow_controls: bool = False) -> str:
-    if not isinstance(path, str) or not path or path.startswith("/") or "\\" in path:
-        raise ValueError(f"invalid repository path: {path!r}")
-    parts = Path(path).parts
-    if any(part in {"", ".", "..", ".git"} for part in parts):
-        raise ValueError(f"unsafe repository path: {path}")
-    if path in CONTROL_PATHS and not allow_controls:
-        raise ValueError(f"transition payload may not include control path: {path}")
-    return path
 def verify_registered_target(repo: Path, canonical: Path) -> None:
     if (
         git_top(canonical) != canonical.resolve()
@@ -161,46 +151,6 @@ def semantic_delta(old: dict[str, list[str]], new: dict[str, list[str]]) -> dict
     if not any(result.values()):
         raise ValueError("successor ownership map must change ownership semantics")
     return result
-def validate_git_delta(value: object, allow_controls: bool = False) -> list[dict[str, Any]]:
-    if not isinstance(value, list) or not value:
-        raise ValueError("git_delta must be a non-empty list")
-    result: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for item in value:
-        if not isinstance(item, dict) or set(item) != {
-            "path", "old_mode", "new_mode", "old_oid", "new_oid", "content_sha256"
-        }:
-            raise ValueError("each git_delta entry must use the exact six-field schema")
-        path = validate_rel(item["path"], allow_controls)
-        if path in seen:
-            raise ValueError(f"duplicate git_delta path: {path}")
-        for prior in result:
-            prior_path = prior["path"]
-            related = path.startswith(prior_path + "/") or prior_path.startswith(path + "/")
-            collapse = (
-                (item["new_mode"] == "160000" and path + "/" == prior_path[:len(path) + 1] and prior["new_mode"] == "000000")
-                or (prior["new_mode"] == "160000" and prior_path + "/" == path[:len(prior_path) + 1] and item["new_mode"] == "000000")
-            )
-            if related and not collapse:
-                raise ValueError(f"ancestor-ambiguous git_delta paths: {prior_path}, {path}")
-        seen.add(path)
-        old_mode, new_mode = item["old_mode"], item["new_mode"]
-        if old_mode not in MODES or new_mode not in MODES or old_mode == new_mode == "000000":
-            raise ValueError(f"unsupported Git mode transition for {path}")
-        for mode, oid in ((old_mode, item["old_oid"]), (new_mode, item["new_oid"])):
-            if mode == "000000":
-                if oid is not None:
-                    raise ValueError(f"absent side must use null OID for {path}")
-            elif not isinstance(oid, str) or not HEX40.fullmatch(oid):
-                raise ValueError(f"present side requires full Git OID for {path}")
-        content = item["content_sha256"]
-        if new_mode in {"100644", "100755", "120000"}:
-            if not isinstance(content, str) or not HEX64.fullmatch(content):
-                raise ValueError(f"file/symlink delta requires content_sha256 for {path}")
-        elif content is not None:
-            raise ValueError(f"gitlink/deletion content_sha256 must be null for {path}")
-        result.append(dict(item, path=path))
-    return sorted(result, key=lambda item: item["path"])
 def plan_hash(plan: dict[str, Any]) -> str:
     body = dict(plan)
     body.pop("canonical_plan_sha256", None)

@@ -347,5 +347,12 @@ class TransitionTests(unittest.TestCase):
             run("git", "worktree", "remove", "--force", str(linked), cwd=h.repo)
 
 
+def load_tests(loader: unittest.TestLoader, suite: unittest.TestSuite, pattern: str | None) -> unittest.TestSuite:
+    # The L0 gate names this module explicitly; discovery already finds both files.
+    if pattern is None:
+        suite.addTests(loader.loadTestsFromName("tests.test_l1_template_reverse_transitions"))
+    return suite
+
+
 if __name__ == "__main__":
     unittest.main()
