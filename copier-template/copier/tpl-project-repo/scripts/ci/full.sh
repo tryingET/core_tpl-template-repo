@@ -27,7 +27,7 @@ run_task_scope_snapshots() {
 run_rocs() {
   if [ -x "./scripts/rocs.sh" ] && [ -f "./ontology/manifest.yaml" ]; then
     ./scripts/rocs.sh version
-    # Managed ROCS gate: cleanup -> validate -> build (validate before build, no --clean).
+    # Managed ROCS gate: cleanup -> validate -> build (validate before build; never wipe ontology/dist first).
     # The sealed launcher resolves <repo:...@ref> layers from the enclosing workspace by default.
     rocs_ref_mode_args=""
     case "${ROCS_CI_PROFILE:-}" in
