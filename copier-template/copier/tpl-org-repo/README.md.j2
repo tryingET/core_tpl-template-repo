@@ -104,7 +104,7 @@ If you are retiring a legacy `governance/task-scopes/AK-*.json` file, export the
 Use deterministic wrapper commands before ad-hoc scripts:
 
 ```bash
-./scripts/rocs.sh doctor --repo .
+./scripts/rocs.sh --doctor
 ./scripts/rocs.sh version
 ```
 
@@ -116,6 +116,13 @@ If this repo includes ontology artifacts (`ontology/manifest.yaml`), run the sam
 ./scripts/rocs.sh build --repo .
 ```
 
+`scripts/rocs.sh` runs the workspace rocs-cli core checkout (`~/ai-society/core/rocs-cli`, override `ROCS_CORE_PROJECT`)
+through `uv run --frozen`, pinned by the `rocs_cli_version` answer (`{{ rocs_cli_version }}`): the core must report the same
+major.minor with a patch >= the pin, otherwise the launcher exits 2 naming both versions. There is no vendored or PATH fallback.
+ROCS therefore needs the local workspace: the rocs-cli core plus the ontology repos named by `<repo:...@ref>` layers
+(for example `core/ontology-kernel` and `{{ company_slug }}/ontology`). The launcher defaults `ROCS_WORKSPACE_ROOT` to the
+nearest ancestor that holds them (else `~/ai-society`) and sets `ROCS_RESOLVE_REFS=1`. CI runners must provide that
+workspace (AK #5901) before running the ROCS step of `scripts/ci/full.sh`.
 Generated outputs under `ontology/dist/` (including authority receipts) are gitignored; `./scripts/rocs.sh cleanup --repo .` removes them.
 
 ## Knowledge Evolution
