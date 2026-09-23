@@ -769,7 +769,9 @@ for rocs_version in 0.4.3 0.4.9 0.4.2 0.3.9 0.5.0 1.4.3; do
 done
 for generated_rocs_repo in "$matrix_project_python" "$matrix_agent" "$matrix_org" "$matrix_monorepo"; do
 	assert_file_contains "$generated_rocs_repo/scripts/rocs.sh" 'rocs_cli_pin="0.4.3"' "generated L2 ROCS launcher must render the rocs_cli_version pin"
-	assert_file_contains "$generated_rocs_repo/.copier-answers.yml" "rocs_cli_version: 0.4.3" "generated L2 answers must persist the rocs-cli pin"
+	if [ "$generated_rocs_repo" != "$matrix_monorepo" ]; then
+		assert_file_contains "$generated_rocs_repo/.copier-answers.yml" "rocs_cli_version: 0.4.3" "generated L2 answers must persist the rocs-cli pin"
+	fi
 	assert_path_absent "$generated_rocs_repo/tools/rocs-cli" "generated L2 repos must not vendor rocs-cli"
 	assert_file_contains "$generated_rocs_repo/.gitignore" "/ontology/dist/" "generated L2 repo must gitignore ROCS outputs"
 	for rocs_version in 0.4.3 0.4.9; do

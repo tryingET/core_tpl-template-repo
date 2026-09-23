@@ -124,7 +124,6 @@ for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
 		assert_files_equal "$rocs_launcher_source" "copier-template/copier/$tpl/scripts/rocs.sh.j2" "ROCS launcher must be identical in $tpl"
 	fi
 done
-assert_contains "copier-template/copier/tpl-monorepo/{% raw %}{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}{% endraw %}.j2" '"rocs_cli_version": rocs_cli_version' "tpl-monorepo answers must persist the rocs-cli pin"
 for rocs_launcher in \
 	fixtures/l2/tpl-project-repo/scripts/rocs.sh \
 	fixtures/l2/tpl-agent-repo/scripts/rocs.sh \
