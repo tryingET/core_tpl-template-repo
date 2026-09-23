@@ -104,11 +104,19 @@ If you are retiring a legacy `governance/task-scopes/AK-*.json` file, export the
 Use deterministic wrapper commands before ad-hoc scripts:
 
 ```bash
-./scripts/rocs.sh --doctor
-./scripts/rocs.sh --which
+./scripts/rocs.sh doctor --repo .
+./scripts/rocs.sh version
 ```
 
-If this repo includes ontology artifacts, run validation through the same wrapper.
+If this repo includes ontology artifacts (`ontology/manifest.yaml`), run the same gate as `scripts/ci/full.sh`:
+
+```bash
+./scripts/rocs.sh cleanup --repo .
+./scripts/rocs.sh validate --repo .
+./scripts/rocs.sh build --repo .
+```
+
+Generated outputs under `ontology/dist/` (including authority receipts) are gitignored; `./scripts/rocs.sh cleanup --repo .` removes them.
 
 ## Knowledge Evolution
 

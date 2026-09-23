@@ -1,7 +1,7 @@
 ---
 summary: "Ontology Index repo."
 read_when:
-  - "Read when changing or validating generated tpl-project-repo documentation for ontology index repo."
+  - "Read when changing or validating generated tpl-monorepo documentation for ontology index repo."
 type: "reference"
 ---
 
@@ -10,7 +10,7 @@ type: "reference"
 Start here when browsing manually.
 
 - `ontology/manifest.yaml` — which layers apply
-- `ontology/src/system4d.yaml` — repo-local System4D (implementation)
+- `ontology/src/system4d.yaml` — monorepo-root System4D (packages/apps inherit it)
 - `ontology/src/reference/concepts/` — repo-local concepts (only when needed)
 - `ontology/src/bridge/mapping.yaml` — map concepts to code symbols
 - `ontology/dist/` — generated artifacts (tool-first)

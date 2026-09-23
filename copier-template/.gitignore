@@ -140,3 +140,13 @@ agents/*
 !agents/tests/**
 !agents/tools/
 !agents/tools/**
+
+# ROCS generated outputs: validate/build rewrite ontology/dist (including
+
+# authority receipts); never commit them. Kept last so lane-root
+
+# re-includes above cannot re-track them.
+
+/ontology/dist/
+
+/*/ontology/dist/

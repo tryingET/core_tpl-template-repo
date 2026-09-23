@@ -26,3 +26,9 @@ auth.json
 **/auth.json
 op-service.env
 gitlab.env
+
+# ROCS generated outputs: validate/build rewrite ontology/dist (including
+
+# authority receipts); never commit them.
+
+/ontology/dist/

@@ -3,6 +3,10 @@ _answers_file: .copier-answers.yml
 _templates_suffix: .j2
 _exclude:
   - "copier.yml"
+  - "tools/rocs-cli/build"
+  - "tools/rocs-cli/dist"
+  - "tools/rocs-cli/.venv"
+  - "tools/rocs-cli/src/*.egg-info"
   - "**/__pycache__"
   - "**/*.pyc"
 
@@ -59,13 +63,13 @@ enable_vouch_gate:
 
 kernel_ontology_ref:
   type: str
-  default: "<repo:core/ontology-kernel@v0.2.0>"
+  default: "<repo:core/ontology-kernel@v0.2.1>"
   help: "ROCS core/kernel ontology ref (workspace repo locator)"
 
 company_ontology_ref:
   type: str
-  default: "<gitlab:org/ontology@v0.1.0>"
-  help: "ROCS company overlay ref (GitLab locator)"
+  default: "<repo:{{ company_slug }}/ontology@main>"
+  help: "ROCS company overlay ref (workspace repo locator)"
 
 core_owner_handle:
   type: str

@@ -43,7 +43,7 @@ ak work-items check --repo . --path governance/work-items.json
 ak task ready
 
 # ROCS tooling
-./scripts/rocs.sh --doctor
+./scripts/rocs.sh doctor --repo .
 ./scripts/rocs.sh version
 
 # CI lanes
@@ -83,9 +83,12 @@ If you are retiring a legacy monorepo-root `governance/task-scopes/AK-*.json` fi
 
 ## ROCS command flow
 
-1. `./scripts/rocs.sh --doctor` — verify ROCS environment
-2. `./scripts/rocs.sh validate --repo .` — validate ontology
-3. `./scripts/rocs.sh lint --repo .` — lint governance files
+1. `./scripts/rocs.sh doctor --repo .` — verify the vendored ROCS bundle and tool identity
+2. `./scripts/rocs.sh cleanup --repo .` — remove managed build outputs
+3. `./scripts/rocs.sh validate --repo .` — validate all ontology layers (core, company, repo)
+4. `./scripts/rocs.sh build --repo .` — build `ontology/dist/`
+
+Generated outputs under `ontology/dist/` (including authority receipts) are gitignored; `./scripts/rocs.sh cleanup --repo .` removes them.
 
 ## Adding Packages
 
