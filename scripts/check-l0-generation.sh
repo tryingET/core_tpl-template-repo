@@ -534,77 +534,6 @@ assert_file_contains "$bootstrap_l1/team-data/CODEOWNERS" "docs/project/** @acme
 	}
 )
 
-# Regression: an invalid vendored tools/rocs-cli directory must not block the local-project fallback.
-rocs_python_l1="$tmp_root/l1-template-rocs-python"
-"$repo_root/scripts/new-l1-from-copier.sh" "$rocs_python_l1" \
-	-d repo_slug=l1-template-rocs-python \
-	-d maintainer_handle=@template-owner \
-	--defaults --overwrite >/dev/null
-mkdir -p "$rocs_python_l1/src/rocs_cli" "$rocs_python_l1/bin" "$rocs_python_l1/tools/rocs-cli"
-cat >"$rocs_python_l1/pyproject.toml" <<'EOF'
-[project]
-name = "rocs-cli"
-version = "0.0.0"
-EOF
-cat >"$rocs_python_l1/src/rocs_cli/__main__.py" <<'EOF'
-print("ok: rocs python fallback")
-EOF
-for cmd in sh "$python_exec" dirname grep; do
-	ln -s "$(command -v "$cmd")" "$rocs_python_l1/bin/$cmd"
-done
-rocs_which_output="$(
-	cd "$rocs_python_l1"
-	PATH="$rocs_python_l1/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh --which
-)"
-printf '%s\n' "$rocs_which_output" | grep -qF "local rocs-cli project via PYTHONPATH=$rocs_python_l1/src $python_exec -m rocs_cli" || {
-	echo "error: generated L1 ROCS wrapper should select the python fallback when uv/uvx are absent" >&2
-	printf '%s\n' "$rocs_which_output" >&2
-	exit 1
-}
-rocs_python_output="$(
-	cd "$rocs_python_l1"
-	PATH="$rocs_python_l1/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh version
-)"
-printf '%s\n' "$rocs_python_output" | grep -qF "ok: rocs python fallback" || {
-	echo "error: generated L1 ROCS wrapper should execute the python fallback with repo-local src on PYTHONPATH" >&2
-	printf '%s\n' "$rocs_python_output" >&2
-	exit 1
-}
-
-rocs_python_root="$tmp_root/root-rocs-python"
-mkdir -p "$rocs_python_root/scripts" "$rocs_python_root/src/rocs_cli" "$rocs_python_root/bin" "$rocs_python_root/tools/rocs-cli"
-cp "$repo_root/scripts/rocs.sh" "$rocs_python_root/scripts/rocs.sh"
-chmod +x "$rocs_python_root/scripts/rocs.sh"
-cat >"$rocs_python_root/pyproject.toml" <<'EOF'
-[project]
-name = "rocs-cli"
-version = "0.0.0"
-EOF
-cat >"$rocs_python_root/src/rocs_cli/__main__.py" <<'EOF'
-print("ok: root rocs python fallback")
-EOF
-for cmd in sh "$python_exec" dirname grep; do
-	ln -s "$(command -v "$cmd")" "$rocs_python_root/bin/$cmd"
-done
-root_rocs_which_output="$(
-	cd "$rocs_python_root"
-	PATH="$rocs_python_root/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh --which
-)"
-printf '%s\n' "$root_rocs_which_output" | grep -qF "local rocs-cli project via PYTHONPATH=$rocs_python_root/src $python_exec -m rocs_cli" || {
-	echo "error: root ROCS wrapper should select the python fallback when uv/uvx are absent" >&2
-	printf '%s\n' "$root_rocs_which_output" >&2
-	exit 1
-}
-root_rocs_python_output="$(
-	cd "$rocs_python_root"
-	PATH="$rocs_python_root/bin" ROCS_CORE_PROJECT=/definitely/missing ./scripts/rocs.sh version
-)"
-printf '%s\n' "$root_rocs_python_output" | grep -qF "ok: root rocs python fallback" || {
-	echo "error: root ROCS wrapper should execute the python fallback with repo-local src on PYTHONPATH" >&2
-	printf '%s\n' "$root_rocs_python_output" >&2
-	exit 1
-}
-
 # Language-matrix smoke: project language cases plus monorepo member-language cases.
 matrix_l1="$tmp_root/l1-template-matrix"
 matrix_project_python="$tmp_root/l2-project-python-matrix"
@@ -819,11 +748,114 @@ assert_command_fails "root ROCS which must fail closed when ROCS_BIN is invalid"
 	assert_command_fails "generated L1 ROCS doctor must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --doctor
 	assert_command_fails "generated L1 ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --which
 )
-(
-	cd "$matrix_project_python"
-	assert_command_fails "generated L2 ROCS doctor must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --doctor
-	assert_command_fails "generated L2 ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing ./scripts/rocs.sh --which
-)
+# Generated L2 ROCS launcher: runs the workspace rocs-cli core pinned by rocs_cli_version.
+# A stub `uv` records the exec so these checks need neither network nor a real core.
+rocs_stub_bin="$tmp_root/rocs-stub-bin"
+mkdir -p "$rocs_stub_bin"
+cat >"$rocs_stub_bin/uv" <<'EOF'
+#!/bin/sh
+printf 'stub-uv:%s\n' "$*"
+printf 'workspace:%s\n' "$ROCS_WORKSPACE_ROOT"
+printf 'resolve-refs:%s\n' "$ROCS_RESOLVE_REFS"
+EOF
+chmod +x "$rocs_stub_bin/uv"
+make_fake_rocs_core() {
+	fake_core="$tmp_root/rocs-core-$1"
+	mkdir -p "$fake_core/src/rocs_cli"
+	printf '[project]\nname = "rocs-cli"\nversion = "%s"\n' "$1" >"$fake_core/pyproject.toml"
+}
+for rocs_version in 0.4.3 0.4.9 0.4.2 0.3.9 0.5.0 1.4.3; do
+	make_fake_rocs_core "$rocs_version"
+done
+for generated_rocs_repo in "$matrix_project_python" "$matrix_agent" "$matrix_org" "$matrix_monorepo"; do
+	assert_file_contains "$generated_rocs_repo/scripts/rocs.sh" 'rocs_cli_pin="0.4.3"' "generated L2 ROCS launcher must render the rocs_cli_version pin"
+	assert_file_contains "$generated_rocs_repo/.copier-answers.yml" "rocs_cli_version: 0.4.3" "generated L2 answers must persist the rocs-cli pin"
+	assert_path_absent "$generated_rocs_repo/tools/rocs-cli" "generated L2 repos must not vendor rocs-cli"
+	assert_file_contains "$generated_rocs_repo/.gitignore" "/ontology/dist/" "generated L2 repo must gitignore ROCS outputs"
+	for rocs_version in 0.4.3 0.4.9; do
+		rocs_output="$(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-$rocs_version" ./scripts/rocs.sh validate --repo .)" ||
+			fail "generated L2 ROCS launcher must run a compatible core $rocs_version: $generated_rocs_repo"
+		printf '%s\n' "$rocs_output" | grep -qxF "stub-uv:run --frozen --project $tmp_root/rocs-core-$rocs_version python -m rocs_cli validate --repo ." ||
+			fail "generated L2 ROCS launcher must exec uv run --frozen against the pinned core (got: $rocs_output)"
+		printf '%s\n' "$rocs_output" | grep -qxF "resolve-refs:1" || fail "generated L2 ROCS launcher must resolve refs by default"
+	done
+	for rocs_version in 0.4.2 0.3.9 0.5.0 1.4.3; do
+		set +e
+		rocs_stderr="$(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-$rocs_version" ./scripts/rocs.sh version 2>&1 >/dev/null)"
+		rocs_status=$?
+		set -e
+		[ "$rocs_status" -eq 2 ] || fail "generated L2 ROCS launcher must exit 2 for incompatible core $rocs_version (got $rocs_status)"
+		printf '%s\n' "$rocs_stderr" | grep -qF "is $rocs_version but this repo pins 0.4.3" ||
+			fail "generated L2 ROCS launcher must name both versions for core $rocs_version (got: $rocs_stderr)"
+	done
+	set +e
+	rocs_stderr="$(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-missing" ./scripts/rocs.sh version 2>&1 >/dev/null)"
+	rocs_status=$?
+	set -e
+	[ "$rocs_status" -eq 2 ] || fail "generated L2 ROCS launcher must exit 2 when the core checkout is missing (got $rocs_status)"
+	printf '%s\n' "$rocs_stderr" | grep -qF "rocs-cli core checkout not found at $tmp_root/rocs-core-missing" ||
+		fail "generated L2 ROCS launcher must explain a missing core (got: $rocs_stderr)"
+	(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.3" ./scripts/rocs.sh --doctor) | grep -qF "pin: 0.4.3" ||
+		fail "generated L2 ROCS launcher --doctor must report the pin"
+done
+
+# Workspace discovery: inside a workspace holding every <repo:PATH@ref> layer the launcher
+# defaults ROCS_WORKSPACE_ROOT to that ancestor; outside it falls back to $HOME/ai-society.
+rocs_workspace="$tmp_root/rocs-workspace"
+make_rocs_ref_repo() {
+	ref_repo="$1"
+	mkdir -p "$ref_repo/ontology/src"
+	printf 'rocs:\n  layers:\n    - name: repo\n      path: ontology/src\n' >"$ref_repo/ontology/manifest.yaml"
+	printf 'system4d: {}\n' >"$ref_repo/ontology/src/system4d.yaml"
+	git -C "$ref_repo" init -q -b main
+	git -C "$ref_repo" add -A
+	git -C "$ref_repo" -c user.name=l0-check -c user.email=l0-check@example.invalid -c commit.gpgsign=false commit -q -m init
+}
+make_rocs_ref_repo "$rocs_workspace/core/ontology-kernel"
+git -C "$rocs_workspace/core/ontology-kernel" -c tag.gpgsign=false tag v0.2.1
+make_rocs_ref_repo "$rocs_workspace/holdingco/ontology"
+assert_file_contains "$matrix_project_python/ontology/manifest.yaml" "<repo:core/ontology-kernel@v0.2.1>" "generated tpl-project-repo must layer the protected kernel release"
+assert_file_contains "$matrix_project_python/ontology/manifest.yaml" "<repo:holdingco/ontology@main>" "generated tpl-project-repo must layer the company ontology"
+assert_file_contains "$matrix_monorepo/ontology/manifest.yaml" "<repo:holdingco/ontology@main>" "generated tpl-monorepo must layer the company ontology"
+mkdir -p "$rocs_workspace/holdingco/owned"
+for rocs_case in project:"$matrix_project_python" monorepo:"$matrix_monorepo"; do
+	rocs_case_name="${rocs_case%%:*}"
+	rocs_consumer="$rocs_workspace/holdingco/owned/rocs-$rocs_case_name"
+	cp -R "${rocs_case#*:}" "$rocs_consumer"
+	rocs_output="$(cd "$rocs_consumer" && env -u ROCS_WORKSPACE_ROOT -u ROCS_RESOLVE_REFS PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.3" ./scripts/rocs.sh validate --repo .)"
+	printf '%s\n' "$rocs_output" | grep -qxF "workspace:$rocs_workspace" ||
+		fail "generated $rocs_case_name launcher must discover the enclosing workspace (got: $rocs_output)"
+done
+rocs_fake_home="$tmp_root/rocs-home"
+mkdir -p "$rocs_fake_home"
+rocs_output="$(cd "$matrix_project_python" && env -u ROCS_WORKSPACE_ROOT HOME="$rocs_fake_home" PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.3" ./scripts/rocs.sh validate --repo .)"
+printf '%s\n' "$rocs_output" | grep -qxF "workspace:$rocs_fake_home/ai-society" ||
+	fail "generated launcher outside a workspace must fall back to \$HOME/ai-society (got: $rocs_output)"
+
+# End-to-end with the real workspace core when a compatible checkout exists: plain
+# `./scripts/rocs.sh validate --repo .` resolves every layer, and the managed full.sh gate
+# (cleanup -> validate -> build, strict under main-strict) leaves the tree clean.
+rocs_real_core="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"
+if [ -f "$rocs_real_core/pyproject.toml" ] && command -v uv >/dev/null 2>&1 &&
+	grep -Eq '^version = "0\.4\.([3-9]|[1-9][0-9]+)"' "$rocs_real_core/pyproject.toml"; then
+	for rocs_case in project monorepo; do
+		rocs_consumer="$rocs_workspace/holdingco/owned/rocs-$rocs_case"
+		git -C "$rocs_consumer" init -q -b main
+		git -C "$rocs_consumer" add -A
+		git -C "$rocs_consumer" -c user.name=l0-check -c user.email=l0-check@example.invalid -c commit.gpgsign=false commit -q -m init
+		(
+			cd "$rocs_consumer"
+			env -u ROCS_WORKSPACE_ROOT -u ROCS_RESOLVE_REFS -u ROCS_REPO ROCS_CORE_PROJECT="$rocs_real_core" ./scripts/rocs.sh validate --repo . >/dev/null ||
+				fail "generated $rocs_case repo inside a workspace must validate all layers with plain ./scripts/rocs.sh validate --repo ."
+			env -u ROCS_WORKSPACE_ROOT -u ROCS_RESOLVE_REFS -u ROCS_REPO ROCS_CORE_PROJECT="$rocs_real_core" ROCS_CI_PROFILE=main-strict AK_CMD=false ./scripts/ci/full.sh >/dev/null 2>&1 ||
+				fail "generated $rocs_case full CI must pass the ROCS cleanup -> validate -> build gate under main-strict"
+			[ -f ontology/dist/authority-receipt.json ] || fail "generated $rocs_case full CI must build ROCS outputs"
+			[ -z "$(git status --porcelain --untracked-files=all)" ] || fail "generated $rocs_case ROCS outputs must be gitignored (dirty tree after full CI)"
+		)
+	done
+else
+	echo "warning: skipping real-core ROCS end-to-end check (no compatible rocs-cli 0.4.x>=0.4.3 core at $rocs_real_core or uv missing)" >&2
+fi
 
 [ -s "$matrix_project_node/package.json" ] || fail "expected node project software-pack manifest"
 [ ! -e "$matrix_project_node/tsconfig.json" ] || fail "node project should not emit tsconfig.json"

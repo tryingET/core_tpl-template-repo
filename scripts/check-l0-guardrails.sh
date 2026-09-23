@@ -556,36 +556,8 @@ assert_contains "copier-template/copier/tpl-package/AGENTS.md.j2" "Deferred work
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "ROCS commands should be run from the monorepo root." "tpl-package ROCS wrapper should remain a monorepo-root placeholder"
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "Use: ../../scripts/rocs.sh <args>" "tpl-package ROCS wrapper should redirect to the monorepo-root launcher"
 assert_absent "copier-template/copier/tpl-package/scripts/ak.sh"
-# ROCS consumer model (CI gate, output ignores, LF attributes, ref defaults).
+# ROCS consumer model (pinned-core launcher, CI gate, output ignores, LF attributes, ref defaults).
 sh "$repo_root/scripts/check-l0-rocs-consumer.sh" || fail "ROCS consumer-model guardrails failed"
-rocs_bundle_source="copier-template/copier/tpl-project-repo/tools/rocs-cli"
-for rocs_bundle in \
-	"$rocs_bundle_source" \
-	"fixtures/l1/template-repo/copier/tpl-project-repo/tools/rocs-cli" \
-	"fixtures/l2/tpl-project-repo/tools/rocs-cli" \
-	"fixtures/matrix/tpl-project-repo/python/tools/rocs-cli" \
-	"fixtures/matrix/tpl-project-repo/node/tools/rocs-cli" \
-	"fixtures/matrix/tpl-project-repo/typescript/tools/rocs-cli" \
-	"fixtures/matrix/tpl-project-repo/rust/tools/rocs-cli" \
-	"fixtures/matrix/tpl-project-repo/elixir/tools/rocs-cli"; do
-	assert_file "$rocs_bundle/rocs.py"
-	assert_file "$rocs_bundle/VENDORED_HASHES.json"
-	assert_contains "$rocs_bundle/VENDORED_HASHES.json" '"schema_version": 3' "vendored rocs bundle must use receipt schema 3"
-	assert_contains "$rocs_bundle/VENDORED_HASHES.json" '"upstream_version": "0.3.0"' "vendored rocs bundle must pin release 0.3.0"
-	assert_contains "$rocs_bundle/VENDORED_HASHES.json" '"source_commit": "ecd48bbbf79c3eb8c67726ff238b70320fd4551a"' "vendored rocs bundle must bind the authoritative source commit"
-	assert_absent "$rocs_bundle/src/rocs_cli/gitlab.py"
-	assert_absent "$rocs_bundle/src/rocs_cli/gitlab_ci.py"
-	if find "$rocs_bundle" -type d \( -name __pycache__ -o -name build -o -name dist -o -name '*.egg-info' \) | grep -q .; then
-		fail "vendored rocs bundle contains generated residue: $rocs_bundle"
-	fi
-	python3 -I -S -B "$rocs_bundle/rocs.py" vendored-check --vendored-dir "$rocs_bundle" >/dev/null || fail "vendored rocs integrity failed: $rocs_bundle"
-	if [ "$rocs_bundle" != "$rocs_bundle_source" ]; then
-		assert_files_equal "$rocs_bundle_source/VENDORED_HASHES.json" "$rocs_bundle/VENDORED_HASHES.json" "vendored rocs fixture receipt must match L0 source"
-	fi
-done
-assert_contains "$rocs_bundle_source/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
-assert_contains "$rocs_bundle_source/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
-assert_file "$rocs_bundle_source/src/rocs_cli/workspace.py"
 
 check_multi_pass_suffix_policy
 

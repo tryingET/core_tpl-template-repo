@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 # ROCS consumer-model guardrails for the L2 templates (split out of check-l0-guardrails.sh
-# to keep that file within its line budget). Asserts the cleanup -> validate -> build
-# CI gate, ROCS output ignores, LF-only launcher/CI scripts, and workspace ref defaults.
+# to keep that file within its line budget). Asserts the pinned-core ROCS launcher (no
+# vendored bundle), the cleanup -> validate -> build CI gate, ROCS output ignores,
+# LF-only launcher/CI scripts, and workspace ref defaults.
 set -eu
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -98,6 +99,45 @@ assert_file "copier-template/copier/tpl-monorepo/ontology/manifest.yaml.j2"
 assert_file "copier-template/copier/tpl-monorepo/ontology/src/system4d.yaml"
 assert_contains "copier-template/copier/tpl-monorepo/ontology/manifest.yaml.j2" '{{ kernel_ontology_ref }}' "tpl-monorepo manifest must layer the core ontology"
 assert_contains "copier-template/copier/tpl-monorepo/ontology/manifest.yaml.j2" '{{ company_ontology_ref }}' "tpl-monorepo manifest must layer the company ontology"
+
+# ROCS launcher: runs the workspace rocs-cli core checkout pinned by rocs_cli_version;
+# no vendored tools/rocs-cli bundle and no uvx/PATH fallbacks.
+rocs_expected_pin="0.4.3"
+rocs_launcher_source="copier-template/copier/tpl-project-repo/scripts/rocs.sh.j2"
+assert_contains "$rocs_launcher_source" 'rocs_cli_pin="{{ rocs_cli_version }}"' "ROCS launcher must render the rocs_cli_version pin"
+assert_contains "$rocs_launcher_source" 'core="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"' "ROCS launcher must default to the workspace rocs-cli core"
+assert_contains "$rocs_launcher_source" 'exec uv run --frozen --project "$core" python -m rocs_cli "$@"' "ROCS launcher must run the pinned core through uv run --frozen"
+assert_contains "$rocs_launcher_source" 'ROCS_WORKSPACE_ROOT="$HOME/ai-society"' "ROCS launcher must fall back to the ai-society workspace root"
+assert_contains "$rocs_launcher_source" '[ ! -d "$ws/${ref#*/}" ]' "ROCS launcher must mirror rocs-cli workspace discovery incl. the prefix case"
+assert_contains "$rocs_launcher_source" 'ROCS_RESOLVE_REFS="${ROCS_RESOLVE_REFS:-1}"' "ROCS launcher must resolve workspace refs by default"
+assert_contains "$rocs_launcher_source" "--doctor)" "ROCS launcher must keep a --doctor mode"
+for forbidden in uvx ROCS_ALLOW_PATH_FALLBACK tools/rocs-cli ROCS_BIN; do
+	assert_not_contains "$rocs_launcher_source" "$forbidden" "ROCS launcher must not keep legacy fallbacks"
+done
+if grep -nE '\{%|\{#' "$rocs_launcher_source" >/dev/null; then
+	fail "ROCS launcher contains Jinja block/comment delimiters: $rocs_launcher_source"
+fi
+for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
+	assert_absent "copier-template/copier/$tpl/tools/rocs-cli"
+	assert_yaml_default "copier-template/copier/$tpl/copier.yml" rocs_cli_version "$rocs_expected_pin" "$tpl must pin rocs-cli $rocs_expected_pin"
+	if [ "$tpl" != "tpl-project-repo" ]; then
+		assert_files_equal "$rocs_launcher_source" "copier-template/copier/$tpl/scripts/rocs.sh.j2" "ROCS launcher must be identical in $tpl"
+	fi
+done
+assert_contains "copier-template/copier/tpl-monorepo/{% raw %}{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}{% endraw %}.j2" '"rocs_cli_version": rocs_cli_version' "tpl-monorepo answers must persist the rocs-cli pin"
+for rocs_launcher in \
+	fixtures/l2/tpl-project-repo/scripts/rocs.sh \
+	fixtures/l2/tpl-agent-repo/scripts/rocs.sh \
+	fixtures/l2/tpl-org-repo/scripts/rocs.sh \
+	fixtures/l2/tpl-monorepo/scripts/rocs.sh \
+	fixtures/matrix/tpl-project-repo/python/scripts/rocs.sh \
+	fixtures/matrix/tpl-monorepo/root/scripts/rocs.sh; do
+	assert_contains "$rocs_launcher" "rocs_cli_pin=\"$rocs_expected_pin\"" "rendered ROCS launcher must carry the rendered pin"
+	assert_absent "$(dirname -- "$(dirname -- "$rocs_launcher")")/tools/rocs-cli"
+done
+for rocs_launcher in fixtures/l1/template-repo/copier/tpl-project-repo/scripts/rocs.sh.j2 fixtures/l1/template-repo/copier/tpl-monorepo/scripts/rocs.sh.j2; do
+	assert_files_equal "$rocs_launcher_source" "$rocs_launcher" "L1 fixture ROCS launcher must match the L0 source"
+done
 
 # ROCS CI gate: cleanup -> validate -> build, never a destructive --clean/rm of ontology/dist,
 # and ROCS outputs stay untracked.
