@@ -440,10 +440,17 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
-assert_yaml_default "copier/tpl-project-repo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-project-repo should default core ontology refs to the protected release tag"
-assert_yaml_default "copier/tpl-monorepo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-monorepo should default core ontology refs to the protected release tag"
-assert_yaml_default "copier/tpl-package/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-package should default core ontology refs to the protected release tag"
-assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
+for tpl in tpl-project-repo tpl-monorepo tpl-package; do
+	assert_yaml_default "copier/$tpl/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.1>' "$tpl should default core ontology refs to the protected release tag"
+	assert_contains "copier/$tpl/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "$tpl should default company ontology refs to workspace repo locators"
+done
+# ROCS CI gate: cleanup -> validate -> build without wiping ontology/dist; outputs ignored; LF scripts.
+for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
+	assert_contains "copier/$tpl/.gitignore" "/ontology/dist/" "$tpl must gitignore generated ROCS outputs"
+	assert_contains "copier/$tpl/.gitattributes" "scripts/rocs.sh text eol=lf" "$tpl must force LF on the ROCS launcher"
+	assert_contains "copier/$tpl/scripts/ci/full.sh" "./scripts/rocs.sh cleanup --repo ." "$tpl full CI must clean ROCS outputs through the launcher"
+	assert_not_contains "copier/$tpl/scripts/ci/full.sh" "--clean" "$tpl full CI must not wipe ontology/dist before validating"
+done
 assert_contains "copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
 assert_contains "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
 assert_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/workspace.py"

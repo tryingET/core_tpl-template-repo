@@ -401,6 +401,7 @@ scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-adversarial.sh
 scripts/check-l0-fixtures.sh
+scripts/check-l0-rocs-consumer.sh
 scripts/sync-l0-fixtures.sh
 scripts/lib/copier-answers.sh
 scripts/lib/fixture-normalization.sh
@@ -555,10 +556,8 @@ assert_contains "copier-template/copier/tpl-package/AGENTS.md.j2" "Deferred work
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "ROCS commands should be run from the monorepo root." "tpl-package ROCS wrapper should remain a monorepo-root placeholder"
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "Use: ../../scripts/rocs.sh <args>" "tpl-package ROCS wrapper should redirect to the monorepo-root launcher"
 assert_absent "copier-template/copier/tpl-package/scripts/ak.sh"
-assert_yaml_default "copier-template/copier/tpl-project-repo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-project-repo should default core ontology refs to the protected release tag"
-assert_yaml_default "copier-template/copier/tpl-monorepo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-monorepo should default core ontology refs to the protected release tag"
-assert_yaml_default "copier-template/copier/tpl-package/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-package should default core ontology refs to the protected release tag"
-assert_contains "copier-template/copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
+# ROCS consumer model (CI gate, output ignores, LF attributes, ref defaults).
+sh "$repo_root/scripts/check-l0-rocs-consumer.sh" || fail "ROCS consumer-model guardrails failed"
 rocs_bundle_source="copier-template/copier/tpl-project-repo/tools/rocs-cli"
 for rocs_bundle in \
 	"$rocs_bundle_source" \
@@ -599,6 +598,7 @@ scripts/check-session-checkpoint.sh
 scripts/check-supply-chain.sh
 scripts/check-l0-adversarial.sh
 scripts/check-l0-fixtures.sh
+scripts/check-l0-rocs-consumer.sh
 scripts/sync-l0-fixtures.sh
 copier-template/scripts/new-repo-from-copier.sh
 copier-template/scripts/bootstrap-lane-root.sh

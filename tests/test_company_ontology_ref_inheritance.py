@@ -228,7 +228,7 @@ class RendererTests(unittest.TestCase):
     def assert_choice(self, name: str, dest: Path, expected: str, answers: str = ".copier-answers.yml") -> None:
         self.assertEqual(yaml.safe_load((dest / answers).read_text())[KEY], expected)
         manifest = dest / "ontology/manifest.yaml"
-        if name == "tpl-project-repo":
+        if name in ("tpl-project-repo", "tpl-monorepo"):
             layers = yaml.safe_load(manifest.read_text())["rocs"]["layers"]
             self.assertEqual(next(layer["ref"] for layer in layers if layer["name"] == "company"), expected)
         else:
