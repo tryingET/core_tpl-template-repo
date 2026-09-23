@@ -83,9 +83,19 @@ If you are retiring a legacy monorepo-root `governance/task-scopes/AK-*.json` fi
 
 ## ROCS command flow
 
-1. `./scripts/rocs.sh --doctor` — verify ROCS environment
-2. `./scripts/rocs.sh validate --repo .` — validate ontology
-3. `./scripts/rocs.sh lint --repo .` — lint governance files
+1. `./scripts/rocs.sh --doctor` — show core path/version, pin and workspace root
+2. `./scripts/rocs.sh cleanup --repo .` — remove managed build outputs
+3. `./scripts/rocs.sh validate --repo .` — validate all ontology layers (core, company, repo)
+4. `./scripts/rocs.sh build --repo .` — build `ontology/dist/`
+
+`scripts/rocs.sh` runs the workspace rocs-cli core checkout (`~/ai-society/core/rocs-cli`, override `ROCS_CORE_PROJECT`)
+through `uv run --frozen`, pinned by the `rocs_cli_version` answer (`0.4.3`): the core must report the same
+major.minor with a patch >= the pin, otherwise the launcher exits 2 naming both versions. There is no vendored or PATH fallback.
+ROCS therefore needs the local workspace: the rocs-cli core plus the ontology repos named by `<repo:...@ref>` layers
+(for example `core/ontology-kernel` and `holdingco/ontology`). The launcher defaults `ROCS_WORKSPACE_ROOT` to the
+nearest ancestor that holds them (else `~/ai-society`) and sets `ROCS_RESOLVE_REFS=1`. CI runners must provide that
+workspace (AK #5901) before running the ROCS step of `scripts/ci/full.sh`.
+Generated outputs under `ontology/dist/` (including authority receipts) are gitignored; `./scripts/rocs.sh cleanup --repo .` removes them.
 
 ## Adding Packages
 

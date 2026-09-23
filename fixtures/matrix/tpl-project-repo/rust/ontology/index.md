@@ -15,4 +15,4 @@ Start here when browsing manually.
 - `ontology/src/bridge/mapping.yaml` — map concepts to code symbols
 - `ontology/dist/` — generated artifacts (tool-first)
 
-Tip: Set `ROCS_WORKSPACE_ROOT=~/ai-society` (or your local workspace root) and use `./scripts/rocs.sh pack <concept_id> --repo . --resolve-refs` instead of opening many files.
+Tip: use `./scripts/rocs.sh pack <concept_id> --repo .` instead of opening many files (the launcher resolves ref layers from the enclosing workspace; set `ROCS_WORKSPACE_ROOT` only when the repo lives outside it).

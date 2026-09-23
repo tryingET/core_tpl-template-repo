@@ -117,29 +117,36 @@ Plain installed `ak` is the canonical operator path for repo-local projection an
   - if not passed explicitly, generation tries `PROJECT_OWNER_HANDLE`, `PI_PROJECT_OWNER_HANDLE`, `GITHUB_ACTOR`, then local git config
 - `org_owner_handle`: CODEOWNERS entry for org paths
 - `org_docs_profile`: `compact` keeps a short org-context snapshot; `rich` adds mission/purpose/vision/strategic-objectives/governance context files
-- `kernel_ontology_ref`: ROCS core ontology reference (default: `<repo:core/ontology-kernel@v0.2.0>`)
+- `kernel_ontology_ref`: ROCS core ontology reference (default: `<repo:core/ontology-kernel@v0.2.1>`)
 - `company_ontology_ref`: ROCS company ontology reference (default: `<repo:holdingco/ontology@main>`)
 - `enable_community_pack`, `enable_release_pack`, `enable_vouch_gate`:
   inherited compatibility flags from the parent L1 profile; currently metadata-only in `tpl-project-repo` (no extra file overlays)
 
 ## ROCS command flow
 
-Use the repository wrapper for deterministic execution. Default layered manifests resolve refs from local workspace clones only, so set the workspace root before running ref-aware commands:
+Use the repository wrapper for deterministic execution. Layered manifests resolve refs from local workspace clones only; the launcher discovers the enclosing workspace automatically, so plain commands check every layer:
 
 ```bash
-export ROCS_WORKSPACE_ROOT="${ROCS_WORKSPACE_ROOT:-$HOME/ai-society}"
 ./scripts/rocs.sh --doctor
-./scripts/rocs.sh build --repo . --resolve-refs --clean
-./scripts/rocs.sh validate --repo . --resolve-refs
+./scripts/rocs.sh cleanup --repo .
+./scripts/rocs.sh validate --repo .
+./scripts/rocs.sh build --repo .
 ```
 
 Default locator contract:
-- core layer: `<repo:core/ontology-kernel@v0.2.0>`
+- core layer: `<repo:core/ontology-kernel@v0.2.1>`
 - company layer: `<repo:holdingco/ontology@main>`
 - legacy `<gitlab:...>` locators are unsupported
 
-If your workspace root lives somewhere else, point `ROCS_WORKSPACE_ROOT` at that clone root explicitly.
-This wrapper prefers vendored `tools/rocs-cli` and falls back to workspace/global runners.
+If the repo is not checked out inside the workspace that holds those layers, point `ROCS_WORKSPACE_ROOT` at that clone root explicitly.
+`scripts/rocs.sh` runs the workspace rocs-cli core checkout (`~/ai-society/core/rocs-cli`, override `ROCS_CORE_PROJECT`)
+through `uv run --frozen`, pinned by the `rocs_cli_version` answer (`0.4.3`): the core must report the same
+major.minor with a patch >= the pin, otherwise the launcher exits 2 naming both versions. There is no vendored or PATH fallback.
+ROCS therefore needs the local workspace: the rocs-cli core plus the ontology repos named by `<repo:...@ref>` layers
+(for example `core/ontology-kernel` and `holdingco/ontology`). The launcher defaults `ROCS_WORKSPACE_ROOT` to the
+nearest ancestor that holds them (else `~/ai-society`) and sets `ROCS_RESOLVE_REFS=1`. CI runners must provide that
+workspace (AK #5901) before running the ROCS step of `scripts/ci/full.sh`.
+Generated outputs under `ontology/dist/` (including authority receipts) are gitignored; `./scripts/rocs.sh cleanup --repo .` removes them.
 
 ## Knowledge Evolution
 

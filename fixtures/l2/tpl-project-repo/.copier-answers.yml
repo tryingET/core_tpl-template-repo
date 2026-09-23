@@ -7,12 +7,13 @@ enable_community_pack: false
 enable_release_pack: false
 enable_software_pack: false
 enable_vouch_gate: false
-kernel_ontology_ref: <repo:core/ontology-kernel@v0.2.0>
+kernel_ontology_ref: <repo:core/ontology-kernel@v0.2.1>
 language: python
 location: owned
 org_docs_profile: compact
 org_owner_handle: '@org-owners'
 project_owner_handle: '@tryinget'
 repo_slug: fixture-product-repo
+rocs_cli_version: 0.4.3
 
 

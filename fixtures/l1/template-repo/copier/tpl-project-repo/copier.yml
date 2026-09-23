@@ -3,10 +3,6 @@ _answers_file: .copier-answers.yml
 _templates_suffix: .j2
 _exclude:
   - "copier.yml"
-  - "tools/rocs-cli/build"
-  - "tools/rocs-cli/dist"
-  - "tools/rocs-cli/.venv"
-  - "tools/rocs-cli/src/*.egg-info"
   - "**/__pycache__"
   - "**/*.pyc"
 
@@ -73,9 +69,18 @@ enable_vouch_gate:
   default: false
   help: "Inherited compatibility flag from L1 profile; currently metadata-only in tpl-project-repo (no extra file overlays)."
 
+rocs_cli_version:
+  type: str
+  default: "0.4.3"
+  help: "rocs-cli release pinned by scripts/rocs.sh; the workspace core checkout (~/ai-society/core/rocs-cli) must match major.minor with patch >= this pin"
+  validator: >-
+    {% if rocs_cli_version.split('.') | length != 3 or not rocs_cli_version.replace('.', '').isdigit() %}
+    rocs_cli_version must be a plain MAJOR.MINOR.PATCH release such as 0.4.3.
+    {% endif %}
+
 kernel_ontology_ref:
   type: str
-  default: "<repo:core/ontology-kernel@v0.2.0>"
+  default: "<repo:core/ontology-kernel@v0.2.1>"
   help: "ROCS core/kernel ontology ref (workspace repo locator)"
 
 company_ontology_ref:

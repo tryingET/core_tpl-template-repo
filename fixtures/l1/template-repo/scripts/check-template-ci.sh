@@ -440,20 +440,25 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 	assert_contains "copier/$tpl/governance/README.md" "transitional scaffolding" "L2 template $tpl governance README should keep non-authoritative task-scope wording"
 done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
-assert_yaml_default "copier/tpl-project-repo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-project-repo should default core ontology refs to the protected release tag"
-assert_yaml_default "copier/tpl-monorepo/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-monorepo should default core ontology refs to the protected release tag"
-assert_yaml_default "copier/tpl-package/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.0>' "tpl-package should default core ontology refs to the protected release tag"
-assert_contains "copier/tpl-project-repo/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "tpl-project-repo should default company ontology refs to workspace repo locators"
-assert_contains "copier/tpl-project-repo/tools/rocs-cli/README.md" 'Legacy `<gitlab:...>` locators are no longer supported.' "tpl-project-repo vendored rocs-cli README should document workspace-only ref resolution"
-assert_contains "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/layers.py" "legacy gitlab ref locators are no longer supported" "tpl-project-repo vendored rocs-cli should reject legacy gitlab locators"
-assert_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/workspace.py"
-assert_not_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab.py"
-assert_not_file "copier/tpl-project-repo/tools/rocs-cli/src/rocs_cli/gitlab_ci.py"
-assert_file "copier/tpl-project-repo/tools/rocs-cli/rocs.py"
-assert_contains "copier/tpl-project-repo/tools/rocs-cli/VENDORED_HASHES.json" '"schema_version": 3' "vendored rocs bundle must use receipt schema 3"
-assert_contains "copier/tpl-project-repo/tools/rocs-cli/VENDORED_HASHES.json" '"upstream_version": "0.3.0"' "vendored rocs bundle must pin release 0.3.0"
-assert_contains "copier/tpl-project-repo/tools/rocs-cli/VENDORED_HASHES.json" '"source_commit": "ecd48bbbf79c3eb8c67726ff238b70320fd4551a"' "vendored rocs bundle must bind authoritative source commit"
-python3 -I -S -B copier/tpl-project-repo/tools/rocs-cli/rocs.py vendored-check --vendored-dir copier/tpl-project-repo/tools/rocs-cli >/dev/null || fail "vendored rocs bundle integrity failed"
+for tpl in tpl-project-repo tpl-monorepo tpl-package; do
+	assert_yaml_default "copier/$tpl/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.1>' "$tpl should default core ontology refs to the protected release tag"
+	assert_contains "copier/$tpl/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "$tpl should default company ontology refs to workspace repo locators"
+done
+# ROCS CI gate: cleanup -> validate -> build without wiping ontology/dist; outputs ignored; LF scripts.
+for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
+	assert_contains "copier/$tpl/.gitignore" "/ontology/dist/" "$tpl must gitignore generated ROCS outputs"
+	assert_contains "copier/$tpl/.gitattributes" "scripts/rocs.sh text eol=lf" "$tpl must force LF on the ROCS launcher"
+	assert_contains "copier/$tpl/scripts/ci/full.sh" "./scripts/rocs.sh cleanup --repo ." "$tpl full CI must clean ROCS outputs through the launcher"
+	assert_not_contains "copier/$tpl/scripts/ci/full.sh" "--clean" "$tpl full CI must not wipe ontology/dist before validating"
+done
+# ROCS launcher: pinned workspace rocs-cli core, no vendored bundle.
+for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
+	assert_not_dir "copier/$tpl/tools/rocs-cli"
+	assert_contains "copier/$tpl/scripts/rocs.sh.j2" 'rocs_cli_pin="{{ rocs_cli_version }}"' "$tpl ROCS launcher must render the rocs_cli_version pin"
+	assert_contains "copier/$tpl/scripts/rocs.sh.j2" 'exec uv run --frozen --project "$core" python -m rocs_cli "$@"' "$tpl ROCS launcher must run the pinned workspace core"
+	assert_not_contains "copier/$tpl/scripts/rocs.sh.j2" "uvx" "$tpl ROCS launcher must not fall back to uvx"
+	assert_yaml_default "copier/$tpl/copier.yml" rocs_cli_version '0.4.3' "$tpl should pin rocs-cli 0.4.3"
+done
 
 check_multi_pass_suffix_policy
 
