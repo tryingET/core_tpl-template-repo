@@ -1,5 +1,6 @@
 schema: ai-society.template-ownership/1
 template_owned:
+  - .gitattributes
   - .gitignore
   - AGENTS.md
   - CODEOWNERS
