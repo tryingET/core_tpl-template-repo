@@ -71,9 +71,8 @@ Default L2 output is intentionally split into 7 domains:
 - `docs/decisions/`, `docs/learnings/`
 
 ### C. Governance model
-- `governance/work-items.cue` (checked-in projection contract)
-- `governance/work-items.json` (deterministic checked-in AK projection/mirror; not the live authority)
-- `governance/README.md` (AK-first workflow + projection boundaries)
+- `governance/README.md` (AK-first workflow + task-scope snapshot boundaries; no checked-in work-items projection exists)
+- `governance/task-scopes/` (optional frozen AK task-scope snapshots)
 - `policy/engineering-lane.json` (conditional: emitted when the selected language maps to a shared `engineering-core` lane)
 
 ### D. Stack contract
@@ -82,11 +81,10 @@ Default L2 output is intentionally split into 7 domains:
 ### E. Ontology + validation toolchain
 - `ontology/manifest.yaml`, `ontology/src/**`
   - layered defaults use workspace-only `<repo:...@main>` locators (`core/ontology-kernel` + `<company>/ontology`)
-- `scripts/rocs.sh`
-- `tools/rocs-cli/` (vendored deterministic runner source; workspace-only ref resolution, no legacy GitLab fallback)
+- `scripts/rocs.sh` (runs the workspace `core/rocs-cli` checkout pinned by `rocs_cli_version`; no vendored `tools/rocs-cli` bundle, workspace-only ref resolution)
 
 ### F. CI surface
-- plain installed `ak` (canonical AK operator path for repo-local work-items projection)
+- plain installed `ak` (canonical AK operator path for repo-local task and task-scope flows)
 - `scripts/ci/smoke.sh`, `scripts/ci/full.sh`
 
 ### G. Product-code placeholders
