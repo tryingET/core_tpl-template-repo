@@ -92,4 +92,5 @@ project_owner_handle:
   help: "CODEOWNERS entry for monorepo execution paths"
 
 _tasks:
+  - "chmod +x scripts/ci/smoke.sh scripts/ci/full.sh scripts/rocs.sh scripts/install-hooks.sh .githooks/pre-commit 2>/dev/null || true"
   - "if [ '{{ org_docs_profile }}' != 'rich' ]; then rm -f docs/org_context/mission.md docs/org_context/purpose.md docs/org_context/vision.md docs/org_context/strategic_objectives.md docs/org_context/governance.md 2>/dev/null; fi"
