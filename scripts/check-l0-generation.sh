@@ -830,6 +830,12 @@ cp -R "$matrix_project_python" "$nested_hook_parent/child"
 rm -rf "$nested_hook_parent/child/.git"
 (cd "$nested_hook_parent/child" && ./scripts/install-hooks.sh >/dev/null 2>&1) || true
 [ -z "$(git -C "$nested_hook_parent" config --get core.hooksPath || true)" ] || fail "install-hooks.sh must not reconfigure an enclosing parent repository"
+# Template refreshes rerun _tasks: an existing repo's own hooks path (e.g. .git/ubs-chain-hooks) must survive.
+custom_hook_repo="$tmp_root/hook-custom"
+cp -R "$matrix_project_python" "$custom_hook_repo"
+git -C "$custom_hook_repo" config core.hooksPath .git/ubs-chain-hooks
+(cd "$custom_hook_repo" && ./scripts/install-hooks.sh >/dev/null 2>&1) || fail "install-hooks.sh must succeed when a custom hooks path is set"
+[ "$(git -C "$custom_hook_repo" config --get core.hooksPath)" = ".git/ubs-chain-hooks" ] || fail "install-hooks.sh must not replace an existing custom core.hooksPath"
 
 # Workspace discovery: inside a workspace holding every <repo:PATH@ref> layer the launcher
 # defaults ROCS_WORKSPACE_ROOT to that ancestor; outside it falls back to $HOME/ai-society.
