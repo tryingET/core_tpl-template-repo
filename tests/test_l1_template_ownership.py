@@ -56,6 +56,9 @@ def init_commit(repo: Path) -> None:
     run("git", "init", "--quiet", cwd=repo)
     run("git", "config", "user.name", "l1 ownership test", cwd=repo)
     run("git", "config", "user.email", "test@example.invalid", cwd=repo)
+    # No detached auto-maintenance repacking into .git while the temp dir is removed.
+    run("git", "config", "gc.auto", "0", cwd=repo)
+    run("git", "config", "maintenance.auto", "false", cwd=repo)
     run("git", "add", ".", cwd=repo)
     run("git", "commit", "--quiet", "-m", "fixture", cwd=repo)
 

@@ -80,6 +80,8 @@ class UpgradeHarness(unittest.TestCase):
         cls.checked("git", "init", "--quiet", cwd=cls.base)
         cls.checked("git", "config", "user.name", "upgrade test", cwd=cls.base)
         cls.checked("git", "config", "user.email", "test@example.invalid", cwd=cls.base)
+        cls.checked("git", "config", "gc.auto", "0", cwd=cls.base)
+        cls.checked("git", "config", "maintenance.auto", "false", cwd=cls.base)
         cls.commit(cls.base)
 
     @classmethod
