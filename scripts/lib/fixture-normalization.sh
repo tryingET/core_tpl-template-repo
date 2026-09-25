@@ -6,6 +6,10 @@ set -eu
 normalize_fixture_tree_volatiles() {
   tree="$1"
 
+  # Generated project/monorepo copies self-initialize git (copier _tasks) to enable
+  # their hooks; the repository metadata is not part of the rendered fixture.
+  find "$tree" -name .git -prune -exec rm -rf {} +
+
   find "$tree" -type f -name '.copier-answers.yml' | while IFS= read -r answers_file; do
     normalized_file="${answers_file}.normalized"
     awk '
