@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+# Staged-file UBS (Ultimate Bug Scanner) pre-commit.
+#
+# Runs the workspace `ubs-staged.sh` helper on staged files. Resolution:
+#   1. $UBS_STAGED (explicit override)
+#   2. $HOME/ai-society/holdingco/scripts/ubs-staged.sh
+# When the helper is missing, or reports the scanner itself unavailable/partial
+# (exit 2), the commit proceeds with a clear message. UBS criticals (exit 1) block.
+set -eu
+
+staged="${UBS_STAGED:-$HOME/ai-society/holdingco/scripts/ubs-staged.sh}"
+if [ ! -x "$staged" ]; then
+	echo "pre-commit: UBS helper not found at $staged; skipping UBS scan (set UBS_STAGED to enable)" >&2
+	exit 0
+fi
+
+status=0
+"$staged" || status=$?
+case "$status" in
+0) exit 0 ;;
+2)
+	echo "pre-commit: UBS scanner unavailable or partial (exit 2 from $staged); not blocking this commit" >&2
+	exit 0
+	;;
+*)
+	echo "pre-commit: UBS reported blocking findings (exit $status); fix them or commit with --no-verify after review" >&2
+	exit "$status"
+	;;
+esac

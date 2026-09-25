@@ -27,8 +27,9 @@ Project repository with:
 - Decision records (`docs/decisions/`)
 - Learnings capture (`docs/learnings/`)
 - Ontology support (`ontology/`)
-- ROCS tooling (`tools/rocs-cli/`)
+- ROCS tooling (`scripts/rocs.sh`, pinned workspace rocs-cli core)
 - CI baseline (`scripts/ci/`)
+- Git hooks (`./scripts/install-hooks.sh` enables the staged-file UBS pre-commit; new copies enable it automatically)
 {%- if enable_software_pack %}
 
 ## Software Pack
@@ -166,10 +167,10 @@ Use the staged CI lanes:
 ```bash
 ./scripts/ci/fast.sh                    # cheap local guardrail lane
 ./scripts/check-task-scope-snapshots.sh # verify checked-in AK task-scope snapshots when present
-./scripts/ci/full.sh                    # explicit full lane; runs fast first, then work-items + task-scope + ROCS checks in parallel when they apply
+./scripts/ci/full.sh                    # explicit full lane; runs fast first, then task-scope + ROCS checks in parallel when they apply
 ```
 
-Plain installed `ak` is the canonical operator path for repo-local projection and task-scope flows.
+Plain installed `ak` is the canonical operator path for repo-local task and task-scope flows.
 
 ## Structure
 
@@ -190,14 +191,11 @@ Plain installed `ak` is the canonical operator path for repo-local projection an
 │   ├── learnings/         # Captured learnings (TIP candidates)
 │   └── system4d/          # System 4D context
 ├── governance/
-│   ├── README.md          # AK-first workflow and projection rules
-│   ├── task-scopes/       # Optional frozen AK task-scope snapshots
-│   ├── work-items.cue     # Projection schema contract
-│   └── work-items.json    # Checked-in AK projection/mirror
+│   ├── README.md          # AK-first workflow and task-scope snapshot rules
+│   └── task-scopes/       # Optional frozen AK task-scope snapshots
 ├── diary/                 # Repo-local session capture (KES raw input)
 ├── ontology/              # ROCS ontology
 │   └── src/system4d.yaml
-├── tools/rocs-cli/        # ROCS validation tooling
 ├── src/                   # Source code
 ├── tests/                 # Test suite
 └── scripts/

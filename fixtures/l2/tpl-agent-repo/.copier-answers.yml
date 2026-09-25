@@ -15,7 +15,7 @@ enable_community_pack: false
 enable_release_pack: false
 enable_vouch_gate: false
 repo_slug: fixture-agent
-rocs_cli_version: 0.4.3
+rocs_cli_version: 0.4.4
 skill_extras: '[]'
 skill_profile: ''
 system_prompt_file: docs/person/system-prompt.md

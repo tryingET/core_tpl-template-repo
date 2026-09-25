@@ -16,7 +16,7 @@ packages/        # Reusable libraries
 apps/            # Deployable services/applications
 docs/            # Documentation (_core, org_context, engineering.local)
 ontology/        # ROCS ontology
-governance/      # AK work-items projection, optional task-scope snapshots, policies
+governance/      # Optional task-scope snapshots, policies
 scripts/         # CI/utility scripts
 ```
 
@@ -39,7 +39,6 @@ scripts/         # CI/utility scripts
 
 ```bash
 # Agent Kernel tooling
-ak work-items check --repo . --path governance/work-items.json
 ak task ready
 
 # ROCS tooling
@@ -49,25 +48,23 @@ ak task ready
 # CI lanes
 ./scripts/ci/smoke.sh
 ./scripts/ci/full.sh
+
+# Enable staged-file UBS pre-commit (new copies enable it automatically)
+./scripts/install-hooks.sh
 ```
 
-## Agent Kernel work-items flow
+## Agent Kernel task flow
 
-Repo-local deferred work is **AK-first**.
-`governance/work-items.json` is a deterministic checked-in projection/mirror, not the live operational authority.
+Repo-local deferred and active work is **AK-first**: it lives in the Agent Kernel DB via `ak task ...`.
+No checked-in work-items projection exists in this repo; do not reintroduce one.
 
 ```bash
-# One-time legacy JSON bootstrap into AK
-ak work-items import --repo . --path governance/work-items.json
-
-# Refresh projection from AK after work-items change
-ak work-items export --repo . --path governance/work-items.json
-
-# CI/local drift gate
-ak work-items check --repo . --path governance/work-items.json
+ak task create -r "$PWD" "<title>"
+ak task ready
+ak task complete <TASK-ID> --result '<json>'
 ```
 
-Plain installed `ak` is the canonical operator path for repo-local projection and task-scope flows.
+Plain installed `ak` is the canonical operator path for repo-local task and task-scope flows.
 
 ## Optional explicit task-scope snapshots
 
@@ -89,7 +86,7 @@ If you are retiring a legacy monorepo-root `governance/task-scopes/AK-*.json` fi
 4. `./scripts/rocs.sh build --repo .` — build `ontology/dist/`
 
 `scripts/rocs.sh` runs the workspace rocs-cli core checkout (`~/ai-society/core/rocs-cli`, override `ROCS_CORE_PROJECT`)
-through `uv run --frozen`, pinned by the `rocs_cli_version` answer (`0.4.3`): the core must report the same
+through `uv run --frozen`, pinned by the `rocs_cli_version` answer (`0.4.4`): the core must report the same
 major.minor with a patch >= the pin, otherwise the launcher exits 2 naming both versions. There is no vendored or PATH fallback.
 ROCS therefore needs the local workspace: the rocs-cli core plus the ontology repos named by `<repo:...@ref>` layers
 (for example `core/ontology-kernel` and `holdingco/ontology`). The launcher defaults `ROCS_WORKSPACE_ROOT` to the
@@ -123,9 +120,7 @@ Use `tpl-package` from your L1 templates to add packages:
 
 ## Governance
 
-- Work-items projection: `governance/work-items.json` (AK-backed; use plain installed `ak`)
 - Task-scope snapshots: `governance/task-scopes/AK-<TASK-ID>.snapshot.json` (when explicit task scope is in play)
-- Projection schema: `governance/work-items.cue`
 - Policies: `policy/`
 - Ontology: `ontology/`
 - Repo-local org-context snapshot: `docs/org_context/`

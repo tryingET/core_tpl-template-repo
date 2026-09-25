@@ -7,6 +7,6 @@ enable_release_pack: false
 enable_vouch_gate: false
 org_owner_handle: '@org-owners'
 repo_slug: fixture-org
-rocs_cli_version: 0.4.3
+rocs_cli_version: 0.4.4
 
 

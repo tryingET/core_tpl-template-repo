@@ -12,7 +12,7 @@
 # No ephemeral-tool, PATH, or vendored fallbacks.
 set -eu
 
-rocs_cli_pin="0.4.3"
+rocs_cli_pin="0.4.4"
 
 repo="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 core="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"
@@ -85,7 +85,7 @@ require_core() {
   command -v uv >/dev/null 2>&1 || fail_setup "uv is required to run the rocs-cli core checkout at $core."
 }
 
-# Workspace default (mirrors rocs-cli 0.4.3 verified_runtime._GENERIC_WORKSPACE_DEFAULT,
+# Workspace default (mirrors rocs-cli >= 0.4.3 verified_runtime._GENERIC_WORKSPACE_DEFAULT,
 # falling back to $HOME/ai-society instead of the repo).
 if [ -z "${ROCS_WORKSPACE_ROOT:-}" ]; then
   ROCS_WORKSPACE_ROOT="$HOME/ai-society"

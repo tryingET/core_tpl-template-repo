@@ -71,11 +71,11 @@ enable_vouch_gate:
 
 rocs_cli_version:
   type: str
-  default: "0.4.3"
+  default: "0.4.4"
   help: "rocs-cli release pinned by scripts/rocs.sh; the workspace core checkout (~/ai-society/core/rocs-cli) must match major.minor with patch >= this pin"
   validator: >-
     {% if rocs_cli_version.split('.') | length != 3 or not rocs_cli_version.replace('.', '').isdigit() %}
-    rocs_cli_version must be a plain MAJOR.MINOR.PATCH release such as 0.4.3.
+    rocs_cli_version must be a plain MAJOR.MINOR.PATCH release such as 0.4.4.
     {% endif %}
 
 kernel_ontology_ref:
@@ -109,7 +109,9 @@ project_owner_handle:
 # infra -> typically @infra-team, release_pack=false
 
 _tasks:
-  - "chmod +x scripts/ci/smoke.sh scripts/ci/fast.sh scripts/ci/full.sh scripts/rocs.sh 2>/dev/null || true"
+  - "chmod +x scripts/ci/smoke.sh scripts/ci/fast.sh scripts/ci/full.sh scripts/rocs.sh scripts/install-hooks.sh .githooks/pre-commit 2>/dev/null || true"
+  - "if [ ! -e .git ] && command -v git >/dev/null 2>&1; then git init -q -b main; fi"
+  - "./scripts/install-hooks.sh"
   # Clean up empty/unused software pack files
   - "if [ '{{ enable_software_pack }}' != 'True' ] || [ '{{ language }}' != 'python' ]; then rm -f pyproject.toml uv.lock 2>/dev/null; fi"
   - "if [ '{{ enable_software_pack }}' != 'True' ] || ! printf '%s\n' '{{ language }}' | grep -Eq '^(node|typescript)$'; then rm -f package.json 2>/dev/null; fi"

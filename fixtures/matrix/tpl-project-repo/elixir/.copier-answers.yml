@@ -14,6 +14,6 @@ org_docs_profile: compact
 org_owner_handle: '@org-owners'
 project_owner_handle: '@tryinget'
 repo_slug: fixture-project-elixir
-rocs_cli_version: 0.4.3
+rocs_cli_version: 0.4.4
 
 

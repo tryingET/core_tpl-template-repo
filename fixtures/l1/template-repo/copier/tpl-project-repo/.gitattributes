@@ -2,3 +2,4 @@
 *.sh text eol=lf
 scripts/rocs.sh text eol=lf
 scripts/ci/*.sh text eol=lf
+.githooks/* text eol=lf

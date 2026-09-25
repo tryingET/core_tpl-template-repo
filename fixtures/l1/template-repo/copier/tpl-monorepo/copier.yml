@@ -59,11 +59,11 @@ enable_vouch_gate:
 
 rocs_cli_version:
   type: str
-  default: "0.4.3"
+  default: "0.4.4"
   help: "rocs-cli release pinned by scripts/rocs.sh; the workspace core checkout (~/ai-society/core/rocs-cli) must match major.minor with patch >= this pin"
   validator: >-
     {% if rocs_cli_version.split('.') | length != 3 or not rocs_cli_version.replace('.', '').isdigit() %}
-    rocs_cli_version must be a plain MAJOR.MINOR.PATCH release such as 0.4.3.
+    rocs_cli_version must be a plain MAJOR.MINOR.PATCH release such as 0.4.4.
     {% endif %}
 
 kernel_ontology_ref:
@@ -92,4 +92,7 @@ project_owner_handle:
   help: "CODEOWNERS entry for monorepo execution paths"
 
 _tasks:
+  - "chmod +x scripts/ci/smoke.sh scripts/ci/full.sh scripts/rocs.sh scripts/install-hooks.sh .githooks/pre-commit 2>/dev/null || true"
+  - "if [ ! -e .git ] && command -v git >/dev/null 2>&1; then git init -q -b main; fi"
+  - "./scripts/install-hooks.sh"
   - "if [ '{{ org_docs_profile }}' != 'rich' ]; then rm -f docs/org_context/mission.md docs/org_context/purpose.md docs/org_context/vision.md docs/org_context/strategic_objectives.md docs/org_context/governance.md 2>/dev/null; fi"

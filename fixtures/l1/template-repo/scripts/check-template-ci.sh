@@ -457,7 +457,7 @@ for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
 	assert_contains "copier/$tpl/scripts/rocs.sh.j2" 'rocs_cli_pin="{{ rocs_cli_version }}"' "$tpl ROCS launcher must render the rocs_cli_version pin"
 	assert_contains "copier/$tpl/scripts/rocs.sh.j2" 'exec uv run --frozen --project "$core" python -m rocs_cli "$@"' "$tpl ROCS launcher must run the pinned workspace core"
 	assert_not_contains "copier/$tpl/scripts/rocs.sh.j2" "uvx" "$tpl ROCS launcher must not fall back to uvx"
-	assert_yaml_default "copier/$tpl/copier.yml" rocs_cli_version '0.4.3' "$tpl should pin rocs-cli 0.4.3"
+	assert_yaml_default "copier/$tpl/copier.yml" rocs_cli_version '0.4.4' "$tpl should pin rocs-cli 0.4.4"
 done
 
 check_multi_pass_suffix_policy

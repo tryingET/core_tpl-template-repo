@@ -24,8 +24,9 @@ Project repository with:
 - Decision records (`docs/decisions/`)
 - Learnings capture (`docs/learnings/`)
 - Ontology support (`ontology/`)
-- ROCS tooling (`tools/rocs-cli/`)
+- ROCS tooling (`scripts/rocs.sh`, pinned workspace rocs-cli core)
 - CI baseline (`scripts/ci/`)
+- Git hooks (`./scripts/install-hooks.sh` enables the staged-file UBS pre-commit; new copies enable it automatically)
 
 ## Usage
 
@@ -71,10 +72,10 @@ Use the staged CI lanes:
 ```bash
 ./scripts/ci/fast.sh                    # cheap local guardrail lane
 ./scripts/check-task-scope-snapshots.sh # verify checked-in AK task-scope snapshots when present
-./scripts/ci/full.sh                    # explicit full lane; runs fast first, then work-items + task-scope + ROCS checks in parallel when they apply
+./scripts/ci/full.sh                    # explicit full lane; runs fast first, then task-scope + ROCS checks in parallel when they apply
 ```
 
-Plain installed `ak` is the canonical operator path for repo-local projection and task-scope flows.
+Plain installed `ak` is the canonical operator path for repo-local task and task-scope flows.
 
 ## Structure
 
@@ -95,14 +96,11 @@ Plain installed `ak` is the canonical operator path for repo-local projection an
 │   ├── learnings/         # Captured learnings (TIP candidates)
 │   └── system4d/          # System 4D context
 ├── governance/
-│   ├── README.md          # AK-first workflow and projection rules
-│   ├── task-scopes/       # Optional frozen AK task-scope snapshots
-│   ├── work-items.cue     # Projection schema contract
-│   └── work-items.json    # Checked-in AK projection/mirror
+│   ├── README.md          # AK-first workflow and task-scope snapshot rules
+│   └── task-scopes/       # Optional frozen AK task-scope snapshots
 ├── diary/                 # Repo-local session capture (KES raw input)
 ├── ontology/              # ROCS ontology
 │   └── src/system4d.yaml
-├── tools/rocs-cli/        # ROCS validation tooling
 ├── src/                   # Source code
 ├── tests/                 # Test suite
 └── scripts/
@@ -140,7 +138,7 @@ Default locator contract:
 
 If the repo is not checked out inside the workspace that holds those layers, point `ROCS_WORKSPACE_ROOT` at that clone root explicitly.
 `scripts/rocs.sh` runs the workspace rocs-cli core checkout (`~/ai-society/core/rocs-cli`, override `ROCS_CORE_PROJECT`)
-through `uv run --frozen`, pinned by the `rocs_cli_version` answer (`0.4.3`): the core must report the same
+through `uv run --frozen`, pinned by the `rocs_cli_version` answer (`0.4.4`): the core must report the same
 major.minor with a patch >= the pin, otherwise the launcher exits 2 naming both versions. There is no vendored or PATH fallback.
 ROCS therefore needs the local workspace: the rocs-cli core plus the ontology repos named by `<repo:...@ref>` layers
 (for example `core/ontology-kernel` and `holdingco/ontology`). The launcher defaults `ROCS_WORKSPACE_ROOT` to the
