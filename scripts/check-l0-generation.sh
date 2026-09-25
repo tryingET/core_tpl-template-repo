@@ -801,6 +801,36 @@ for generated_rocs_repo in "$matrix_project_python" "$matrix_agent" "$matrix_org
 		fail "generated L2 ROCS launcher --doctor must report the pin"
 done
 
+# Staged-file UBS pre-commit (port of softwareco b46f03a/e8d3851): new project/monorepo copies
+# self-initialize git and point core.hooksPath at .githooks; the hook degrades gracefully when
+# the helper is missing or reports the scanner unavailable (exit 2) and blocks on findings.
+ubs_stub_dir="$tmp_root/ubs-stub"
+mkdir -p "$ubs_stub_dir"
+for ubs_status in 0 1 2; do
+	printf '#!/bin/sh\necho ubs-stub-ran\nexit %s\n' "$ubs_status" >"$ubs_stub_dir/ubs-$ubs_status.sh"
+	chmod +x "$ubs_stub_dir/ubs-$ubs_status.sh"
+done
+for generated_hook_repo in "$matrix_project_python" "$matrix_monorepo"; do
+	[ -x "$generated_hook_repo/.githooks/pre-commit" ] || fail "generated repo must ship an executable .githooks/pre-commit: $generated_hook_repo"
+	[ -x "$generated_hook_repo/scripts/install-hooks.sh" ] || fail "generated repo must ship an executable scripts/install-hooks.sh: $generated_hook_repo"
+	[ -d "$generated_hook_repo/.git" ] || fail "new project/monorepo copies must self-initialize git: $generated_hook_repo"
+	[ "$(git -C "$generated_hook_repo" config --get core.hooksPath)" = ".githooks" ] || fail "new project/monorepo copies must enable .githooks automatically: $generated_hook_repo"
+	assert_file_contains "$generated_hook_repo/.githooks/pre-commit" '$HOME/ai-society/holdingco/scripts/ubs-staged.sh' "generated pre-commit must resolve the company workspace UBS helper"
+	hook_stderr="$(cd "$generated_hook_repo" && UBS_STAGED="$tmp_root/ubs-missing.sh" ./.githooks/pre-commit 2>&1 >/dev/null)" ||
+		fail "generated pre-commit must not block when the UBS helper is missing"
+	printf '%s\n' "$hook_stderr" | grep -qF "UBS helper not found at $tmp_root/ubs-missing.sh" || fail "generated pre-commit must explain a missing UBS helper (got: $hook_stderr)"
+	(cd "$generated_hook_repo" && UBS_STAGED="$ubs_stub_dir/ubs-0.sh" ./.githooks/pre-commit >/dev/null 2>&1) || fail "generated pre-commit must pass a clean UBS run"
+	(cd "$generated_hook_repo" && UBS_STAGED="$ubs_stub_dir/ubs-2.sh" ./.githooks/pre-commit >/dev/null 2>&1) || fail "generated pre-commit must not block when UBS reports the scanner unavailable (exit 2)"
+	assert_command_fails "generated pre-commit must block on UBS findings" sh -c 'cd "$1" && UBS_STAGED="$2" ./.githooks/pre-commit' sh "$generated_hook_repo" "$ubs_stub_dir/ubs-1.sh"
+done
+nested_hook_parent="$tmp_root/hook-parent"
+mkdir -p "$nested_hook_parent"
+git -C "$nested_hook_parent" init -q -b main
+cp -R "$matrix_project_python" "$nested_hook_parent/child"
+rm -rf "$nested_hook_parent/child/.git"
+(cd "$nested_hook_parent/child" && ./scripts/install-hooks.sh >/dev/null 2>&1) || true
+[ -z "$(git -C "$nested_hook_parent" config --get core.hooksPath || true)" ] || fail "install-hooks.sh must not reconfigure an enclosing parent repository"
+
 # Workspace discovery: inside a workspace holding every <repo:PATH@ref> layer the launcher
 # defaults ROCS_WORKSPACE_ROOT to that ancestor; outside it falls back to $HOME/ai-society.
 rocs_workspace="$tmp_root/rocs-workspace"

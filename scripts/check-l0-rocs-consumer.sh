@@ -138,6 +138,21 @@ for rocs_launcher in fixtures/l1/template-repo/copier/tpl-project-repo/scripts/r
 	assert_files_equal "$rocs_launcher_source" "$rocs_launcher" "L1 fixture ROCS launcher must match the L0 source"
 done
 
+# Staged-file UBS pre-commit (company-neutral port of softwareco b46f03a/e8d3851).
+for tpl in tpl-project-repo tpl-monorepo; do
+	assert_exec "copier-template/copier/$tpl/.githooks/pre-commit.j2"
+	assert_exec "copier-template/copier/$tpl/scripts/install-hooks.sh"
+	assert_file "copier-template/copier/$tpl/.githooks/README.md"
+	assert_contains "copier-template/copier/$tpl/.githooks/pre-commit.j2" 'staged="${UBS_STAGED:-$HOME/ai-society/{{ company_slug }}/scripts/ubs-staged.sh}"' "$tpl pre-commit must parameterise the UBS helper location"
+	assert_not_contains "copier-template/copier/$tpl/.githooks/pre-commit.j2" "softwareco" "$tpl pre-commit must stay company-neutral"
+	assert_contains "copier-template/copier/$tpl/copier.yml" './scripts/install-hooks.sh' "$tpl must enable hooks for new copies"
+	assert_contains "copier-template/copier/$tpl/.gitattributes" ".githooks/* text eol=lf" "$tpl must force LF on git hooks"
+	assert_contains "copier-template/scripts/install-hooks.sh" "copier/$tpl/.githooks/pre-commit.j2" "L1 install-hooks must normalize the $tpl pre-commit executable bit"
+done
+for tpl in tpl-project-repo tpl-monorepo; do
+	assert_absent "copier-template/copier/$tpl/governance/work-items.json.j2"
+done
+
 # ROCS CI gate: cleanup -> validate -> build, never a destructive --clean/rm of ontology/dist,
 # and ROCS outputs stay untracked.
 for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
