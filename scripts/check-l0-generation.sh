@@ -764,30 +764,30 @@ make_fake_rocs_core() {
 	mkdir -p "$fake_core/src/rocs_cli"
 	printf '[project]\nname = "rocs-cli"\nversion = "%s"\n' "$1" >"$fake_core/pyproject.toml"
 }
-for rocs_version in 0.4.3 0.4.9 0.4.2 0.3.9 0.5.0 1.4.3; do
+for rocs_version in 0.4.4 0.4.9 0.4.3 0.3.9 0.5.0 1.4.4; do
 	make_fake_rocs_core "$rocs_version"
 done
 for generated_rocs_repo in "$matrix_project_python" "$matrix_agent" "$matrix_org" "$matrix_monorepo"; do
-	assert_file_contains "$generated_rocs_repo/scripts/rocs.sh" 'rocs_cli_pin="0.4.3"' "generated L2 ROCS launcher must render the rocs_cli_version pin"
+	assert_file_contains "$generated_rocs_repo/scripts/rocs.sh" 'rocs_cli_pin="0.4.4"' "generated L2 ROCS launcher must render the rocs_cli_version pin"
 	if [ "$generated_rocs_repo" != "$matrix_monorepo" ]; then
-		assert_file_contains "$generated_rocs_repo/.copier-answers.yml" "rocs_cli_version: 0.4.3" "generated L2 answers must persist the rocs-cli pin"
+		assert_file_contains "$generated_rocs_repo/.copier-answers.yml" "rocs_cli_version: 0.4.4" "generated L2 answers must persist the rocs-cli pin"
 	fi
 	assert_path_absent "$generated_rocs_repo/tools/rocs-cli" "generated L2 repos must not vendor rocs-cli"
 	assert_file_contains "$generated_rocs_repo/.gitignore" "/ontology/dist/" "generated L2 repo must gitignore ROCS outputs"
-	for rocs_version in 0.4.3 0.4.9; do
+	for rocs_version in 0.4.4 0.4.9; do
 		rocs_output="$(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-$rocs_version" ./scripts/rocs.sh validate --repo .)" ||
 			fail "generated L2 ROCS launcher must run a compatible core $rocs_version: $generated_rocs_repo"
 		printf '%s\n' "$rocs_output" | grep -qxF "stub-uv:run --frozen --project $tmp_root/rocs-core-$rocs_version python -m rocs_cli validate --repo ." ||
 			fail "generated L2 ROCS launcher must exec uv run --frozen against the pinned core (got: $rocs_output)"
 		printf '%s\n' "$rocs_output" | grep -qxF "resolve-refs:1" || fail "generated L2 ROCS launcher must resolve refs by default"
 	done
-	for rocs_version in 0.4.2 0.3.9 0.5.0 1.4.3; do
+	for rocs_version in 0.4.3 0.3.9 0.5.0 1.4.4; do
 		set +e
 		rocs_stderr="$(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-$rocs_version" ./scripts/rocs.sh version 2>&1 >/dev/null)"
 		rocs_status=$?
 		set -e
 		[ "$rocs_status" -eq 2 ] || fail "generated L2 ROCS launcher must exit 2 for incompatible core $rocs_version (got $rocs_status)"
-		printf '%s\n' "$rocs_stderr" | grep -qF "is $rocs_version but this repo pins 0.4.3" ||
+		printf '%s\n' "$rocs_stderr" | grep -qF "is $rocs_version but this repo pins 0.4.4" ||
 			fail "generated L2 ROCS launcher must name both versions for core $rocs_version (got: $rocs_stderr)"
 	done
 	set +e
@@ -797,7 +797,7 @@ for generated_rocs_repo in "$matrix_project_python" "$matrix_agent" "$matrix_org
 	[ "$rocs_status" -eq 2 ] || fail "generated L2 ROCS launcher must exit 2 when the core checkout is missing (got $rocs_status)"
 	printf '%s\n' "$rocs_stderr" | grep -qF "rocs-cli core checkout not found at $tmp_root/rocs-core-missing" ||
 		fail "generated L2 ROCS launcher must explain a missing core (got: $rocs_stderr)"
-	(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.3" ./scripts/rocs.sh --doctor) | grep -qF "pin: 0.4.3" ||
+	(cd "$generated_rocs_repo" && PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.4" ./scripts/rocs.sh --doctor) | grep -qF "pin: 0.4.4" ||
 		fail "generated L2 ROCS launcher --doctor must report the pin"
 done
 
@@ -824,13 +824,13 @@ for rocs_case in project:"$matrix_project_python" monorepo:"$matrix_monorepo"; d
 	rocs_case_name="${rocs_case%%:*}"
 	rocs_consumer="$rocs_workspace/holdingco/owned/rocs-$rocs_case_name"
 	cp -R "${rocs_case#*:}" "$rocs_consumer"
-	rocs_output="$(cd "$rocs_consumer" && env -u ROCS_WORKSPACE_ROOT -u ROCS_RESOLVE_REFS PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.3" ./scripts/rocs.sh validate --repo .)"
+	rocs_output="$(cd "$rocs_consumer" && env -u ROCS_WORKSPACE_ROOT -u ROCS_RESOLVE_REFS PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.4" ./scripts/rocs.sh validate --repo .)"
 	printf '%s\n' "$rocs_output" | grep -qxF "workspace:$rocs_workspace" ||
 		fail "generated $rocs_case_name launcher must discover the enclosing workspace (got: $rocs_output)"
 done
 rocs_fake_home="$tmp_root/rocs-home"
 mkdir -p "$rocs_fake_home"
-rocs_output="$(cd "$matrix_project_python" && env -u ROCS_WORKSPACE_ROOT HOME="$rocs_fake_home" PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.3" ./scripts/rocs.sh validate --repo .)"
+rocs_output="$(cd "$matrix_project_python" && env -u ROCS_WORKSPACE_ROOT HOME="$rocs_fake_home" PATH="$rocs_stub_bin:$PATH" ROCS_CORE_PROJECT="$tmp_root/rocs-core-0.4.4" ./scripts/rocs.sh validate --repo .)"
 printf '%s\n' "$rocs_output" | grep -qxF "workspace:$rocs_fake_home/ai-society" ||
 	fail "generated launcher outside a workspace must fall back to \$HOME/ai-society (got: $rocs_output)"
 
@@ -839,7 +839,7 @@ printf '%s\n' "$rocs_output" | grep -qxF "workspace:$rocs_fake_home/ai-society" 
 # (cleanup -> validate -> build, strict under main-strict) leaves the tree clean.
 rocs_real_core="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"
 if [ -f "$rocs_real_core/pyproject.toml" ] && command -v uv >/dev/null 2>&1 &&
-	grep -Eq '^version = "0\.4\.([3-9]|[1-9][0-9]+)"' "$rocs_real_core/pyproject.toml"; then
+	grep -Eq '^version = "0\.4\.([4-9]|[1-9][0-9]+)"' "$rocs_real_core/pyproject.toml"; then
 	for rocs_case in project monorepo; do
 		rocs_consumer="$rocs_workspace/holdingco/owned/rocs-$rocs_case"
 		git -C "$rocs_consumer" init -q -b main
@@ -856,7 +856,7 @@ if [ -f "$rocs_real_core/pyproject.toml" ] && command -v uv >/dev/null 2>&1 &&
 		)
 	done
 else
-	echo "warning: skipping real-core ROCS end-to-end check (no compatible rocs-cli 0.4.x>=0.4.3 core at $rocs_real_core or uv missing)" >&2
+	echo "warning: skipping real-core ROCS end-to-end check (no compatible rocs-cli 0.4.x>=0.4.4 core at $rocs_real_core or uv missing)" >&2
 fi
 
 [ -s "$matrix_project_node/package.json" ] || fail "expected node project software-pack manifest"

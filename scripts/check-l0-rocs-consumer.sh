@@ -102,7 +102,7 @@ assert_contains "copier-template/copier/tpl-monorepo/ontology/manifest.yaml.j2" 
 
 # ROCS launcher: runs the workspace rocs-cli core checkout pinned by rocs_cli_version;
 # no vendored tools/rocs-cli bundle and no uvx/PATH fallbacks.
-rocs_expected_pin="0.4.3"
+rocs_expected_pin="0.4.4"
 rocs_launcher_source="copier-template/copier/tpl-project-repo/scripts/rocs.sh.j2"
 assert_contains "$rocs_launcher_source" 'rocs_cli_pin="{{ rocs_cli_version }}"' "ROCS launcher must render the rocs_cli_version pin"
 assert_contains "$rocs_launcher_source" 'core="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"' "ROCS launcher must default to the workspace rocs-cli core"
