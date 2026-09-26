@@ -1023,6 +1023,6 @@ for generated_package in \
 	assert_path_absent "$generated_package/governance/task-scopes" "generated tpl-package members must not ship standalone task-scope snapshot directories"
 done
 
-"$python_exec" -m unittest tests/test_agent_template_v2.py tests/test_l1_template_ownership.py
+"$python_exec" -m unittest tests/test_agent_template_v2.py tests/test_l1_template_ownership.py tests/test_render_l1.py
 
 echo "ok: l0 generation smoke + idempotency + ownership-aware template propagation"

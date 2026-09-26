@@ -317,6 +317,15 @@ set -- "$@" -d "repo_slug=$repo_slug"
 
 "$repo_root/scripts/new-l1-from-copier.sh" "$render_dir" "$@" >/dev/null
 
+if [ -n "${L1_RENDER_ONLY_OUT:-}" ]; then
+	# Read-only render for previews (scripts/render-l1.sh): hand the render over and stop
+	# before the ownership engine, so nothing in the target is planned, bound or written.
+	[ "$apply_mode" = "0" ] || { echo "error: render-only mode cannot apply" >&2; exit 2; }
+	mv -- "$render_dir" "$L1_RENDER_ONLY_OUT"
+	echo "==> rendered: $L1_RENDER_ONLY_OUT"
+	exit 0
+fi
+
 echo "==> rendered: $render_dir"
 echo "==> target:   $target_repo"
 
