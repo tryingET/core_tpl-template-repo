@@ -1038,13 +1038,15 @@ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo; do
 	fi
 
 	# Initialize git for smoke + idempotency test (smoke requires git repo)
+	# Scratch commits skip hooks: generated L2 copies enable the staged-file UBS pre-commit,
+	# which runs the company's real scanner when it exists (hook behaviour is tested in L0).
 	(
 		cd "$l2_dir"
 		git init -b main >/dev/null
 		git config user.name "l1-template ci" >/dev/null
 		git config user.email "ci@l1-template.local" >/dev/null
 		git add . >/dev/null
-		git commit -m "initial L2 render" >/dev/null
+		git commit --no-verify -m "initial L2 render" >/dev/null
 		./scripts/ci/smoke.sh >/dev/null
 		if [ "$tpl" = "tpl-project-repo" ] || [ "$tpl" = "tpl-monorepo" ]; then
 			ensure_registered_repo "$l2_dir"
@@ -1083,7 +1085,7 @@ bootstrap_smoke_dir="$tmp_root/tpl-project-repo-bootstrap-smoke"
 	git config user.name "l1-template ci" >/dev/null
 	git config user.email "ci@l1-template.local" >/dev/null
 	git add . >/dev/null
-	git commit -m "bootstrap smoke" >/dev/null
+	git commit --no-verify -m "bootstrap smoke" >/dev/null
 	./scripts/ci/smoke.sh >/dev/null 2>/dev/null
 )
 
@@ -1121,7 +1123,7 @@ serial_full_repo="$tmp_root/tpl-project-repo-serial-full"
 	git config user.name "l1-template ci" >/dev/null
 	git config user.email "ci@l1-template.local" >/dev/null
 	git add . >/dev/null
-	git commit -m "serial full" >/dev/null
+	git commit --no-verify -m "serial full" >/dev/null
 )
 serial_full_task_id="$(create_scoped_task "$serial_full_repo" "template-ci: serial full task-scope snapshot")"
 write_task_scope_snapshot "$serial_full_repo" "$serial_full_task_id"
