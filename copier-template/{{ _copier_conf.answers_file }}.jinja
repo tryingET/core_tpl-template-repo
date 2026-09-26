@@ -21,4 +21,5 @@
   "enable_community_pack": enable_community_pack,
   "enable_release_pack": enable_release_pack,
 } | to_nice_yaml }}{% if company_ontology_ref %}
-{{ {"company_ontology_ref": company_ontology_ref} | to_nice_yaml }}{% endif %}
+{{ {"company_ontology_ref": company_ontology_ref} | to_nice_yaml }}{% endif %}{% if l1_ontology_layout == 'gitlink' %}
+{{ {"l1_ontology_layout": l1_ontology_layout} | to_nice_yaml }}{% endif %}

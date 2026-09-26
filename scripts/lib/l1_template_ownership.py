@@ -31,6 +31,7 @@ from l1_template_receipts import (  # noqa: E402
 )
 
 from l1_answer_template_upgrade import plan as retirement_plan, revalidate, retire
+import l1_template_gitlinks as gitlinks  # noqa: E402
 
 SCHEMA = "ai-society.template-ownership/1"
 ADOPTION_SCHEMA = "ai-society.template-ownership-adoption/1"
@@ -304,11 +305,17 @@ def refresh(
         answers = repo / ".copier-answers.yml"
         if not answers.is_file() or "_ownership_state: established_at_birth" not in answers.read_text(encoding="utf-8").splitlines():
             raise ValueError("established ownership state lacks its Copier birth/refresh marker")
-        if apply and is_v2:
-            raise ValueError("ordinary contract refresh cannot replace established v2 transition provenance")
 
     current_map = load_map(repo)
     next_map = load_map(rendered)
+    if state_name == "established" and apply and is_v2:
+        # A v1 refresh receipt may replace v2 state only if every company claim survives.
+        dropped = sorted(set(current_map["agent"]) - set(next_map["agent"]))
+        if dropped:
+            raise ValueError(
+                "ordinary contract refresh cannot replace established v2 transition provenance "
+                f"while dropping company-owned patterns: {', '.join(dropped)}"
+            )
     rendered_files = files(rendered)
 
     for path in sorted(rendered_files):
@@ -316,6 +323,12 @@ def refresh(
             raise ValueError(f"rendered template symlinks are unsupported: {path}")
         if owner(path, next_map) is None:
             raise ValueError(f"unclassified rendered path: {path}; update {MAP_PATH}")
+    # An uncommitted copier-birth preview has no index and therefore no gitlinks.
+    index = gitlinks.index_entries(repo) if gitlinks.is_repository(repo) or apply else None
+    owner_gitlinks = gitlinks.check(
+        repo, index or {}, current_map, next_map,
+        [path for path in sorted(rendered_files) if owner(path, next_map) == "template"], owner,
+    )
     for current_agent in current_map["agent"]:
         for next_template in next_map["template"]:
             if patterns_overlap(current_agent, next_template):
@@ -384,6 +397,8 @@ def refresh(
         print(f"adoption evidence: {adoption.get('evidence_ref', '<missing>')}")
     print(f"preserve: {preserved} rendered agent-owned path(s)")
     print("note: target-only paths are outside this refresh except the five fingerprint-approved obsolete answer templates")
+    for name in owner_gitlinks:
+        print(f"preserve-gitlink: {name} (company-owned owner gitlink; opaque, never read or written)")
     for path, entry in retirements.items():
         print(f"retire: {path} (approved sha256={entry['record']['sha256']}; successor={entry['new']})")
     for action, path in actions:

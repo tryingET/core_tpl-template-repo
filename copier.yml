@@ -26,6 +26,14 @@ company_ontology_ref:
     Company ontology ref must be printable and contain no double quotes or backslashes.
     {% endif %}
 
+l1_ontology_layout:
+  type: str
+  default: tree
+  choices:
+    - tree
+    - gitlink
+  help: "L1 ontology layout: tree (template-owned in-tree ontology/) or gitlink (company-owned ontology submodule adopted by a receipted ownership transition)."
+
 repo_slug:
   type: str
   default: "{{ company_slug }}"
@@ -74,6 +82,17 @@ _tasks:
   - "{{ 'true' if enable_community_pack else 'rm -f CODE_OF_CONDUCT.md SUPPORT.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/config.yml .github/ISSUE_TEMPLATE/bug-report.yml .github/ISSUE_TEMPLATE/feature-request.yml' }}"
   - "{{ 'true' if enable_release_pack else 'rm -f .github/workflows/release-please.yml .github/workflows/release-check.yml .github/workflows/publish.yml .release-please-config.json .release-please-manifest.json CHANGELOG.md SECURITY.md && rm -rf scripts/release' }}"
   - "rm -rf copier/template-repo"
+  - |
+    {% if l1_ontology_layout == 'gitlink' %}
+    # Owner-gitlink ontology: the company owns ontology/ (a submodule) and .gitmodules.
+    set -eu
+    rm -rf ontology
+    awk '$0 == "  - ontology/**" { next } { print } $0 == "agent_owned:" { print "  - .gitmodules"; print "  - ontology" }' contracts/template-ownership.yml > contracts/template-ownership.yml.layout
+    mv contracts/template-ownership.yml.layout contracts/template-ownership.yml
+    grep -qx '  - ontology' contracts/template-ownership.yml
+    {% else %}
+    true
+    {% endif %}
   - |
     if [ -f contracts/provenance-seal.yml ]; then
       if command -v sha256sum >/dev/null 2>&1; then

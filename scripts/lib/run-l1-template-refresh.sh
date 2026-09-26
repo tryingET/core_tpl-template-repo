@@ -313,6 +313,22 @@ if [ -n "$value" ]; then
 	set -- "$@" -d "company_ontology_ref=$value"
 fi
 
+# Owner-gitlink ontology: the rendered layout follows the target's committed topology.
+# The ownership engine separately requires the receipted company claim before planning.
+ontology_layout=tree
+if repo_surface_is_git_repo "$target_repo" &&
+	[ "$(git -C "$target_repo" ls-files -s -- ontology 2>/dev/null | awk '$4 == "ontology" { print $1 }')" = "160000" ]; then
+	ontology_layout=gitlink
+fi
+if yaml_key_present "$answers_file" l1_ontology_layout; then
+	recorded_layout="$(read_preview_answer_value "$answers_file" l1_ontology_layout)" || exit "$?"
+	if [ "$recorded_layout" != "$ontology_layout" ]; then
+		echo "error: .copier-answers.yml records l1_ontology_layout=$recorded_layout but the target ontology topology is $ontology_layout" >&2
+		exit 2
+	fi
+fi
+[ "$ontology_layout" = tree ] || set -- "$@" -d "l1_ontology_layout=$ontology_layout"
+
 set -- "$@" -d "repo_slug=$repo_slug"
 
 "$repo_root/scripts/new-l1-from-copier.sh" "$render_dir" "$@" >/dev/null
