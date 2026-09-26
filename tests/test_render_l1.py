@@ -45,6 +45,35 @@ class RenderL1Tests(unittest.TestCase):
             self.assertEqual(again.returncode, 2)
             self.assertIn("output path already exists", again.stderr)
 
+    def test_owner_gitlink_target_renders_the_gitlink_layout(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH_PARENT) as temp:
+            parent = Path(temp)
+            target = parent / "target"
+            shutil.copytree(FIXTURE, target)
+            shutil.rmtree(target / "ontology")
+            (target / "ontology").mkdir()
+            for args in (("init", "--quiet"), ("config", "user.name", "render test"),
+                         ("config", "user.email", "test@example.invalid"), ("config", "gc.auto", "0"),
+                         ("config", "maintenance.auto", "false"), ("add", "."),
+                         ("update-index", "--add", "--cacheinfo", f"160000,{'1' * 40},ontology"),
+                         ("commit", "--quiet", "-m", "fixture")):
+                self.assertEqual(run("git", *args, cwd=target).returncode, 0)
+            out = parent / "render"
+            result = run("sh", str(SCRIPT), str(target), str(out), cwd=parent)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            source = (FIXTURE / "contracts/template-ownership.yml").read_text(encoding="utf-8")
+            expected = source.replace("  - ontology/**\n", "").replace(
+                "agent_owned:\n", "agent_owned:\n  - .gitmodules\n  - ontology\n"
+            )
+            self.assertEqual((out / "contracts/template-ownership.yml").read_text(encoding="utf-8"), expected)
+            self.assertFalse((out / "ontology").exists())
+            self.assertIn("l1_ontology_layout: gitlink", (out / ".copier-answers.yml").read_text(encoding="utf-8"))
+            with (target / ".copier-answers.yml").open("a", encoding="utf-8") as stream:
+                stream.write("l1_ontology_layout: tree\n")
+            mismatch = run("sh", str(SCRIPT), str(target), str(parent / "mismatch"), cwd=parent)
+            self.assertEqual(mismatch.returncode, 2)
+            self.assertIn("records l1_ontology_layout=tree", mismatch.stderr)
+
     def test_usage_errors_exit_2(self) -> None:
         self.assertEqual(run("sh", str(SCRIPT), cwd=ROOT).returncode, 2)
 
