@@ -13,7 +13,7 @@
 #   so plain `./scripts/rocs.sh validate --repo .` checks every layer.
 # - Company settings: when local/rocs.env exists it is sourced (POSIX sh, with
 #   `set -a`, so plain assignments are exported) before anything else, with the
-#   launcher arguments visible as "$@". Use it for ROCS_OUTPUT_ROOT,
+#   launcher arguments visible as "$@" and the repo root in "$repo". Use it for ROCS_OUTPUT_ROOT,
 #   ROCS_CI_PROFILE, ROCS_AUTHORITY_AGGREGATE or company guards; `exit` in it
 #   aborts the launcher. local/ is never touched by template refresh; see
 #   docs/dev/l1-local-extensions.md.

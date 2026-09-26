@@ -32,7 +32,8 @@ Rules:
 (`~/ai-society/core/rocs-cli`, or `ROCS_CORE_PROJECT`), the same model as the L2
 templates. When `local/rocs.env` exists, the launcher sources it (POSIX `sh`, with
 `set -a`, so plain assignments are exported) before anything else, with the launcher
-arguments visible as `"$@"`; `exit` in it aborts the launcher. Typical content:
+arguments visible as `"$@"` and the repo root in `$repo`; `exit` in it aborts the
+launcher. Typical content:
 
 ```sh
 # Route ROCS outputs out of ontology/ (rocs-cli writes an ownership marker there).
