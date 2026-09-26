@@ -36,6 +36,7 @@ Coordinate Holding Company work across explicit lanes:
 - ROCS launcher: `./scripts/rocs.sh <rocs args...>`
 - New L2 repo: `./scripts/new-repo-from-copier.sh <template> <dest> -d repo_slug=<slug> --defaults`
 - Lane bootstrap: `./scripts/bootstrap-lane-root.sh <lane> [--init-lane-git]`
+- Company-specific gates/hooks/ROCS settings: put them in `local/` (never touched by template refresh), not in template-owned `scripts/**` or `.githooks/**`; see `docs/dev/l1-local-extensions.md`.
 
 ## Deterministic tooling policy (ROCS-first)
 - When explicit task scope is in scope, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export ...`; treat hand-authored `governance/task-scopes/AK-*.json` files as transitional, not authoritative.

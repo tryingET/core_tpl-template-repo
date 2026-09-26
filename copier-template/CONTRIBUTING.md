@@ -20,7 +20,6 @@ This repository is an **L1 template repo** generated from AI Society L0.
 4. Use deterministic wrapper tooling before ad-hoc scripting:
    ```bash
    ./scripts/rocs.sh --doctor
-   ./scripts/rocs.sh --which
    ```
 5. Capture session notes in `./diary/` (repo-local KES rule).
 6. Open PR with validation output.

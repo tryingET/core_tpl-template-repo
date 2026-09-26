@@ -138,6 +138,35 @@ for rocs_launcher in fixtures/l1/template-repo/copier/tpl-project-repo/scripts/r
 	assert_files_equal "$rocs_launcher_source" "$rocs_launcher" "L1 fixture ROCS launcher must match the L0 source"
 done
 
+# L1 root ROCS launcher: same pinned-core model (pin kept equal to the L2 default), plus
+# company settings from the target-only local/rocs.env; root full CI runs
+# cleanup -> validate -> build.
+l1_rocs_launcher="copier-template/scripts/rocs.sh"
+assert_contains "$l1_rocs_launcher" "rocs_cli_pin=\"$rocs_expected_pin\"" "L1 ROCS launcher must pin the L2 rocs_cli_version default"
+for needle in \
+	'core="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"' \
+	'exec uv run --frozen --project "$core" python -m rocs_cli "$@"' \
+	'ROCS_RESOLVE_REFS="${ROCS_RESOLVE_REFS:-1}"' \
+	'[ ! -d "$ws/${ref#*/}" ]' \
+	'. "$repo/local/rocs.env"'; do
+	assert_contains "$l1_rocs_launcher" "$needle" "L1 ROCS launcher must follow the pinned-core model"
+done
+for forbidden in uvx ROCS_ALLOW_PATH_FALLBACK tools/rocs-cli ROCS_BIN; do
+	assert_not_contains "$l1_rocs_launcher" "$forbidden" "L1 ROCS launcher must not keep legacy fallbacks"
+done
+assert_files_equal "$l1_rocs_launcher" "fixtures/l1/template-repo/scripts/rocs.sh" "L1 fixture ROCS launcher must match the L0 source"
+l1_full="copier-template/scripts/ci/full.sh"
+cleanup_line="$(grep -n './scripts/rocs.sh cleanup --repo .' "$l1_full" | head -n 1 | cut -d: -f1)"
+validate_line="$(grep -n './scripts/rocs.sh validate --repo .' "$l1_full" | head -n 1 | cut -d: -f1)"
+build_line="$(grep -n './scripts/rocs.sh build --repo .' "$l1_full" | head -n 1 | cut -d: -f1)"
+[ -n "$cleanup_line" ] && [ -n "$validate_line" ] && [ -n "$build_line" ] &&
+	[ "$cleanup_line" -lt "$validate_line" ] && [ "$validate_line" -lt "$build_line" ] ||
+	fail "L1 root full CI must run ROCS cleanup -> validate -> build in order"
+if grep -nE -- '--clean|rm -rf[^#]*ontology/dist' "$l1_full" | grep -v '^[0-9]*:[[:space:]]*#' | grep -q .; then
+	fail "L1 root full CI must not wipe ROCS outputs (--clean or rm): $l1_full"
+fi
+assert_contains "$l1_full" "ontology manifest may not be a symlink" "L1 root full CI must reject a symlinked ontology manifest"
+assert_contains "$l1_full" "ontology is not materialized" "L1 root full CI must fail on an unmaterialized owner-gitlink ontology"
 # Staged-file UBS pre-commit (company-neutral port of softwareco b46f03a/e8d3851).
 for tpl in tpl-project-repo tpl-monorepo; do
 	assert_exec "copier-template/copier/$tpl/.githooks/pre-commit.j2"

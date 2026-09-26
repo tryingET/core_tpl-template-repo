@@ -367,6 +367,8 @@ copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/lib/check-template-ak.py
+copier-template/scripts/lib/run-local-hook.sh
+copier-template/docs/dev/l1-local-extensions.md
 copier-template/scripts/lib/check-l1-ownership-state.py
 copier-template/scripts/lib/check-task-scope-snapshots.py
 copier-template/scripts/lib/copier-answers.sh
@@ -439,6 +441,25 @@ assert_contains "copier-template/contracts/template-ownership.yml" "schema: ai-s
 for agent_path in AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml 'docs/org/**'; do
 	assert_contains "copier-template/contracts/template-ownership.yml" "- $agent_path" "L1 ownership map must preserve company-owned $agent_path"
 done
+# Company-owned local/ extension points: local/ stays outside the ownership map (target-only,
+# never written or deleted by refresh) and every L1 root entry script hands off to it.
+if grep -E '^  - local(/|$)' copier-template/contracts/template-ownership.yml >/dev/null; then
+	fail "L1 ownership map must leave local/ unmapped (company-owned, target-only)"
+fi
+for local_hook in \
+	".githooks/pre-commit:local/githooks/pre-commit" \
+	".githooks/pre-push:local/githooks/pre-push" \
+	"scripts/ci/smoke.sh:local/ci/smoke.sh" \
+	"scripts/ci/full.sh:local/ci/full.sh" \
+	"scripts/check-template-ci.sh:local/ci/check-template-ci.sh" \
+	"scripts/install-hooks.sh:local/install-hooks.sh"; do
+	grep -F -- " ${local_hook#*:}" "copier-template/${local_hook%%:*}" | grep -qF "scripts/lib/run-local-hook.sh" ||
+		fail "L1 ${local_hook%%:*} must call its company extension ${local_hook#*:} through scripts/lib/run-local-hook.sh"
+	assert_contains "copier-template/docs/dev/l1-local-extensions.md" "\`${local_hook#*:}\`" "L1 local-extension doc must document ${local_hook#*:}"
+done
+assert_contains "copier-template/scripts/install-hooks.sh" '"$repo_root/scripts/lib/run-local-hook.sh" \' "L1 install-hooks must normalize the local-hook runner executable bit"
+assert_contains "copier-template/README.md.jinja" "docs/dev/l1-local-extensions.md" "L1 README must point at the local/ extension contract"
+assert_contains "copier-template/AGENTS.md.jinja" "docs/dev/l1-local-extensions.md" "L1 AGENTS must point at the local/ extension contract"
 assert_contains "scripts/preview-l1-diff.sh" "run-l1-template-refresh.sh" "L1 preview must use the shared non-public renderer"
 assert_not_contains "scripts/preview-l1-diff.sh" "L1_TEMPLATE_APPLY" "L1 preview must be incapable of ambient apply"
 assert_contains "scripts/lib/run-l1-template-refresh.sh" "l1_template_ownership.py" "L1 shared renderer must use the ownership engine"
@@ -579,6 +600,7 @@ copier-template/scripts/rocs.sh
 copier-template/scripts/check-template-ci.sh
 copier-template/scripts/install-hooks.sh
 copier-template/scripts/lib/check-template-ak.py
+copier-template/scripts/lib/run-local-hook.sh
 copier-template/scripts/ci/smoke.sh
 copier-template/scripts/ci/full.sh
 copier-template/scripts/release/check.sh

@@ -21,6 +21,7 @@ chmod +x \
 	"$repo_root/scripts/check-template-ci.sh" \
 	"$repo_root/scripts/install-hooks.sh" \
 	"$repo_root/scripts/lib/check-template-ak.py" \
+	"$repo_root/scripts/lib/run-local-hook.sh" \
 	"$repo_root/scripts/ci/smoke.sh" \
 	"$repo_root/scripts/ci/full.sh" \
 	"$repo_root/.githooks/pre-commit" \
@@ -59,3 +60,6 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 else
 	echo "warning: not inside a git repository; hook path not configured" >&2
 fi
+
+# Company-owned extension point (never touched by template refresh).
+"$repo_root/scripts/lib/run-local-hook.sh" local/install-hooks.sh

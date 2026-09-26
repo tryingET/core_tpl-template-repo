@@ -1,267 +1,151 @@
 #!/usr/bin/env sh
+# L1 ROCS launcher: runs the workspace rocs-cli core checkout pinned by this repo.
+# Same model as the L2 template launchers (copier/tpl-*/scripts/rocs.sh.j2).
+#
+# - Pin: rocs_cli_pin below (kept equal to the L2 `rocs_cli_version` default by
+#   L0 guardrails). The core checkout must report the same major.minor and a
+#   patch >= the pin; anything else exits 2.
+# - Core: ROCS_CORE_PROJECT (default: $HOME/ai-society/core/rocs-cli), run via
+#   `uv run --frozen --project <core>` (the core pins its Python via .python-version).
+# - Workspace: when ROCS_WORKSPACE_ROOT is unset it defaults to the nearest
+#   ancestor of the repo that contains every <repo:PATH@ref> layer named by the
+#   ontology manifest (else $HOME/ai-society); ROCS_RESOLVE_REFS defaults to 1,
+#   so plain `./scripts/rocs.sh validate --repo .` checks every layer.
+# - Company settings: when local/rocs.env exists it is sourced (POSIX sh, with
+#   `set -a`, so plain assignments are exported) before anything else, with the
+#   launcher arguments visible as "$@". Use it for ROCS_OUTPUT_ROOT,
+#   ROCS_CI_PROFILE, ROCS_AUTHORITY_AGGREGATE or company guards; `exit` in it
+#   aborts the launcher. local/ is never touched by template refresh; see
+#   docs/dev/l1-local-extensions.md.
+# No ephemeral-tool, PATH, or vendored fallbacks.
 set -eu
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-core_project_default="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"
+rocs_cli_pin="0.4.4"
 
-say() {
-  printf '%s\n' "$*"
-}
+repo="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+if [ -f "$repo/local/rocs.env" ]; then
+  set -a
+  # shellcheck source=/dev/null
+  . "$repo/local/rocs.env"
+  set +a
+fi
+core="${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}"
 
 err() {
   printf '%s\n' "$*" >&2
 }
 
-die() {
+fail_setup() {
   err "error: $*"
-  exit 1
-}
-
-has_cmd() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-path_fallback_enabled() {
-  case "${ROCS_ALLOW_PATH_FALLBACK:-0}" in
-    1|true|TRUE|yes|YES|on|ON)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
-python_cmd() {
-  if has_cmd python3; then
-    printf '%s\n' "python3"
-    return 0
-  fi
-
-  if has_cmd python; then
-    printf '%s\n' "python"
-    return 0
-  fi
-
-  return 1
+  exit 2
 }
 
 usage() {
   cat <<'EOF'
-usage: scripts/rocs.sh [--doctor|--which|--help] [rocs args...]
+usage: scripts/rocs.sh [--doctor|--help] [rocs args...]
 
-Portable ROCS launcher with deterministic resolution order:
-  1) ROCS_BIN override
-  2) vendored ./tools/rocs-cli
-  3) local rocs-cli project (this repo)
-  4) workspace core ~/ai-society/core/rocs-cli (or ROCS_CORE_PROJECT)
-  5) rocs on PATH only when ROCS_ALLOW_PATH_FALLBACK=1
+Runs the pinned workspace rocs-cli core checkout:
+  uv run --frozen --project "${ROCS_CORE_PROJECT:-$HOME/ai-society/core/rocs-cli}" python -m rocs_cli <args>
 
 Examples:
-  ./scripts/rocs.sh version
-  ./scripts/rocs.sh validate --repo .
   ./scripts/rocs.sh --doctor
-  ./scripts/rocs.sh --which
+  ./scripts/rocs.sh validate --repo .
+  ./scripts/rocs.sh build --repo .
 EOF
 }
 
-toml_declares_rocs_cli() {
-  toml_file="$1"
-  [ -f "$toml_file" ] || return 1
-  grep -Eq "^[[:space:]]*name[[:space:]]*=[[:space:]]*['\"]?rocs-cli['\"]?[[:space:]]*(#.*)?$" "$toml_file"
+core_version() {
+  sed -n 's/^[[:space:]]*version[[:space:]]*=[[:space:]]*["'\'']\([^"'\'']*\)["'\''].*/\1/p' "$core/pyproject.toml" 2>/dev/null | head -n 1
 }
 
-has_vendored_rocs_dir() {
-  [ -d "$repo_root/tools/rocs-cli" ]
+# 0 when $1 (core) is compatible with $2 (pin): same major.minor, patch >= pin.
+version_compatible() {
+  have="$1"
+  want="$2"
+  for candidate in "$have" "$want"; do
+    case "$candidate" in
+      *.*.*.* | *[!0-9.]* | '') return 1 ;;
+      *.*.*) ;;
+      *) return 1 ;;
+    esac
+  done
+  have_major="${have%%.*}"
+  have_rest="${have#*.}"
+  have_minor="${have_rest%%.*}"
+  have_patch="${have_rest#*.}"
+  want_major="${want%%.*}"
+  want_rest="${want#*.}"
+  want_minor="${want_rest%%.*}"
+  want_patch="${want_rest#*.}"
+  for part in "$have_major" "$have_minor" "$have_patch" "$want_major" "$want_minor" "$want_patch"; do
+    case "$part" in
+      '' | *[!0-9]*) return 1 ;;
+    esac
+  done
+  [ "$have_major" -eq "$want_major" ] && [ "$have_minor" -eq "$want_minor" ] && [ "$have_patch" -ge "$want_patch" ]
 }
 
-is_vendored_rocs_project() {
-  has_vendored_rocs_dir || return 1
-
-  if toml_declares_rocs_cli "$repo_root/tools/rocs-cli/pyproject.toml"; then
-    return 0
+require_core() {
+  if [ ! -f "$core/pyproject.toml" ] || [ ! -d "$core/src/rocs_cli" ]; then
+    fail_setup "rocs-cli core checkout not found at $core (pin $rocs_cli_pin). Clone ai-society/core/rocs-cli there, or set ROCS_CORE_PROJECT to a rocs-cli $rocs_cli_pin checkout."
   fi
-
-  [ -f "$repo_root/tools/rocs-cli/setup.py" ]
+  version="$(core_version)"
+  if [ -z "$version" ]; then
+    fail_setup "cannot read the rocs-cli version from $core/pyproject.toml (pin $rocs_cli_pin)."
+  fi
+  if ! version_compatible "$version" "$rocs_cli_pin"; then
+    fail_setup "rocs-cli core at $core is $version but this repo pins $rocs_cli_pin (accepts ${rocs_cli_pin%.*}.x with patch >= ${rocs_cli_pin##*.}). Update the core checkout to $rocs_cli_pin or newer within ${rocs_cli_pin%.*}.x, or re-render with a matching rocs_cli_version."
+  fi
+  command -v uv >/dev/null 2>&1 || fail_setup "uv is required to run the rocs-cli core checkout at $core."
 }
 
-is_local_rocs_project() {
-  toml_declares_rocs_cli "$repo_root/pyproject.toml"
-}
-
-select_runner() {
-  if [ -n "${ROCS_BIN:-}" ]; then
-    if [ -x "$ROCS_BIN" ] || command -v "$ROCS_BIN" >/dev/null 2>&1; then
-      printf '%s\n' "rocs-bin"
-      return
-    fi
-    printf '%s\n' "rocs-bin-missing"
-    return
+# Workspace default (mirrors rocs-cli >= 0.4.3 verified_runtime._GENERIC_WORKSPACE_DEFAULT,
+# falling back to $HOME/ai-society instead of the repo).
+if [ -z "${ROCS_WORKSPACE_ROOT:-}" ]; then
+  ROCS_WORKSPACE_ROOT="$HOME/ai-society"
+  refs="$(sed -n 's/.*<repo:\([^@>]*\)@.*/\1/p' "$repo/ontology/manifest.yaml" "$repo/manifest.yaml" 2>/dev/null || true)"
+  if [ -n "$refs" ]; then
+    ws="$(dirname -- "$repo")"
+    while :; do
+      found=1
+      for ref in $refs; do
+        if [ ! -d "$ws/$ref" ] && [ ! -d "$ws/${ref#*/}" ]; then
+          found=0
+          break
+        fi
+      done
+      if [ "$found" = 1 ]; then
+        ROCS_WORKSPACE_ROOT="$ws"
+        break
+      fi
+      [ "$ws" = / ] && break
+      ws="$(dirname -- "$ws")"
+    done
   fi
-
-  if is_vendored_rocs_project; then
-    if has_cmd uvx; then
-      printf '%s\n' "vendored-uvx"
-      return
-    fi
-    if has_cmd uv; then
-      printf '%s\n' "vendored-uv"
-      return
-    fi
-    printf '%s\n' "vendored-missing-runtime"
-    return
-  fi
-
-  if is_local_rocs_project; then
-    if has_cmd uv; then
-      printf '%s\n' "local-project-uv"
-      return
-    fi
-    if python_bin="$(python_cmd 2>/dev/null)"; then
-      printf 'local-project-%s\n' "$python_bin"
-      return
-    fi
-  fi
-
-  if [ -d "$core_project_default" ] && [ -f "$core_project_default/pyproject.toml" ] && has_cmd uv; then
-    printf '%s\n' "workspace-core-uv"
-    return
-  fi
-
-  if has_cmd rocs; then
-    if path_fallback_enabled; then
-      printf '%s\n' "path-rocs"
-    else
-      printf '%s\n' "path-rocs-blocked"
-    fi
-    return
-  fi
-
-  printf '%s\n' "missing"
-}
-
-runner_desc() {
-  case "$1" in
-    rocs-bin)
-      printf 'ROCS_BIN=%s\n' "${ROCS_BIN}"
-      ;;
-    rocs-bin-missing)
-      printf 'ROCS_BIN is set but not executable/resolvable (%s)\n' "${ROCS_BIN}"
-      ;;
-    vendored-uvx)
-      printf 'vendored via uvx: %s\n' "$repo_root/tools/rocs-cli"
-      ;;
-    vendored-uv)
-      printf 'vendored via uv tool run: %s\n' "$repo_root/tools/rocs-cli"
-      ;;
-    vendored-missing-runtime)
-      printf 'vendored found but missing uv/uvx: %s\n' "$repo_root/tools/rocs-cli"
-      ;;
-    local-project-uv)
-      printf 'local rocs-cli project via uv --project %s\n' "$repo_root"
-      ;;
-    local-project-python|local-project-python3)
-      python_bin="${1#local-project-}"
-      printf 'local rocs-cli project via PYTHONPATH=%s/src %s -m rocs_cli (%s)\n' "$repo_root" "$python_bin" "$repo_root"
-      ;;
-    workspace-core-uv)
-      printf 'workspace core via uv --project %s\n' "$core_project_default"
-      ;;
-    path-rocs)
-      printf 'rocs on PATH (%s) with explicit ROCS_ALLOW_PATH_FALLBACK=1\n' "$(command -v rocs)"
-      ;;
-    path-rocs-blocked)
-      printf 'rocs on PATH is available (%s) but blocked by default; set ROCS_ALLOW_PATH_FALLBACK=1 or ROCS_BIN=/absolute/path/to/rocs\n' "$(command -v rocs)"
-      ;;
-    missing)
-      printf 'unresolved (no viable rocs runner)\n'
-      ;;
-    *)
-      printf 'unknown runner token: %s\n' "$1"
-      ;;
-  esac
-}
-
-doctor() {
-  runner="$(select_runner)"
-
-  say "rocs launcher doctor"
-  say "- repo_root: $repo_root"
-  say "- core_project_default: $core_project_default"
-  say "- has uv: $(has_cmd uv && printf yes || printf no)"
-  say "- has uvx: $(has_cmd uvx && printf yes || printf no)"
-  say "- has python3: $(has_cmd python3 && printf yes || printf no)"
-  say "- has python: $(has_cmd python && printf yes || printf no)"
-  say "- has rocs on PATH: $(has_cmd rocs && printf yes || printf no)"
-  say "- path fallback enabled: $(path_fallback_enabled && printf yes || printf no)"
-  say "- has vendored tools/rocs-cli dir: $(has_vendored_rocs_dir && printf yes || printf no)"
-  say "- vendored tools/rocs-cli is valid project: $(is_vendored_rocs_project && printf yes || printf no)"
-  say "- local project is rocs-cli: $(is_local_rocs_project && printf yes || printf no)"
-  say "- selected runner: $(runner_desc "$runner")"
-
-  case "$runner" in
-    missing|vendored-missing-runtime|rocs-bin-missing|path-rocs-blocked)
-      return 1
-      ;;
-  esac
-  return 0
-}
-
-if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  usage
-  exit 0
 fi
+export ROCS_WORKSPACE_ROOT
+ROCS_RESOLVE_REFS="${ROCS_RESOLVE_REFS:-1}"
+export ROCS_RESOLVE_REFS
 
-if [ "${1:-}" = "--doctor" ]; then
-  doctor
-  exit $?
-fi
-
-runner="$(select_runner)"
-
-if [ "${1:-}" = "--which" ]; then
-  runner_desc "$runner"
-  case "$runner" in
-    missing|vendored-missing-runtime|rocs-bin-missing|path-rocs-blocked)
-      exit 1
-      ;;
-  esac
-  exit 0
-fi
-
-case "$runner" in
-  rocs-bin)
-    exec "$ROCS_BIN" "$@"
+case "${1:-}" in
+  -h | --help)
+    usage
+    exit 0
     ;;
-  rocs-bin-missing)
-    die "ROCS_BIN is set but not executable/resolvable: $ROCS_BIN"
-    ;;
-  vendored-uvx)
-    exec uvx -n --from "$repo_root/tools/rocs-cli" rocs "$@"
-    ;;
-  vendored-uv)
-    exec uv tool run --from "$repo_root/tools/rocs-cli" rocs "$@"
-    ;;
-  vendored-missing-runtime)
-    die "vendored tools/rocs-cli detected but uv/uvx is missing"
-    ;;
-  local-project-uv)
-    exec uv --project "$repo_root" run rocs "$@"
-    ;;
-  local-project-python|local-project-python3)
-    python_bin="${runner#local-project-}"
-    PYTHONPATH="$repo_root/src${PYTHONPATH:+:$PYTHONPATH}" exec "$python_bin" -m rocs_cli "$@"
-    ;;
-  workspace-core-uv)
-    exec uv --project "$core_project_default" run rocs "$@"
-    ;;
-  path-rocs)
-    exec rocs "$@"
-    ;;
-  path-rocs-blocked)
-    die "rocs on PATH is available but blocked by default; set ROCS_ALLOW_PATH_FALLBACK=1 for an explicit ambient fallback, set ROCS_BIN=/absolute/path/to/rocs, or provide the vendored/workspace-core rocs-cli"
-    ;;
-  *)
-    die "unable to locate rocs runner; set ROCS_BIN=/absolute/path/to/rocs, provide the vendored/workspace-core rocs-cli, or explicitly allow rocs on PATH with ROCS_ALLOW_PATH_FALLBACK=1"
+  --doctor)
+    printf 'repo: %s\n' "$repo"
+    printf 'core: %s\n' "$core"
+    printf 'core version: %s\n' "$(core_version || true)"
+    printf 'pin: %s\n' "$rocs_cli_pin"
+    printf 'workspace root: %s\n' "$ROCS_WORKSPACE_ROOT"
+    printf 'resolve refs: %s\n' "$ROCS_RESOLVE_REFS"
+    printf 'output root: %s\n' "${ROCS_OUTPUT_ROOT:-<layout default>}"
+    printf 'company env: %s\n' "$([ -f "$repo/local/rocs.env" ] && printf 'local/rocs.env' || printf '<none>')"
+    require_core
+    printf 'ok: rocs-cli %s satisfies pin %s\n' "$version" "$rocs_cli_pin"
+    exit 0
     ;;
 esac
+
+require_core
+exec uv run --frozen --project "$core" python -m rocs_cli "$@"

@@ -33,6 +33,17 @@ fail() {
 	exit 1
 }
 
+# Company-owned extension point (never touched by template refresh). It runs first so
+# company preconditions (for example an owner-gitlink ontology) fail fast.
+./scripts/lib/run-local-hook.sh local/ci/check-template-ci.sh || fail "company hook local/ci/check-template-ci.sh failed"
+
+# An L1 may adopt ontology/ as an owner gitlink; it is then only present when materialized.
+[ ! -L ontology/manifest.yaml ] || fail "ontology manifest may not be a symlink"
+ontology_gitlink=0
+if [ "$(git ls-files -s -- ontology 2>/dev/null | cut -c1-6)" = "160000" ]; then
+	ontology_gitlink=1
+fi
+
 assert_file() {
 	path="$1"
 	[ -f "$path" ] || fail "missing file: $path"
@@ -330,6 +341,7 @@ scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/lib/check-template-ak.py
+scripts/lib/run-local-hook.sh
 scripts/lib/check-l1-ownership-state.py
 scripts/lib/check-task-scope-snapshots.py
 scripts/lib/copier-answers.sh
@@ -348,12 +360,15 @@ docs/.gitkeep
 docs/dev/tpl-project-repo-file-contract.md
 examples/.gitkeep
 external/.gitkeep
-ontology/.gitkeep
 policy/.gitkeep
 src/.gitkeep
 tests/.gitkeep
 diary/README.md
 "
+
+if [ "$ontology_gitlink" = 0 ]; then
+	required_files="$required_files ontology/.gitkeep"
+fi
 
 for path in $required_files; do
 	assert_file "$path"
@@ -470,6 +485,7 @@ scripts/rocs.sh
 scripts/check-template-ci.sh
 scripts/install-hooks.sh
 scripts/lib/check-template-ak.py
+scripts/lib/run-local-hook.sh
 scripts/ci/smoke.sh
 scripts/ci/full.sh
 .githooks/pre-commit
@@ -582,6 +598,25 @@ assert_contains ".githooks/pre-push" "scripts/ci/full.sh" "pre-push must run ful
 assert_contains "scripts/ci/full.sh" "check-task-scope-snapshots.sh" "L1 full CI should enforce task-scope snapshot checks"
 assert_not_contains "scripts/ci/full.sh" "crates/ak-cli/Cargo.toml" "L1 full CI must not gate AK checks on vendored ak-cli"
 assert_contains "scripts/ci/full.sh" "scripts/rocs.sh" "L1 full CI should use scripts/rocs.sh when ontology is present"
+assert_line_precedes "scripts/ci/full.sh" "./scripts/rocs.sh cleanup --repo ." "./scripts/rocs.sh validate --repo ." "L1 full CI must clean ROCS outputs before validating"
+assert_line_precedes "scripts/ci/full.sh" "./scripts/rocs.sh validate --repo ." "./scripts/rocs.sh build --repo ." "L1 full CI must validate before building ROCS outputs"
+assert_contains "scripts/rocs.sh" 'exec uv run --frozen --project "$core" python -m rocs_cli "$@"' "L1 ROCS launcher must run the pinned workspace core"
+assert_contains "scripts/rocs.sh" '. "$repo/local/rocs.env"' "L1 ROCS launcher must source company ROCS settings from local/rocs.env"
+# Company-owned local/ extension points: each entry script hands off to its local/ counterpart.
+for local_hook in \
+	".githooks/pre-commit:local/githooks/pre-commit" \
+	".githooks/pre-push:local/githooks/pre-push" \
+	"scripts/ci/smoke.sh:local/ci/smoke.sh" \
+	"scripts/ci/full.sh:local/ci/full.sh" \
+	"scripts/check-template-ci.sh:local/ci/check-template-ci.sh" \
+	"scripts/install-hooks.sh:local/install-hooks.sh"; do
+	grep -F -- " ${local_hook#*:}" "${local_hook%%:*}" | grep -qF "scripts/lib/run-local-hook.sh" ||
+		fail "${local_hook%%:*} must call its company extension ${local_hook#*:} through scripts/lib/run-local-hook.sh"
+done
+assert_contains "scripts/install-hooks.sh" "scripts/lib/run-local-hook.sh" "install-hooks must normalize the local-hook runner executable bit"
+if grep -E '^  - local(/|$)' contracts/template-ownership.yml >/dev/null; then
+	fail "local/ must stay outside the template ownership map (company-owned, target-only)"
+fi
 assert_not_contains "scripts/install-hooks.sh" "copier/template-repo" "install-hooks must not reference removed legacy template-repo path"
 assert_contains "scripts/install-hooks.sh" "scripts/bootstrap-lane-root.sh" "install-hooks must normalize executable bit for lane bootstrap helper"
 assert_contains "scripts/install-hooks.sh" "scripts/rocs.sh" "install-hooks must normalize executable bit for the L1 ROCS wrapper"
@@ -894,7 +929,12 @@ fi
 l1_task_scope_id="$(create_scoped_task "$repo_root" "template-ci: generated L1 task-scope snapshot")"
 write_task_scope_snapshot "$repo_root" "$l1_task_scope_id"
 run_repo_cmd "$repo_root" ./scripts/check-task-scope-snapshots.sh >/dev/null
-run_repo_cmd "$repo_root" ./scripts/ci/full.sh >/dev/null
+if [ "$ontology_gitlink" = 1 ] && [ ! -f ontology/manifest.yaml ]; then
+	assert_command_fails_with_stderr "unmaterialized owner-gitlink ontology must fail the root full gate" "ontology is not materialized" \
+		run_repo_cmd "$repo_root" ./scripts/ci/full.sh
+else
+	run_repo_cmd "$repo_root" ./scripts/ci/full.sh >/dev/null
+fi
 restore_l1_task_scope_dir
 assert_command_fails_with_stderr "generated L1 wrapper should reject L1 destinations" "destination already declares layer L1" ./scripts/new-repo-from-copier.sh tpl-project-repo "$repo_root" -d repo_slug=forbidden-l1-destination --defaults --overwrite
 agent_creation_task_id="$(create_scoped_task "$repo_root" "template-ci agent role: recurring pain and differentiation from existing agents")"

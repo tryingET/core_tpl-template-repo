@@ -140,11 +140,12 @@ Install local hooks in a generated repo:
 ./scripts/install-hooks.sh
 ```
 
-Deterministic ROCS launcher (use before ad-hoc scripting):
+Company extensions: the root CI lanes, git hooks and `install-hooks.sh` are template-owned and replaced on L1 template refresh. Each one calls an optional company-owned counterpart under `local/` (`local/ci/{smoke,full,check-template-ci}.sh`, `local/githooks/{pre-commit,pre-push}`, `local/install-hooks.sh`), and `scripts/rocs.sh` sources `local/rocs.env` for company ROCS settings such as `ROCS_OUTPUT_ROOT`. `local/` is never written or deleted by a refresh. See `docs/dev/l1-local-extensions.md`.
+
+Deterministic ROCS launcher (runs the pinned workspace rocs-cli core; use before ad-hoc scripting):
 
 ```bash
 ./scripts/rocs.sh --doctor
-./scripts/rocs.sh --which
 ./scripts/rocs.sh version
 ```
 

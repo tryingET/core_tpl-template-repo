@@ -25,4 +25,7 @@ if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml copier/*/copier.yml >/d
   fail "nested copier invocations are forbidden in L1 template config"
 fi
 
+# Company-owned extension point (never touched by template refresh).
+./scripts/lib/run-local-hook.sh local/ci/smoke.sh
+
 echo "ok: ci smoke"
