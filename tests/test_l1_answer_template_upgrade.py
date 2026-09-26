@@ -147,7 +147,9 @@ class UpgradeTests(UpgradeHarness):
                 before = snapshot(self.repo)
                 planned = self.refresh(apply=False)
                 self.assertEqual(snapshot(self.repo), before)
-                self.assertEqual(planned.stdout.count("retire: "), 5)
+                self.assertEqual(planned.stdout.count("(approved sha256="), 5)
+                # The base render still vendors rocs-cli; the L0 manifest retires it.
+                self.assertIn("retire-rule: copier/*/tools/rocs-cli/** -> ", planned.stdout)
                 self.refresh()
                 current = yaml.safe_load((self.repo / ".copier-answers.yml").read_text())
                 if value:

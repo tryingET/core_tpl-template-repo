@@ -32,6 +32,7 @@ from l1_template_receipts import (  # noqa: E402
 
 from l1_answer_template_upgrade import plan as retirement_plan, revalidate, retire
 import l1_template_gitlinks as gitlinks  # noqa: E402
+import l1_template_retirements as retirements_list  # noqa: E402
 
 SCHEMA = "ai-society.template-ownership/1"
 ADOPTION_SCHEMA = "ai-society.template-ownership-adoption/1"
@@ -240,6 +241,7 @@ def refresh(
     plan_sha256: str | None = None,
     wave_id: str | None = None,
     source_l0_commit: str | None = None,
+    retirement_manifest: list[dict[str, object]] | None = None,
 ) -> int:
     map_path = repo / MAP_PATH
     state_path = repo / STATE_PATH
@@ -323,7 +325,7 @@ def refresh(
             raise ValueError(f"rendered template symlinks are unsupported: {path}")
         if owner(path, next_map) is None:
             raise ValueError(f"unclassified rendered path: {path}; update {MAP_PATH}")
-    # An uncommitted copier-birth preview has no index and therefore no gitlinks.
+    # An uncommitted copier-birth preview has no index: no gitlinks, nothing to retire.
     index = gitlinks.index_entries(repo) if gitlinks.is_repository(repo) or apply else None
     owner_gitlinks = gitlinks.check(
         repo, index or {}, current_map, next_map,
@@ -360,6 +362,12 @@ def refresh(
                 raise ValueError(f"unattested template-path collision after ownership census: {path}")
 
     retirements = retirement_plan(repo, rendered, current_map, next_map, owner, adoption)
+    # Census (adopting) refreshes only attest; manifest retirements wait for established state.
+    declared = {} if index is None or adoption is not None else retirements_list.plan(
+        repo, index, rendered_files, current_map, next_map, owner, retirement_manifest
+    )
+    if set(declared) & set(retirements):
+        raise ValueError("retirement paths overlap the fixed answer-template retirements")
     actions: list[tuple[str, str]] = []
     preserved = 0
     for path in sorted(rendered_files):
@@ -379,7 +387,7 @@ def refresh(
         else:
             actions.append(("add", path))
 
-    if not actions and not retirements:
+    if not actions and not retirements and not declared:
         print(f"ok: template-owned L1 paths are current; preserved agent-owned paths: {preserved}")
         return 0
 
@@ -396,11 +404,16 @@ def refresh(
     if adoption is not None:
         print(f"adoption evidence: {adoption.get('evidence_ref', '<missing>')}")
     print(f"preserve: {preserved} rendered agent-owned path(s)")
-    print("note: target-only paths are outside this refresh except the five fingerprint-approved obsolete answer templates")
+    print(
+        "note: target-only paths are outside this refresh except the fingerprint-approved obsolete "
+        "answer templates and the L0 retirement manifest entries listed below"
+    )
     for name in owner_gitlinks:
         print(f"preserve-gitlink: {name} (company-owned owner gitlink; opaque, never read or written)")
     for path, entry in retirements.items():
         print(f"retire: {path} (approved sha256={entry['record']['sha256']}; successor={entry['new']})")
+    for line in retirements_list.report(declared):
+        print(line)
     for action, path in actions:
         print(f"{action}: {path}")
         show_diff(path, repo / path if (repo / path).exists() else None, rendered / path)
@@ -409,11 +422,17 @@ def refresh(
         ensure_clean_git_target(repo)
         ensure_safe_destinations(repo, [path for _, path in actions])
         revalidate(repo, retirements)
+        replanned = retirements_list.plan(
+            repo, gitlinks.index_entries(repo), rendered_files, current_map, next_map, owner, retirement_manifest
+        )
+        if replanned != declared:
+            raise ValueError("stale declarative retirement plan")
         if retirements and (load_map(repo) != current_map or load_map(rendered) != next_map):
             raise ValueError("stale retirement ownership maps")
         for _, path in actions:
             copy_atomic(rendered / path, repo / path)
         retire(repo, retirements)
+        retirements_list.retire(repo, declared)
         if pending is None:
             raise ValueError("internal error: pending state was not prevalidated")
         write_atomic(pending, state_path)

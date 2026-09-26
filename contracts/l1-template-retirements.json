@@ -1,0 +1,30 @@
+{
+  "schema": "ai-society.l1-template-retirements/1",
+  "retirements": [
+    {
+      "pattern": "copier/*/tools/rocs-cli/**",
+      "retired_by": "893d80c470c2bce3dc7c5f998fcac41014419005",
+      "reason": "L2 templates use the pinned workspace-core ROCS launcher; the vendored rocs-cli bundle is no longer rendered"
+    },
+    {
+      "pattern": "copier/*/.githooks/pre-commit",
+      "retired_by": "6dcbc01f059082d22462deed271a142a57497056",
+      "reason": "superseded by the rendered .githooks/pre-commit.j2 staged-file UBS hook; both would render to the same L2 path"
+    },
+    {
+      "pattern": "copier/tpl-monorepo/ontology/.gitkeep",
+      "retired_by": "f000c2eadaaaaa9558bca8474038b8f597a92d76",
+      "reason": "tpl-monorepo ships a real ontology/ skeleton instead of the placeholder"
+    },
+    {
+      "pattern": "copier/tpl-agent-repo/docs/_core/README.md",
+      "retired_by": "f16b9d5ce5ef47847f2cdbfb5f9b6d66d3029e84",
+      "reason": "docs/_core placeholder removed from the agent L2 template"
+    },
+    {
+      "pattern": "copier/tpl-org-repo/docs/_core/README.md",
+      "retired_by": "f16b9d5ce5ef47847f2cdbfb5f9b6d66d3029e84",
+      "reason": "docs/_core placeholder removed from the org L2 template"
+    }
+  ]
+}
