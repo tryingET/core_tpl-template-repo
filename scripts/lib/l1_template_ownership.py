@@ -422,10 +422,9 @@ def refresh(
         ensure_clean_git_target(repo)
         ensure_safe_destinations(repo, [path for _, path in actions])
         revalidate(repo, retirements)
-        replanned = retirements_list.plan(
+        if declared and declared != retirements_list.plan(
             repo, gitlinks.index_entries(repo), rendered_files, current_map, next_map, owner, retirement_manifest
-        )
-        if replanned != declared:
+        ):
             raise ValueError("stale declarative retirement plan")
         if retirements and (load_map(repo) != current_map or load_map(rendered) != next_map):
             raise ValueError("stale retirement ownership maps")
