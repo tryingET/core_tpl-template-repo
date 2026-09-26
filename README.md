@@ -197,6 +197,10 @@ Forbidden edges:
   git -C /path/to/softwareco add contracts/template-ownership.yml contracts/template-ownership-state.json contracts/template-ownership-adoption.json
   git -C /path/to/softwareco commit -m 'chore: admit L1 ownership census'
 
+  # Read-only look first: render exactly what a refresh would produce (target untouched,
+  # clean L0 required), e.g. for template-propagator's `report l1-refresh-preview`.
+  ./scripts/render-l1.sh /path/to/softwareco /path/to/fresh-render-dir
+
   # Template-propagator emits canonical 01-plan.json, then explicit apply writes pending state.
   ./scripts/preview-l1-diff.sh /path/to/softwareco
   ./scripts/propagate-l1-template.sh /path/to/softwareco \
