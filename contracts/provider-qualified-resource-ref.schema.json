@@ -1,0 +1,85 @@
+{
+  "$id": "https://ai-society.local/schemas/provider-qualified-resource-ref-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authority_transfer": {
+      "const": false
+    },
+    "content_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "invocation_policy": {
+      "additionalProperties": false,
+      "properties": {
+        "entrypoints": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "model_invocation": {
+          "enum": [
+            "enabled",
+            "disabled"
+          ]
+        }
+      },
+      "required": [
+        "model_invocation"
+      ],
+      "type": "object"
+    },
+    "kind": {
+      "enum": [
+        "prompt",
+        "procedure",
+        "skill-tree",
+        "profile",
+        "tool-descriptor",
+        "extension-descriptor",
+        "persona-projection"
+      ]
+    },
+    "logical_identity": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 256,
+      "minLength": 1,
+      "type": "string"
+    },
+    "physical_locator": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "provider": {
+      "pattern": "^[a-z][a-z0-9-]{1,63}$",
+      "type": "string"
+    },
+    "revision": {
+      "pattern": "^(git:[0-9a-f]{40}|sha256:[0-9a-f]{64}|urn:[^ ]+)$",
+      "type": "string"
+    },
+    "schema": {
+      "const": "ai-society.resource-ref/1"
+    },
+    "tree_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "provider",
+    "kind",
+    "name",
+    "revision",
+    "content_digest"
+  ],
+  "title": "Provider-qualified exact resource reference",
+  "type": "object"
+}

@@ -1,0 +1,272 @@
+{
+  "$id": "https://ai-society.local/schemas/ai-society-agent-2.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "pattern": "^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "appointment": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "accountable_owner": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "reference": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "accountable_owner"
+      ],
+      "type": "object"
+    },
+    "display_name": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "home": {
+      "additionalProperties": false,
+      "properties": {
+        "logical": {
+          "pattern": "^~/ai-society/(?:agents|[a-z][a-z0-9-]*/agents)/agent-[a-z0-9-]+$",
+          "type": "string"
+        },
+        "path_is_authority": {
+          "const": false
+        },
+        "repository": {
+          "pattern": "^[^/]+/[^/]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "logical",
+        "repository"
+      ],
+      "type": "object"
+    },
+    "jurisdiction": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "not": {
+              "required": [
+                "company"
+              ]
+            }
+          },
+          "if": {
+            "properties": {
+              "level": {
+                "const": "company"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "company"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "appointing_authority": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "company": {
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "type": "string"
+        },
+        "level": {
+          "enum": [
+            "society",
+            "company"
+          ]
+        }
+      },
+      "required": [
+        "level",
+        "appointing_authority"
+      ],
+      "type": "object"
+    },
+    "migration": {
+      "additionalProperties": false,
+      "properties": {
+        "apply": {
+          "const": false
+        },
+        "from_schema": {
+          "const": "ai-society.agent/1"
+        },
+        "mode": {
+          "const": "inspect-plan-explicit-apply"
+        },
+        "rollback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_schema",
+        "mode",
+        "apply"
+      ],
+      "type": "object"
+    },
+    "name": {
+      "pattern": "^agent-[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "type": "string"
+    },
+    "persona": {
+      "additionalProperties": false,
+      "properties": {
+        "delivery": {
+          "additionalProperties": false,
+          "properties": {
+            "placement": {
+              "enum": [
+                "system_prompt",
+                "append_system_prompt",
+                "user_prompt"
+              ]
+            },
+            "resource_ref": {
+              "$ref": "https://ai-society.local/schemas/provider-qualified-resource-ref-v1.json"
+            }
+          },
+          "required": [
+            "placement",
+            "resource_ref"
+          ],
+          "type": "object"
+        },
+        "generated_projection": {
+          "additionalProperties": false,
+          "properties": {
+            "content_digest": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "generated": {
+              "const": true
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "generated",
+            "content_digest"
+          ],
+          "type": "object"
+        },
+        "source_files": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "source_files",
+        "generated_projection",
+        "delivery"
+      ],
+      "type": "object"
+    },
+    "resources": {
+      "additionalProperties": false,
+      "properties": {
+        "profile": {
+          "$ref": "https://ai-society.local/schemas/provider-qualified-resource-ref-v1.json"
+        },
+        "prompt": {
+          "$ref": "https://ai-society.local/schemas/provider-qualified-resource-ref-v1.json"
+        },
+        "skills": {
+          "items": {
+            "$ref": "https://ai-society.local/schemas/provider-qualified-resource-ref-v1.json"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "prompt",
+        "profile",
+        "skills"
+      ],
+      "type": "object"
+    },
+    "role": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "runtime_ceiling": {
+      "additionalProperties": false,
+      "properties": {
+        "ambient_resources": {
+          "const": false
+        },
+        "extensions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "session": {
+          "const": "fresh"
+        },
+        "tools": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "tools",
+        "extensions",
+        "ambient_resources",
+        "session"
+      ],
+      "type": "object"
+    },
+    "schema": {
+      "const": "ai-society.agent/2"
+    }
+  },
+  "required": [
+    "schema",
+    "agent_id",
+    "name",
+    "display_name",
+    "role",
+    "jurisdiction",
+    "appointment",
+    "home",
+    "persona",
+    "resources",
+    "runtime_ceiling",
+    "migration"
+  ],
+  "title": "ai-society.agent/2",
+  "type": "object"
+}
