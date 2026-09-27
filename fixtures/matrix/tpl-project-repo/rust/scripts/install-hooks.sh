@@ -4,7 +4,9 @@ set -eu
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)"
 chmod +x "$repo_root/.githooks/pre-commit" 2>/dev/null || true
 toplevel="$(git -C "$repo_root" rev-parse --show-toplevel 2>/dev/null || true)"
-if [ -n "$toplevel" ] && [ "$(CDPATH='' cd -- "$toplevel" && pwd -P)" = "$repo_root" ]; then
+toplevel_real=""
+[ -z "$toplevel" ] || toplevel_real="$(CDPATH='' cd -- "$toplevel" && pwd -P)"
+if [ -n "$toplevel_real" ] && [ "$toplevel_real" = "$repo_root" ]; then
 	current="$(git -C "$repo_root" config --get core.hooksPath || true)"
 	if [ -z "$current" ] || [ "$current" = ".githooks" ]; then
 		git -C "$repo_root" config core.hooksPath .githooks
