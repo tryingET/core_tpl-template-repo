@@ -25,6 +25,11 @@
       "pattern": "copier/tpl-org-repo/docs/_core/README.md",
       "retired_by": "f16b9d5ce5ef47847f2cdbfb5f9b6d66d3029e84",
       "reason": "docs/_core placeholder removed from the org L2 template"
+    },
+    {
+      "pattern": "scripts/docs-list.sh",
+      "retired_by": "904a554f6ce78888aacf2143ed584eda0ef67ce0",
+      "reason": "docs-list wrappers are forbidden; core/agent-scripts owns the only implementation (operator instruction 2026-08-16)"
     }
   ]
 }
