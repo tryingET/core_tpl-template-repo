@@ -12,7 +12,7 @@ Template for a delivery project repo (project context + code + tests).
 
 ## Guardrails
 - No secrets in git.
-- Never push to `main`; MRs only.
+- Mainline development: commit to `main` and push to `main`.
 - Treat `docs/_core/**` as immutable.
 - Track deferred work in Agent Kernel (`ak task ...`); no checked-in work-items projection exists — do not reintroduce one (avoid ad-hoc TODO comments).
 - When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export ...`; treat `governance/task-scopes/AK-*.snapshot.json` as AK exports, not hand-authored truth.

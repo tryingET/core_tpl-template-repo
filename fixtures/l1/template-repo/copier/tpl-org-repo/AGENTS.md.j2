@@ -12,7 +12,7 @@ Template for an org/company handbook repo (consent-gated).
 
 ## Guardrails
 - No secrets in git.
-- Never push to `main`; MRs only.
+- Mainline development: commit to `main` and push to `main`.
 - Treat `docs/_core/**` as immutable.
 
 ## AK-native route guardrails

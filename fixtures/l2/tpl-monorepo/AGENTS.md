@@ -22,7 +22,7 @@ governance/      # Optional task-scope snapshots, policies
 
 ## Guardrails
 - No secrets in git.
-- Never push to `main`; MRs only.
+- Mainline development: commit to `main` and push to `main`.
 - Treat `docs/_core/**` as immutable.
 - Packages in `packages/` have NO `.git` (managed by monorepo).
 - Apps in `apps/` have NO `.git` (managed by monorepo).
