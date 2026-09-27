@@ -136,7 +136,7 @@ _message_after_copy: |
 
   Structure:
     - AGENTS.md              (company-level context, loaded by pi)
-    - scripts/               (shared tooling: rocs.sh, docs-list.sh, new-repo-from-copier.sh)
+    - scripts/               (shared tooling: rocs.sh, new-repo-from-copier.sh)
     - copier/                (L2 templates)
     - owned/                 (L2 projects we operate - gitignored, each has own .git)
     - contrib/               (L2 upstream contributions - gitignored)

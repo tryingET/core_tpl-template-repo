@@ -245,7 +245,7 @@ Use when:
 - target entity kinds are uniform enough to treat the file as standalone
 
 Example:
-- `scripts/docs-list.sh --quiet-success`
+- `scripts/preflight-repo-census.sh`
 
 ### Multi-file propagation
 Use when the change is a **feature unit** rather than a file.

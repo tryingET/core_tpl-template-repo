@@ -127,7 +127,6 @@ Reserved L1 control-plane paths such as `docs`, `scripts`, `copier`, `governance
 ├── AGENTS.md              ← company context (loaded by pi)
 ├── scripts/               ← shared tooling
 │   ├── rocs.sh
-│   ├── docs-list.sh
 │   ├── new-repo-from-copier.sh
 │   └── bootstrap-lane-root.sh
 ├── copier/                ← L2 templates
