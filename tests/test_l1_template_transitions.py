@@ -19,6 +19,8 @@ SPEC = importlib.util.spec_from_file_location("l1_template_transitions", ENGINE)
 assert SPEC and SPEC.loader
 TRANSITIONS = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(TRANSITIONS)
+CHECKED_AT = "2026-09-01T04:20:43.171183530+00:00"
+COMPLETED_AT = "2026-09-01T04:50:42.182792191+00:00"
 
 
 def run(*args: str, cwd: Path, expect: int = 0, input: str | None = None) -> subprocess.CompletedProcess[str]:
@@ -136,6 +138,18 @@ class Harness:
         run("git", "rm", "--quiet", "ontology/.gitkeep", cwd=self.repo)
         run("git", "-c", "protocol.file.allow=always", "submodule", "add", "--quiet", str(self.source), "ontology", cwd=self.repo)
 
+    def established(self) -> dict[str, object]:
+        plan = self.plan(); self.stage_payload(); self.pending_commit(plan)
+        TRANSITIONS.finalize(self.repo, self.plan_path, "AK-321", self.ak)
+        run("git", "add", "contracts/template-ownership-state.json", cwd=self.repo)
+        run("git", "commit", "--quiet", "-m", "finalize ownership evidence", cwd=self.repo)
+        return json.loads((self.repo / "contracts/template-ownership-state.json").read_text())
+
+    def complete(self, claimed_by: str | None = None, completed_at: str = COMPLETED_AT) -> None:
+        """Mirror AK completion: status done, claimant cleared, completion time recorded."""
+        self.task.update(status="done", claimed_by=claimed_by, completed_at=completed_at)
+        self.write_authority()
+
     def pending_commit(self, plan: dict[str, object]) -> str:
         TRANSITIONS.apply(self.repo, self.plan_path, self.ak)
         run("git", "add", "contracts/template-ownership.yml", "contracts/template-ownership-state.json", cwd=self.repo)
@@ -148,7 +162,7 @@ class Harness:
         self.evidence = [{
             "id": 901, "task_id": 321, "repo": str(self.repo.resolve()),
             "repo_scope": str(self.repo.resolve()), "check_type": "l1_ownership_transition_v1",
-            "result": "pass", "details": details,
+            "result": "pass", "details": details, "checked_at": CHECKED_AT,
         }]
         self.write_authority()
         return applied
@@ -345,6 +359,92 @@ class TransitionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "registered worktree"):
                 TRANSITIONS.verify_authority(alias, 77, 321, h.executor, h.base, h.ak)
             run("git", "worktree", "remove", "--force", str(linked), cwd=h.repo)
+
+
+class CompletedTaskAuthorityTests(unittest.TestCase):
+    """AK clears claimed_by on completion; a done task is bound by its pinned evidence."""
+
+    def test_claimed_path_keeps_the_strict_live_claimant(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            h = Harness(Path(raw)); state = h.established()
+            TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            for claimant in (None, "other-executor"):
+                h.task.update(claimed_by=claimant); h.write_authority()
+                with self.assertRaisesRegex(ValueError, "fixed claimant"):
+                    TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            # Live plan/apply/finalize callers never accept a done task.
+            h.complete()
+            with self.assertRaisesRegex(ValueError, "only through its pinned evidence"):
+                TRANSITIONS.verify_authority(h.repo, 77, 321, h.executor, h.base, h.ak)
+
+    def test_done_task_with_cleared_claimant_and_pinned_evidence_passes(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            h = Harness(Path(raw)); state = h.established()
+            h.complete()
+            TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            h.complete(claimed_by=h.executor)
+            TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            h.complete(claimed_by="other-executor")
+            with self.assertRaisesRegex(ValueError, "different claimant"):
+                TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+
+    def test_done_task_refuses_evidence_recorded_after_completion(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            h = Harness(Path(raw)); state = h.established()
+            h.complete(completed_at="2026-09-01T04:20:43.171183529+00:00")
+            with self.assertRaisesRegex(ValueError, "recorded after the transition task completed"):
+                TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            h.complete(completed_at="2026-09-01T06:20:43.17118353+02:00")  # same instant, other offset
+            TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            for task_time, evidence_time in ((None, CHECKED_AT), (COMPLETED_AT, None), (COMPLETED_AT, "2026-09-01 04:20:43")):
+                h.complete(completed_at=task_time); h.evidence[0]["checked_at"] = evidence_time; h.write_authority()
+                with self.assertRaisesRegex(ValueError, "RFC 3339"):
+                    TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+
+    def test_done_task_refuses_evidence_executor_or_plan_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            h = Harness(Path(raw)); state = h.established(); h.complete()
+            binding = (state["evidence_id"], state["plan_sha256"])
+            with self.assertRaisesRegex(ValueError, "executor does not match"):
+                TRANSITIONS.verify_authority(h.repo, 77, 321, "other-executor", h.base, h.ak, completed_binding=binding)
+            with self.assertRaisesRegex(ValueError, "plan hash does not match"):
+                TRANSITIONS.verify_authority(h.repo, 77, 321, h.executor, h.base, h.ak, completed_binding=(binding[0], "c" * 64))
+            forged = json.loads(json.dumps(h.evidence[0]["details"]["plan"])); forged["executor"] = "other-executor"
+            forged["canonical_plan_sha256"] = TRANSITIONS.plan_hash(forged)
+            h.evidence[0]["details"]["plan"] = forged; h.write_authority()
+            with self.assertRaisesRegex(ValueError, "changed a pending plan binding"):
+                TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            with self.assertRaisesRegex(ValueError, "executor does not match"):
+                TRANSITIONS.verify_authority(h.repo, 77, 321, h.executor, h.base, h.ak, completed_binding=(binding[0], forged["canonical_plan_sha256"]))
+            h.evidence[0]["details"]["plan"] = json.loads(h.plan_path.read_text())
+            for key, value in (("check_type", "l1_contract_refresh_v1"), ("result", "fail"), ("task_id", 999)):
+                record = dict(h.evidence[0], **{key: value}); h.evidence = [record]; h.write_authority()
+                with self.assertRaisesRegex(ValueError, "passing l1_ownership_transition_v1"):
+                    TRANSITIONS.verify_authority(h.repo, 77, 321, h.executor, h.base, h.ak, completed_binding=binding)
+                h.evidence = [dict(record, check_type="l1_ownership_transition_v1", result="pass", task_id=321)]
+
+    def test_done_task_refuses_unpinned_or_duplicate_evidence(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            h = Harness(Path(raw)); state = h.established(); h.complete()
+            with self.assertRaisesRegex(ValueError, "unique pinned evidence"):
+                TRANSITIONS.verify_authority(h.repo, 77, 321, h.executor, h.base, h.ak, completed_binding=(999, state["plan_sha256"]))
+            state_path = h.repo / "contracts/template-ownership-state.json"; saved = state_path.read_bytes()
+            with self.assertRaisesRegex(ValueError, "does not match its bytes"):
+                TRANSITIONS.validate_v2_provenance(h.repo, dict(state, evidence_id=999), h.ak)
+            unpinned = dict(state, evidence_id=999)
+            state_path.write_text(json.dumps(unpinned, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "lacks its unique plan-bearing"):
+                TRANSITIONS.validate_v2_provenance(h.repo, unpinned, h.ak)
+            state_path.write_bytes(saved)
+            original = h.evidence[0]
+            h.evidence = [original, dict(original)]; h.write_authority()
+            with self.assertRaisesRegex(ValueError, "unique pinned evidence"):
+                TRANSITIONS.verify_authority(h.repo, 77, 321, h.executor, h.base, h.ak, completed_binding=(901, state["plan_sha256"]))
+            with self.assertRaisesRegex(ValueError, "unique plan-bearing|exactly one"):
+                TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
+            h.evidence = [original, dict(original, id=902)]; h.write_authority()
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                TRANSITIONS.validate_v2_provenance(h.repo, state, h.ak)
 
 
 def load_tests(loader: unittest.TestLoader, suite: unittest.TestSuite, pattern: str | None) -> unittest.TestSuite:

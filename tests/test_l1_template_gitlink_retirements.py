@@ -175,16 +175,18 @@ class V2OwnerGitlinkTests(unittest.TestCase):
                     apply(h.repo, dropped)
             self.assertEqual(before, tree(h.repo))
 
-    def test_completed_transition_task_without_claimant_still_refuses(self) -> None:
-        # AK clears claimed_by when a task completes; the fixed-claimant binding then refuses.
+    def test_completed_transition_task_is_proven_by_its_pinned_evidence(self) -> None:
+        # AK clears claimed_by when a task completes; the pinned evidence then binds it.
         with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
             parent = Path(raw)
             h = self.established(parent)
-            h.task.update(status="done", claimed_by=None)
-            h.write_authority()
+            rendered = rendered_copy(parent, "rendered", gitlink=True)
+            h.complete()
             with mock.patch.object(LIVE_TRANSITIONS, "authoritative_ak", return_value=h.ak):
-                with self.assertRaisesRegex(ValueError, "fixed claimant"):
-                    preview(h.repo, rendered_copy(parent, "rendered", gitlink=True))
+                self.assertIn("preserve-gitlink: ontology", preview(h.repo, rendered))
+                h.complete(completed_at="2026-09-01T04:00:00Z")
+                with self.assertRaisesRegex(ValueError, "recorded after the transition task completed"):
+                    preview(h.repo, rendered)
 
 
 class BirthGitlinkTests(unittest.TestCase):

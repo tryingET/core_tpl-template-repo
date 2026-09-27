@@ -12,6 +12,7 @@ import re
 import subprocess
 import tempfile
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +42,7 @@ EVIDENCE_TYPE = "l1_ownership_transition_v1"
 EXECUTOR_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{2,127}\Z")
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
+AK_INSTANT = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})\Z")
 REQUIRED_VALIDATION = [
     {"id": "check-template-ci", "command": "bash scripts/check-template-ci.sh"},
     {"id": "ci-full", "command": "bash scripts/ci/full.sh"},
@@ -93,10 +95,56 @@ def authoritative_ak(override: Path | None = None) -> Path:
     if not path.is_absolute() or not path.is_file() or not os.access(path, os.X_OK):
         raise ValueError(f"authoritative AK launcher is unavailable: {path}")
     return path
+def ak_instant(value: object, label: str) -> tuple[datetime, int]:
+    match = AK_INSTANT.fullmatch(value) if isinstance(value, str) else None
+    if match is None:
+        raise ValueError(f"{label} must be an RFC 3339 timestamp with an explicit offset")
+    offset = "+00:00" if match[3] == "Z" else match[3]
+    whole = datetime.fromisoformat(match[1] + offset).astimezone(timezone.utc)
+    return whole, int((match[2] or "").ljust(9, "0"))
+
+
+def verify_completion_evidence(
+    ak: Path, task: dict[str, Any], executor: str, evidence_id: int, plan_sha256: str,
+) -> dict[str, Any]:
+    """Bind a done transition task to the immutable evidence recorded while it was live."""
+    records = ak_json(ak, "evidence", "task", str(task["id"]), "-F", "json")
+    pinned = [
+        record for record in records if isinstance(record, dict) and record.get("id") == evidence_id
+    ] if isinstance(records, list) and type(evidence_id) is int and evidence_id > 0 else []
+    if len(pinned) != 1:
+        raise ValueError("done transition task lacks its unique pinned evidence record")
+    record = pinned[0]
+    details = record.get("details")
+    if (
+        record.get("task_id") != task["id"] or record.get("check_type") != EVIDENCE_TYPE
+        or record.get("result") != "pass" or not isinstance(details, dict)
+        or not isinstance(details.get("plan"), dict)
+    ):
+        raise ValueError("pinned evidence is not a passing l1_ownership_transition_v1 record for the done task")
+    plan = validate_plan(json.loads(json.dumps(details["plan"])))
+    if plan["executor"] != executor or plan["transition_task_id"] != task["id"]:
+        raise ValueError("pinned evidence plan executor does not match the transition executor")
+    if plan["canonical_plan_sha256"] != plan_sha256:
+        raise ValueError("pinned evidence plan hash does not match the transition plan_sha256")
+    if ak_instant(record.get("checked_at"), "evidence checked_at") > ak_instant(task.get("completed_at"), "task completed_at"):
+        raise ValueError("pinned evidence was recorded after the transition task completed")
+    return record
+
+
 def verify_authority(
     repo: Path, decision_id: int, task_id: int, executor: str, adr_commit: str,
-    ak_command: Path | None = None,
+    ak_command: Path | None = None, completed_binding: tuple[int, str] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Verify AK authority for a transition.
+
+    Plan/apply/finalize pass no ``completed_binding`` and so require the live claim:
+    status ``claimed`` with ``claimed_by`` equal to the fixed executor. AK clears
+    ``claimed_by`` when a task completes (and keeps no completing actor), so after
+    completion the provenance is the immutable evidence record pinned by the state:
+    a ``done`` task verifies only through ``completed_binding`` (evidence_id,
+    plan_sha256), and that evidence must predate ``completed_at``.
+    """
     ak = authoritative_ak(ak_command)
     task = ak_json(ak, "task", "show", str(task_id), "-F", "json")
     packet = ak_json(ak, "decision", "get", str(decision_id), "-F", "json")
@@ -106,8 +154,15 @@ def verify_authority(
     verify_registered_target(repo, canonical)
     if task.get("id") != task_id or task.get("status") not in {"claimed", "done"}:
         raise ValueError("transition task is not active or done")
-    if task.get("claimed_by") != executor:
-        raise ValueError("transition task executor does not match its fixed claimant")
+    if task["status"] == "claimed":
+        if task.get("claimed_by") != executor:
+            raise ValueError("transition task executor does not match its fixed claimant")
+    elif completed_binding is None:
+        raise ValueError("done transition task is verifiable only through its pinned evidence record")
+    elif task.get("claimed_by") not in {None, executor}:
+        raise ValueError("done transition task names a different claimant")
+    else:
+        verify_completion_evidence(ak, task, executor, *completed_binding)
     decision = packet.get("decision")
     links = packet.get("linked_tasks")
     if (
@@ -402,11 +457,21 @@ def find_final_commit(repo: Path, applied: str, state_raw: bytes) -> str:
     return matches[0]
 
 
-def validate_v2_provenance(repo: Path, state: dict[str, Any], ak_command: Path | None = None) -> None:
+def verify_v2_transition(
+    repo: Path, state: dict[str, Any], state_raw: bytes, map_raw: bytes, ak_command: Path | None = None,
+) -> str:
+    """Prove an established v2 state from its bytes, AK authority, evidence and history.
+
+    Returns the state-only final commit that introduced ``state_raw``.
+    """
     if set(state) != FINAL_KEYS or state.get("schema") != STATE_SCHEMA_V2 or state.get("kind") != STATE_KIND or state.get("state") != "established" or state.get("origin") != "ownership-transition" or type(state.get("evidence_id")) is not int or state["evidence_id"] < 1:
         raise ValueError("established successor state must use exact v2 schema")
-    state_raw = (repo / STATE_PATH).read_bytes()
-    if digest_bytes((repo / MAP_PATH).read_bytes()) != state.get("ownership_map_sha256"):
+    try:
+        if json.loads(state_raw) != state:
+            raise ValueError("established successor state does not match its bytes")
+    except json.JSONDecodeError as exc:
+        raise ValueError("established successor state bytes are invalid JSON") from exc
+    if digest_bytes(map_raw) != state.get("ownership_map_sha256"):
         raise ValueError("established successor state does not bind active map")
     records = ak_json(authoritative_ak(ak_command), "evidence", "task", str(state["transition_task_id"]), "-F", "json")
     plans = [record["details"]["plan"] for record in records if (
@@ -418,16 +483,25 @@ def validate_v2_provenance(repo: Path, state: dict[str, Any], ak_command: Path |
     plan = validate_plan(plans[0]); bind_state = json.loads(pending_bytes(plan))
     if any(state.get(key) != value for key, value in bind_state.items() if key != "state"):
         raise ValueError("established successor state changed a pending plan binding")
-    task, _ = verify_authority(repo, plan["decision_id"], plan["transition_task_id"], plan["executor"], plan["adr_commit"], ak_command)
-    if Path(task["repo"]).resolve() != Path(plan["target_repo"]).resolve():
-        raise ValueError("durable transition plan target does not match canonical AK task repository")
     record = matching_evidence(repo, plan, ak_command)
     if record["id"] != state["evidence_id"] or record["details"]["applied_commit"] != state["applied_commit"]:
         raise ValueError("established successor state does not bind its exact AK evidence")
+    task, _ = verify_authority(
+        repo, plan["decision_id"], plan["transition_task_id"], plan["executor"], plan["adr_commit"],
+        ak_command, completed_binding=(state["evidence_id"], state["plan_sha256"]),
+    )
+    if Path(task["repo"]).resolve() != Path(plan["target_repo"]).resolve():
+        raise ValueError("durable transition plan target does not match canonical AK task repository")
     verify_applied(repo, plan, state["applied_commit"], pending_bytes(plan))
     final_commit = find_final_commit(repo, state["applied_commit"], state_raw)
     if git_run(repo, "merge-base", "--is-ancestor", final_commit, "HEAD").returncode != 0:
         raise ValueError("ownership transition final commit is outside current history")
+    return final_commit
+
+
+def validate_v2_provenance(repo: Path, state: dict[str, Any], ak_command: Path | None = None) -> None:
+    verify_v2_transition(repo, state, (repo / STATE_PATH).read_bytes(), (repo / MAP_PATH).read_bytes(), ak_command)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
