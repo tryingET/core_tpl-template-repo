@@ -30,6 +30,31 @@
       "pattern": "scripts/docs-list.sh",
       "retired_by": "904a554f6ce78888aacf2143ed584eda0ef67ce0",
       "reason": "docs-list wrappers are forbidden; core/agent-scripts owns the only implementation (operator instruction 2026-08-16)"
+    },
+    {
+      "pattern": "copier/tpl-project-repo/{{ _copier_conf.answers_file }}.j2",
+      "retired_by": "ee37fb2d45fea175cff74866ba59579498bdf91d",
+      "reason": "legacy answers-template name; superseded by the rendered {% raw %}{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}{% endraw %}.j2, and both would render the same L2 .copier-answers.yml"
+    },
+    {
+      "pattern": "copier/tpl-monorepo/{{ _copier_conf.answers_file }}.j2",
+      "retired_by": "ee37fb2d45fea175cff74866ba59579498bdf91d",
+      "reason": "legacy answers-template name; superseded by the rendered {% raw %}{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}{% endraw %}.j2, and both would render the same L2 .copier-answers.yml"
+    },
+    {
+      "pattern": "copier/tpl-package/{{ _copier_conf.answers_file }}.j2",
+      "retired_by": "ee37fb2d45fea175cff74866ba59579498bdf91d",
+      "reason": "legacy answers-template name; superseded by the rendered {% raw %}{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}{% endraw %}.j2, and both would render the same L2 .copier-answers.yml"
+    },
+    {
+      "pattern": "governance/programs/template-setup/work-items.json",
+      "retired_by": "452ae8fcce759c96c11d668d438e22cf5b30519a",
+      "reason": "work-items projection retired in L0 (AK DB is the sole work authority)"
+    },
+    {
+      "pattern": "governance/model-languages/contract/work-items.cue",
+      "retired_by": "452ae8fcce759c96c11d668d438e22cf5b30519a",
+      "reason": "work-items projection retired in L0 (AK DB is the sole work authority)"
     }
   ]
 }
