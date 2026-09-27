@@ -13,10 +13,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from tests.test_l1_template_transitions import FIXTURE, ROOT, SCRATCH, TRANSITIONS, Harness, git, init, run
+from tests.test_l1_template_transitions import CHECKED_AT, FIXTURE, ROOT, SCRATCH, TRANSITIONS, Harness, git, init, run
 
 sys.path.insert(0, str(ROOT / "scripts/lib"))
 import l1_template_ownership as OWNERSHIP  # noqa: E402
+import l1_template_receipts as RECEIPTS  # noqa: E402
 import l1_template_retirements as RETIREMENTS  # noqa: E402
 import l1_template_transitions as LIVE_TRANSITIONS  # noqa: E402
 
@@ -120,14 +121,44 @@ class V2OwnerGitlinkTests(unittest.TestCase):
 
     def established(self, parent: Path) -> Harness:
         h = Harness(parent)
-        plan = h.plan()
-        h.stage_payload()
-        h.pending_commit(plan)
-        TRANSITIONS.finalize(h.repo, h.plan_path, "AK-321", h.ak)
-        run("git", "add", STATE, cwd=h.repo)
-        run("git", "commit", "--quiet", "-m", "finalize ownership evidence", cwd=h.repo)
+        h.v2_state_raw = h.established() and (h.repo / STATE).read_bytes()
+        h.final_commit = git(h.repo, "rev-parse", "HEAD")
         add_files(h.repo, LEGACY)
         return h
+
+    def expected_binding(self, h: Harness) -> dict[str, object]:
+        v2 = json.loads(h.v2_state_raw)
+        return {
+            **{key: v2[key] for key in ("transition_task_id", "decision_id", "evidence_id", "plan_sha256", "executor", "applied_commit")},
+            "final_commit": h.final_commit, "state_sha256": hashlib.sha256(h.v2_state_raw).hexdigest(),
+        }
+
+    def receipt(self, h: Harness, rendered: Path) -> dict[str, object]:
+        """Apply a refresh, commit it, record wave evidence, finalize: a v3 established state."""
+        artifact = h.parent / f"refresh-plan-{len(h.evidence)}.json"
+        artifact.write_text(f"refresh plan {len(h.evidence)}\n", encoding="utf-8")
+        plan_sha = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        with contextlib.redirect_stdout(io.StringIO()):
+            OWNERSHIP.refresh(h.repo, rendered, True, plan_sha, "wave-test", L0_HEAD)
+        run("git", "add", "-A", cwd=h.repo)
+        run("git", "commit", "--quiet", "-m", "applied refresh receipt", cwd=h.repo)
+        applied = git(h.repo, "rev-parse", "HEAD")
+        h.evidence.append({
+            "id": 950 + len(h.evidence), "task_id": 321, "check_type": "l1_contract_refresh_v1", "result": "pass",
+            "repo": str(h.repo.resolve()), "repo_scope": str(h.repo.resolve()), "checked_at": CHECKED_AT,
+            "details": {
+                "target_repo": str(h.repo.resolve()), "applied_commit": applied, "plan_sha256": plan_sha,
+                "ownership_map_sha256": hashlib.sha256((h.repo / MAP).read_bytes()).hexdigest(),
+                "source_l0_commit": L0_HEAD, "wave_id": "wave-test", "executor": "template-propagator",
+                "validation": {"scripts/check-template-ci.sh": 0, "scripts/ci/full.sh": 0},
+            },
+        })
+        h.write_authority()
+        with contextlib.redirect_stdout(io.StringIO()):
+            RECEIPTS.finalize(h.repo, "AK-321", artifact, h.ak)
+        run("git", "add", "-A", cwd=h.repo)
+        run("git", "commit", "--quiet", "-m", "refresh evidence closeout", cwd=h.repo)
+        return json.loads((h.repo / STATE).read_text())
 
     def test_gitlink_layout_previews_and_applies_without_touching_the_gitlink(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
@@ -157,8 +188,11 @@ class V2OwnerGitlinkTests(unittest.TestCase):
             self.assertEqual(tree(h.repo / "ontology"), submodule_before)
             self.assertIn("refresh sentinel", (h.repo / "scripts/ci/full.sh").read_text())
             state = json.loads((h.repo / STATE).read_text())
-            self.assertEqual((state["schema"], state["state"]), ("ai-society.template-ownership-state/1", "applied_pending_receipt"))
+            self.assertEqual((state["schema"], state["state"]), ("ai-society.template-ownership-state/3", "applied_pending_receipt"))
             self.assertEqual(state["ownership_map_sha256"], hashlib.sha256((h.repo / MAP).read_bytes()).hexdigest())
+            self.assertEqual(state["inherited_transition"], self.expected_binding(h))
+            carried = json.dumps(self.expected_binding(h), sort_keys=True, separators=(",", ":"))
+            self.assertIn(f"carry-forward: inherited_transition into ai-society.template-ownership-state/3 {carried}", first)
 
     def test_tree_layout_render_and_dropped_claims_refuse(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
@@ -183,9 +217,59 @@ class V2OwnerGitlinkTests(unittest.TestCase):
             rendered = rendered_copy(parent, "rendered", gitlink=True)
             h.complete()
             with mock.patch.object(LIVE_TRANSITIONS, "authoritative_ak", return_value=h.ak):
-                self.assertIn("preserve-gitlink: ontology", preview(h.repo, rendered))
+                self.assertIn("carry-forward: inherited_transition", preview(h.repo, rendered))
                 h.complete(completed_at="2026-09-01T04:00:00Z")
                 with self.assertRaisesRegex(ValueError, "recorded after the transition task completed"):
+                    preview(h.repo, rendered)
+
+    def test_carried_transition_survives_repeated_refreshes_and_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            parent = Path(raw)
+            h = self.established(parent)
+            rendered = rendered_copy(parent, "rendered", gitlink=True)
+            expected = self.expected_binding(h)
+            real_wave = RECEIPTS.verify_wave_evidence
+
+            def wave(repo: Path, state: dict[str, object], task_id: int | None = None, ak_command: Path | None = None) -> dict[str, object]:
+                return real_wave(repo, state, task_id, h.ak)
+            with mock.patch.object(LIVE_TRANSITIONS, "authoritative_ak", return_value=h.ak), \
+                    mock.patch.object(RECEIPTS, "verify_wave_evidence", wave):
+                first = self.receipt(h, rendered)
+                self.assertEqual((first["schema"], first["state"], first["origin"]), ("ai-society.template-ownership-state/3", "established", "contract-refresh"))
+                self.assertEqual(first["inherited_transition"], expected)
+                RECEIPTS.validate_established_provenance(h.repo, first)
+                run("python3", "-I", "-S", "-B", "scripts/lib/check-l1-ownership-state.py", cwd=h.repo)
+                full = h.repo / "scripts/ci/full.sh"
+                (rendered / "scripts/ci/full.sh").write_text(full.read_text() + "# second refresh\n", encoding="utf-8")
+                h.complete()  # the transition task completes between refreshes
+                second = self.receipt(h, rendered)
+                self.assertEqual(second["inherited_transition"], expected)  # carried verbatim
+                RECEIPTS.validate_established_provenance(h.repo, second)
+                run("python3", "-I", "-S", "-B", "scripts/lib/check-l1-ownership-state.py", cwd=h.repo)
+
+                (rendered / "scripts/ci/full.sh").write_text(full.read_text() + "# third refresh\n", encoding="utf-8")
+                old_checker = h.parent / "old-check.py"
+                old_checker.write_text(git(ROOT, "show", "d7b073c:copier-template/scripts/lib/check-l1-ownership-state.py") + "\n")
+                shutil.copy(old_checker, h.repo / "scripts/lib/old-check.py")
+                refused = run("python3", "-I", "-S", "-B", "scripts/lib/old-check.py", cwd=h.repo, expect=2)
+                self.assertIn("schema/kind mismatch", refused.stderr)  # pre-v3 readers refuse, never misread
+                (h.repo / "scripts/lib/old-check.py").unlink()
+
+                saved = (h.repo / STATE).read_bytes()
+                for key, value in (("executor", "other-executor"), ("plan_sha256", "c" * 64), ("final_commit", h.base), ("state_sha256", "d" * 64)):
+                    forged = dict(second, inherited_transition=dict(expected, **{key: value}))
+                    (h.repo / STATE).write_text(json.dumps(forged, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "inherited transition|pending inherited"):
+                        RECEIPTS.validate_established_provenance(h.repo, forged)
+                    run("python3", "-I", "-S", "-B", "scripts/lib/check-l1-ownership-state.py", cwd=h.repo, expect=2)
+                for forged in (dict(second, schema="ai-society.template-ownership-state/1"), {k: v for k, v in second.items() if k != "inherited_transition"} | {"schema": "ai-society.template-ownership-state/3"}):
+                    (h.repo / STATE).write_text(json.dumps(forged, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "inherited.transition"):
+                        RECEIPTS.validate_established_provenance(h.repo, forged)
+                    run("python3", "-I", "-S", "-B", "scripts/lib/check-l1-ownership-state.py", cwd=h.repo, expect=2)
+                (h.repo / STATE).write_bytes(saved)
+                h.evidence[0]["details"]["plan"]["executor"] = "other-executor"; h.write_authority()
+                with self.assertRaisesRegex(ValueError, "canonical transition plan hash mismatch"):
                     preview(h.repo, rendered)
 
 

@@ -20,7 +20,9 @@ from l1_template_receipts import (  # noqa: E402
     ADOPTION_PATH,
     MAP_PATH,
     STATE_PATH,
+    INHERITED_FIELD,
     STATE_SCHEMA,
+    STATE_SCHEMA_V3,
     ensure_clean_git_target,
     ensure_safe_destinations,
     finalize,
@@ -262,8 +264,11 @@ def refresh(
         state.get("schema") == "ai-society.template-ownership-state/2"
         and state.get("kind") == "l1_ownership_transition_state"
     )
-    if not is_v1 and not is_v2:
-        raise ValueError("ownership state must use a supported exact v1 or v2 schema/kind")
+    is_v3 = state.get("schema") == STATE_SCHEMA_V3 and state.get("kind") == "l1_contract_refresh_state"
+    if not is_v1 and not is_v2 and not is_v3:
+        raise ValueError("ownership state must use a supported exact v1, v2, or v3 schema/kind")
+    if is_v3 and state.get("state") == "adopting":
+        raise ValueError("v3 ownership state cannot be adopting")
     state_name = state.get("state")
     if state_name in {"applied_pending_receipt", "ownership_transition_pending_receipt"}:
         raise ValueError(f"{state_name} requires external AK evidence and explicit finalize")
@@ -310,12 +315,19 @@ def refresh(
 
     current_map = load_map(repo)
     next_map = load_map(rendered)
-    if state_name == "established" and apply and is_v2:
-        # A v1 refresh receipt may replace v2 state only if every company claim survives.
+    inherited = None
+    if state_name == "established" and (is_v2 or is_v3):
+        # A refresh over a receipted v2 transition writes a v3 state that carries the
+        # transition binding forward (verbatim once already inherited), so the
+        # transition stays provable; producing or re-verifying it fails closed.
+        from l1_template_transitions import carry_forward_transition, validate_inherited_transition
+
+        inherited = carry_forward_transition(repo, state) if is_v2 else state[INHERITED_FIELD]
+        validate_inherited_transition(repo, inherited)
         dropped = sorted(set(current_map["agent"]) - set(next_map["agent"]))
-        if dropped:
+        if apply and dropped:
             raise ValueError(
-                "ordinary contract refresh cannot replace established v2 transition provenance "
+                "ordinary contract refresh cannot carry established v2 transition provenance "
                 f"while dropping company-owned patterns: {', '.join(dropped)}"
             )
     rendered_files = files(rendered)
@@ -398,6 +410,7 @@ def refresh(
             plan_sha256 or "",
             wave_id or "",
             source_l0_commit or "",
+            inherited,
         )
 
     print("APPLY" if apply else "PLAN (no files changed; pass --apply to apply)")
@@ -408,6 +421,11 @@ def refresh(
         "note: target-only paths are outside this refresh except the fingerprint-approved obsolete "
         "answer templates and the L0 retirement manifest entries listed below"
     )
+    if inherited is not None:
+        print(
+            f"carry-forward: {INHERITED_FIELD} into {STATE_SCHEMA_V3} "
+            + json.dumps(inherited, sort_keys=True, separators=(",", ":"))
+        )
     for name in owner_gitlinks:
         print(f"preserve-gitlink: {name} (company-owned owner gitlink; opaque, never read or written)")
     for path, entry in retirements.items():

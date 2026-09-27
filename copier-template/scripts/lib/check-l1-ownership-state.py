@@ -18,6 +18,7 @@ ADOPTION = ROOT / "contracts/template-ownership-adoption.json"
 ANSWERS = ROOT / ".copier-answers.yml"
 STATE_SCHEMA = "ai-society.template-ownership-state/1"
 STATE_SCHEMA_V2 = "ai-society.template-ownership-state/2"
+STATE_SCHEMA_V3 = "ai-society.template-ownership-state/3"
 STATE_KIND = "l1_contract_refresh_state"
 STATE_KIND_V2 = "l1_ownership_transition_state"
 ADOPTION_SCHEMA = "ai-society.template-ownership-adoption/1"
@@ -31,6 +32,12 @@ V2_PENDING_KEYS = {
     "ownership_map_sha256", "plan_sha256", "adr_commit",
 }
 V2_FINAL_KEYS = V2_PENDING_KEYS | {"origin", "evidence_id", "applied_commit"}
+INHERITED = "inherited_transition"
+INHERITED_KEYS = {
+    "transition_task_id", "decision_id", "evidence_id", "plan_sha256", "executor",
+    "applied_commit", "final_commit", "state_sha256",
+}
+FINAL_KEYS = PENDING_KEYS | {"origin", "wave_task_id", "evidence_id", "applied_commit"}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 EXECUTOR = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{2,127}\Z")
@@ -141,6 +148,40 @@ def validate_v2(state: dict[str, object], state_raw: bytes, map_hash: str) -> No
     if len(finals) != 1:
         raise ValueError("v2 ownership requires one state-only final commit directly after applied commit")
 
+def validate_inherited(binding: object) -> None:
+    """Structurally bind a v3 state to the established v2 transition it carried forward."""
+    if not isinstance(binding, dict) or set(binding) != INHERITED_KEYS:
+        raise ValueError("v3 inherited transition must use the exact carried-forward keys")
+    if any(type(binding.get(key)) is not int or binding[key] < 1 for key in ("decision_id", "transition_task_id", "evidence_id")):
+        raise ValueError("v3 inherited decision/task/evidence IDs must be positive integers")
+    if not isinstance(binding.get("executor"), str) or EXECUTOR.fullmatch(binding["executor"]) is None:
+        raise ValueError("v3 inherited executor format is invalid")
+    for key in ("plan_sha256", "state_sha256"):
+        if not isinstance(binding.get(key), str) or HEX64.fullmatch(binding[key]) is None:
+            raise ValueError(f"v3 inherited {key} must be lowercase sha256")
+    for key in ("applied_commit", "final_commit"):
+        if not isinstance(binding.get(key), str) or HEX40.fullmatch(binding[key]) is None:
+            raise ValueError(f"v3 inherited {key} must be a full lowercase Git OID")
+    final = binding["final_commit"]
+    git("merge-base", "--is-ancestor", final, "HEAD")
+    parents = git("rev-list", "--parents", "-n", "1", final).split()
+    if len(parents) != 2 or parents[1] != binding["applied_commit"]:
+        raise ValueError("v3 inherited final commit must directly follow its applied commit")
+    raw = git("show", f"{final}:contracts/template-ownership-state.json").encode()
+    try:
+        old = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError("v3 inherited v2 state is invalid JSON") from exc
+    if (
+        hashlib.sha256(raw).hexdigest() != binding["state_sha256"]
+        or not isinstance(old, dict) or set(old) != V2_FINAL_KEYS
+        or old.get("schema") != STATE_SCHEMA_V2 or old.get("kind") != STATE_KIND_V2
+        or old.get("state") != "established" or old.get("origin") != "ownership-transition"
+        or any(old.get(key) != binding[key] for key in INHERITED_KEYS - {"final_commit", "state_sha256"})
+    ):
+        raise ValueError("v3 inherited transition does not bind its established v2 state bytes")
+
+
 def validate() -> None:
     try:
         map_hash = hashlib.sha256(MAP.read_bytes()).hexdigest()
@@ -150,11 +191,20 @@ def validate() -> None:
     if state.get("schema") == STATE_SCHEMA_V2 and state.get("kind") == STATE_KIND_V2:
         validate_v2(state, state_raw, map_hash)
         return
-    if state.get("schema") != STATE_SCHEMA or state.get("kind") != STATE_KIND:
+    is_v3 = state.get("schema") == STATE_SCHEMA_V3
+    if state.get("schema") not in {STATE_SCHEMA, STATE_SCHEMA_V3} or state.get("kind") != STATE_KIND:
         raise ValueError("ownership state schema/kind mismatch")
     lifecycle = state.get("state")
     if lifecycle not in {"adopting", "applied_pending_receipt", "established"}:
         raise ValueError("unsupported ownership lifecycle state")
+    extra = {INHERITED} if is_v3 else set()
+    if is_v3:
+        expected = PENDING_KEYS if lifecycle == "applied_pending_receipt" else FINAL_KEYS
+        if lifecycle == "adopting" or set(state) != expected | extra:
+            raise ValueError("v3 ownership state has unsupported lifecycle or keys")
+        validate_inherited(state.get(INHERITED))
+    elif INHERITED in state:
+        raise ValueError("only v3 ownership state may carry an inherited transition")
     if state.get("ownership_map_sha256") != map_hash:
         raise ValueError("ownership state does not bind the active map")
     if lifecycle == "adopting":
@@ -173,7 +223,7 @@ def validate() -> None:
         return
     if not has_birth_marker():
         raise ValueError(f"{lifecycle} ownership state lacks the Copier refresh marker")
-    if lifecycle == "applied_pending_receipt" and set(state) != PENDING_KEYS:
+    if lifecycle == "applied_pending_receipt" and set(state) != PENDING_KEYS | extra:
         raise ValueError("applied_pending_receipt must use the exact seven-field schema")
     if lifecycle == "established" and ADOPTION.exists():
         raise ValueError("established ownership state may not retain adoption attestation")

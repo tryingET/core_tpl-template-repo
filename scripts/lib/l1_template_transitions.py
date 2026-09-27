@@ -53,6 +53,11 @@ PENDING_KEYS = {
     "ownership_map_sha256", "plan_sha256", "adr_commit",
 }
 FINAL_KEYS = PENDING_KEYS | {"origin", "evidence_id", "applied_commit"}
+# Binding an ordinary refresh carries forward from the established v2 state it replaces.
+INHERITED_KEYS = {
+    "transition_task_id", "decision_id", "evidence_id", "plan_sha256", "executor",
+    "applied_commit", "final_commit", "state_sha256",
+}
 
 
 def canonical_bytes(value: object) -> bytes:
@@ -501,6 +506,41 @@ def verify_v2_transition(
 
 def validate_v2_provenance(repo: Path, state: dict[str, Any], ak_command: Path | None = None) -> None:
     verify_v2_transition(repo, state, (repo / STATE_PATH).read_bytes(), (repo / MAP_PATH).read_bytes(), ak_command)
+
+
+def carry_forward_transition(repo: Path, state: dict[str, Any], ak_command: Path | None = None) -> dict[str, Any]:
+    """Build the binding an ordinary refresh must carry when it replaces established v2 state."""
+    state_raw = (repo / STATE_PATH).read_bytes()
+    final_commit = verify_v2_transition(repo, state, state_raw, (repo / MAP_PATH).read_bytes(), ak_command)
+    binding = {key: state[key] for key in INHERITED_KEYS - {"final_commit", "state_sha256"}}
+    binding.update(final_commit=final_commit, state_sha256=digest_bytes(state_raw))
+    validate_inherited_transition(repo, binding, ak_command)
+    return binding
+
+
+def validate_inherited_transition(repo: Path, binding: object, ak_command: Path | None = None) -> None:
+    """Re-prove a carried-forward v2 transition from the historical state bytes it pins."""
+    if not isinstance(binding, dict) or set(binding) != INHERITED_KEYS:
+        raise ValueError("inherited transition binding must use the exact carried-forward schema")
+    if not isinstance(binding.get("final_commit"), str) or not HEX40.fullmatch(binding["final_commit"]):
+        raise ValueError("inherited transition final_commit must be full lowercase 40-hex")
+    if not isinstance(binding.get("state_sha256"), str) or not HEX64.fullmatch(binding["state_sha256"]):
+        raise ValueError("inherited transition state_sha256 must be lowercase sha256")
+    final_commit = binding["final_commit"]
+    state_raw = git_bytes(repo, "show", f"{final_commit}:{STATE_PATH}")
+    if digest_bytes(state_raw) != binding["state_sha256"]:
+        raise ValueError("inherited transition final commit does not hold the pinned v2 state bytes")
+    try:
+        state = json.loads(state_raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError("inherited transition state bytes are invalid JSON") from exc
+    if not isinstance(state, dict) or any(
+        state.get(key) != binding[key] for key in INHERITED_KEYS - {"final_commit", "state_sha256"}
+    ):
+        raise ValueError("inherited transition binding disagrees with its pinned v2 state")
+    map_raw = git_bytes(repo, "show", f"{final_commit}:{MAP_PATH}")
+    if verify_v2_transition(repo, state, state_raw, map_raw, ak_command) != final_commit:
+        raise ValueError("inherited transition final commit is not the unique v2 final commit")
 
 
 def main() -> int:

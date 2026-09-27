@@ -15,6 +15,16 @@ from typing import Any
 MAP_PATH = Path("contracts/template-ownership.yml")
 STATE_PATH = Path("contracts/template-ownership-state.json")
 STATE_SCHEMA = "ai-society.template-ownership-state/1"
+# v3 is the v1 contract-refresh lifecycle plus a mandatory ``inherited_transition``
+# binding to the established v2 ownership transition it replaced. A distinct schema
+# makes pre-v3 readers refuse the state instead of silently ignoring the binding.
+STATE_SCHEMA_V3 = "ai-society.template-ownership-state/3"
+REFRESH_KIND = "l1_contract_refresh_state"
+INHERITED_FIELD = "inherited_transition"
+REFRESH_PENDING_KEYS = frozenset(
+    {"kind", "ownership_map_sha256", "plan_sha256", "schema", "source_l0_commit", "state", "wave_id"}
+)
+REFRESH_FINAL_KEYS = REFRESH_PENDING_KEYS | {"origin", "wave_task_id", "evidence_id", "applied_commit"}
 ADOPTION_PATH = Path("contracts/template-ownership-adoption.json")
 L0_ROOT = Path(__file__).resolve().parents[2]
 
@@ -244,6 +254,15 @@ def verify_wave_evidence(
     raise ValueError("no passing l1_contract_refresh_v1 AK evidence matches this target and plan")
 
 
+def validate_inherited(repo: Path, state: dict[str, object], keys: frozenset[str], ak_command: Path | None) -> None:
+    """Require the exact v3 key set and re-prove its carried-forward v2 transition."""
+    from l1_template_transitions import validate_inherited_transition
+
+    if state.get("schema") != STATE_SCHEMA_V3 or state.get("kind") != REFRESH_KIND or set(state) != keys | {INHERITED_FIELD}:
+        raise ValueError("v3 ownership state must use the exact inherited-transition schema")
+    validate_inherited_transition(repo, state[INHERITED_FIELD], ak_command)
+
+
 def validate_established_provenance(
     repo: Path,
     state: dict[str, object],
@@ -255,6 +274,11 @@ def validate_established_provenance(
 
         validate_v2_provenance(repo, state, ak_command)
         return
+    is_v3 = state.get("schema") == STATE_SCHEMA_V3
+    if is_v3:
+        validate_inherited(repo, state, REFRESH_FINAL_KEYS, ak_command)
+    elif INHERITED_FIELD in state:
+        raise ValueError("only v3 ownership state may carry an inherited transition")
     map_hash = hashlib.sha256((repo / MAP_PATH).read_bytes()).hexdigest()
     if state.get("ownership_map_sha256") != map_hash:
         raise ValueError("established ownership state does not match the active map")
@@ -281,6 +305,8 @@ def validate_established_provenance(
         return
     if origin != "contract-refresh":
         raise ValueError("established ownership state has invalid origin")
+    if is_v3 and state.get("state") != "established":
+        raise ValueError("v3 ownership state must be established")
     record = verify_wave_evidence(repo, state, ak_command=ak_command)
     details = record["details"]
     applied_commit = details["applied_commit"]
@@ -290,11 +316,16 @@ def validate_established_provenance(
     except json.JSONDecodeError as exc:
         raise ValueError("applied commit contains invalid pending ownership state") from exc
     if (
-        pending_state.get("schema") != STATE_SCHEMA
+        pending_state.get("schema") != state.get("schema")
         or pending_state.get("kind") != "l1_contract_refresh_state"
         or pending_state.get("state") != "applied_pending_receipt"
     ):
         raise ValueError("AK evidence applied commit lacks applied_pending_receipt state")
+    if is_v3 and (
+        set(pending_state) != REFRESH_PENDING_KEYS | {INHERITED_FIELD}
+        or pending_state.get(INHERITED_FIELD) != state.get(INHERITED_FIELD)
+    ):
+        raise ValueError("established v3 state changed its pending inherited transition")
     if hashlib.sha256(applied_map).hexdigest() != details.get("ownership_map_sha256"):
         raise ValueError("AK evidence applied commit map hash mismatch")
     for key in ("plan_sha256", "wave_id", "source_l0_commit", "ownership_map_sha256"):
@@ -305,7 +336,11 @@ def validate_established_provenance(
 
 
 def pending_state_bytes(
-    rendered: Path, plan_sha256: str, wave_id: str, source_l0_commit: str
+    rendered: Path,
+    plan_sha256: str,
+    wave_id: str,
+    source_l0_commit: str,
+    inherited: dict[str, object] | None = None,
 ) -> bytes:
     if re.fullmatch(r"[0-9a-f]{64}", plan_sha256) is None:
         raise ValueError("apply requires --plan-sha256 as 64 lowercase hex")
@@ -325,6 +360,9 @@ def pending_state_bytes(
         "ownership_map_sha256": hashlib.sha256((rendered / MAP_PATH).read_bytes()).hexdigest(),
         "plan_sha256": plan_sha256,
     }
+    if inherited is not None:
+        state["schema"] = STATE_SCHEMA_V3
+        state[INHERITED_FIELD] = inherited
     return (json.dumps(state, indent=2, sort_keys=True) + "\n").encode()
 
 
@@ -357,11 +395,15 @@ def finalize(
         raise ValueError("unable to read applied_pending_receipt state") from exc
     if (
         not isinstance(pending, dict)
-        or pending.get("schema") != STATE_SCHEMA
+        or pending.get("schema") not in {STATE_SCHEMA, STATE_SCHEMA_V3}
         or pending.get("kind") != "l1_contract_refresh_state"
         or pending.get("state") != "applied_pending_receipt"
     ):
         raise ValueError("finalize requires applied_pending_receipt state")
+    if pending.get("schema") == STATE_SCHEMA_V3:
+        validate_inherited(repo, pending, REFRESH_PENDING_KEYS, ak_command)
+    elif INHERITED_FIELD in pending:
+        raise ValueError("only v3 ownership state may carry an inherited transition")
     task_text = wave_task.removeprefix("AK-")
     if not task_text.isdigit() or int(task_text) < 1:
         raise ValueError("--finalize-task must be AK-<positive integer>")
