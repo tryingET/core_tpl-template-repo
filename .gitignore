@@ -1,4 +1,5 @@
 # Local temp artifacts
+.ontology/
 .tmp/
 tmp/
 *.tmp
