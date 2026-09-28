@@ -25,19 +25,20 @@ run_task_scope_snapshots() {
 }
 
 run_rocs() {
+  # Called as an if-condition, which disables set -e inside: every step returns its own failure.
   if [ -x "./scripts/rocs.sh" ] && [ -f "./ontology/manifest.yaml" ]; then
-    ./scripts/rocs.sh version
+    ./scripts/rocs.sh version || return $?
     # Managed ROCS gate: cleanup -> validate -> build (validate before build; never wipe ontology/dist first).
     # The sealed launcher resolves <repo:...@ref> layers from the enclosing workspace by default.
     rocs_ref_mode_args=""
     case "${ROCS_CI_PROFILE:-}" in
     main-strict | branch-ci) rocs_ref_mode_args="--workspace-ref-mode strict" ;;
     esac
-    ./scripts/rocs.sh cleanup --repo .
+    ./scripts/rocs.sh cleanup --repo . || return $?
     # shellcheck disable=SC2086
-    ./scripts/rocs.sh validate --repo . $rocs_ref_mode_args
+    ./scripts/rocs.sh validate --repo . $rocs_ref_mode_args || return $?
     # shellcheck disable=SC2086
-    ./scripts/rocs.sh build --repo . $rocs_ref_mode_args
+    ./scripts/rocs.sh build --repo . $rocs_ref_mode_args || return $?
   fi
 }
 

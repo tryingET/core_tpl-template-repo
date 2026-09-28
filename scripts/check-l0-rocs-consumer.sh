@@ -220,4 +220,40 @@ if git ls-files | grep -E '(^|/)ontology/dist/' | grep -q .; then
 	fail "ROCS generated outputs (ontology/dist) must not be tracked"
 fi
 
+# Behavioural: a failing ROCS step must fail full.sh. Calling the gate as an if-condition
+# disables set -e inside it, so a failed validate followed by a passing build once exited 0.
+probe_root="$(mktemp -d "${TMPDIR:-/tmp}/l0-rocs-gate-probe.XXXXXX")"
+trap 'rm -rf "$probe_root"' EXIT
+for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
+	for failing in none cleanup validate; do
+		probe="$probe_root/$tpl-$failing"
+		mkdir -p "$probe/scripts/ci" "$probe/ontology"
+		cp "copier-template/copier/$tpl/scripts/ci/full.sh" "$probe/scripts/ci/full.sh"
+		# Every other script full.sh calls is a passing no-op, so only the ROCS steps decide.
+		for helper in $(grep -oE '\./scripts/[A-Za-z0-9_./-]+' "$probe/scripts/ci/full.sh" | sort -u); do
+			case "$helper" in ./scripts/rocs.sh | ./scripts/ci/full.sh) continue ;; esac
+			mkdir -p "$(dirname "$probe/$helper")"
+			printf '#!/bin/sh\nexit 0\n' >"$probe/$helper"
+			chmod +x "$probe/$helper"
+		done
+		for sibling in "copier-template/copier/$tpl/scripts/ci/"*; do
+			name="$(basename "$sibling")"
+			[ "$name" = full.sh ] && continue
+			printf '#!/bin/sh\nexit 0\n' >"$probe/scripts/ci/$name"
+			chmod +x "$probe/scripts/ci/$name"
+		done
+		printf '#!/bin/sh\nexit 0\n' >"$probe/scripts/ci/fast.sh"
+		printf 'schema_version: 1\n' >"$probe/ontology/manifest.yaml"
+		printf '#!/bin/sh\n[ "$1" = "%s" ] && exit 7\nexit 0\n' "$failing" >"$probe/scripts/rocs.sh"
+		chmod +x "$probe/scripts/ci/full.sh" "$probe/scripts/ci/fast.sh" "$probe/scripts/rocs.sh"
+		git -C "$probe" init -q
+		if (cd "$probe" && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE sh ./scripts/ci/full.sh) >"$probe.log" 2>&1; then
+			[ "$failing" = none ] || fail "$tpl full CI exits 0 when rocs.sh $failing fails (see the gate shape in copier-template/copier/$tpl/scripts/ci/full.sh)"
+		else
+			# Positive control: with every step passing, the probe itself must pass, so the checks above cannot pass vacuously.
+			[ "$failing" != none ] || fail "$tpl full CI gate probe fails with a passing rocs.sh: $(tail -n 3 "$probe.log")"
+		fi
+	done
+done
+
 echo "ok: l0 rocs consumer model"
