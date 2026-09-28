@@ -192,6 +192,21 @@ class WrapperTests(unittest.TestCase):
         self.assertLessEqual(len((SOURCE / "scripts/new-repo-from-copier.sh").read_text().splitlines()), 500)
         self.assertLessEqual(len((ROOT / "scripts/check-l0-guardrails.sh").read_text().splitlines()), 951)
 
+    def test_ontology_candidate_staging_contract(self) -> None:
+        # ADR-0008 §9 (AK 6085): templates with an ontology layer ship staging contract v1, and no
+        # template names an ontology holder; packages stage at their monorepo root.
+        contract = SOURCE / "copier/tpl-project-repo/governance/ontology-candidates/README.md"
+        self.assertIn("contract_version: 1", contract.read_text())
+        self.assertNotIn("pi.extensions", contract.read_text())
+        for name in ARCHETYPES:
+            template = SOURCE / "copier" / name
+            if (template / "ontology/manifest.yaml.j2").exists():
+                self.assertEqual((template / "governance/ontology-candidates/README.md").read_bytes(),
+                                 contract.read_bytes())
+                self.assertIn("governance/ontology-candidates/", (template / "governance/README.md").read_text())
+                self.assertNotIn("owners:", (template / "ontology/manifest.yaml.j2").read_text())
+        self.assertFalse((SOURCE / "copier/tpl-package/governance/ontology-candidates").exists())
+
 
 class RendererTests(unittest.TestCase):
     def setUp(self) -> None:

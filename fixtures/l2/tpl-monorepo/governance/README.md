@@ -33,6 +33,12 @@ If this monorepo still carries a legacy `governance/work-items.json` from an old
 generation, retire it: import any unmigrated items once via the compatibility
 `ak work-items import`, continue from `ak task ...`, and delete the projection file.
 
+## Ontology candidates
+
+Stage candidate-only ontology concepts and relations under `governance/ontology-candidates/`
+(staging contract v1, adopted society-wide by governance-kernel ADR-0008 §9); its `README.md` holds
+the contract. Candidates are not ontology truth and never go under `ontology/src/`.
+
 ## Non-negotiable
 
 - Do not leave deferred work as ad-hoc TODO comments or scattered markdown notes.

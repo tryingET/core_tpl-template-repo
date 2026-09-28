@@ -28,6 +28,12 @@ If this repo is retiring hand-authored `governance/task-scopes/AK-*.json` files:
 - remove legacy manifest authoring from workflow docs and handoffs as soon as `./scripts/check-task-scope-snapshots.sh` passes
 - if the task still uses repo-default scope, do not invent a snapshot or a replacement legacy manifest
 
+## Ontology candidates
+
+Stage candidate-only ontology concepts and relations under `governance/ontology-candidates/`
+(staging contract v1, adopted society-wide by governance-kernel ADR-0008 §9); its `README.md` holds
+the contract. Candidates are not ontology truth and never go under `ontology/src/`.
+
 ## Non-negotiable
 
 - Do not leave deferred work as ad-hoc TODO comments or scattered markdown notes.
