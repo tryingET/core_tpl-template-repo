@@ -2,6 +2,9 @@
 set -eu
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+# Checks run in parallel, and some tests import template Python straight from the source tree;
+# written bytecode would land in copier-template/ and trip the guardrail against generated caches.
+export PYTHONDONTWRITEBYTECODE=1
 
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
