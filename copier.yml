@@ -125,6 +125,8 @@ _tasks:
 
       tmp_file="$(mktemp)"
       awk -v hash="$content_hash" '{ gsub("__RENDER_HASH__", hash); print }' contracts/provenance-seal.yml > "$tmp_file"
+      # mktemp creates 0600; a checkout is 0644, and the refresh compares modes too.
+      chmod 0644 "$tmp_file"
       mv "$tmp_file" contracts/provenance-seal.yml
     fi
 

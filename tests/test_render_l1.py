@@ -40,6 +40,11 @@ class RenderL1Tests(unittest.TestCase):
             self.assertIn(f"==> rendered: {out}", result.stdout)
             self.assertTrue((out / "contracts/template-ownership.yml").is_file())
             self.assertTrue((out / "copier/tpl-project-repo/scripts/rocs.sh.j2").is_file())
+            # Only modes git can represent: the refresh compares them with the target's checkout.
+            odd = sorted(str(f.relative_to(out)) for f in out.rglob("*")
+                         if f.is_file() and not f.is_symlink() and ".git" not in f.relative_to(out).parts
+                         and (f.stat().st_mode & 0o777) not in (0o644, 0o755))
+            self.assertEqual(odd, [], "rendered files with modes a checkout cannot reproduce")
             self.assertEqual(snapshot(target), before)
             again = run("sh", str(SCRIPT), str(target), str(out), cwd=parent)
             self.assertEqual(again.returncode, 2)
