@@ -154,7 +154,10 @@ def show_diff(path: str, old: Path | None, new: Path) -> None:
     except UnicodeDecodeError:
         print(f"binary change: {path}")
         return
-    sys.stdout.writelines(difflib.unified_diff(left, right, f"a/{path}", f"b/{path}"))
+    for line in difflib.unified_diff(left, right, f"a/{path}", f"b/{path}"):
+        # Mark a missing final newline like git does, so the next plan line starts on its own
+        # line; callers (template-propagator's plan cross-check) parse this output line by line.
+        sys.stdout.write(line if line.endswith("\n") else line + "\n\\ No newline at end of file\n")
 
 
 def copy_atomic(source: Path, destination: Path) -> None:

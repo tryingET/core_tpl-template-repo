@@ -27,6 +27,17 @@ APPROVED = {
     "tpl-monorepo": "781390e4ec6052dd8a2360d32b7a637c47dedde81f3841249b6a297da165f450",
     "tpl-package": "27dba22ed419dc971cdc8f8ccc714336476108f3b951a5e3c15f87a370bd6d76",
 }
+# Earlier L0 releases shipped these exact bytes under the old name (f6bed21/f16b9d5, replaced
+# by cf99c27 on 2026-03-31). They retire like the canonical bytes; the successor is always canonical.
+LEGACY = {
+    "tpl-monorepo": ("49270f8b08a3ec029255d0e2b1d40c973885a3cf34c91775d73926fd1dd0fb13",),
+    "tpl-package": ("c640be64600758b07fd93e15420cdac3ed31e9d4f5951e9ef2e985972da9a35a",),
+}
+
+
+def accepted(name: str) -> tuple[str, ...]:
+    """Digests an old-name answer template may carry: the canonical bytes, then earlier L0 releases."""
+    return (APPROVED[name], *LEGACY.get(name, ()))
 OLD = ".copier-answers.yml.j2"
 NEW = "{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2"
 SOURCE = "{% raw %}" + NEW[:-3] + "{% endraw %}.j2"
@@ -36,7 +47,7 @@ def exists(path: Path) -> bool:
     return path.exists() or path.is_symlink()
 
 
-def record(root: Path, relative: str, digest: str) -> dict:
+def record(root: Path, relative: str, digest: str | tuple[str, ...]) -> dict:
     ensure_safe_destinations(root, [relative])
     path = root / relative
     for ancestor in path.relative_to(root).parents:
@@ -46,7 +57,7 @@ def record(root: Path, relative: str, digest: str) -> dict:
     if not stat.S_ISREG(info.st_mode) or stat.S_IMODE(info.st_mode) not in (0o600, 0o640, 0o644) or info.st_nlink != 1:
         raise ValueError(f"unsafe answer-template type/mode/links: {relative}")
     actual = hashlib.sha256(path.read_bytes()).hexdigest()
-    if actual != digest:
+    if actual not in ((digest,) if isinstance(digest, str) else digest):
         raise ValueError(f"modified or unapproved answer template: {relative}")
     return {"sha256": actual, "mode": stat.S_IMODE(info.st_mode), "device": info.st_dev, "inode": info.st_ino}
 
@@ -74,13 +85,13 @@ def plan(repo: Path, incoming: Path, current_map: dict, next_map: dict,
         for path in (old, new):
             if classify(path, current_map) != "template" or classify(path, next_map) != "template":
                 raise ValueError(f"retirement requires prior and incoming template ownership: {path}")
-        previous = record(repo, old, digest)
+        previous = record(repo, old, accepted(name))
         if not os.access((repo / old).parent, os.W_OK | os.X_OK):
             raise ValueError(f"unwritable obsolete-template parent: {old}")
-        tracked_original(repo, old, digest)
+        tracked_original(repo, old, previous["sha256"])
         if adoption is not None:
             attested = adoption["existing_template_paths"].get(old)
-            if attested != {"sha256": digest, "mode": previous["mode"]}:
+            if attested != {"sha256": previous["sha256"], "mode": previous["mode"]}:
                 raise ValueError(f"unattested obsolete answer template: {old}")
         successor = f"copier/{name}/{SOURCE}" if source else new
         record(incoming, successor, digest)
@@ -98,11 +109,12 @@ def revalidate(repo: Path, entries: dict, successors: bool = False) -> None:
                 for name, digest in APPROVED.items()}
     for old, entry in entries.items():
         new, digest = approved[old]
-        if entry["new"] != new or entry["record"]["sha256"] != digest:
+        name = old.split("/")[1]
+        if entry["new"] != new or entry["record"]["sha256"] not in accepted(name):
             raise ValueError("retirement plan differs from fixed approved transition")
-        if record(repo, old, digest) != entry["record"]:
+        if record(repo, old, entry["record"]["sha256"]) != entry["record"]:
             raise ValueError(f"stale answer-template preflight: {old}")
-        tracked_original(repo, old, digest)
+        tracked_original(repo, old, entry["record"]["sha256"])
         if not os.access((repo / old).parent, os.W_OK | os.X_OK):
             raise ValueError(f"unwritable obsolete-template parent: {old}")
         if successors:
