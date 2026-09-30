@@ -1,3 +1,11 @@
+---
+summary: "Where an L1 company keeps its own gates, hooks and settings (local/), because the L1 root scripts are template-owned and replaced by every template refresh."
+read_when:
+  - "Adding or changing a company-specific gate, hook or setting in an L1 repo."
+  - "An edit to an L1 root script disappeared after a template refresh."
+type: "reference"
+---
+
 # L1 company extensions (`local/`)
 
 The L1 root scripts (`scripts/**`, `.githooks/**`, ...) are **template-owned**: an L1
