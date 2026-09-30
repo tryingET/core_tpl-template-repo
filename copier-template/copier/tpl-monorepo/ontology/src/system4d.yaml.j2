@@ -1,5 +1,7 @@
-# fixture-monorepo in System4D terms.
-# The root of a Holding Company monorepo.
+{%- set slug_parts = repo_slug.replace('_', '-').replace('.', '-').split('-') | reject('equalto', '') | list -%}
+{%- set id_prefix = ((slug_parts | map('first') | join) if slug_parts | length > 1 else repo_slug) | upper -%}
+# {{ repo_slug }} in System4D terms.
+# The root of a {{ company_name }} monorepo.
 # Packages under packages/ and apps under apps/ inherit it. Written for the
 # agents that work in and beside this repo: read it before changing what the
 # monorepo does or how. README.md, AGENTS.md and the package and app READMEs
@@ -12,11 +14,11 @@
 # the monorepo replaces each one from its own sources (the task that created
 # it, README.md, docs/org_context/, packages/, apps/, tests/), adds entries
 # where the monorepo has more, empties a list ([]) where it has none, and
-# renames the FM- ids if the monorepo has a settled short name.
+# renames the {{ id_prefix }}- ids if the monorepo has a settled short name.
 # grep -n "FILL IN" ontology/src/system4d.yaml lists what is still open.
 ontology:
   system4d:
-    name: "fixture-monorepo"
+    name: "{{ repo_slug }}"
     version: "0.1"
     container:
       boundary:
@@ -27,7 +29,7 @@ ontology:
           - "Shared vocabulary: concepts come from the core and company ontology layers in ontology/manifest.yaml; the monorepo defines its own only where those have none"
           - "FILL IN: what a reader could expect here that this monorepo does not do, and which repo or tool does it instead"
       constraints:
-        - "Workspace package manager: uv; each package and app declares its own language"
+        - "Workspace package manager: {{ package_manager }}; each package and app declares its own language"
         - "FILL IN: runtime, platform and resource constraints the code must respect (versions, network exposure, storage, secrets)"
       edges:
         - name: "FILL IN: one entry per system this monorepo exchanges data or commands with"
@@ -39,7 +41,7 @@ ontology:
         - name: "Agent Kernel (ak)"
           type: "runtime"
           note: "Tasks, direction, decisions and evidence for this monorepo live in AK, not in markdown"
-        - name: "core/ontology-kernel and holdingco/ontology"
+        - name: "core/ontology-kernel and {{ company_slug }}/ontology"
           type: "build"
           note: "The core and company ontology layers, pinned in ontology/manifest.yaml"
         - name: "core/rocs-cli"
@@ -69,18 +71,18 @@ ontology:
         - name: "FILL IN: a state the main object of this monorepo passes through"
           meaning: "FILL IN: what holds while it is in that state"
       invariants:
-        - id: "FM-INV-001"
+        - id: "{{ id_prefix }}-INV-001"
           statement: "FILL IN: a rule that must always hold across packages and apps, stated so that a test can check it"
           enforcement: "FILL IN: test, db or policy, then the code and tests that enforce it (for example: test: packages/ledger/src/ledger.py, packages/ledger/tests/test_ledger.py)"
       lifecycle:
         - "FILL IN: the main flow from trigger to result, one step per entry"
     fog:
       assumptions:
-        - id: "FM-A-001"
+        - id: "{{ id_prefix }}-A-001"
           statement: "FILL IN: something the design relies on that nobody has proven"
           how_to_validate: "FILL IN: the command or observation that would confirm or refute it"
       risks:
-        - id: "FM-R-001"
+        - id: "{{ id_prefix }}-R-001"
           statement: "FILL IN: what could go wrong, and how an agent would notice"
           mitigation: "FILL IN: what reduces it, pointing at code, tests or an invariant"
       exceptions:
@@ -88,6 +90,6 @@ ontology:
           statement: "Incident hotfix allowed"
           reason: "Record Exception immediately and Debt immediately"
       debt:
-        - id: "FM-D-001"
+        - id: "{{ id_prefix }}-D-001"
           statement: "FILL IN: a known shortcut or gap in the shipped code"
           payoff_plan: "FILL IN: when and how it gets paid off"

@@ -1,5 +1,8 @@
-# fixture-project-typescript in System4D terms.
-# A Holding Company project repository in the owned lane.
+{%- set slug_parts = repo_slug.replace('_', '-').replace('.', '-').split('-') | reject('equalto', '') | list -%}
+{%- set id_prefix = ((slug_parts | map('first') | join) if slug_parts | length > 1 else repo_slug) | upper -%}
+{%- set lanes = {"python": "py", "node": "ts", "typescript": "ts", "go": "go", "rust": "rust", "elixir": "elixir"} -%}
+# {{ repo_slug }} in System4D terms.
+# A {{ company_name }} project repository in the {{ location }} lane.
 # Written for the agents that work in and beside this repo: read it before
 # changing what the repo does or how. README.md, AGENTS.md and docs/project/
 # hold the long form; keep this file true to the shipped code.
@@ -11,11 +14,11 @@
 # the repo replaces each one from the repo's own sources (the task that
 # created it, README.md, docs/project/, docs/decisions/, src/, tests/), adds
 # entries where the repo has more, empties a list ([]) where it has none, and
-# renames the FPT- ids if the repo has a settled short name.
+# renames the {{ id_prefix }}- ids if the repo has a settled short name.
 # grep -n "FILL IN" ontology/src/system4d.yaml lists what is still open.
 ontology:
   system4d:
-    name: "fixture-project-typescript"
+    name: "{{ repo_slug }}"
     version: "0.1"
     container:
       boundary:
@@ -26,7 +29,7 @@ ontology:
           - "Shared vocabulary: concepts come from the core and company ontology layers in ontology/manifest.yaml; the repo defines its own only where those have none"
           - "FILL IN: what a reader could expect here that this repo does not do, and which repo or tool does it instead"
       constraints:
-        - "Primary language: typescript"
+        - "Primary language: {{ language }}"
         - "FILL IN: runtime, platform and resource constraints the code must respect (versions, network exposure, storage, secrets)"
       edges:
         - name: "FILL IN: one entry per system this repo exchanges data or commands with"
@@ -38,15 +41,17 @@ ontology:
         - name: "Agent Kernel (ak)"
           type: "runtime"
           note: "Tasks, direction, decisions and evidence for this repo live in AK, not in markdown"
-        - name: "core/ontology-kernel and holdingco/ontology"
+        - name: "core/ontology-kernel and {{ company_slug }}/ontology"
           type: "build"
           note: "The core and company ontology layers, pinned in ontology/manifest.yaml"
         - name: "core/rocs-cli"
           type: "build"
           note: "Runs the ontology checks through ./scripts/rocs.sh, which pins the release it accepts"
+{%- if enable_software_pack and language in lanes %}
         - name: "engineering-core"
           type: "build"
-          note: "The ts engineering lane: policy/engineering-lane.json points at it, docs/engineering.local.md holds the local overrides"
+          note: "The {{ lanes[language] }} engineering lane: policy/engineering-lane.json points at it, docs/engineering.local.md holds the local overrides"
+{%- endif %}
         - name: "FILL IN: one entry per further runtime, build or infra dependency the code needs"
           type: "FILL IN: runtime, build or infra"
           note: "FILL IN: why the repo needs it"
@@ -68,18 +73,18 @@ ontology:
         - name: "FILL IN: a state the main object of this repo passes through"
           meaning: "FILL IN: what holds while it is in that state"
       invariants:
-        - id: "FPT-INV-001"
+        - id: "{{ id_prefix }}-INV-001"
           statement: "FILL IN: a rule that must always hold, stated so that a test can check it"
           enforcement: "FILL IN: test, db or policy, then the code and tests that enforce it (for example: test: src/ledger.py, tests/test_ledger.py)"
       lifecycle:
         - "FILL IN: the main flow from trigger to result, one step per entry"
     fog:
       assumptions:
-        - id: "FPT-A-001"
+        - id: "{{ id_prefix }}-A-001"
           statement: "FILL IN: something the design relies on that nobody has proven"
           how_to_validate: "FILL IN: the command or observation that would confirm or refute it"
       risks:
-        - id: "FPT-R-001"
+        - id: "{{ id_prefix }}-R-001"
           statement: "FILL IN: what could go wrong, and how an agent would notice"
           mitigation: "FILL IN: what reduces it, pointing at code, tests or an invariant"
       exceptions:
@@ -87,6 +92,6 @@ ontology:
           statement: "Incident hotfix allowed"
           reason: "Record Exception immediately and Debt immediately"
       debt:
-        - id: "FPT-D-001"
+        - id: "{{ id_prefix }}-D-001"
           statement: "FILL IN: a known shortcut or gap in the shipped code"
           payoff_plan: "FILL IN: when and how it gets paid off"

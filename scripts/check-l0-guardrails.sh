@@ -580,6 +580,8 @@ assert_contains "copier-template/copier/tpl-package/AGENTS.md.j2" "Deferred work
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "ROCS commands should be run from the monorepo root." "tpl-package ROCS wrapper should remain a monorepo-root placeholder"
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "Use: ../../scripts/rocs.sh <args>" "tpl-package ROCS wrapper should redirect to the monorepo-root launcher"
 assert_absent "copier-template/copier/tpl-package/scripts/ak.sh"
+# System4D context: agents read ontology/src/system4d.yaml, so it names the repo and never ships <...> tokens.
+uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_l2_system4d_context >/dev/null || fail "L2 system4d.yaml context tests failed"
 # ROCS consumer model (pinned-core launcher, CI gate, output ignores, LF attributes, ref defaults).
 sh "$repo_root/scripts/check-l0-rocs-consumer.sh" || fail "ROCS consumer-model guardrails failed"
 

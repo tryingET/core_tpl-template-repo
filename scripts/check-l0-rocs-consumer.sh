@@ -96,7 +96,7 @@ for tpl in tpl-project-repo tpl-monorepo tpl-package; do
 	assert_not_contains "copier-template/copier/$tpl/copier.yml" "<gitlab:" "$tpl must not default to legacy gitlab locators rejected by rocs-cli"
 done
 assert_file "copier-template/copier/tpl-monorepo/ontology/manifest.yaml.j2"
-assert_file "copier-template/copier/tpl-monorepo/ontology/src/system4d.yaml"
+assert_file "copier-template/copier/tpl-monorepo/ontology/src/system4d.yaml.j2"
 assert_contains "copier-template/copier/tpl-monorepo/ontology/manifest.yaml.j2" '{{ kernel_ontology_ref }}' "tpl-monorepo manifest must layer the core ontology"
 assert_contains "copier-template/copier/tpl-monorepo/ontology/manifest.yaml.j2" '{{ company_ontology_ref }}' "tpl-monorepo manifest must layer the company ontology"
 

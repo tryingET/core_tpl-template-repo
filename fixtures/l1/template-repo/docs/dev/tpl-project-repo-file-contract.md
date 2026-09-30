@@ -81,6 +81,7 @@ Default L2 output is intentionally split into 7 domains:
 ### E. Ontology + validation toolchain
 - `ontology/manifest.yaml`, `ontology/src/**`
   - layered defaults use workspace-only `<repo:...@main>` locators (`core/ontology-kernel` + `<company>/ontology`)
+  - `ontology/src/system4d.yaml` is agent-read context rendered from the copier answers (name, language, shared boundaries and dependencies); every other value starts with `FILL IN` for the generating agent to complete from the repo's own docs, and no literal `<...>` placeholder is shipped
 - `scripts/rocs.sh` (runs the workspace `core/rocs-cli` checkout pinned by `rocs_cli_version`; no vendored `tools/rocs-cli` bundle, workspace-only ref resolution)
 
 ### F. CI surface

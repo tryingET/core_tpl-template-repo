@@ -1,63 +1,89 @@
+# fixture-product-repo in System4D terms.
+# A Holding Company project repository in the owned lane.
+# Written for the agents that work in and beside this repo: read it before
+# changing what the repo does or how. README.md, AGENTS.md and docs/project/
+# hold the long form; keep this file true to the shipped code.
+#
+# tpl-project-repo rendered the name, the language, and the boundaries and
+# dependencies every generated repo shares from its copier answers. A value
+# that starts with "FILL IN" is an instruction, not a fact: until it is
+# replaced it says nothing about this repo. The agent that generates or adopts
+# the repo replaces each one from the repo's own sources (the task that
+# created it, README.md, docs/project/, docs/decisions/, src/, tests/), adds
+# entries where the repo has more, empties a list ([]) where it has none, and
+# renames the FPR- ids if the repo has a settled short name.
+# grep -n "FILL IN" ontology/src/system4d.yaml lists what is still open.
 ontology:
   system4d:
-    name: "<Repo Name>"
+    name: "fixture-product-repo"
     version: "0.1"
     container:
       boundary:
         in_scope:
-          - "<what this repo implements>"
+          - "FILL IN from docs/project/purpose.md, README.md and src/: what this repo implements, one line per capability"
         out_of_scope:
-          - "<explicitly not implemented here>"
+          - "Task, direction, decision and evidence state: Agent Kernel (ak) owns it; docs and governance/task-scopes/ snapshots are projections"
+          - "Shared vocabulary: concepts come from the core and company ontology layers in ontology/manifest.yaml; the repo defines its own only where those have none"
+          - "FILL IN: what a reader could expect here that this repo does not do, and which repo or tool does it instead"
       constraints:
-        - "<runtime/tech constraints>"
+        - "Primary language: python"
+        - "FILL IN: runtime, platform and resource constraints the code must respect (versions, network exposure, storage, secrets)"
       edges:
-        - name: "<integration>"
-          direction: "bi"
-          protocol: "<http|kafka|file>"
-          system: "<external system>"
-          contract: "<link/spec>"
+        - name: "FILL IN: one entry per system this repo exchanges data or commands with"
+          direction: "FILL IN: in, out or bi"
+          protocol: "FILL IN: http, kafka, file, cli or another transport"
+          system: "FILL IN: the system on the other side"
+          contract: "FILL IN: the path or link of the spec, schema or doc that defines the exchange"
       dependencies:
-        - name: "<dependency>"
-          type: "<runtime|build|infra>"
-          note: "<why>"
+        - name: "Agent Kernel (ak)"
+          type: "runtime"
+          note: "Tasks, direction, decisions and evidence for this repo live in AK, not in markdown"
+        - name: "core/ontology-kernel and holdingco/ontology"
+          type: "build"
+          note: "The core and company ontology layers, pinned in ontology/manifest.yaml"
+        - name: "core/rocs-cli"
+          type: "build"
+          note: "Runs the ontology checks through ./scripts/rocs.sh, which pins the release it accepts"
+        - name: "FILL IN: one entry per further runtime, build or infra dependency the code needs"
+          type: "FILL IN: runtime, build or infra"
+          note: "FILL IN: why the repo needs it"
       anti_goals:
-        - "<nice-to-have killed>"
+        - "FILL IN: a tempting feature or direction this repo deliberately rejects, and why"
     compass:
       drivers:
-        - "<why now>"
+        - "FILL IN from docs/project/purpose.md and the task that created this repo: the situation that calls for it now"
       outcomes:
-        - "<value>"
+        - "FILL IN from docs/project/vision.md: what someone can do once this repo works"
       tradeoffs:
-        - decision: "<tradeoff>"
-          chosen: "<choice>"
-          because: "<why>"
+        - decision: "FILL IN: a design choice that had real alternatives (docs/decisions/ records the durable ones)"
+          chosen: "FILL IN: the alternative taken"
+          because: "FILL IN: why, citing the decision record where one exists"
     engine:
       triggers:
-        - "<trigger>"
+        - "FILL IN: what starts work in this system (a command, a request, a schedule, an event)"
       states:
-        - name: "<state>"
-          meaning: "<meaning>"
+        - name: "FILL IN: a state the main object of this repo passes through"
+          meaning: "FILL IN: what holds while it is in that state"
       invariants:
-        - id: "<REPO-INV-001>"
-          statement: "<golden rule>"
-          enforcement: "<test|db|policy>"
+        - id: "FPR-INV-001"
+          statement: "FILL IN: a rule that must always hold, stated so that a test can check it"
+          enforcement: "FILL IN: test, db or policy, then the code and tests that enforce it (for example: test: src/ledger.py, tests/test_ledger.py)"
       lifecycle:
-        - "<lifecycle>"
+        - "FILL IN: the main flow from trigger to result, one step per entry"
     fog:
       assumptions:
-        - id: "<REPO-A-001>"
-          statement: "<assumption>"
-          how_to_validate: "<validation>"
+        - id: "FPR-A-001"
+          statement: "FILL IN: something the design relies on that nobody has proven"
+          how_to_validate: "FILL IN: the command or observation that would confirm or refute it"
       risks:
-        - id: "<REPO-R-001>"
-          statement: "<risk>"
-          mitigation: "<mitigation>"
+        - id: "FPR-R-001"
+          statement: "FILL IN: what could go wrong, and how an agent would notice"
+          mitigation: "FILL IN: what reduces it, pointing at code, tests or an invariant"
       exceptions:
         - id: "REPO-E-INCIDENT"
           statement: "Incident hotfix allowed"
           reason: "Record Exception immediately and Debt immediately"
       debt:
-        - id: "<REPO-D-001>"
-          statement: "<debt>"
-          payoff_plan: "<plan>"
-
+        - id: "FPR-D-001"
+          statement: "FILL IN: a known shortcut or gap in the shipped code"
+          payoff_plan: "FILL IN: when and how it gets paid off"
