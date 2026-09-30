@@ -1,63 +1,39 @@
 ---
-summary: "Governance guidance for generated L1 template repositories."
+summary: "Governance for holdingco: Agent Kernel owns tasks, direction, decisions and evidence; FCOS is the coordination board and never decides; programs/ holds company-level program notes; task-scope snapshots are AK exports."
 read_when:
   - "Read when changing generated L1 governance guidance."
+  - "You are deciding where holdingco work, plans or decisions belong."
 type: "reference"
 ---
 
 # Governance
 
-Template governance layer for this company.
+Governance guidance for holdingco. The records themselves live in Agent Kernel (AK); this folder
+holds program notes and exported snapshots.
 
-## Purpose
+## Where the records live
 
-This folder contains company-level planning artifacts plus validation contracts.
-Repo-local work-items in generated L2 project/monorepo repos are **AK-first** and only projected back into git.
+| Concern | Authority | Commands |
+|---------|-----------|----------|
+| Tasks, single-repo or cross-repo | AK | `ak task create -r <repo> ...`, `ak task show <id>` |
+| Direction | AK | `ak direction check`, `ak direction export` |
+| Decisions | AK | `ak decision list`, `ak decision passport <id>` |
+| Evidence | AK | `ak evidence ...` |
+| Society-level coordination items | FCOS, the coordination board (Leitstand), in `holdingco/fcos-control-board/` | `fcos cockpit` |
 
-| Folder | Purpose | Operational? |
-|--------|---------|--------------|
-| `programs/` | Company-level work tracking | Planning only |
-| `model-languages/` | Schema validation | Yes (CUE) |
+- RFC and ADR files are projections of an AK decision, not the decision itself.
+- FCOS records, screens and verifies coordination items; it never decides. FCOS and AK compose only
+  through facts their owners issue (Decision 129).
+- No repo keeps a checked-in `work-items.json` projection (Decision 127): not this folder, not
+  `programs/`, not the L2 repos. If a repo still carries one from an older template, import it once with
+  `ak work-items import`, continue with `ak task ...`, and delete the file.
 
-## Three-Level Hierarchy
+## This folder
 
-| Level | Scope | Location | Authority |
-|-------|-------|----------|-----------|
-| **L0** | Cross-company | governance-kernel/governance/programs/ | Yes (scheduler / FCOS) |
-| **L1** | Company | this repo: governance/programs/ | Planning only |
-| **L2** | Project / monorepo | repo/governance/work-items.json | Agent Kernel authoritative; JSON is the checked-in projection |
-
-## Company-Level Programs
-
-Programs are tracked in `programs/`:
-
-```
-programs/
-└── template-setup/
-    ├── work-items.json    # Milestones and issues
-    └── README.md
-```
-
-### What Goes Here
-
-- Template individualization for this company
-- Repo bootstrapping (tpl-owned, tpl-contrib, tpl-infra)
-- Company-specific compliance baseline
-
-### What Does NOT Go Here
-
-- Cross-company work → L0 (governance-kernel)
-- Single-repo features → L2 repo-local AK work-items
-
-## L2 repo-local work-items (AK-first)
-
-Generated `tpl-project-repo` and `tpl-monorepo` repos treat repo-local work-items this way:
-
-- live operational authority stays in Agent Kernel
-- `governance/work-items.json` is a deterministic checked-in projection/mirror
-- `ak work-items import` is the legacy JSON bootstrap path
-- `ak work-items export` refreshes the checked-in projection
-- `ak work-items check` is the drift gate used by repo CI
+| Path | Holds |
+|------|-------|
+| `programs/` | Company-level program notes: scope, AK ids, dated results and closeouts (see `programs/README.md`) |
+| `task-scopes/` | Frozen AK task-scope snapshots, only when a task needs explicit scope |
 
 ## Repo-local task-scope snapshots (AK-authored)
 
@@ -83,34 +59,26 @@ See `docs/dev/task-scope-migration-playbook.md` for the template-side rollout pa
 
 ## Validation
 
-Validate company-level program work-items against schema:
-
-```bash
-cue vet governance/programs/*/work-items.json governance/model-languages/contract/work-items.cue
-```
-
-Validate repo-local task-scope snapshots when they are checked in:
+Validate repo-local task-scope snapshots when they are checked in (`./scripts/ci/full.sh` runs it too):
 
 ```bash
 ./scripts/check-task-scope-snapshots.sh
 ```
 
-## TIP Review Process
+## Template improvement proposals
 
-See `governance/README.md` for TIP escalation paths.
+See `tips/README.md`.
 
-## State Machine
+## Task states
 
-All levels use the same 5-state machine:
-
-```
-triage → queued → doing → review → done
-```
-
-Defined in: `governance-kernel/governance/fcos/state-machine.yaml`
+Task state lives in AK (`ak task show <id>`). The `triage → queued → doing → review → done` machine in
+`holdingco/governance-kernel/governance/fcos/state-machine.yaml` is historical: an input to FCOS's
+archived evidence, not live task state.
 
 ## Related
 
-- L0 Programs: `governance-kernel/governance/programs/`
-- State Machine: `governance-kernel/governance/fcos/state-machine.yaml`
-- Org Handbook: `holdingco/org-handbook/docs/org/governance/structure.md`
+- Owner table: the workspace `AGENTS.md` (`~/ai-society/AGENTS.md`)
+- FCOS coordination board: `holdingco/fcos-control-board/README.md`
+- Governance operating model: `holdingco/governance-kernel/`
+- Decisions: `ak decision get 127` (work-items projections retired), `ak decision get 129` (FCOS and AK composition)
+- Task-scope rollout: `docs/dev/task-scope-migration-playbook.md`

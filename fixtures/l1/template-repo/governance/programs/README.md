@@ -1,89 +1,45 @@
 ---
-summary: "Company-Level Programs."
+summary: "Company-level programs: notes and dated records for work that spans several of this company's repos. Open work lives in Agent Kernel, not here."
 read_when:
   - "Read when changing L1 template output related to company-level programs."
+  - "You are recording a program that spans several of this company's repos."
 type: "reference"
 ---
 
 # Company-Level Programs
 
-This folder contains programs specific to this company's template setup and compliance.
+Notes for programs that span several of this company's repos: their scope, the AK task and decision ids,
+dated results and the closeout.
 
-## Purpose
+## What this folder is not
 
-**These are PLANNING ARTIFACTS, not execution queues.**
+- **Not a queue.** Every piece of a program's work is an AK task (`ak task create -r <repo> ...`); its
+  state lives in AK.
+- **Not a work-items store.** No `work-items.json` here or anywhere else (Decision 127).
+- **Not a decision record.** Decisions are AK decisions (`ak decision ...`); a note cites their ids.
 
-| Aspect | Status |
-|--------|--------|
-| Structure | ✓ Complete |
-| Validation | ✓ CUE schema |
-| Operational | ✗ No scheduler support |
+## Layout
 
-The scheduler only operates on L0 (FCOS) work-items.
-L1 programs are for:
-- planning and tracking company-level work
-- coordinating across L2 repos
-- documenting decisions and progress
-
-Repo-local L2 work-items are now AK-first: Agent Kernel is authoritative and `repo/governance/work-items.json` is only the checked-in projection.
-
-## Structure
+One folder or one dated Markdown file per program:
 
 ```
 programs/
-└── template-setup/
-    ├── work-items.json    # Milestones and issues
-    └── README.md          # Program-specific docs
+├── <program-id>/
+│   └── README.md           # scope, AK task and decision ids, status
+└── YYYY-MM-DD-<slug>.md    # a dated record, e.g. a rollout's results
 ```
 
-## Example Programs
+A program may keep machine-readable results (JSON next to its Markdown). They record outcomes, not
+open work.
 
-| Program | Scope | Description |
-|---------|-------|-------------|
-| template-setup | This company | Individualize L2 templates, bootstrap repos |
-| compliance-baseline | This company | Company-specific compliance requirements |
+## Adding a program
 
-## Validation
-
-```bash
-# Validate all L1 work-items
-cue vet governance/programs/*/work-items.json governance/model-languages/contract/work-items.cue
-
-# Validate specific program
-cue vet governance/programs/template-setup/work-items.json governance/model-languages/contract/work-items.cue
-```
-
-## State Machine
-
-```
-triage → queued → doing → review → done
-```
-
-| State | Meaning |
-|-------|---------|
-| triage | Not yet shaped |
-| queued | Ready to start |
-| doing | In progress |
-| review | Awaiting approval |
-| done | Complete |
-
-## Adding a New Program
-
-1. Create folder: `programs/<program-id>/`
-2. Add `work-items.json` with milestones
-3. Validate: `cue vet programs/<program-id>/work-items.json model-languages/contract/work-items.cue`
-4. Document in README
-
-## Hierarchy Context
-
-| Level | Scope | Authority |
-|-------|-------|-----------|
-| L0 | Cross-company | Yes (scheduler / FCOS) |
-| **L1** | **Company (this folder)** | **Planning only** |
-| L2 | Project / monorepo | AK authoritative; JSON projection only |
+1. Create its AK tasks, and an AK decision if the program needs one.
+2. Add `programs/<program-id>/README.md` or `programs/YYYY-MM-DD-<slug>.md` citing their ids.
+3. Record results and the closeout there as the program runs.
 
 ## Related
 
-- L0 Programs: `governance-kernel/governance/programs/`
-- L2 Work Items Projection: `repo/governance/work-items.json`
-- State Machine: `governance-kernel/governance/fcos/state-machine.yaml`
+- Governance overview: `../README.md`
+- Society-level coordination items: FCOS, the coordination board (Leitstand), in
+  `holdingco/fcos-control-board/`; it never decides
