@@ -45,6 +45,9 @@ class RenderL1Tests(unittest.TestCase):
                          if f.is_file() and not f.is_symlink() and ".git" not in f.relative_to(out).parts
                          and (f.stat().st_mode & 0o777) not in (0o644, 0o755))
             self.assertEqual(odd, [], "rendered files with modes a checkout cannot reproduce")
+            caches = sorted(str(f.relative_to(out)) for f in out.rglob("*")
+                            if f.name == "__pycache__" or f.suffix in (".pyc", ".pyo") or f.name.endswith(".egg-info"))
+            self.assertEqual(caches, [], "a render must never carry Python caches or build metadata")
             self.assertEqual(snapshot(target), before)
             again = run("sh", str(SCRIPT), str(target), str(out), cwd=parent)
             self.assertEqual(again.returncode, 2)

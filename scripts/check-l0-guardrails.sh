@@ -929,12 +929,12 @@ assert_absent "fixtures/l1/template-repo/copier/tpl-org-repo/docs/diary"
 assert_absent "fixtures/l1/template-repo/copier/tpl-project-repo/docs/diary"
 assert_absent "fixtures/l2/tpl-project-repo/docs/diary"
 
-# Ensure template sources do not include generated Python build/cache artifacts
-if find copier-template/copier -type d \( -name '__pycache__' -o -name '*.egg-info' \) | grep -q .; then
-	fail "template source contains generated python cache/metadata directories"
-fi
-if find copier-template/copier -type f -name '*.pyc' | grep -q .; then
-	fail "template source contains generated python bytecode files"
+# Ensure template sources never commit generated Python build/cache artifacts. An untracked,
+# gitignored cache on disk is harmless: Copier's default _exclude drops __pycache__/*.py[co] from
+# every render, and anything unignored (e.g. *.egg-info) makes L0 dirty, which renders refuse.
+# tests/test_render_l1.py asserts the render itself carries none.
+if git ls-files -- copier-template/copier | grep -E '(^|/)__pycache__/|\.py[co]$|\.egg-info(/|$)' | grep -q .; then
+	fail "template source tracks generated python cache/metadata files"
 fi
 if find copier-template/copier -type d -path '*/tools/rocs-cli/build' | grep -q .; then
 	fail "template source contains rocs-cli build output directory"
