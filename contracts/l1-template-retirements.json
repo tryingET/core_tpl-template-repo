@@ -55,6 +55,16 @@
       "pattern": "governance/model-languages/contract/work-items.cue",
       "retired_by": "452ae8fcce759c96c11d668d438e22cf5b30519a",
       "reason": "work-items projection retired in L0 (AK DB is the sole work authority)"
+    },
+    {
+      "pattern": "copier/tpl-project-repo/ontology/src/system4d.yaml",
+      "retired_by": "d768fcac4a468e24ceb1f5273022e6b7709e2efe",
+      "reason": "superseded by the rendered ontology/src/system4d.yaml.j2 (name from the answers, FILL IN guidance instead of <...> placeholders); both would render the same L2 path"
+    },
+    {
+      "pattern": "copier/tpl-monorepo/ontology/src/system4d.yaml",
+      "retired_by": "d768fcac4a468e24ceb1f5273022e6b7709e2efe",
+      "reason": "superseded by the rendered ontology/src/system4d.yaml.j2 (name from the answers, FILL IN guidance instead of <...> placeholders); both would render the same L2 path"
     }
   ]
 }

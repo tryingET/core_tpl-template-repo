@@ -7,6 +7,7 @@ copier answers know and leave every other value as explicit FILL IN guidance, ne
 from __future__ import annotations
 
 import re
+import sys
 import unittest
 from pathlib import Path
 
@@ -15,6 +16,9 @@ from jinja2 import StrictUndefined
 from jinja2.sandbox import SandboxedEnvironment
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts/lib"))
+import l1_template_retirements as retirements  # noqa: E402
+
 TEMPLATES = ("tpl-project-repo", "tpl-monorepo")
 SOURCE = "ontology/src/system4d.yaml"
 PLACEHOLDER = re.compile(r"<[^<>\n]+>")
@@ -95,6 +99,15 @@ class System4dContextTests(unittest.TestCase):
         self.assertIn("Workspace package manager: pnpm; each package and app declares its own language",
                       monorepo["container"]["constraints"])
         self.assertIn("engineering-core", dependency_names(monorepo))
+
+    def test_l1_refresh_retires_the_plain_copies_l1s_still_carry(self) -> None:
+        # Without this, an L1 refresh keeps the old file beside the .j2 and both render one L2 path.
+        entries = retirements.load_manifest()
+        for template in TEMPLATES:
+            path = f"copier/{template}/{SOURCE}"
+            with self.subTest(path=path):
+                self.assertEqual(len([item for item in entries if item["regex"].match(path)]), 1)
+                self.assertEqual([item for item in entries if item["regex"].match(f"{path}.j2")], [])
 
 
 if __name__ == "__main__":
