@@ -48,7 +48,7 @@ package_description:
 
 kernel_ontology_ref:
   type: str
-  default: "<repo:core/ontology-kernel@v0.2.1>"
+  default: "<repo:core/ontology-kernel@v0.3.0>"
   help: "ROCS core/kernel ontology ref (workspace repo locator)"
 
 company_ontology_ref:

@@ -456,7 +456,7 @@ for tpl in tpl-agent-repo tpl-org-repo; do
 done
 assert_not_contains "copier/tpl-project-repo/scripts/ci/full.sh" "uvx -n --from ./tools/rocs-cli rocs" "tpl-project-repo CI should not hardcode uvx vendored invocation"
 for tpl in tpl-project-repo tpl-monorepo tpl-package; do
-	assert_yaml_default "copier/$tpl/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.2.1>' "$tpl should default core ontology refs to the protected release tag"
+	assert_yaml_default "copier/$tpl/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.3.0>' "$tpl should default core ontology refs to the protected release tag"
 	assert_contains "copier/$tpl/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "$tpl should default company ontology refs to workspace repo locators"
 done
 # ROCS CI gate: cleanup -> validate -> build without wiping ontology/dist; outputs ignored; LF scripts.
