@@ -114,6 +114,13 @@ class SourceTests(unittest.TestCase):
                 self.prepare()
             self.assertFalse((self.scratch / "l0").exists())
 
+    def test_git_company_metadata_has_private_mount_target(self):
+        subprocess.run(["git", "-C", str(self.company), "init", "-q"], check=True)
+        before = subprocess.check_output(["git", "-C", str(self.company), "status", "--porcelain"])
+        self.prepare()
+        self.assertTrue((self.scratch / "company-input/.git").is_dir())
+        self.assertEqual(subprocess.check_output(["git", "-C", str(self.company), "status", "--porcelain"]), before)
+
     def test_custom_parent_locator_and_snapshot_are_sealed(self):
         custom = self.company / "answers dir/company.yml"
         custom.parent.mkdir(parents=True, exist_ok=True)
