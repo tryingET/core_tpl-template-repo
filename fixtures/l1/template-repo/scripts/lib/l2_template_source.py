@@ -63,10 +63,10 @@ def stop_child(signum: int, _frame=None) -> None:
     raise SystemExit(128 + signum)
 
 
-def run(argv: list[str], *, env: dict | None = None) -> str:
+def run(argv: list[str], *, env: dict | None = None, umask: int = -1) -> str:
     global _active
     _active = subprocess.Popen(argv, env=env or environment(), stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, start_new_session=True)
+                               stderr=subprocess.PIPE, start_new_session=True, umask=umask)
     try:
         try:
             out, err = _active.communicate(timeout=3600)
@@ -273,8 +273,11 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
     render_input.mkdir()
     (render_input / ".copier-answers.yml").write_bytes(frozen_parent.read_bytes())
     clone, render = scratch / "l0", scratch / "render"
-    run(["git", "clone", "--quiet", "--no-local", "--no-checkout", str(source), str(clone)])
-    run(["git", "-C", str(clone), "-c", "core.hooksPath=/dev/null", "checkout", "--quiet", "--detach", pin])
+    # Git stores executable bits, not caller umask. Materialize its canonical
+    # 0644/0755 template modes even under a private runner's 077 umask. The outer
+    # scratch remains 0700; only these isolated Git subprocesses get 022.
+    run(["git", "clone", "--quiet", "--no-local", "--no-checkout", str(source), str(clone)], umask=0o022)
+    run(["git", "-C", str(clone), "-c", "core.hooksPath=/dev/null", "checkout", "--quiet", "--detach", pin], umask=0o022)
     if git(clone, "rev-parse", "HEAD") != pin or git(clone, "status", "--porcelain"):
         raise ValueError("birth render clone is not clean at the exact pin")
     renderer = checked_path(clone / "scripts/render-l1.sh")
@@ -309,7 +312,9 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
         cmd += ["--ro-bind", str(metadata), str(render_input / ".git")]
     cmd += ["--dev", "/dev", "--proc", "/proc", "--chdir", str(clone),
             "sh", str(renderer), str(render_input), str(render), repo_slug]
-    run(cmd, env=env)
+    # The renderer also makes its own Git clone through Copier. Keep source
+    # template modes canonical inside the same 0700 private sandbox.
+    run(cmd, env=env, umask=0o022)
     if inputs(company) != before:
         raise ValueError("company inputs changed during pinned render")
     rendered_seal = mapping(render / "contracts/provenance-seal.yml")
