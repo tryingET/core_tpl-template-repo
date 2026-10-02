@@ -1,0 +1,118 @@
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+timeout policy: base=1800s generation=3600s adversarial=1800s fixtures=1800s runner=timeout
+..................................................................../home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pathspec.py:326: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  patterns = [use_factory(__line) for __line in lines if __line]  # type: ignore[arg-type]
+/home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pattern.py:125: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  raw_regex, include = self.pattern_to_regex(pattern)
+............................
+----------------------------------------------------------------------
+Ran 96 tests in 828.541s
+
+OK
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.092s
+
+OK
+ok: l0 rocs consumer model
+ok: l0 guardrails
+ok: check-l0-guardrails (830s, warnings: 0, timeout: 1800s)
+docs-ref-check: scanned 4 file(s), 28 reference(s)
+docs-ref-check: pass
+ok: check-doc-references (0s, warnings: 0, timeout: 1800s)
+ok: session checkpoint guardrails
+ok: check-session-checkpoint (0s, warnings: 0, timeout: 1800s)
+ok: supply-chain checks
+ok: check-supply-chain (0s, warnings: 0, timeout: 1800s)
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 502.448s
+
+OK
+finalized ownership state from AK evidence:456; review and commit state closeout
+finalized ownership state from AK evidence:456; review and commit state closeout
+APPLY
+preserve: 13 rendered agent-owned path(s)
+note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+retire: copier/tpl-agent-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-agent-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-org-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-org-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-project-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-project-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-monorepo/.copier-answers.yml.j2 (approved sha256=781390e4ec6052dd8a2360d32b7a637c47dedde81f3841249b6a297da165f450; successor=copier/tpl-monorepo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-package/.copier-answers.yml.j2 (approved sha256=27dba22ed419dc971cdc8f8ccc714336476108f3b951a5e3c15f87a370bd6d76; successor=copier/tpl-package/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+update: scripts/ci/full.sh
+--- a/scripts/ci/full.sh
++++ b/scripts/ci/full.sh
+@@ -55,3 +55,5 @@
+ ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+ 
+ echo "ok: ci full"
++
++# refresh change
+ok: l0 generation smoke + idempotency + ownership-aware template propagation
+ok: check-l0-generation (1628s, warnings: 0, timeout: 3600s)
+Preparing worktree (detached HEAD 40d2d05)
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (detached HEAD db375a3)
+ok: l0 adversarial operator-surface checks
+ok: check-l0-adversarial (342s, warnings: 0, timeout: 1800s)
+ok: l0 fixtures
+ok: check-l0-fixtures (93s, warnings: 0, timeout: 1800s)
+overview:
+  passed: 7
+  failed: 0
+  skipped: 0
+  warnings: 0
+  - check-l0-guardrails: ok (830s, warnings: 0)
+  - check-doc-references: ok (0s, warnings: 0)
+  - check-session-checkpoint: ok (0s, warnings: 0)
+  - check-supply-chain: ok (0s, warnings: 0)
+  - check-l0-generation: ok (1628s, warnings: 0)
+  - check-l0-adversarial: ok (342s, warnings: 0)
+  - check-l0-fixtures: ok (93s, warnings: 0)
+heavy_job_result=success scratch_cleanup=removed
