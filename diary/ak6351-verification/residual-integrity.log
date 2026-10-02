@@ -1,0 +1,7 @@
+copier-template/scripts/lib/l2_template_source.py: unchanged b0239ca; fixture identical; 406/500 lines
+copier-template/scripts/lib/l2_birth_execution.py: unchanged b0239ca; fixture identical; 87/500 lines
+copier-template/scripts/lib/l2_birth_safety.py: unchanged b0239ca; fixture identical; 73/500 lines
+copier-template/scripts/lib/l2_birth_completion.py: unchanged b0239ca; fixture identical; 35/500 lines
+tests/test_l2_template_source.py: unchanged ca530ee (residual proof additions); 374/1000 lines
+tests/test_company_ontology_ref_inheritance.py: unchanged ca530ee (residual proof additions); 455/1000 lines
+diary/2026-10-02--ak6351-holdingco-birth-equivalence.json: historical bytes unchanged; acceptance_satisfied=false
