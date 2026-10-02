@@ -155,6 +155,7 @@ def verify_wave_evidence(
     state: dict[str, object],
     task_id: int | None = None,
     ak_command: Path | None = None,
+    map_sha256: str | None = None,
 ) -> dict[str, Any]:
     if task_id is None:
         raw_task = state.get("wave_task_id")
@@ -209,7 +210,7 @@ def verify_wave_evidence(
     if not isinstance(records, list):
         raise ValueError("AK wave evidence response must be a list")
 
-    map_hash = hashlib.sha256((repo / MAP_PATH).read_bytes()).hexdigest()
+    map_hash = map_sha256 or hashlib.sha256((repo / MAP_PATH).read_bytes()).hexdigest()
     for record in records:
         if not isinstance(record, dict):
             continue
@@ -268,6 +269,7 @@ def validate_established_provenance(
     state: dict[str, object],
     ak_command: Path | None = None,
     allow_uncommitted_birth_plan: bool = False,
+    proof_commit: str | None = None,
 ) -> None:
     if state.get("schema") == "ai-society.template-ownership-state/2":
         from l1_template_transitions import validate_v2_provenance
@@ -279,11 +281,19 @@ def validate_established_provenance(
         validate_inherited(repo, state, REFRESH_FINAL_KEYS, ak_command)
     elif INHERITED_FIELD in state:
         raise ValueError("only v3 ownership state may carry an inherited transition")
-    map_hash = hashlib.sha256((repo / MAP_PATH).read_bytes()).hexdigest()
+    if proof_commit is not None:
+        if json.loads(git_output(repo, "show", f"{proof_commit}:{STATE_PATH}")) != state:
+            raise ValueError("historical refresh proof does not bind its exact predecessor state")
+        map_raw = git_output(repo, "show", f"{proof_commit}:{MAP_PATH}").encode()
+    else:
+        map_raw = (repo / MAP_PATH).read_bytes()
+    map_hash = hashlib.sha256(map_raw).hexdigest()
     if state.get("ownership_map_sha256") != map_hash:
         raise ValueError("established ownership state does not match the active map")
     origin = state.get("origin")
     if origin == "copier-birth":
+        if is_v3 or state.get("schema") != STATE_SCHEMA:
+            raise ValueError("copier-birth origin is supported only by ownership state v1")
         try:
             additions = [
                 line
@@ -302,14 +312,33 @@ def validate_established_provenance(
         birth_answers = git_output(repo, "show", f"{additions[0]}:.copier-answers.yml")
         if "_ownership_state: established_at_birth" not in birth_answers.splitlines():
             raise ValueError("copier-birth root commit lacks its ownership marker")
+        from l1_template_company import map_sections
+        birth_map = git_output(repo, "show", f"{additions[0]}:{MAP_PATH}").encode()
+        birth_state = json.loads(git_output(repo, "show", f"{additions[0]}:{STATE_PATH}"))
+        birth_keys = {"schema", "kind", "state", "origin", "ownership_map_sha256"}
+        if set(state) != birth_keys or set(birth_state) != birth_keys or (
+            any(birth_state.get(key) != state.get(key) for key in birth_keys - {"ownership_map_sha256"})
+            or birth_state["ownership_map_sha256"] != hashlib.sha256(birth_map).hexdigest()
+            or map_sections(birth_map).get("company", []) != map_sections(map_raw).get("company", [])
+        ):
+            raise ValueError("copier-birth authority does not bind root ownership; explicit transition required")
+        for commit in git_output(repo, "log", "--full-history", "--format=%H", "--", STATE_PATH.as_posix()).splitlines():
+            historic = json.loads(git_output(repo, "show", f"{commit}:{STATE_PATH}"))
+            if historic.get("schema") in {"ai-society.template-ownership-state/2", STATE_SCHEMA_V3}:
+                raise ValueError("copier-birth ownership cannot discard a receipted transition")
         return
     if origin != "contract-refresh":
         raise ValueError("established ownership state has invalid origin")
     if is_v3 and state.get("state") != "established":
         raise ValueError("v3 ownership state must be established")
-    record = verify_wave_evidence(repo, state, ak_command=ak_command)
+    record = verify_wave_evidence(repo, state, ak_command=ak_command, **({"map_sha256": map_hash} if proof_commit is not None else {}))
     details = record["details"]
     applied_commit = details["applied_commit"]
+    anchor = proof_commit or "HEAD"
+    if git_run(repo, "merge-base", "--is-ancestor", applied_commit, anchor).returncode != 0:
+        raise ValueError("refresh applied commit is outside predecessor history")
+    if is_v3 and state.get("applied_commit") != applied_commit:
+        raise ValueError("v3 refresh state does not bind its evidence applied commit")
     try:
         pending_state = json.loads(git_output(repo, "show", f"{applied_commit}:{STATE_PATH}"))
         applied_map = git_output(repo, "show", f"{applied_commit}:{MAP_PATH}").encode()

@@ -36,8 +36,8 @@ def topology_overlap(parent: dict[str, Any], child: dict[str, Any]) -> bool:
     )
 
 
-def validate_git_delta(value: object, allow_controls: bool = False) -> list[dict[str, Any]]:
-    if not isinstance(value, list) or not value:
+def validate_git_delta(value: object, allow_controls: bool = False, allow_empty: bool = False) -> list[dict[str, Any]]:
+    if not isinstance(value, list) or (not value and not allow_empty):
         raise ValueError("git_delta must be a non-empty list")
     result: list[dict[str, Any]] = []
     seen: set[str] = set()

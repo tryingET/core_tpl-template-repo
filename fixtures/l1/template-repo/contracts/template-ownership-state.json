@@ -1,7 +1,7 @@
 {
   "kind": "l1_contract_refresh_state",
   "origin": "copier-birth",
-  "ownership_map_sha256": "75824eca86aaa12244e3c29b7e0c054ed573cfd404a546c9af7e5180489e0b41",
+  "ownership_map_sha256": "800b6ff37154fe68aad6106201445f7ec3a1303ecac235a85e985a3764e863d8",
   "schema": "ai-society.template-ownership-state/1",
   "state": "established"
 }

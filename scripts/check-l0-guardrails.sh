@@ -440,7 +440,9 @@ assert_absent "copier-template/scripts/cargo-operator.sh"
 assert_absent "governance/dist/managed-launcher-bundle.template-receipt.json"
 assert_contains ".gitattributes" "**/tools/rocs-cli/** -whitespace" "L0 must preserve canonical vendored ROCS bytes from whitespace normalization"
 assert_contains "copier-template/.gitattributes" "**/tools/rocs-cli/** -whitespace" "generated L1 must preserve canonical vendored ROCS bytes"
-assert_contains "copier-template/contracts/template-ownership.yml" "schema: ai-society.template-ownership/1" "L1 ownership map must pin schema v1"
+assert_contains "copier-template/contracts/template-ownership.yml" "schema: ai-society.template-ownership/2" "L1 ownership map must pin company ownership schema v2"
+assert_contains "copier-template/contracts/template-ownership.yml" "company_owned:" "tree ontology requires explicit company ownership"
+assert_files_equal "copier-template/scripts/lib/l1_ontology_ownership.py" "fixtures/l1/template-repo/scripts/lib/l1_ontology_ownership.py" "ontology ownership proof helper must stay identical"
 for agent_path in AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml 'docs/org/**'; do
 	assert_contains "copier-template/contracts/template-ownership.yml" "- $agent_path" "L1 ownership map must preserve company-owned $agent_path"
 done
@@ -502,7 +504,7 @@ assert_files_equal "copier-template/.github/workflows/template-check.yml" "fixtu
 assert_checkout_full_history "copier-template/.github/workflows/ci.yml"
 assert_checkout_full_history "copier-template/.github/workflows/template-check.yml"
 assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
-uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_l1_template_transitions tests.test_company_ontology_ref_inheritance tests.test_l2_template_source tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"
+uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_l1_template_transitions tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes tests.test_company_ontology_ref_inheritance tests.test_l2_template_source tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"
 
 # Required L2 template directories
 required_dirs="

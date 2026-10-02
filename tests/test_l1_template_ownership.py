@@ -478,7 +478,7 @@ class L1TemplateOwnershipTests(unittest.TestCase):
             (rendered / "new-unclassified-root.txt").unlink()
             ownership = rendered / "contracts/template-ownership.yml"
             ownership.write_text(
-                ownership.read_text(encoding="utf-8") + "  - scripts/**\n",
+                ownership.read_text(encoding="utf-8").replace("agent_owned:\n", "agent_owned:\n  - scripts/**\n"),
                 encoding="utf-8",
             )
             ambiguous = run(

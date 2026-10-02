@@ -343,6 +343,7 @@ scripts/install-hooks.sh
 scripts/lib/check-template-ak.py
 scripts/lib/run-local-hook.sh
 scripts/lib/check-l1-ownership-state.py
+scripts/lib/l1_ontology_ownership.py
 scripts/lib/check-task-scope-snapshots.py
 scripts/lib/copier-answers.sh
 scripts/lib/repo-surface.sh
@@ -366,7 +367,8 @@ tests/.gitkeep
 diary/README.md
 "
 
-if [ "$ontology_gitlink" = 0 ]; then
+# Company ontology, including the birth placeholder, is not L0-maintained policy.
+if [ "$ontology_gitlink" = 0 ] && python3 -I -S -B scripts/lib/l1_ontology_ownership.py --template-placeholder-required; then
 	required_files="$required_files ontology/.gitkeep"
 fi
 
@@ -515,7 +517,7 @@ ownership="contracts/template-ownership.yml"
 ownership_state="contracts/template-ownership-state.json"
 assert_file "$ownership"
 assert_file "$ownership_state"
-assert_contains "$ownership" "schema: ai-society.template-ownership/1" "L1 ownership schema mismatch"
+grep -Eq '^schema: ai-society\.template-ownership/[12]$' "$ownership" || fail "L1 ownership schema mismatch"
 for company_path in contracts/template-ownership-adoption.json AGENTS.md README.md CONTRIBUTING.md .gitignore .github/workflows/ci.yml 'docs/org/**'; do
 	assert_contains "$ownership" "- $company_path" "L1 ownership map must preserve company-owned $company_path"
 done

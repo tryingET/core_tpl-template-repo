@@ -1,4 +1,4 @@
-schema: ai-society.template-ownership/1
+schema: ai-society.template-ownership/2
 template_owned:
   - .copier-answers.yml
   - .gitattributes
@@ -30,7 +30,6 @@ template_owned:
   - external/**
   - governance/**
   - metrics/**
-  - ontology/**
   - policy/**
   - scripts/**
   - src/**
@@ -45,3 +44,5 @@ agent_owned:
   - CONTRIBUTING.md
   - README.md
   - docs/org/**
+company_owned:
+  - ontology/**
