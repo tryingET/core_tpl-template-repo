@@ -1,3 +1,10 @@
+---
+summary: "Compiled agent system prompt from the manifest and persona inputs."
+read_when:
+  - "Inspecting the generated agent system prompt."
+type: reference
+---
+
 <!-- compiled: do not edit -->
 # Agent system prompt
 

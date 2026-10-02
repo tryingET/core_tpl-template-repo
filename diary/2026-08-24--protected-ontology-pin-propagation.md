@@ -1,5 +1,7 @@
 ---
 summary: "Propagate ontology-kernel v0.2.0 as the protected tpl-project-repo default."
+read_when:
+  - "Inspecting the historical protected ontology pin propagation."
 type: diary
 ---
 
