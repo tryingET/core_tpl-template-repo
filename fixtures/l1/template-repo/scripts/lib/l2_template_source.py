@@ -302,6 +302,10 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
     # templates. The pinned render-only contract consumes answers and Git index.
     if (company / ".git").exists():
         metadata = checked_path(company / ".git")
+        if metadata.is_dir():
+            (render_input / ".git").mkdir()
+        else:
+            (render_input / ".git").touch()
         cmd += ["--ro-bind", str(metadata), str(render_input / ".git")]
     cmd += ["--dev", "/dev", "--proc", "/proc", "--chdir", str(clone),
             "sh", str(renderer), str(render_input), str(render), repo_slug]
