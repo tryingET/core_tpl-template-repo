@@ -265,7 +265,13 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
         pin = stored["l0_commit"]
     if inputs(company) != before:
         raise ValueError("company inputs changed during source interpretation")
-    (scratch / "parent-answers.yml").write_text(yaml.safe_dump(parent))
+    frozen_parent = scratch / "parent-answers.yml"
+    frozen_parent.write_text(yaml.safe_dump(parent))
+    # Older pinned renderers read the default locator. Give them the same sealed
+    # snapshot in a private input view, never a misleading live default file.
+    render_input = scratch / "company-input"
+    render_input.mkdir()
+    (render_input / ".copier-answers.yml").write_bytes(frozen_parent.read_bytes())
     clone, render = scratch / "l0", scratch / "render"
     run(["git", "clone", "--quiet", "--no-local", "--no-checkout", str(source), str(clone)])
     run(["git", "-C", str(clone), "-c", "core.hooksPath=/dev/null", "checkout", "--quiet", "--detach", pin])
@@ -291,8 +297,14 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
     if not resolver.is_relative_to("/etc"):
         cmd += ["--ro-bind", str(resolver), str(resolver)]
     cmd += ["--ro-bind", str(company), str(company), "--bind", str(scratch), str(scratch),
-            "--dev", "/dev", "--proc", "/proc", "--chdir", str(clone),
-            "sh", str(renderer), str(company), str(render), repo_slug]
+            "--ro-bind", str(render_input), str(render_input)]
+    # Preserve source-owned ontology index topology without copying company
+    # templates. The pinned render-only contract consumes answers and Git index.
+    if (company / ".git").exists():
+        metadata = checked_path(company / ".git")
+        cmd += ["--ro-bind", str(metadata), str(render_input / ".git")]
+    cmd += ["--dev", "/dev", "--proc", "/proc", "--chdir", str(clone),
+            "sh", str(renderer), str(render_input), str(render), repo_slug]
     run(cmd, env=env)
     if inputs(company) != before:
         raise ValueError("company inputs changed during pinned render")
