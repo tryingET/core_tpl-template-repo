@@ -279,6 +279,17 @@ class SourceTests(unittest.TestCase):
         self.assertFalse((self.company / "descriptor-proof").exists())
         self.assertEqual(before, {str(p): p.read_bytes() for p in self.company.rglob("*") if p.is_file()})
 
+    def test_final_executor_fstat_refuses_root_replaced_after_precheck(self):
+        dump(self.child / ".copier-answers.yml", {"company_slug": "otherco"})
+        meta = self.prepare()
+        def raced_check(meta, destination):
+            source.check_before_copy(meta, destination)
+            self.child.rename(self.root / "old-child")
+            self.child.mkdir()
+        with self.assertRaisesRegex(ValueError, "identity changed"):
+            execution.execute(meta, self.child, ["uvx", "--from", "copier==9.11.1", "copier", "copy", meta["template_path"], str(self.child)],
+                              lambda *a, **k: self.fail("must not launch"), source.environment, raced_check, source.destination_guard)
+
     def test_readonly_descriptor_bind_for_missing_pretend_child(self):
         meta = self.prepare("-n")
         def observed_run(cmd, *, env, pass_fds):

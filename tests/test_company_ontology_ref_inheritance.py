@@ -258,9 +258,12 @@ completion.write_text('non-pretend-copy-completed\\n')
             self.assertIn(value, args)
 
     def test_source_fixture_copies_and_budgets(self) -> None:
-        for relative in ("scripts/new-repo-from-copier.sh", "scripts/lib/company-ontology-ref.sh"):
+        for relative in ("scripts/new-repo-from-copier.sh", "scripts/lib/company-ontology-ref.sh",
+                         "scripts/lib/l2_template_source.py", "scripts/lib/l2_birth_execution.py",
+                         "scripts/lib/l2_birth_safety.py"):
             self.assertEqual((SOURCE / relative).read_bytes(),
                              (ROOT / "fixtures/l1/template-repo" / relative).read_bytes())
+            self.assertLessEqual(len((SOURCE / relative).read_text().splitlines()), 500)
         for name in ALL_ARCHETYPES:
             expected = ROOT / "fixtures/l1/template-repo/copier" / name
             self.assertEqual((SOURCE / "copier" / name / OUTER_ANSWERS).read_bytes(),
