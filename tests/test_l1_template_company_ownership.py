@@ -33,13 +33,29 @@ def commit(repo: Path, message: str, *paths: str) -> str:
     return git(repo, "rev-parse", "HEAD")
 
 
+def bind_runtime_pin(repo: Path) -> None:
+    """Golden fixture normalization is not a runtime birth/source pin."""
+    pin = git(ROOT, "rev-parse", "HEAD")
+    for relative, placeholder in (
+        (".copier-answers.yml", "__VOLATILE_L0_SOURCE_SHA__"),
+        ("contracts/provenance-seal.yml", "__VOLATILE_SOURCE_SHA__"),
+    ):
+        path = repo / relative
+        raw = path.read_text()
+        assert raw.count(placeholder) == 1
+        path.write_text(raw.replace(placeholder, pin))
+
+
 class CompanyHarness(Harness):
     def __init__(self, parent: Path):
         super().__init__(parent, legacy_schema=True)
+        bind_runtime_pin(self.repo)
+        self.base = commit(self.repo, "bind runtime fixture to exact L0 source",
+                           ".copier-answers.yml", "contracts/provenance-seal.yml")
         self.next_map.write_text((self.repo / MAP).read_text().replace(
             "schema: ai-society.template-ownership/1", "schema: ai-society.template-ownership/2"
         ).replace("  - ontology/**\n", "") + "company_owned:\n  - ontology/**\n")
-        self.spec.update(git_delta=[])
+        self.spec.update(adr_commit=self.base, git_delta=[])
         self.spec_path.write_text(json.dumps(self.spec))
         self.original_task = None
 
@@ -278,7 +294,7 @@ class CompanyOntologyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
             # Actual pre-AK6328 readers from published main, not a private local ref.
-            for rel in (CHECKER, "scripts/check-template-ci.sh"):
+            for rel in (CHECKER, "scripts/check-template-ci.sh", "scripts/new-repo-from-copier.sh"):
                 original = TRANSITIONS.git_bytes(ROOT, "show", f"72828add2ec38e3a41aacd7fa0c6b4232a7595a3:copier-template/{rel}")
                 (h.repo / rel).write_bytes(original)
             (h.repo / "scripts/lib/l1_ontology_ownership.py").unlink()
@@ -286,6 +302,7 @@ class CompanyOntologyTests(unittest.TestCase):
             run("bash", "scripts/check-template-ci.sh", cwd=h.repo)
             incoming = h.parent / "incoming"
             shutil.copytree(FIXTURE, incoming)
+            bind_runtime_pin(incoming)
             prepared = h.parent / "prepared"
             before = controls(h.repo)
             run("python3", str(ROOT / "scripts/lib/l1_template_ownership.py"), "--repo-root", str(h.repo),
