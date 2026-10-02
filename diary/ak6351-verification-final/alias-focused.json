@@ -1,0 +1,22 @@
+{
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "7200s",
+    "uvx",
+    "--from",
+    "copier==9.11.1",
+    "python",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_company_ontology_ref_inheritance.RendererTests.test_company_entrypoint_alias_binds_physical_root_and_reruns_cleanly",
+    "tests.test_l2_template_source.SourceTests.test_source_symlink_is_refused"
+  ],
+  "cwd": "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667",
+  "started_utc": "2026-10-02T19:46:21.276216+00:00",
+  "finished_utc": "2026-10-02T19:46:35.404385+00:00",
+  "elapsed_ns": 14128124778,
+  "elapsed_seconds": 14.128124778,
+  "exit_code": 0
+}
