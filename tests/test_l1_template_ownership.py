@@ -131,6 +131,17 @@ class L1TemplateOwnershipTests(unittest.TestCase):
             parent = Path(temp)
             target = self.copy_fixture(parent, "target")
             rendered = self.copy_fixture(parent, "rendered")
+            # Golden fixtures normalize volatile provenance. This test runs real
+            # downstream births, so bind both runtime copies to the actual L0 pin.
+            for repo in (target, rendered):
+                for relative, placeholder in (
+                    (".copier-answers.yml", "__VOLATILE_L0_SOURCE_SHA__"),
+                    ("contracts/provenance-seal.yml", "__VOLATILE_SOURCE_SHA__"),
+                ):
+                    path = repo / relative
+                    content = path.read_text(encoding="utf-8")
+                    self.assertEqual(content.count(placeholder), 1)
+                    path.write_text(content.replace(placeholder, L0_HEAD), encoding="utf-8")
             init_commit(target)
             shutil.rmtree(target / "docs/org")
             for source in COMPANY_POLICY_FIXTURE.rglob("*"):
