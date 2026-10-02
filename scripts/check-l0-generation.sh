@@ -528,7 +528,7 @@ assert_file_contains "$bootstrap_l1/team-data/CODEOWNERS" "docs/project/** @acme
 	git init -b main >/dev/null
 	git config user.name "tpl-template-repo hooks check" >/dev/null
 	git config user.email "ci@tpl-template-repo.local" >/dev/null
-	chmod -x scripts/rocs.sh
+	chmod a-x scripts/rocs.sh
 	./scripts/install-hooks.sh >/dev/null
 	[ -x scripts/rocs.sh ] || {
 		echo "error: install-hooks should restore executable bit for the generated L1 ROCS wrapper" >&2
@@ -859,7 +859,7 @@ for local_case in \
 	if run_l1_entry LOCAL_HOOK_STATUS=1 "$l1_hooks/$entry"; then
 		fail "L1 $entry must fail when $hook fails"
 	fi
-	chmod -x "$l1_hooks/$hook"
+	chmod a-x "$l1_hooks/$hook"
 	if run_l1_entry "$l1_hooks/$entry"; then
 		fail "L1 $entry must fail when $hook exists but is not executable"
 	fi
