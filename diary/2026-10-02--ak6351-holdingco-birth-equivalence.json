@@ -20,24 +20,56 @@
     "tpl-project-repo": {
       "deltas": [
         {
-          "company_copy_base64": "aW5jbHVkZToKICAtIGxvY2FsOiAnZ2l0bGFiL2NpL3JvY3MueW1sJwo=",
+          "company_copy": {
+            "base64": "aW5jbHVkZToKICAtIGxvY2FsOiAnZ2l0bGFiL2NpL3JvY3MueW1sJwo=",
+            "kind": "file",
+            "mode": 420
+          },
           "path": ".gitlab-ci.yml",
-          "pinned_birth_base64": null
+          "pinned_birth": null
         },
         {
-          "company_copy_base64": "c3RhZ2VzOgogIC0gdmFsaWRhdGUKCnJvY3M6dmVuZG9yZWQtY2hlY2s6CiAgc3RhZ2U6IHZhbGlkYXRlCiAgaW1hZ2U6IGdoY3IuaW8vYXN0cmFsLXNoL3V2OnB5dGhvbjMuMTEtYm9va3dvcm0tc2xpbQogIHJ1bGVzOgogICAgLSB3aGVuOiBhbHdheXMKICBhbGxvd19mYWlsdXJlOiB0cnVlCiAgc2NyaXB0OgogICAgLSB1dnggLW4gLS1mcm9tIC4vdG9vbHMvcm9jcy1jbGkgcm9jcyB2ZW5kb3JlZC1jaGVjayAtLXZlbmRvcmVkLWRpciAuL3Rvb2xzL3JvY3MtY2xpCgpyb2NzOnZhbGlkYXRlOgogIHN0YWdlOiB2YWxpZGF0ZQogIGltYWdlOiBnaGNyLmlvL2FzdHJhbC1zaC91djpweXRob24zLjExLWJvb2t3b3JtLXNsaW0KICBydWxlczoKICAgIC0gd2hlbjogYWx3YXlzCiAgYWxsb3dfZmFpbHVyZTogdHJ1ZQogIHNjcmlwdDoKICAgIC0gcHl0aG9uIC0tdmVyc2lvbgogICAgLSB1diAtLXZlcnNpb24KICAgIC0gdXZ4IC0tdmVyc2lvbgogICAgLSB1dnggLW4gLS1mcm9tIC4vdG9vbHMvcm9jcy1jbGkgcm9jcyB2ZXJzaW9uCiAgICAtIFJPQ1NfQ01EPSd1dnggLW4gLS1mcm9tIC4vdG9vbHMvcm9jcy1jbGkgcm9jcycgUk9DU19DSV9QUk9GSUxFPWJyYW5jaC1jaSBiYXNoIHNjcmlwdHMvY2kvZnVsbC5zaAogIGFydGlmYWN0czoKICAgIHdoZW46IGFsd2F5cwogICAgcGF0aHM6CiAgICAgIC0gb250b2xvZ3kvZGlzdC8K",
+          "company_copy": {
+            "kind": "directory",
+            "mode": 448
+          },
+          "path": "gitlab",
+          "pinned_birth": null
+        },
+        {
+          "company_copy": {
+            "kind": "directory",
+            "mode": 448
+          },
+          "path": "gitlab/ci",
+          "pinned_birth": null
+        },
+        {
+          "company_copy": {
+            "base64": "c3RhZ2VzOgogIC0gdmFsaWRhdGUKCnJvY3M6dmVuZG9yZWQtY2hlY2s6CiAgc3RhZ2U6IHZhbGlkYXRlCiAgaW1hZ2U6IGdoY3IuaW8vYXN0cmFsLXNoL3V2OnB5dGhvbjMuMTEtYm9va3dvcm0tc2xpbQogIHJ1bGVzOgogICAgLSB3aGVuOiBhbHdheXMKICBhbGxvd19mYWlsdXJlOiB0cnVlCiAgc2NyaXB0OgogICAgLSB1dnggLW4gLS1mcm9tIC4vdG9vbHMvcm9jcy1jbGkgcm9jcyB2ZW5kb3JlZC1jaGVjayAtLXZlbmRvcmVkLWRpciAuL3Rvb2xzL3JvY3MtY2xpCgpyb2NzOnZhbGlkYXRlOgogIHN0YWdlOiB2YWxpZGF0ZQogIGltYWdlOiBnaGNyLmlvL2FzdHJhbC1zaC91djpweXRob24zLjExLWJvb2t3b3JtLXNsaW0KICBydWxlczoKICAgIC0gd2hlbjogYWx3YXlzCiAgYWxsb3dfZmFpbHVyZTogdHJ1ZQogIHNjcmlwdDoKICAgIC0gcHl0aG9uIC0tdmVyc2lvbgogICAgLSB1diAtLXZlcnNpb24KICAgIC0gdXZ4IC0tdmVyc2lvbgogICAgLSB1dnggLW4gLS1mcm9tIC4vdG9vbHMvcm9jcy1jbGkgcm9jcyB2ZXJzaW9uCiAgICAtIFJPQ1NfQ01EPSd1dnggLW4gLS1mcm9tIC4vdG9vbHMvcm9jcy1jbGkgcm9jcycgUk9DU19DSV9QUk9GSUxFPWJyYW5jaC1jaSBiYXNoIHNjcmlwdHMvY2kvZnVsbC5zaAogIGFydGlmYWN0czoKICAgIHdoZW46IGFsd2F5cwogICAgcGF0aHM6CiAgICAgIC0gb250b2xvZ3kvZGlzdC8K",
+            "kind": "file",
+            "mode": 420
+          },
           "path": "gitlab/ci/rocs.yml",
-          "pinned_birth_base64": null
+          "pinned_birth": null
         },
         {
-          "company_copy_base64": "cGFja2FnZSB3b3JraXRlbXMKCi8vIFdvcmstaXRlbXMgc2NoZW1hIGZvciBMMiAocHJvamVjdC1sZXZlbCkgcGxhbm5pbmcuCi8vIFNjb3BlOiBzaW5nbGUgcmVwb3NpdG9yeS4KLy8gT3BlcmF0aW9uYWwgc3RhdHVzOiBub24tb3BlcmF0aW9uYWwgKHBsYW5uaW5nIGFydGlmYWN0IG9ubHkpLgoKI1N0YXRlOiAidHJpYWdlIiB8ICJxdWV1ZWQiIHwgImRvaW5nIiB8ICJyZXZpZXciIHwgImRvbmUiCgojVGFzazogewoJdGV4dDogc3RyaW5nCglkb25lOiBib29sCn0KCiNJc3N1ZTogewoJaWQ6ICAgICAgICAgICAgc3RyaW5nCgl0aXRsZTogICAgICAgICBzdHJpbmcKCXN0YXRlOiAgICAgICAgICNTdGF0ZQoJdGFza3M6ICAgICAgICAgWy4uLiNUYXNrXQoJZG9kOiAgICAgICAgICAgc3RyaW5nCglsYWJlbHM/OiAgICAgICBbLi4uc3RyaW5nXQoJYXNzaWduZWU/OiAgICAgc3RyaW5nCgljb21wbGV0ZWRfYXQ/OiBzdHJpbmcgJiA9fiJeWzAtOV17NH0tWzAtOV17Mn0tWzAtOV17Mn0kIgoJbm90ZT86ICAgICAgICAgc3RyaW5nCn0KCiNNaWxlc3RvbmU6IHsKCWlkOiAgICAgc3RyaW5nICYgPX4iXk1bMC05XSskIgoJdGl0bGU6ICBzdHJpbmcKCWlzc3VlczogWy4uLiNJc3N1ZV0KfQoKc2NoZW1hX3ZlcnNpb246IDEKdXBkYXRlZF9hdDogICAgIHN0cmluZyAmID1+Il5bMC05XXs0fS1bMC05XXsyfS1bMC05XXsyfSQiCm93bmVyOiAgICAgICAgICBzdHJpbmcKcHJvamVjdF9uYW1lOiAgIHN0cmluZwptaWxlc3RvbmVzOiAgICAgWy4uLiNNaWxlc3RvbmVdCg==",
+          "company_copy": {
+            "base64": "cGFja2FnZSB3b3JraXRlbXMKCi8vIFdvcmstaXRlbXMgc2NoZW1hIGZvciBMMiAocHJvamVjdC1sZXZlbCkgcGxhbm5pbmcuCi8vIFNjb3BlOiBzaW5nbGUgcmVwb3NpdG9yeS4KLy8gT3BlcmF0aW9uYWwgc3RhdHVzOiBub24tb3BlcmF0aW9uYWwgKHBsYW5uaW5nIGFydGlmYWN0IG9ubHkpLgoKI1N0YXRlOiAidHJpYWdlIiB8ICJxdWV1ZWQiIHwgImRvaW5nIiB8ICJyZXZpZXciIHwgImRvbmUiCgojVGFzazogewoJdGV4dDogc3RyaW5nCglkb25lOiBib29sCn0KCiNJc3N1ZTogewoJaWQ6ICAgICAgICAgICAgc3RyaW5nCgl0aXRsZTogICAgICAgICBzdHJpbmcKCXN0YXRlOiAgICAgICAgICNTdGF0ZQoJdGFza3M6ICAgICAgICAgWy4uLiNUYXNrXQoJZG9kOiAgICAgICAgICAgc3RyaW5nCglsYWJlbHM/OiAgICAgICBbLi4uc3RyaW5nXQoJYXNzaWduZWU/OiAgICAgc3RyaW5nCgljb21wbGV0ZWRfYXQ/OiBzdHJpbmcgJiA9fiJeWzAtOV17NH0tWzAtOV17Mn0tWzAtOV17Mn0kIgoJbm90ZT86ICAgICAgICAgc3RyaW5nCn0KCiNNaWxlc3RvbmU6IHsKCWlkOiAgICAgc3RyaW5nICYgPX4iXk1bMC05XSskIgoJdGl0bGU6ICBzdHJpbmcKCWlzc3VlczogWy4uLiNJc3N1ZV0KfQoKc2NoZW1hX3ZlcnNpb246IDEKdXBkYXRlZF9hdDogICAgIHN0cmluZyAmID1+Il5bMC05XXs0fS1bMC05XXsyfS1bMC05XXsyfSQiCm93bmVyOiAgICAgICAgICBzdHJpbmcKcHJvamVjdF9uYW1lOiAgIHN0cmluZwptaWxlc3RvbmVzOiAgICAgWy4uLiNNaWxlc3RvbmVdCg==",
+            "kind": "file",
+            "mode": 420
+          },
           "path": "governance/work-items.cue",
-          "pinned_birth_base64": null
+          "pinned_birth": null
         },
         {
-          "company_copy_base64": "ewogICJzY2hlbWFfdmVyc2lvbiI6IDEsCiAgInVwZGF0ZWRfYXQiOiAiIiwKICAib3duZXIiOiAiQHByb2plY3Qtb3duZXJzIiwKICAicHJvamVjdF9uYW1lIjogImVxdWl2YWxlbmNlLXRlc3QiLAogICJtaWxlc3RvbmVzIjogWwogICAgewogICAgICAiaWQiOiAiTTEiLAogICAgICAidGl0bGUiOiAiSW5pdGlhbCBTZXR1cCIsCiAgICAgICJpc3N1ZXMiOiBbXQogICAgfQogIF0KfQo=",
+          "company_copy": {
+            "base64": "ewogICJzY2hlbWFfdmVyc2lvbiI6IDEsCiAgInVwZGF0ZWRfYXQiOiAiIiwKICAib3duZXIiOiAiQHByb2plY3Qtb3duZXJzIiwKICAicHJvamVjdF9uYW1lIjogImVxdWl2YWxlbmNlLXRlc3QiLAogICJtaWxlc3RvbmVzIjogWwogICAgewogICAgICAiaWQiOiAiTTEiLAogICAgICAidGl0bGUiOiAiSW5pdGlhbCBTZXR1cCIsCiAgICAgICJpc3N1ZXMiOiBbXQogICAgfQogIF0KfQo=",
+            "kind": "file",
+            "mode": 420
+          },
           "path": "governance/work-items.json",
-          "pinned_birth_base64": null
+          "pinned_birth": null
         }
       ],
       "equivalent_except_provenance": false
@@ -58,6 +90,7 @@
   },
   "company": "/home/tryinget/ai-society/holdingco",
   "company_answers_sha256": "ce98983ba0509ebefd2a55b9e6e4a3fb8bc6c76990dd34fcbd29f841ea5eb7b4",
+  "comparison": "all filesystem nodes including empty directories, kinds, symlink targets and permission modes; answer provenance keys only normalized",
   "l0_commit": "c14dc59ba50bb3b3e3561cff496acf321b350ee8",
   "limit": "isolated company copies have no original Git index; no other companies or existing-child migration proved",
   "provenance_only_answer_keys": [

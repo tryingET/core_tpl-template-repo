@@ -114,6 +114,16 @@ class SourceTests(unittest.TestCase):
                 self.prepare()
             self.assertFalse((self.scratch / "l0").exists())
 
+    def test_private_caller_umask_does_not_change_template_modes(self):
+        previous = os.umask(0o077)
+        try:
+            self.prepare()
+        finally:
+            os.umask(previous)
+        self.assertEqual((self.scratch / "l0/copier-template/copier/tpl-project-repo/copier.yml").stat().st_mode & 0o777, 0o644)
+        self.assertEqual((self.scratch / "render/copier/tpl-project-repo/copier.yml").stat().st_mode & 0o777, 0o644)
+        self.assertEqual(self.scratch.stat().st_mode & 0o777, 0o700)
+
     def test_git_company_metadata_has_private_mount_target(self):
         subprocess.run(["git", "-C", str(self.company), "init", "-q"], check=True)
         before = subprocess.check_output(["git", "-C", str(self.company), "status", "--porcelain"])

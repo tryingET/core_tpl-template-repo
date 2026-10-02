@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 import tempfile
 from pathlib import Path
@@ -17,7 +18,19 @@ PROVENANCE = {"_src_path", "_commit", "_template_lineage", "template_source_sha"
 
 
 def tree(root):
-    return {str(p.relative_to(root)): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+    entries = {}
+    for p in root.rglob("*"):
+        entry = {"mode": stat.S_IMODE(p.lstat().st_mode)}
+        if p.is_symlink():
+            entry.update(kind="symlink", target=os.readlink(p))
+        elif p.is_dir():
+            entry.update(kind="directory")
+        elif p.is_file():
+            entry.update(kind="file", base64=base64.b64encode(p.read_bytes()).decode())
+        else:
+            raise ValueError(f"unexpected birth node: {p}")
+        entries[str(p.relative_to(root))] = entry
+    return entries
 
 
 def run(argv, env):
@@ -31,12 +44,15 @@ def compare(old, new):
     deltas = []
     for path in sorted(left.keys() | right.keys()):
         a, b = left.get(path), right.get(path)
-        if path == ".copier-answers.yml" and a is not None and b is not None:
-            a = yaml.safe_dump({k: v for k, v in yaml.safe_load(a).items() if k not in PROVENANCE}).encode()
-            b = yaml.safe_dump({k: v for k, v in yaml.safe_load(b).items() if k not in PROVENANCE}).encode()
-        if a != b:
-            deltas.append({"path": path, "company_copy_base64": base64.b64encode(a).decode() if a is not None else None,
-                           "pinned_birth_base64": base64.b64encode(b).decode() if b is not None else None})
+        normalized = []
+        for entry in (a, b):
+            if path == ".copier-answers.yml" and entry is not None and entry["kind"] == "file":
+                data = yaml.safe_load(base64.b64decode(entry["base64"]))
+                entry = {**entry, "base64": base64.b64encode(yaml.safe_dump(
+                    {k: v for k, v in data.items() if k not in PROVENANCE}).encode()).decode()}
+            normalized.append(entry)
+        if normalized[0] != normalized[1]:
+            deltas.append({"path": path, "company_copy": a, "pinned_birth": b})
     return deltas
 
 
@@ -48,6 +64,7 @@ def main():
     parent_bytes = (opts.company / ".copier-answers.yml").read_bytes()
     parent = yaml.safe_load(parent_bytes)
     report = {"scope": "all five archetypes, copied holdingco configuration and actual on-disk catalog including ignored residue",
+              "comparison": "all filesystem nodes including empty directories, kinds, symlink targets and permission modes; answer provenance keys only normalized",
               "company": str(opts.company), "l0_commit": parent["l0_source_sha"],
               "company_answers_sha256": hashlib.sha256(parent_bytes).hexdigest(),
               "provenance_only_answer_keys": sorted(PROVENANCE),
