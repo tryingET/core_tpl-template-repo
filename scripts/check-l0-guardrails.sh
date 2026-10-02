@@ -727,7 +727,7 @@ assert_not_contains "copier-template/scripts/bootstrap-lane-root.sh" "sed -i" "L
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must pin Copier version" "L1 template CI must enforce copier pinning"
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/repo-surface.sh" "L1 template CI should require the shared repo-surface helper"
-assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
+assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must try pinned runtimes before refusing unpinned copier" "L1 template CI must enforce copier runtime precedence"
 for forbidden_policy_needle in \
 	'AK CLI: `ak <ak args...>`' \
 	'Organization docs profile' \
