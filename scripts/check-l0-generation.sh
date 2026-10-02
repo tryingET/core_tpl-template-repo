@@ -826,6 +826,9 @@ rm -rf "$l1_rocs/local"
 # counterpart from the repo root, and the hook's failure fails the entry script.
 l1_hooks="$tmp_root/l1-local-hooks"
 cp -R "$tmp_root/l1-template-sample" "$l1_hooks"
+# Full CI must inspect a real index before treating the .gitkeep skeleton as a skip.
+git -C "$l1_hooks" init -q
+git -C "$l1_hooks" add -- ontology/.gitkeep
 l1_hooks_real="$(cd "$l1_hooks" && pwd -P)"
 local_hook_log="$tmp_root/l1-local-hooks.log"
 write_local_hook() {
