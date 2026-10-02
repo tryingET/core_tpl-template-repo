@@ -277,9 +277,9 @@ class CompanyOntologyTests(unittest.TestCase):
     def test_old_readers_upgrade_through_a_receipted_preparatory_refresh(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
-            # These are the actual pre-AK6328 readers, not new readers with an old map.
+            # Actual pre-AK6328 readers from published main, not a private local ref.
             for rel in (CHECKER, "scripts/check-template-ci.sh"):
-                original = TRANSITIONS.git_bytes(ROOT, "show", f"8183693e57859afeb42b0bb8dbcfdd02ab94ba79:copier-template/{rel}")
+                original = TRANSITIONS.git_bytes(ROOT, "show", f"72828add2ec38e3a41aacd7fa0c6b4232a7595a3:copier-template/{rel}")
                 (h.repo / rel).write_bytes(original)
             (h.repo / "scripts/lib/l1_ontology_ownership.py").unlink()
             commit(h.repo, "pre-company reader generation", "scripts")
