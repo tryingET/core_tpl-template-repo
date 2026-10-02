@@ -3,6 +3,8 @@ set -eu
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$repo_root"
+# Scratch L1s have no enclosing workspace; bind births to this exact L0 source.
+export L0_TEMPLATE_ROOT="$repo_root"
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || {

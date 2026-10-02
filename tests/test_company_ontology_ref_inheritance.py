@@ -12,6 +12,7 @@ import unittest
 from pathlib import Path
 
 import yaml
+from tests.l2_birth_test_support import stub_l0, company_seal
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "copier-template"
@@ -56,15 +57,44 @@ class WrapperTests(unittest.TestCase):
             target = self.l1 / "copier" / name
             target.mkdir(parents=True)
             shutil.copy2(SOURCE / "copier" / name / "copier.yml", target)
+        self.l0, self.pin = stub_l0(self.root, SOURCE)
         self.answers = self.l1 / ".copier-answers.yml"
-        dump(self.answers, {KEY: INHERITED, "company_slug": "otherco"})
+        company_seal(self.l1, self.pin, "wrapper-test")
+        self.set_answers({KEY: INHERITED})
         self.dest = self.root / "child with spaces"
-        self.record = self.root / "argv.json"
+        self.record = self.dest / "argv.json"
         bin_dir = self.root / "bin"
         bin_dir.mkdir()
         uvx = bin_dir / "uvx"
-        uvx.write_text("#!/usr/bin/env python3\nimport json, os, sys\n"
-                       "open(os.environ['ARGV_RECORD'], 'w').write(json.dumps(sys.argv[1:]))\n")
+        # Transport double only: emit controlled completion answers, not a render.
+        uvx.write_text("""#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+import yaml
+
+adapter_args = sys.argv[1:]
+completion = Path(adapter_args[5])
+args = adapter_args[:2] + ['copier'] + adapter_args[6:]
+Path(os.environ['ARGV_RECORD']).write_text(json.dumps(args))
+answers = '.copier-answers.yml'
+options = iter(args[:-2])
+for arg in options:
+    if arg in ('-a', '--answers-file', '--data-file', '-d', '--data',
+               '-r', '--vcs-ref', '-s', '--skip', '-x', '--exclude'):
+        value = next(options)
+        if arg in ('-a', '--answers-file'):
+            answers = value
+    elif arg.startswith('--answers-file='):
+        answers = arg.split('=', 1)[1]
+    elif arg.startswith('-a'):
+        answers = arg[2:]
+path = Path(args[-1]) / answers
+child = yaml.safe_load(path.read_text()) if path.exists() else {}
+child.update(company_slug='otherco', _src_path=args[-2])
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(yaml.safe_dump(child))
+completion.write_text('non-pretend-copy-completed\\n')
+""")
         uvx.chmod(0o755)
         ak = bin_dir / "ak"
         ak.write_text(f"#!{sys.executable}\nimport json, sys\n"
@@ -72,13 +102,16 @@ class WrapperTests(unittest.TestCase):
                       "print(json.dumps({'id': 1, 'status': 'claimed', 'repo': 'synthetic'}))\n")
         ak.chmod(0o755)
         self.env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}",
-                        ARGV_RECORD=str(self.record), AK_CMD=str(ak),
+                        ARGV_RECORD=str(self.record), L2_BIRTH_ENV_INHERIT="ARGV_RECORD", AK_CMD=str(ak), L0_TEMPLATE_ROOT=str(self.l0),
                         PYTHONDONTWRITEBYTECODE="1", COPIER_ANSWERS_PYTHON=sys.executable, DISABLE_PROJECT_OWNER_HANDLE_INFERENCE="1")
+
+    def set_answers(self, values: dict) -> None:
+        dump(self.answers, {"company_slug": "otherco", "repo_slug": "wrapper-test", "l0_source_sha": self.pin, **values})
 
     def invoke(self, *args: str, archetype: str = ARCHETYPES[0], ok: bool = True) -> list:
         self.record.unlink(missing_ok=True)
         result = run("sh", str(self.l1 / "scripts/new-repo-from-copier.sh"),
-                     archetype, str(self.dest), *args, cwd=self.root, env=self.env)
+                     archetype, str(self.dest.relative_to(self.root)), *args, cwd=self.root, env=self.env)
         if ok:
             self.assertEqual(result.returncode, 0, result.stderr)
             return json.loads(self.record.read_text())
@@ -97,7 +130,7 @@ class WrapperTests(unittest.TestCase):
                 (STORED, "", STORED), ("", "", "fallback"),
             ):
                 with self.subTest(archetype=archetype, stored=stored, inherited=inherited):
-                    dump(self.answers, {"company_slug": "otherco", KEY: inherited})
+                    self.set_answers({"company_slug": "otherco", KEY: inherited})
                     dump(self.dest / ".copier-answers.yml", {} if stored is None else {KEY: stored})
                     if expected == "fallback":
                         config = yaml.safe_load((SOURCE / "copier" / archetype / "copier.yml").read_text())
@@ -123,17 +156,33 @@ class WrapperTests(unittest.TestCase):
         for option in (("-a", relative), ("--answers-file", relative),
                        (f"--answers-file={relative}",), (f"-a{relative}",)):
             with self.subTest(option=option):
-                self.assertEqual(self.defaults(self.invoke(*option)), [STORED])
+                args = self.invoke(*option)
+                self.assertEqual(self.defaults(args), [STORED])
+                self.assertEqual(args[-len(option)-2:-2], list(option))
+                self.assertEqual(args[-1], str(self.dest))
+                self.assertEqual(yaml.safe_load((self.dest / relative).read_text())[KEY], STORED)
         data = self.root / "explicit data.yml"
+        # Values that resemble data-file options must not be rewritten or loaded.
+        literal = ("--exclude", "--data-file=not-an-input.yml")
         for value in (EXPLICIT, ""):
             dump(data, {KEY: value})
-            for option in (("--data-file", str(data)), (f"--data-file={data}",)):
-                self.assertEqual(self.defaults(self.invoke(*option)), [])
+            for path in (str(data), data.name):
+                for option in (("--data-file", path), (f"--data-file={path}",)):
+                    with self.subTest(value=value, option=option):
+                        args = self.invoke(*literal, *option)
+                        self.assertEqual(self.defaults(args), [])
+                        expected = (["--data-file", str(data)] if len(option) == 2
+                                    else [f"--data-file={data}"])
+                        self.assertEqual(args[-len(option)-4:-2], [*literal, *expected])
+                        self.assertEqual(args[-1], str(self.dest))
 
     def test_shell_metacharacters_are_literal(self) -> None:
         literal = "<repo:Other/ontology@$(touch PWNED);`touch PWNED` & | > 'quoted' #>"
         for source in (self.answers, self.dest / ".copier-answers.yml"):
-            dump(source, {KEY: literal})
+            if source == self.answers:
+                self.set_answers({KEY: literal})
+            else:
+                dump(source, {KEY: literal})
             self.assertEqual(self.defaults(self.invoke()), [literal])
             self.assertFalse((self.root / "PWNED").exists())
 
@@ -149,11 +198,14 @@ class WrapperTests(unittest.TestCase):
             dump(data, {KEY: bad})
             self.invoke("--data-file", str(data), ok=False)
             for source in (self.answers, self.dest / ".copier-answers.yml"):
-                dump(self.answers, {KEY: INHERITED})
+                self.set_answers({KEY: INHERITED})
                 (self.dest / ".copier-answers.yml").unlink(missing_ok=True)
-                dump(source, {KEY: bad})
+                if source == self.answers:
+                    self.set_answers({KEY: bad})
+                else:
+                    dump(source, {KEY: bad})
                 self.invoke(ok=False)
-            dump(self.answers, {KEY: INHERITED})
+            self.set_answers({KEY: INHERITED})
             (self.dest / ".copier-answers.yml").unlink(missing_ok=True)
 
     def test_malformed_answers_and_options_fail_closed(self) -> None:
@@ -164,12 +216,12 @@ class WrapperTests(unittest.TestCase):
                     'company_ontology_ref: "nul\\0byte"\n'):
             for source in (self.answers, self.dest / ".copier-answers.yml"):
                 with self.subTest(bad=bad, source=source.name):
-                    dump(self.answers, {KEY: INHERITED})
+                    self.set_answers({KEY: INHERITED})
                     (self.dest / ".copier-answers.yml").unlink(missing_ok=True)
                     source.parent.mkdir(parents=True, exist_ok=True)
                     source.write_text(bad)
                     self.invoke(ok=False)
-        dump(self.answers, {KEY: INHERITED})
+        self.set_answers({KEY: INHERITED})
         (self.dest / ".copier-answers.yml").unlink(missing_ok=True)
         for args in (("-a",), ("--answers-file",), ("--answers-file=",),
                      ("-a", "--defaults"), ("--data-file", "missing.yml")):
@@ -177,8 +229,24 @@ class WrapperTests(unittest.TestCase):
 
     def test_unrelated_archetypes_do_not_inherit(self) -> None:
         for name in ("tpl-org-repo", "tpl-agent-repo"):
+            shutil.rmtree(self.dest, ignore_errors=True)
             args = ("-d", "creation_task_id=AK-1", "-d", "agent_role=test") if name == "tpl-agent-repo" else ()
             self.assertEqual(self.defaults(self.invoke(*args, archetype=name)), [])
+
+    def test_custom_sealed_parent_answers_supply_all_defaults(self) -> None:
+        custom = self.l1 / "parent answers.yml"
+        self.set_answers({KEY: INHERITED, "company_name": "Other Company", "enable_release_pack": True,
+                          "l2_org_docs_default": "rich"})
+        self.answers.rename(custom)
+        seal_path = self.l1 / "contracts/provenance-seal.yml"
+        seal = yaml.safe_load(seal_path.read_text())
+        seal["render"]["answers_file"] = custom.name
+        dump(seal_path, seal)
+        dump(self.answers, {"company_slug": "wrongco", KEY: EXPLICIT})
+        args = self.invoke()
+        self.assertEqual(self.defaults(args), [INHERITED])
+        for value in ("company_slug=otherco", "company_name=Other Company", "enable_release_pack=true", "org_docs_profile=rich"):
+            self.assertIn(value, args)
 
     def test_source_fixture_copies_and_budgets(self) -> None:
         for relative in ("scripts/new-repo-from-copier.sh", "scripts/lib/company-ontology-ref.sh"):
@@ -221,7 +289,7 @@ class RendererTests(unittest.TestCase):
                       "if sys.argv[1:] != ['task', 'show', '123']: raise SystemExit(97)\n"
                       "print(json.dumps({'id': 123, 'status': 'claimed', 'repo': 'synthetic'}))\n")
         ak.chmod(0o755)
-        self.env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", COPIER_VCS_REF="HEAD",
+        self.env = dict(os.environ, L0_TEMPLATE_ROOT=str(ROOT), PYTHONDONTWRITEBYTECODE="1", COPIER_VCS_REF="HEAD",
                         COPIER_ANSWERS_PYTHON=sys.executable, AK_CMD=str(ak),
                         PATH=f"{bin_dir}:{os.environ['PATH']}", DISABLE_PROJECT_OWNER_HANDLE_INFERENCE="1")
 
@@ -271,6 +339,20 @@ class RendererTests(unittest.TestCase):
                 self.render_child(name, dest, "-d", f"{KEY}={EXPLICIT}")
                 self.assert_choice(name, dest, EXPLICIT)
         self.assertFalse(any(self.root.rglob("PWNED")))
+
+    def test_real_completion_and_no_effect_operations(self) -> None:
+        self.render_l1()
+        dest = self.root / "no-effect-child"
+        for option in ("--help", "--version", "--pretend"):
+            self.render_child("tpl-project-repo", dest, option)
+            self.assertFalse(dest.exists(), option)
+        self.render_child("tpl-project-repo", dest)
+        data = yaml.safe_load((dest / ".copier-answers.yml").read_text())
+        self.assertEqual(set(data["_template_lineage"]), {"company", "template", "l0_commit"})
+        before = tree(dest)
+        for option in ("--help", "--version", "--pretend"):
+            self.render_child("tpl-project-repo", dest, option)
+            self.assertEqual(tree(dest), before, option)
 
     def test_empty_default_and_custom_destination_answers(self) -> None:
         self.render_l1()

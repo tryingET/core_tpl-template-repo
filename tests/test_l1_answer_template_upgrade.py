@@ -64,7 +64,7 @@ class UpgradeHarness(unittest.TestCase):
         ak.chmod(0o755)
         # Route all child Python/YAML reads to this pinned interpreter as well.
         (bin_dir / "python3").symlink_to(sys.executable)
-        cls.env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", AK_CMD=str(ak),
+        cls.env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", AK_CMD=str(ak), L0_TEMPLATE_ROOT=str(ROOT),
                        PYTHONDONTWRITEBYTECODE="1", COPIER_ANSWERS_PYTHON=sys.executable,
                        DISABLE_PROJECT_OWNER_HANDLE_INFERENCE="1", COPIER_VCS_REF="HEAD")
         cls.base = cls.root / "base"
