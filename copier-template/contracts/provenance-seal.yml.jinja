@@ -15,5 +15,5 @@ template:
 render:
   repo_slug: "{{ repo_slug }}"
   layer: L1
-  answers_file: ".copier-answers.yml"
+  answers_file: {{ _copier_conf.answers_file | tojson }}
   content_hash_sha256: "__RENDER_HASH__"
