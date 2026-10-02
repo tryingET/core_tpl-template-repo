@@ -312,6 +312,20 @@ def validate_established_provenance(
         birth_answers = git_output(repo, "show", f"{additions[0]}:.copier-answers.yml")
         if "_ownership_state: established_at_birth" not in birth_answers.splitlines():
             raise ValueError("copier-birth root commit lacks its ownership marker")
+        from l1_template_company import map_sections
+        birth_map = git_output(repo, "show", f"{additions[0]}:{MAP_PATH}").encode()
+        birth_state = json.loads(git_output(repo, "show", f"{additions[0]}:{STATE_PATH}"))
+        birth_keys = {"schema", "kind", "state", "origin", "ownership_map_sha256"}
+        if set(state) != birth_keys or set(birth_state) != birth_keys or (
+            any(birth_state.get(key) != state.get(key) for key in birth_keys - {"ownership_map_sha256"})
+            or birth_state["ownership_map_sha256"] != hashlib.sha256(birth_map).hexdigest()
+            or map_sections(birth_map).get("company", []) != map_sections(map_raw).get("company", [])
+        ):
+            raise ValueError("copier-birth authority does not bind root ownership; explicit transition required")
+        for commit in git_output(repo, "log", "--full-history", "--format=%H", "--", STATE_PATH.as_posix()).splitlines():
+            historic = json.loads(git_output(repo, "show", f"{commit}:{STATE_PATH}"))
+            if historic.get("schema") in {"ai-society.template-ownership-state/2", STATE_SCHEMA_V3}:
+                raise ValueError("copier-birth ownership cannot discard a receipted transition")
         return
     if origin != "contract-refresh":
         raise ValueError("established ownership state has invalid origin")

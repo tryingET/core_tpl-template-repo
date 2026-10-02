@@ -384,6 +384,24 @@ class CompanyOntologyTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "origin|predecessor state"):
                         COMPANY.source_binding(h.repo, forged, (h.repo / STATE).read_bytes(), h.ak)
 
+    def test_v1_birth_relabel_cannot_erase_an_executed_ownership_transition(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
+            h = CompanyHarness(Path(name))
+            birth = json.loads(TRANSITIONS.git_bytes(h.repo, "show", f"{h.base}:{STATE}"))
+            birth_map = TRANSITIONS.git_bytes(h.repo, "show", f"{h.base}:{MAP}")
+            h.finish(h.plan())
+            company_map = (h.repo / MAP).read_bytes()
+            for raw in (company_map, birth_map):
+                forged = dict(birth, ownership_map_sha256=sha(raw))
+                (h.repo / MAP).write_bytes(raw)
+                (h.repo / STATE).write_text(json.dumps(forged, indent=2, sort_keys=True) + "\n")
+                commit(h.repo, "forged lifecycle relabel (negative fixture only)", MAP, STATE)
+                with self.assertRaisesRegex(ValueError, "root ownership|discard a receipted transition"):
+                    RECEIPTS.validate_established_provenance(h.repo, forged, ak_command=h.ak)
+                from l1_answer_template_upgrade import prepare_wrapper
+                with self.assertRaisesRegex(ValueError, "root ownership|discard a receipted transition"):
+                    prepare_wrapper(h.repo, ROOT / "copier-template")
+
     def test_planning_outputs_cannot_mutate_a_target_or_its_shared_git_metadata(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
