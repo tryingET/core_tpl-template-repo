@@ -144,7 +144,17 @@ def prepare_wrapper(repo: Path, source: Path) -> dict:
     ) or exists(repo / ADOPTION_PATH):
         raise ValueError("copy wrapper requires copier-birth v1 state; use owner refresh/transition (v2 unsupported)")
     validate_established_provenance(repo, state, allow_uncommitted_birth_plan=not old_present)
-    entries = plan(repo, source, load_map(repo), load_map(source), owner, source=True)
+    current_map, incoming_map = load_map(repo), load_map(source)
+    if current_map.get("company", []) != incoming_map.get("company", []):
+        raise ValueError("copy wrapper cannot change company ontology ownership; use receipted owner refresh/transition")
+    if set(current_map["agent"]) - set(incoming_map["agent"]):
+        raise ValueError("copy wrapper cannot drop company-owned claims; use receipted owner transition")
+    if current_map.get("company"):
+        from l1_template_company import placeholder_files
+        # Only a pristine seed-only birth can be copied idempotently. A missing,
+        # customized seed or company vocabulary must take the owner refresh path.
+        placeholder_files(repo)
+    entries = plan(repo, source, current_map, incoming_map, owner, source=True)
     if entries:
         ensure_clean_git_target(repo)
     return entries
@@ -238,6 +248,14 @@ def run_copy_cli(completion: Path, arguments: list[str]) -> None:
     completed = False
 
     class ObservedWorker(original):
+        def _render_template(self) -> None:
+            from l1_template_ownership import load_map
+            target = self.subproject.local_abspath
+            if (target / MAP_PATH).is_file() and load_map(target).get("company"):
+                if self.answers.combined.get("l1_ontology_layout") != "tree":
+                    raise ValueError("copy wrapper cannot change company ontology topology; use receipted transition")
+            super()._render_template()
+
         def run_copy(self) -> None:
             nonlocal completed
             super().run_copy()
@@ -262,14 +280,17 @@ def main() -> int:
             sys.stdout.write(company_answer(Path(args[0])))
         elif action == "count":
             print(len(json.loads(Path(args[0]).read_text())["entries"]))
+        elif action == "adapter-needed":
+            payload = json.loads(Path(args[0]).read_text())
+            print(1 if payload["entries"] or payload.get("guarded_copy") else 0)
         elif action == "copy":
             run_copy_cli(Path(args[0]), args[1:])
         elif action == "prepare":
             repo, source, output = map(Path, args[:3])
             copy_pretend(args[3:])  # Syntax guard only; not proof that rendering ran.
             entries = prepare_wrapper(repo, source)
-            if entries:
-                # The incoming source map/filenames must be the selected revision.
+            if entries or (repo / STATE_PATH).is_file():
+                # Existing ownership must use the exact source inspected by preflight.
                 head = git_run(source.parent, "rev-parse", "HEAD").stdout.strip()
                 options = iter(args[3:])
                 for arg in options:
@@ -283,12 +304,13 @@ def main() -> int:
                     elif arg in ("-a", "--answers-file", "-d", "--data", "--data-file", "-s", "--skip", "-x", "--exclude"):
                         next(options, "")
                     if ref is not None and ref not in ("HEAD", head):
-                        raise ValueError("obsolete-template copy upgrade requires current L0 HEAD")
+                        raise ValueError("existing ownership copy upgrade requires current L0 HEAD")
             control = {}
             if entries:
                 control = {str(p): hashlib.sha256((repo / p).read_bytes()).hexdigest()
                            for p in (MAP_PATH, STATE_PATH)}
             payload = {"entries": entries, "control": control,
+                       "guarded_copy": (repo / STATE_PATH).is_file(),
                        "incoming_map": hashlib.sha256((source / MAP_PATH).read_bytes()).hexdigest()}
             output.write_text(json.dumps(payload, sort_keys=True))
         elif action in ("check", "retire"):

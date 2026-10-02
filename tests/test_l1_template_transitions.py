@@ -38,6 +38,21 @@ def git(repo: Path, *args: str) -> str:
     return run("git", *args, cwd=repo).stdout.strip()
 
 
+def template_tree(repo: Path, legacy_schema: bool = False) -> None:
+    """Keep pre-company ownership fixtures explicit after the birth contract advances."""
+    path = repo / "contracts/template-ownership.yml"
+    raw = path.read_text().replace("company_owned:\n  - ontology/**\n", "company_owned:\n")
+    if "  - ontology/**\n" not in raw:
+        raw = raw.replace("template_owned:\n", "template_owned:\n  - ontology/**\n")
+    if legacy_schema:
+        raw = raw.replace("schema: ai-society.template-ownership/2", "schema: ai-society.template-ownership/1").replace("company_owned:\n", "")
+    path.write_text(raw)
+    state_path = repo / "contracts/template-ownership-state.json"
+    state = json.loads(state_path.read_text())
+    state["ownership_map_sha256"] = sha(raw.encode())
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+
 def init(repo: Path) -> None:
     run("git", "init", "--quiet", cwd=repo)
     run("git", "config", "user.name", "transition test", cwd=repo)
@@ -49,7 +64,7 @@ def init(repo: Path) -> None:
 
 
 class Harness:
-    def __init__(self, parent: Path):
+    def __init__(self, parent: Path, legacy_schema: bool = False):
         self.parent = parent
         self.source = parent / "ontology-source"
         self.source.mkdir()
@@ -58,6 +73,7 @@ class Harness:
         self.gitlink_oid = git(self.source, "rev-parse", "HEAD")
         self.repo = parent / "canonical"
         shutil.copytree(FIXTURE, self.repo)
+        template_tree(self.repo, legacy_schema)
         adr = self.repo / "docs/decisions/ownership.md"
         adr.parent.mkdir(parents=True, exist_ok=True)
         adr.write_text("# Accepted ownership transition\n", encoding="utf-8")

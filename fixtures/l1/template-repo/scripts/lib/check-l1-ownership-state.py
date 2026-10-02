@@ -11,6 +11,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from l1_ontology_ownership import map_sections, structural_transfer  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 MAP = ROOT / "contracts/template-ownership.yml"
 STATE = ROOT / "contracts/template-ownership-state.json"
@@ -75,17 +78,6 @@ def git(*args: str) -> str:
     return probe.stdout
 
 
-def map_sections(raw: bytes) -> dict[str, list[str]]:
-    sections = {"template_owned": [], "agent_owned": []}
-    active = None
-    for line in raw.decode("utf-8").splitlines():
-        if line in ("template_owned:", "agent_owned:"):
-            active = line[:-1]
-        elif active and line.startswith("  - "):
-            sections[active].append(line[4:].strip())
-    return sections
-
-
 def matches(path: str, pattern: str) -> bool:
     return path == pattern[:-3] or path.startswith(pattern[:-3] + "/") if pattern.endswith("/**") else path == pattern
 
@@ -116,8 +108,8 @@ def validate_v2(state: dict[str, object], state_raw: bytes, map_hash: str) -> No
     if hashlib.sha256(old_map).hexdigest() != state.get("predecessor_map_sha256") or hashlib.sha256(old_state).hexdigest() != state.get("predecessor_state_sha256"):
         raise ValueError("v2 ownership state does not bind predecessor bytes")
     old, new = map_sections(old_map), map_sections(MAP.read_bytes())
-    for agent_pattern in old["agent_owned"]:
-        if any(matches(agent_pattern.removesuffix("/**"), pattern) or matches(pattern.removesuffix("/**"), agent_pattern) for pattern in new["template_owned"]):
+    for agent_pattern in old["agent"]:
+        if any(matches(agent_pattern.removesuffix("/**"), pattern) or matches(pattern.removesuffix("/**"), agent_pattern) for pattern in new["template"]):
             raise ValueError("ordinary successor validation refuses agent-to-template ownership adoption")
     applied = git("rev-parse", "HEAD").strip() if lifecycle == "ownership_transition_pending_receipt" else state.get("applied_commit")
     if not isinstance(applied, str) or HEX40.fullmatch(applied) is None:
@@ -133,6 +125,7 @@ def validate_v2(state: dict[str, object], state_raw: bytes, map_hash: str) -> No
         raise ValueError("applied ownership state is invalid JSON") from exc
     if set(applied_state) != V2_PENDING_KEYS or applied_state.get("state") != "ownership_transition_pending_receipt" or any(applied_state.get(key) != state.get(key) for key in V2_PENDING_KEYS - {"state"}) or hashlib.sha256(applied_map).hexdigest() != map_hash:
         raise ValueError("applied commit does not preserve exact pending v2 bindings")
+    structural_transfer(git, old_map, applied_map, predecessor, applied)
     if lifecycle == "ownership_transition_pending_receipt":
         if applied_state_raw != state_raw:
             raise ValueError("live pending ownership state differs from applied commit")
@@ -180,11 +173,19 @@ def validate_inherited(binding: object) -> None:
         or any(old.get(key) != binding[key] for key in INHERITED_KEYS - {"final_commit", "state_sha256"})
     ):
         raise ValueError("v3 inherited transition does not bind its established v2 state bytes")
+    source_map = git("show", f"{final}:contracts/template-ownership.yml").encode()
+    base = old["predecessor_commit"]
+    predecessor_map = git("show", f"{base}:contracts/template-ownership.yml").encode()
+    predecessor_state = git("show", f"{base}:contracts/template-ownership-state.json").encode()
+    if hashlib.sha256(predecessor_map).hexdigest() != old["predecessor_map_sha256"] or hashlib.sha256(predecessor_state).hexdigest() != old["predecessor_state_sha256"] or hashlib.sha256(source_map).hexdigest() != old["ownership_map_sha256"]:
+        raise ValueError("v3 inherited transition predecessor/map hashes drift")
+    structural_transfer(git, predecessor_map, source_map, base, old["applied_commit"])
 
 
 def validate() -> None:
     try:
         map_hash = hashlib.sha256(MAP.read_bytes()).hexdigest()
+        map_sections(MAP.read_bytes())
     except OSError as exc:
         raise ValueError("unable to read template ownership map") from exc
     state, state_raw = read_json(STATE, "ownership state")

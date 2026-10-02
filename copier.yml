@@ -32,7 +32,7 @@ l1_ontology_layout:
   choices:
     - tree
     - gitlink
-  help: "L1 ontology layout: tree (template-owned in-tree ontology/) or gitlink (company-owned ontology submodule adopted by a receipted ownership transition)."
+  help: "L1 ontology layout: tree (company-owned ontology/**; L0 seeds only .gitkeep) or gitlink (company-owned ontology submodule adopted by a receipted ownership transition)."
 
 repo_slug:
   type: str
@@ -93,6 +93,7 @@ _tasks:
     {% else %}
     true
     {% endif %}
+  - "python3 -I -S -B scripts/lib/l1_ontology_ownership.py --bind-birth-map"
   - |
     if [ -f contracts/provenance-seal.yml ]; then
       if command -v sha256sum >/dev/null 2>&1; then
