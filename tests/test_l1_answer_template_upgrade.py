@@ -78,6 +78,15 @@ class UpgradeHarness(unittest.TestCase):
             path = f"copier/{old}/{upgrade.OLD}"
             upgrade.record(cls.base, path, upgrade.APPROVED[old])
         cls.checked("git", "init", "--quiet", cwd=cls.base)
+        # Answer-source upgrades are independent of ontology authority. Start the
+        # synthetic base at company-owned birth; legacy authority adoption has its
+        # own real preparation/transition proof in test_l1_template_company_ownership.
+        mapping_path = cls.base / "contracts/template-ownership.yml"
+        mapping = mapping_path.read_text().replace("schema: ai-society.template-ownership/1", "schema: ai-society.template-ownership/2").replace("  - ontology/**\n", "") + "company_owned:\n  - ontology/**\n"
+        mapping_path.write_text(mapping)
+        state = json.loads((cls.base / STATE).read_text())
+        state["ownership_map_sha256"] = hashlib.sha256(mapping.encode()).hexdigest()
+        (cls.base / STATE).write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
         cls.checked("git", "config", "user.name", "upgrade test", cwd=cls.base)
         cls.checked("git", "config", "user.email", "test@example.invalid", cwd=cls.base)
         cls.checked("git", "config", "gc.auto", "0", cwd=cls.base)

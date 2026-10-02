@@ -59,10 +59,10 @@ run_copier() {
 		pythonwarnings="$pythonwarnings,${PYTHONWARNINGS}"
 	fi
 
-	# Only retirement needs the private, version-locked adapter. Ordinary copies
-	# retain the existing COPIER_VERSION override and unpinned fallback behavior.
+	# Existing ownership and retirement need the version-locked pre-write adapter.
+	# Fresh births retain COPIER_VERSION overrides and the unpinned fallback.
 	if command -v uvx >/dev/null 2>&1; then
-		if [ "$upgrade_count" -eq 0 ]; then
+		if [ "$guarded_copy_needed" -eq 0 ]; then
 			if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
 				return
 			fi
@@ -73,7 +73,7 @@ run_copier() {
 		exit 2
 	fi
 	if command -v uv >/dev/null 2>&1; then
-		if [ "$upgrade_count" -eq 0 ]; then
+		if [ "$guarded_copy_needed" -eq 0 ]; then
 			if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
 				return
 			fi
@@ -85,8 +85,8 @@ run_copier() {
 	fi
 	if command -v copier >/dev/null 2>&1; then
 		echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2
-		if [ "$upgrade_count" -gt 0 ]; then
-			fail "obsolete-template upgrade requires the pinned Copier completion adapter (uvx/uv)"
+		if [ "$guarded_copy_needed" -gt 0 ]; then
+			fail "existing ownership/obsolete-template upgrade requires the pinned Copier completion adapter (uvx/uv)"
 		fi
 		PYTHONWARNINGS="$pythonwarnings" copier "$@"
 		return
@@ -261,6 +261,7 @@ copy_completion="$(mktemp)"
 upgrade_python prepare "$dest_dir" "$repo_root/copier-template" "$upgrade_plan" "$@"
 upgrade_python check "$dest_dir" "$upgrade_plan"
 upgrade_count="$(upgrade_python count "$upgrade_plan")"
+guarded_copy_needed="$(upgrade_python adapter-needed "$upgrade_plan")"
 run_copier copy --trust -d l0_source_sha="$l0_sha" "$@" "$repo_root" "$dest_dir"
 # Exit zero also means help/version/completions; only the runtime can attest copy.
 if [ ! -s "$copy_completion" ]; then

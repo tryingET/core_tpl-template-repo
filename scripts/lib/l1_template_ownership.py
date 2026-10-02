@@ -53,83 +53,11 @@ def files(root: Path) -> set[str]:
     return found
 
 
-def matches(path: str, pattern: str) -> bool:
-    if pattern.endswith("/**"):
-        prefix = pattern[:-3]
-        return path == prefix or path.startswith(prefix + "/")
-    return path == pattern
-
-
-def pattern_kind(pattern: str) -> tuple[str, str]:
-    if not pattern or pattern.startswith("/") or pattern.endswith("/"):
-        raise ValueError(f"invalid ownership pattern: {pattern!r}")
-    if ".." in Path(pattern).parts:
-        raise ValueError(f"ownership pattern may not traverse: {pattern}")
-    if "/**" in pattern and not pattern.endswith("/**"):
-        raise ValueError(f"ownership subtree wildcard must be a suffix: {pattern}")
-    if pattern == "**" or "*" in pattern.removesuffix("/**"):
-        raise ValueError(f"unsupported ownership wildcard: {pattern}")
-    if pattern.endswith("/**"):
-        prefix = pattern[:-3]
-        if not prefix:
-            raise ValueError("ownership subtree pattern requires a directory")
-        return "subtree", prefix
-    return "exact", pattern
-
-
-def patterns_overlap(left: str, right: str) -> bool:
-    left_kind, left_value = pattern_kind(left)
-    right_kind, right_value = pattern_kind(right)
-    if left_kind == right_kind == "exact":
-        return left_value == right_value
-    if left_kind == right_kind == "subtree":
-        return (
-            left_value == right_value
-            or left_value.startswith(right_value + "/")
-            or right_value.startswith(left_value + "/")
-        )
-    if left_kind == "subtree":
-        return right_value == left_value or right_value.startswith(left_value + "/")
-    return left_value == right_value or left_value.startswith(right_value + "/")
+from l1_template_company import map_sections, matches, pattern_kind, patterns_overlap  # noqa: E402
 
 
 def load_map(root: Path) -> dict[str, list[str]]:
-    path = root / MAP_PATH
-    schema = ""
-    sections: dict[str, list[str]] = {"template_owned": [], "agent_owned": []}
-    active: str | None = None
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if raw == line and line.startswith("schema:"):
-            schema = line.split(":", 1)[1].strip()
-            active = None
-            continue
-        if raw == line and line.endswith(":") and line[:-1] in sections:
-            active = line[:-1]
-            continue
-        if active and raw.startswith("  - "):
-            pattern = raw[4:].strip()
-            pattern_kind(pattern)
-            sections[active].append(pattern)
-            continue
-        raise ValueError(f"unsupported ownership syntax at {MAP_PATH}:{number}")
-
-    if schema != SCHEMA:
-        raise ValueError(f"ownership schema must be exactly {SCHEMA}")
-    if not sections["template_owned"] or not sections["agent_owned"]:
-        raise ValueError("ownership map requires non-empty template_owned and agent_owned lists")
-    for section, patterns in sections.items():
-        if len(patterns) != len(set(patterns)):
-            raise ValueError(f"duplicate ownership pattern in {section}")
-    for template_pattern in sections["template_owned"]:
-        for agent_pattern in sections["agent_owned"]:
-            if patterns_overlap(template_pattern, agent_pattern):
-                raise ValueError(
-                    f"ambiguous ownership patterns: {template_pattern} and {agent_pattern}"
-                )
-    return {"template": sections["template_owned"], "agent": sections["agent_owned"]}
+    return map_sections((root / MAP_PATH).read_bytes())
 
 
 def owner(path: str, mapping: dict[str, list[str]]) -> str | None:
@@ -318,6 +246,12 @@ def refresh(
 
     current_map = load_map(repo)
     next_map = load_map(rendered)
+    # A change of ontology authority is never an ordinary refresh, even at adoption.
+    if current_map.get("company", []) != next_map.get("company", []):
+        raise ValueError("company ontology ownership change requires a receipted ownership transition")
+    dropped = sorted(set(current_map["agent"]) - set(next_map["agent"]))
+    if dropped:
+        raise ValueError(f"ordinary refresh refuses dropping company-owned patterns: {', '.join(dropped)}")
     inherited = None
     if state_name == "established" and (is_v2 or is_v3):
         # A refresh over a receipted v2 transition writes a v3 state that carries the
@@ -327,12 +261,6 @@ def refresh(
 
         inherited = carry_forward_transition(repo, state) if is_v2 else state[INHERITED_FIELD]
         validate_inherited_transition(repo, inherited)
-        dropped = sorted(set(current_map["agent"]) - set(next_map["agent"]))
-        if apply and dropped:
-            raise ValueError(
-                "ordinary contract refresh cannot carry established v2 transition provenance "
-                f"while dropping company-owned patterns: {', '.join(dropped)}"
-            )
     rendered_files = files(rendered)
 
     for path in sorted(rendered_files):
@@ -340,6 +268,10 @@ def refresh(
             raise ValueError(f"rendered template symlinks are unsupported: {path}")
         if owner(path, next_map) is None:
             raise ValueError(f"unclassified rendered path: {path}; update {MAP_PATH}")
+        if owner(path, next_map) == "company" and (
+            path != "ontology/.gitkeep" or (rendered / path).read_bytes() != b""
+        ):
+            raise ValueError("L0 may render only the empty company ontology birth placeholder")
     # An uncommitted copier-birth preview has no index: no gitlinks, nothing to retire.
     index = gitlinks.index_entries(repo) if gitlinks.is_repository(repo) or apply else None
     owner_gitlinks = gitlinks.check(
@@ -388,7 +320,7 @@ def refresh(
     for path in sorted(rendered_files):
         next_owner = owner(path, next_map)
         destination = repo / path
-        if next_owner == "agent":
+        if next_owner in {"agent", "company"}:
             preserved += 1
             continue
         if path == STATE_PATH.as_posix():
@@ -472,7 +404,7 @@ def main() -> int:
     parser.add_argument("--source-l0-commit")
     parser.add_argument("--finalize-task")
     parser.add_argument("--plan-artifact", type=Path)
-    parser.add_argument("--transition-action", choices=("plan", "apply", "finalize"))
+    parser.add_argument("--transition-action", choices=("prepare-render", "plan", "reverse-plan", "apply", "finalize"))
     parser.add_argument("--transition-spec", type=Path)
     parser.add_argument("--transition-output", type=Path)
     args = parser.parse_args()
@@ -481,6 +413,17 @@ def main() -> int:
         if args.transition_action:
             from l1_template_transitions import apply as transition_apply
             from l1_template_transitions import create_plan, finalize as transition_finalize
+            from l1_template_company import prepare_render, reverse_plan
+
+            if args.transition_action == "prepare-render":
+                if args.rendered is None or args.transition_output is None or args.apply:
+                    raise ValueError("prepare render requires --rendered and --transition-output, without --apply")
+                return prepare_render(repo, args.rendered.resolve(), args.transition_output.resolve())
+
+            if args.transition_action == "reverse-plan":
+                if args.transition_spec is None or args.transition_output is None:
+                    raise ValueError("reverse plan requires --transition-spec and --transition-output")
+                return reverse_plan(repo, args.transition_spec.resolve(), args.transition_output.resolve())
 
             if args.transition_action == "plan":
                 if args.transition_spec is None or args.transition_output is None:

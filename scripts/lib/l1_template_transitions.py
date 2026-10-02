@@ -4,13 +4,11 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import pwd
 import re
 import subprocess
-import tempfile
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +17,8 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from l1_template_ownership import load_map  # noqa: E402
 from l1_template_transition_delta import validate_git_delta, validate_rel  # noqa: E402
+import l1_template_company as company  # noqa: E402
+from l1_template_company import parse_map_bytes, plan_path_parent  # noqa: E402
 from l1_template_receipts import (  # noqa: E402
     MAP_PATH,
     STATE_PATH,
@@ -34,19 +34,16 @@ from l1_template_receipts import (  # noqa: E402
     validate_established_provenance,
     write_atomic,
 )
-PLAN_SCHEMA = "ai-society.template-ownership-transition-plan/1"
+# Legacy ai-society.template-ownership-transition-plan/1 remains supported.
+from l1_template_transition_plan import (  # noqa: E402
+    PLAN_SCHEMA, EXECUTOR_RE, HEX40, HEX64, REQUIRED_VALIDATION,
+    canonical_bytes, digest_bytes, semantic_delta, plan_hash, validate_plan,
+)
 STATE_SCHEMA_V2 = "ai-society.template-ownership-state/2"
 STATE_KIND = "l1_ownership_transition_state"
 PENDING_STATE = "ownership_transition_pending_receipt"
 EVIDENCE_TYPE = "l1_ownership_transition_v1"
-EXECUTOR_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{2,127}\Z")
-HEX40 = re.compile(r"[0-9a-f]{40}\Z")
-HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 AK_INSTANT = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})\Z")
-REQUIRED_VALIDATION = [
-    {"id": "check-template-ci", "command": "bash scripts/check-template-ci.sh"},
-    {"id": "ci-full", "command": "bash scripts/ci/full.sh"},
-]
 PENDING_KEYS = {
     "schema", "kind", "state", "decision_id", "transition_task_id", "executor",
     "predecessor_commit", "predecessor_state_sha256", "predecessor_map_sha256",
@@ -60,10 +57,6 @@ INHERITED_KEYS = {
 }
 
 
-def canonical_bytes(value: object) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode()
-def digest_bytes(value: bytes) -> str:
-    return hashlib.sha256(value).hexdigest()
 def load_object(path: Path, label: str) -> dict[str, Any]:
     if not path.is_file() or path.is_symlink():
         raise ValueError(f"{label} must be a regular file")
@@ -193,67 +186,7 @@ def verify_authority(
     if git_run(repo, "cat-file", "-e", f"{adr_commit}:{decision['adr_ref']}").returncode != 0:
         raise ValueError("accepted ADR path is absent from the bound ADR commit")
     return task, packet
-def parse_map_bytes(raw: bytes, parent: Path) -> dict[str, list[str]]:
-    with tempfile.TemporaryDirectory(prefix="l1-transition-map-", dir=parent) as name:
-        root = Path(name)
-        target = root / MAP_PATH
-        target.parent.mkdir(parents=True)
-        target.write_bytes(raw)
-        return load_map(root)
 
-def semantic_delta(old: dict[str, list[str]], new: dict[str, list[str]]) -> dict[str, list[str]]:
-    result = {
-        "template_added": sorted(set(new["template"]) - set(old["template"])),
-        "template_removed": sorted(set(old["template"]) - set(new["template"])),
-        "agent_added": sorted(set(new["agent"]) - set(old["agent"])),
-        "agent_removed": sorted(set(old["agent"]) - set(new["agent"])),
-    }
-    if not any(result.values()):
-        raise ValueError("successor ownership map must change ownership semantics")
-    return result
-def plan_hash(plan: dict[str, Any]) -> str:
-    body = dict(plan)
-    body.pop("canonical_plan_sha256", None)
-    return digest_bytes(canonical_bytes(body))
-def validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
-    required = {
-        "schema", "target_repo", "decision_id", "adr_commit", "transition_task_id",
-        "executor", "base_commit", "predecessor_state_sha256", "predecessor_map_sha256",
-        "next_map_sha256", "next_map_text", "map_delta", "git_delta", "validation",
-        "rollback", "canonical_plan_sha256",
-    }
-    if set(plan) != required or plan.get("schema") != PLAN_SCHEMA:
-        raise ValueError("transition plan has wrong schema or keys")
-    target = plan.get("target_repo")
-    if not isinstance(target, str) or not Path(target).is_absolute() or str(Path(target).resolve()) != target:
-        raise ValueError("target_repo must be a canonical absolute path")
-    if any(type(plan.get(key)) is not int or plan[key] < 1 for key in ("decision_id", "transition_task_id")):
-        raise ValueError("decision_id and transition_task_id must be positive integers")
-    if not isinstance(plan.get("executor"), str) or not EXECUTOR_RE.fullmatch(plan["executor"]):
-        raise ValueError("invalid fixed executor")
-    for key in ("base_commit", "adr_commit"):
-        if not isinstance(plan.get(key), str) or not HEX40.fullmatch(plan[key]):
-            raise ValueError(f"{key} must be full lowercase 40-hex")
-    for key in ("predecessor_state_sha256", "predecessor_map_sha256", "next_map_sha256", "canonical_plan_sha256"):
-        if not isinstance(plan.get(key), str) or not HEX64.fullmatch(plan[key]):
-            raise ValueError(f"{key} must be lowercase sha256")
-    if not isinstance(plan.get("next_map_text"), str) or digest_bytes(plan["next_map_text"].encode()) != plan["next_map_sha256"]:
-        raise ValueError("next_map_text digest mismatch")
-    plan["git_delta"] = validate_git_delta(plan["git_delta"])
-    delta = plan.get("map_delta")
-    delta_keys = {"template_added", "template_removed", "agent_added", "agent_removed"}
-    if not isinstance(delta, dict) or set(delta) != delta_keys or any(
-        not isinstance(value, list) or value != sorted(set(value))
-        or any(not isinstance(item, str) for item in value) for value in delta.values()
-    ) or not any(delta.values()):
-        raise ValueError("map_delta must use exact non-empty canonical semantic lists")
-    if plan.get("validation") != REQUIRED_VALIDATION:
-        raise ValueError("validation must contain the exact required L1 gate commands")
-    if not isinstance(plan.get("rollback"), str) or not plan["rollback"].strip():
-        raise ValueError("rollback must be non-empty")
-    if plan_hash(plan) != plan["canonical_plan_sha256"]:
-        raise ValueError("canonical transition plan hash mismatch")
-    return plan
 def create_plan(repo: Path, spec_path: Path, output: Path, ak_command: Path | None = None) -> int:
     ensure_clean_git_target(repo)
     spec = load_object(spec_path, "transition spec")
@@ -282,9 +215,10 @@ def create_plan(repo: Path, spec_path: Path, output: Path, ak_command: Path | No
         "base_commit": git_head(repo), "predecessor_state_sha256": digest_bytes(state_raw),
         "predecessor_map_sha256": digest_bytes((repo / MAP_PATH).read_bytes()),
         "next_map_sha256": digest_bytes(next_raw), "next_map_text": next_raw.decode("utf-8"),
-        "map_delta": delta, "git_delta": validate_git_delta(spec["git_delta"]),
+        "map_delta": delta, "git_delta": validate_git_delta(spec["git_delta"], allow_empty=True),
         "validation": spec["validation"], "rollback": spec["rollback"],
     }
+    company.configure_plan(repo, plan, ak_command)
     plan["canonical_plan_sha256"] = plan_hash(plan)
     validate_plan(plan)
     write_atomic(canonical_bytes(plan), output)
@@ -319,7 +253,7 @@ def decode_delta(repo: Path, raw: bytes, allow_controls: bool = False) -> list[d
             "new_oid": None if new_mode == "000000" else new_oid,
             "content_sha256": content,
         })
-    return validate_git_delta(result, allow_controls)
+    return validate_git_delta(result, allow_controls, allow_empty=True)
 def index_delta(repo: Path) -> list[dict[str, Any]]:
     return decode_delta(repo, git_bytes(
         repo, "diff", "--cached", "--raw", "--no-renames", "-z", "--full-index", "--abbrev=40"
@@ -360,13 +294,7 @@ def bind_plan(repo: Path, plan: dict[str, Any], ak_command: Path | None) -> None
     if semantic_delta(load_map(repo), parse_map_bytes(plan["next_map_text"].encode(), plan_path_parent(repo))) != plan["map_delta"]:
         raise ValueError("transition plan semantic map delta is not derived from its bound maps")
     validate_established_provenance(repo, json.loads(state_raw), ak_command=ak_command)
-
-
-def plan_path_parent(repo: Path) -> Path:
-    parent = Path(os.environ.get("TMPDIR", str(repo.parent))).resolve()
-    if not parent.is_dir():
-        raise ValueError("TMPDIR for map validation must be an existing directory")
-    return parent
+    company.verify_transfer(repo, plan, ak_command, live=True)
 
 
 def apply(repo: Path, plan_path: Path, ak_command: Path | None = None) -> int:
@@ -441,6 +369,7 @@ def finalize(repo: Path, plan_path: Path, task_text: str, ak_command: Path | Non
     if git_head(repo) != applied:
         raise ValueError("finalize requires HEAD at the exact evidence applied commit")
     verify_applied(repo, plan, applied, pending_raw)
+    company.verify_transfer(repo, plan, ak_command, live=True)
     final = dict(json.loads(pending_raw), state="established", origin="ownership-transition", evidence_id=record["id"], applied_commit=applied)
     if set(final) != FINAL_KEYS:
         raise ValueError("internal final v2 state schema error")
@@ -498,6 +427,7 @@ def verify_v2_transition(
     if Path(task["repo"]).resolve() != Path(plan["target_repo"]).resolve():
         raise ValueError("durable transition plan target does not match canonical AK task repository")
     verify_applied(repo, plan, state["applied_commit"], pending_bytes(plan))
+    company.verify_historical_maps(repo, plan, ak_command)
     final_commit = find_final_commit(repo, state["applied_commit"], state_raw)
     if git_run(repo, "merge-base", "--is-ancestor", final_commit, "HEAD").returncode != 0:
         raise ValueError("ownership transition final commit is outside current history")
@@ -547,12 +477,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, required=True)
     sub = parser.add_subparsers(dest="command", required=True)
-    p = sub.add_parser("plan"); p.add_argument("--spec", type=Path, required=True); p.add_argument("--output", type=Path, required=True)
+    for action in ("plan", "reverse-plan"):
+        p = sub.add_parser(action); p.add_argument("--spec", type=Path, required=True); p.add_argument("--output", type=Path, required=True)
     p = sub.add_parser("apply"); p.add_argument("--plan", type=Path, required=True)
     p = sub.add_parser("finalize"); p.add_argument("--plan", type=Path, required=True); p.add_argument("--finalize-task", required=True)
     args = parser.parse_args(); repo = args.repo_root.resolve()
     try:
         if args.command == "plan": return create_plan(repo, args.spec.resolve(), args.output.resolve(), None)
+        if args.command == "reverse-plan": return company.reverse_plan(repo, args.spec.resolve(), args.output.resolve(), None)
         if args.command == "apply": return apply(repo, args.plan.resolve(), None)
         return finalize(repo, args.plan.resolve(), args.finalize_task, None)
     except (OSError, ValueError, KeyError, TypeError) as exc:

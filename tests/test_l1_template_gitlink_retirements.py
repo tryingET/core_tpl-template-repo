@@ -203,7 +203,7 @@ class V2OwnerGitlinkTests(unittest.TestCase):
             dropped = rendered_copy(parent, "dropped", gitlink=True)
             (dropped / MAP).write_text((dropped / MAP).read_text().replace("  - .gitmodules\n", ""), encoding="utf-8")
             with mock.patch.object(LIVE_TRANSITIONS, "authoritative_ak", return_value=h.ak):
-                with self.assertRaisesRegex(ValueError, "target gitlink ontology is template-owned"):
+                with self.assertRaisesRegex(ValueError, "receipted ownership transition"):
                     preview(h.repo, tree_render)
                 with self.assertRaisesRegex(ValueError, "dropping company-owned patterns: .gitmodules"):
                     apply(h.repo, dropped)
@@ -280,7 +280,7 @@ class BirthGitlinkTests(unittest.TestCase):
             parent = Path(raw)
             gitlink_render = rendered_copy(parent, "gitlink", gitlink=True)
             cases = (
-                (False, modules, "requires a receipted ownership transition that makes ontology"),
+                (False, modules, "requires a receipted ownership transition"),
                 (True, None, "requires a committed gitlink at ontology"),
                 (True, modules.replace("path = ontology", "path = other"), "declare exactly one submodule"),
             )
