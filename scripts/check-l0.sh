@@ -61,7 +61,7 @@ if is_enabled "${L0_CHECK_VERBOSE:-}"; then
 	verbose=1
 fi
 
-base_check_timeout_seconds="$(resolve_timeout_seconds "L0_CHECK_TIMEOUT_SECONDS" "1200")"
+base_check_timeout_seconds="$(resolve_timeout_seconds "L0_CHECK_TIMEOUT_SECONDS" "1800")"
 
 # Finite defaults calibrated from retained successful AK6351 measurements.
 # Keep the historical base-override contract: generation gets twice an explicit

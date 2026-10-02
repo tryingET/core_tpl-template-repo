@@ -33,7 +33,7 @@ class VerificationBudgetTests(unittest.TestCase):
     def test_defaults_are_finite_and_all_leaves_run(self):
         result = self.invoke()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("base=1200s generation=3600s adversarial=1200s fixtures=1200s", result.stdout)
+        self.assertIn("base=1800s generation=3600s adversarial=1800s fixtures=1800s", result.stdout)
         self.assertIn("passed: 7", result.stdout)
         self.assertIn("skipped: 0", result.stdout)
 

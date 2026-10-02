@@ -17,7 +17,7 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    ```bash
    bash ./scripts/check-l0.sh
    ```
-   Finite wall-clock defaults: `1200` seconds for guardrails, the light checks,
+   Finite wall-clock defaults: `1800` seconds for guardrails, the light checks,
    adversarial and fixtures; `3600` seconds for generation. Optional base override:
    ```bash
    L0_CHECK_TIMEOUT_SECONDS=120 bash ./scripts/check-l0.sh
@@ -30,10 +30,13 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
 
    Calibration evidence: `diary/ak6351-verification-final/generation.json`
    records a successful `1653.568129274s` generation run; `adversarial.json`
-   records a successful `367.709930772s` adversarial run. The prior 82-test
-   focused guard selection took `661.065s` (not a full owner check). The new
-   defaults allow approximately 2.18x generation and 1.82x that focused guard
-   time, with larger margin for adversarial/fixtures. These are single-host
+   records a successful `367.709930772s` adversarial run; `guardrails.json`
+   records the actual full guardrail leaf passing in `778.654000745s` (96 + 4
+   tests and shell guardrails). An initial `1200s` owner attempt timed out in
+   guardrails, so the earlier `661.065s` focused subset was not sufficient
+   calibration. The new defaults allow approximately 2.18x generation and
+   2.31x the measured full guardrail leaf, plus 50% above that failed cap,
+   with larger margin for adversarial/fixtures. These are single-host
    verification budgets, not timing guarantees. Production birth/execution
    remains bounded at its unchanged `3600s` with its existing sandbox and
    process-group teardown; verification budgets are a separate concern.
