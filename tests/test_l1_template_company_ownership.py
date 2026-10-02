@@ -294,7 +294,8 @@ class CompanyOntologyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
             # Actual pre-AK6328 readers from published main, not a private local ref.
-            for rel in (CHECKER, "scripts/check-template-ci.sh", "scripts/new-repo-from-copier.sh"):
+            for rel in (CHECKER, "scripts/check-template-ci.sh", "scripts/new-repo-from-copier.sh",
+                        "scripts/lib/company-ontology-ref.sh"):
                 original = TRANSITIONS.git_bytes(ROOT, "show", f"72828add2ec38e3a41aacd7fa0c6b4232a7595a3:copier-template/{rel}")
                 (h.repo / rel).write_bytes(original)
             (h.repo / "scripts/lib/l1_ontology_ownership.py").unlink()
