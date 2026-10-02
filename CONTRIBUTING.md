@@ -17,10 +17,26 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    ```bash
    bash ./scripts/check-l0.sh
    ```
-   Optional fail-fast timeout per sub-check (default `300` seconds):
+   Finite wall-clock defaults: `1200` seconds for guardrails, the light checks,
+   adversarial and fixtures; `3600` seconds for generation. Optional base override:
    ```bash
    L0_CHECK_TIMEOUT_SECONDS=120 bash ./scripts/check-l0.sh
    ```
+   An explicit base override retains the historical generation multiplier of two.
+   Per-lane overrides take precedence: `L0_CHECK_TIMEOUT_GENERATION_SECONDS`,
+   `L0_CHECK_TIMEOUT_ADVERSARIAL_SECONDS`, `L0_CHECK_TIMEOUT_FIXTURES_SECONDS`.
+   The runner still invokes `timeout`/`gtimeout`, fails on timeout, and aborts
+   subsequent checks. No coverage is excluded to fit the budget.
+
+   Calibration evidence: `diary/ak6351-verification-final/generation.json`
+   records a successful `1653.568129274s` generation run; `adversarial.json`
+   records a successful `367.709930772s` adversarial run. The prior 82-test
+   focused guard selection took `661.065s` (not a full owner check). The new
+   defaults allow approximately 2.18x generation and 1.82x that focused guard
+   time, with larger margin for adversarial/fixtures. These are single-host
+   verification budgets, not timing guarantees. Production birth/execution
+   remains bounded at its unchanged `3600s` with its existing sandbox and
+   process-group teardown; verification budgets are a separate concern.
 4. Prefer deterministic wrappers over ad-hoc scripting:
    ```bash
    ./scripts/rocs.sh --doctor
