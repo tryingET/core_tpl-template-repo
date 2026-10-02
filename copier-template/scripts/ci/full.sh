@@ -37,6 +37,15 @@ fi
 if [ ! -f ontology/manifest.yaml ] && [ "$(git ls-files -s -- ontology 2>/dev/null | cut -c1-6)" = "160000" ]; then
   fail "ontology is not materialized: ontology/ is a declared gitlink without ontology/manifest.yaml"
 fi
+if [ ! -f ontology/manifest.yaml ]; then
+  # The generated .gitkeep-only skeleton may skip ROCS; a committed ontology may not.
+  tracked_ontology="$(git ls-files -- ontology)" ||
+    fail "could not inspect tracked ontology content"
+  case "$tracked_ontology" in
+    "" | ontology/.gitkeep) ;;
+    *) fail "ontology manifest is missing: tracked ontology content requires ontology/manifest.yaml" ;;
+  esac
+fi
 if [ -f ontology/manifest.yaml ]; then
   [ -x ./scripts/rocs.sh ] || fail "missing executable scripts/rocs.sh (run ./scripts/install-hooks.sh)"
   ./scripts/rocs.sh version

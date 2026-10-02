@@ -256,4 +256,6 @@ for tpl in tpl-project-repo tpl-agent-repo tpl-org-repo tpl-monorepo; do
 	done
 done
 
+sh "$repo_root/scripts/check-l1-ontology-gate.sh"
+
 echo "ok: l0 rocs consumer model"
