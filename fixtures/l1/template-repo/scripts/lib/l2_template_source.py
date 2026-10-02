@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 import yaml
+from l2_birth_safety import directory, record_answers
 
 TEMPLATES = {"tpl-project-repo", "tpl-agent-repo", "tpl-org-repo", "tpl-monorepo", "tpl-package"}
 _active: subprocess.Popen | None = None
@@ -63,10 +64,10 @@ def stop_child(signum: int, _frame=None) -> None:
     raise SystemExit(128 + signum)
 
 
-def run(argv: list[str], *, env: dict | None = None, umask: int = -1) -> str:
+def run(argv: list[str], *, env: dict | None = None, umask: int = -1, pass_fds: tuple[int, ...] = ()) -> str:
     global _active
     _active = subprocess.Popen(argv, env=env or environment(), stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, start_new_session=True, umask=umask)
+                               stderr=subprocess.PIPE, start_new_session=True, umask=umask, pass_fds=pass_fds)
     try:
         try:
             out, err = _active.communicate(timeout=3600)
@@ -159,8 +160,10 @@ def arguments(args: list[str]) -> tuple[str, dict, list[str], bool]:
             if not key or not sep:
                 raise ValueError("Copier data requires key=value")
             cli[key] = val
-        elif arg in ("-h", "--help", "--version", "--pretend"):
+        elif arg in ("-h", "--help", "--version", "--pretend", "-n"):
             no_effect = True
+        elif arg.startswith("-") and not arg.startswith("--") and len(arg) > 2 and arg[1] not in "adrsx":
+            raise ValueError(f"unsupported grouped short switches: {arg}")
         i += 1
     path = Path(answers)
     if not answers or path.is_absolute() or any(part in (".", "..") for part in answers.split("/")) or not all(answers.split("/")):
@@ -210,6 +213,17 @@ def destination_guard(destination: Path, company: Path, source: Path) -> Path:
         first = destination.relative_to(company).parts[0]
         if first in reserved or first.startswith("."):
             raise ValueError("destination is a protected company control surface")
+        # The company index owns control-plane files, not ignored child repos.
+        # Gitlinks are opaque: protect the boundary itself, not its contents.
+        if (company / ".git").exists():
+            relative = destination.relative_to(company)
+            for entry in git(company, "ls-files", "--stage", "-z").split("\0"):
+                if not entry:
+                    continue
+                header, name = entry.split("\t", 1)
+                tracked = Path(name)
+                if tracked.is_relative_to(relative) or (header.split()[0] != "160000" and relative.is_relative_to(tracked)):
+                    raise ValueError("destination intersects tracked company control surface")
     if destination.exists() and not destination.is_dir():
         raise ValueError("child destination must be a directory")
     return destination
@@ -341,28 +355,23 @@ def record(scratch: Path, destination: Path) -> None:
     if meta["no_effect_requested"]:
         return
     destination_guard(destination, Path(meta["company_root"]), Path(meta["source_root"]))
-    if meta.get("execution_root_identity") is not None and [destination.stat().st_dev, destination.stat().st_ino] != meta["execution_root_identity"]:
-        raise ValueError("child root identity changed before lineage recording")
     if not meta.get("copy_completed"):
         raise ValueError("Copier did not positively complete from the pinned private source")
-    answers = checked_path(destination / meta["answers"])
-    child = mapping(answers)
-    # Monorepo/package answers intentionally omit Copier's special fields.
-    if "_src_path" in child and child["_src_path"] != meta["template_path"]:
-        raise ValueError("Copier output source contradicts the private pinned template")
-    expected = {key: meta[key] for key in ("company", "template", "l0_commit")}
-    if "_template_lineage" in child and child["_template_lineage"] != expected:
-        raise ValueError("child lineage changed during rendering")
-    if child.get("company_slug") != meta["company"]:
-        raise ValueError("child company contradicts pinned source lineage")
-    child["_template_lineage"] = {key: meta[key] for key in ("company", "template", "l0_commit")}
-    # Stable legacy locator remains interpretable after scratch and copies vanish.
-    child["_src_path"] = f"~/ai-society/{meta['company']}/copier/{meta['template']}"
-    output = answers.with_name(answers.name + ".lineage-new")
-    with output.open("x") as handle:
-        yaml.safe_dump(child, handle, sort_keys=True)
-    output.chmod(stat.S_IMODE(answers.stat().st_mode))
-    output.replace(answers)
+
+    def update(child):
+        # Monorepo/package answers intentionally omit Copier's special fields.
+        if "_src_path" in child and child["_src_path"] != meta["template_path"]:
+            raise ValueError("Copier output source contradicts the private pinned template")
+        expected = {key: meta[key] for key in ("company", "template", "l0_commit")}
+        if "_template_lineage" in child and child["_template_lineage"] != expected:
+            raise ValueError("child lineage changed during rendering")
+        if child.get("company_slug") != meta["company"]:
+            raise ValueError("child company contradicts pinned source lineage")
+        child["_template_lineage"] = expected
+        child["_src_path"] = f"~/ai-society/{meta['company']}/copier/{meta['template']}"
+
+    with directory(destination, expected=meta.get("execution_root_identity")) as root_fd:
+        record_answers(root_fd, meta["answers"], update)
 
 
 def main() -> None:

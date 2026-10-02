@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 from pathlib import Path
+from l2_birth_safety import directory, identity
 
 
 def execute(meta: dict, destination: Path, argv: list[str], run, base_environment, check, guard) -> None:
@@ -38,12 +39,8 @@ def execute(meta: dict, destination: Path, argv: list[str], run, base_environmen
         target = scratch / "no-effect-target"
         target.mkdir()
     else:
-        if not readonly:
-            destination.mkdir(parents=True, exist_ok=True)
         destination = guard(destination, Path(meta["company_root"]), Path(meta["source_root"]))
         target = destination
-    # Bind the actual root inode before execution, not an unchecked pathname.
-    meta["execution_root_identity"] = [target.stat().st_dev, target.stat().st_ino]
     env = base_environment()
     env.update(HOME=str(scratch / "home"), TMPDIR=str(scratch / "tmp"),
                TMP=str(scratch / "tmp"), TEMP=str(scratch / "tmp"),
@@ -65,8 +62,7 @@ def execute(meta: dict, destination: Path, argv: list[str], run, base_environmen
     if not resolver.is_relative_to("/etc"):
         cmd += ["--ro-bind", str(resolver), str(resolver)]
     cmd += ["--ro-bind", meta["company_root"], meta["company_root"]]
-    cmd += ["--bind", str(scratch), str(scratch),
-            "--ro-bind" if readonly else "--bind", str(target), str(destination)]
+    cmd += ["--bind", str(scratch), str(scratch)]
     adapter = Path(__file__).with_name("l2_birth_completion.py").resolve(strict=True)
     completion = scratch / "copy-completed.txt"
     # These inputs stay read-only even when located inside scratch or the child.
@@ -74,12 +70,18 @@ def execute(meta: dict, destination: Path, argv: list[str], run, base_environmen
         cmd += ["--ro-bind", str(path), str(path)]
     cmd += ["--dev", "/dev", "--proc", "/proc", "--chdir", str(destination),
             str(program), *argv[1:len(prefix)+1], "python", "-B", str(adapter), str(completion), *argv[len(prefix)+2:]]
-    run(cmd, env=env)
-    meta["copy_completed"] = completion.is_file() and completion.read_text() == "non-pretend-copy-completed\n"
-    if not readonly and not meta["copy_completed"]:
-        raise ValueError("Copier returned without positive non-pretend copy completion")
-    if not readonly:
-        current = destination.stat()
-        if [current.st_dev, current.st_ino] != meta["execution_root_identity"]:
-            raise ValueError("child root identity changed during Copier execution")
+    expected = meta["destination_snapshot"]["identity"] if target == destination else None
+    with directory(target, create=not readonly, expected=expected) as root_fd:
+        meta["execution_root_identity"] = identity(root_fd)
+        # Append the destination bind after scratch, before launching. bwrap
+        # consumes this inherited descriptor, never reopens the host pathname.
+        bind_at = cmd.index("--bind") + 3
+        cmd[bind_at:bind_at] = ["--ro-bind-fd" if readonly else "--bind-fd", str(root_fd), str(destination)]
+        run(cmd, env=env, pass_fds=(root_fd,))
+        meta["copy_completed"] = completion.is_file() and completion.read_text() == "non-pretend-copy-completed\n"
+        if not readonly and not meta["copy_completed"]:
+            raise ValueError("Copier returned without positive non-pretend copy completion")
+        if not readonly:
+            with directory(destination, expected=meta["execution_root_identity"]):
+                pass
     (scratch / "lineage.json").write_text(__import__("json").dumps(meta, sort_keys=True) + "\n")

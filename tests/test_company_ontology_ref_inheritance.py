@@ -122,6 +122,15 @@ completion.write_text('non-pretend-copy-completed\\n')
     def defaults(self, args: list) -> list[str]:
         return [arg.split("=", 1)[1] for arg in args if arg.startswith(KEY + "=")]
 
+    def test_grouped_switches_rejected_before_destination_or_copier(self) -> None:
+        for flag in ("-qn", "-nq", "-fq"):
+            with self.subTest(flag=flag):
+                self.invoke(flag, ok=False)
+                self.assertFalse(self.dest.exists())
+        # Option-looking values belong to their valued option, not flag parsing.
+        args = self.invoke("--exclude", "-qn")
+        self.assertEqual(args[-4:-2], ["--exclude", "-qn"])
+
     def test_precedence_and_empty_values(self) -> None:
         for archetype in ARCHETYPES:
             for stored, inherited, expected in (
@@ -343,14 +352,14 @@ class RendererTests(unittest.TestCase):
     def test_real_completion_and_no_effect_operations(self) -> None:
         self.render_l1()
         dest = self.root / "no-effect-child"
-        for option in ("--help", "--version", "--pretend"):
+        for option in ("--help", "--version", "--pretend", "-n"):
             self.render_child("tpl-project-repo", dest, option)
             self.assertFalse(dest.exists(), option)
         self.render_child("tpl-project-repo", dest)
         data = yaml.safe_load((dest / ".copier-answers.yml").read_text())
         self.assertEqual(set(data["_template_lineage"]), {"company", "template", "l0_commit"})
         before = tree(dest)
-        for option in ("--help", "--version", "--pretend"):
+        for option in ("--help", "--version", "--pretend", "-n"):
             self.render_child("tpl-project-repo", dest, option)
             self.assertEqual(tree(dest), before, option)
 
