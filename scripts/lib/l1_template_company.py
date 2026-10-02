@@ -30,6 +30,14 @@ def plan_path_parent(repo: Path) -> Path:
     return parent
 
 
+def external_output(repo: Path, output: Path) -> None:
+    from l1_template_receipts import git_common_dir, registered_worktrees
+    target = output.resolve()
+    protected = registered_worktrees(repo) | {git_common_dir(repo)}
+    if any(target.is_relative_to(root) for root in protected):
+        raise ValueError("transition output must be outside all target worktrees and Git metadata")
+
+
 def verify_historical_maps(repo: Path, plan: dict[str, Any], ak: Path | None) -> None:
     from l1_template_receipts import git_output
     from l1_template_transition_plan import semantic_delta
@@ -122,6 +130,7 @@ def reverse_plan(repo: Path, spec_path: Path, output: Path, ak: Path | None = No
 
     ensure_clean_git_target(repo)
     spec = transition.load_object(spec_path, "ownership reverse spec")
+    external_output(repo, output)
     if set(spec) != {"decision_id", "adr_commit", "transition_task_id", "executor", "rollback"}:
         raise ValueError("ownership reverse spec must contain exactly five authority/rollback fields")
     raw = (repo / STATE).read_bytes()
@@ -158,6 +167,7 @@ def prepare_render(repo: Path, rendered: Path, output: Path) -> int:
 
     ensure_clean_git_target(repo)
     raw = (repo / STATE).read_bytes()
+    external_output(repo, output)
     ensure_safe_destinations(repo, [MAP, STATE])
     ensure_safe_destinations(rendered, [MAP, STATE])
     validate_established_provenance(repo, json.loads(raw))

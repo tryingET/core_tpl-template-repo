@@ -189,6 +189,7 @@ def verify_authority(
 
 def create_plan(repo: Path, spec_path: Path, output: Path, ak_command: Path | None = None) -> int:
     ensure_clean_git_target(repo)
+    company.external_output(repo, output)
     spec = load_object(spec_path, "transition spec")
     required = {"decision_id", "adr_commit", "transition_task_id", "executor", "next_map", "git_delta", "validation", "rollback"}
     if set(spec) != required:

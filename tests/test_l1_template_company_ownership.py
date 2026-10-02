@@ -151,7 +151,12 @@ class CompanyOntologyTests(unittest.TestCase):
             OWNERSHIP.refresh(repo, rendered, True, "a" * 64, "company-test", git(ROOT, "rev-parse", "HEAD"))
             self.assertEqual((repo / "ontology/README.md").read_bytes(), data)
             self.assertFalse((repo / "ontology/.gitkeep").exists())
-            run("bash", "scripts/check-template-ci.sh", cwd=repo)
+            run("python3", "-I", "-S", "-B", CHECKER, cwd=repo)
+            # Landed6333 correctly rejects this deliberately manifest-less vocabulary;
+            # it must not instead reimpose the L0 seed or change company bytes.
+            gate = run("bash", "scripts/check-template-ci.sh", cwd=repo, expect=1)
+            self.assertIn("ontology manifest is missing", gate.stderr)
+            self.assertNotIn("ontology/.gitkeep", gate.stderr)
 
     def test_ordinary_refresh_and_retirement_cannot_transfer_or_touch_company_ontology(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
@@ -378,6 +383,19 @@ class CompanyOntologyTests(unittest.TestCase):
                         RECEIPTS.validate_established_provenance(h.repo, forged, ak_command=h.ak)
                     with self.assertRaisesRegex(ValueError, "origin|predecessor state"):
                         COMPANY.source_binding(h.repo, forged, (h.repo / STATE).read_bytes(), h.ak)
+
+    def test_planning_outputs_cannot_mutate_a_target_or_its_shared_git_metadata(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
+            h = CompanyHarness(Path(name))
+            linked = h.parent / "linked"
+            run("git", "worktree", "add", "--quiet", "--detach", str(linked), h.base, cwd=h.repo)
+            before = controls(h.repo)
+            for output in (h.repo / "plan.json", h.repo / ".git/plan.json", linked / "plan.json"):
+                with self.assertRaisesRegex(ValueError, "outside all target worktrees"):
+                    TRANSITIONS.create_plan(h.repo, h.spec_path, output, h.ak)
+                self.assertFalse(output.exists())
+                self.assertEqual(controls(h.repo), before)
+            run("git", "worktree", "remove", str(linked), cwd=h.repo)
 
     def test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes(self) -> None:
         with self.assertRaisesRegex(ValueError, "non-empty"):
