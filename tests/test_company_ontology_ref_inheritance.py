@@ -352,6 +352,22 @@ class RendererTests(unittest.TestCase):
                 self.assert_choice(name, dest, EXPLICIT)
         self.assertFalse(any(self.root.rglob("PWNED")))
 
+    def test_company_entrypoint_alias_binds_physical_root_and_reruns_cleanly(self) -> None:
+        self.render_l1()
+        alias = self.root / "l1-alias"
+        alias.symlink_to(self.l1, target_is_directory=True)
+        destination = self.root / "alias-child"
+        command = ("sh", str(alias / "scripts/new-repo-from-copier.sh"),
+                   "tpl-project-repo", str(destination), "--defaults", "--overwrite",
+                   "-d", "repo_slug=alias-child")
+        self.checked(*command)
+        lineage = yaml.safe_load((destination / ".copier-answers.yml").read_text())["_template_lineage"]
+        self.assertEqual(lineage["company"], "otherco")
+        self.assertEqual(lineage["l0_commit"], yaml.safe_load((self.l1 / ".copier-answers.yml").read_text())["l0_source_sha"])
+        before = tree(destination)
+        self.checked(*command)
+        self.assertEqual(tree(destination), before)
+
     def test_tagged_parent_no_host_yaml_refuses_but_pinned_yaml_renders(self) -> None:
         self.render_l1("-d", "repo_slug=l1-template-tagged")
         # This test must exercise the current library, not a stale generated copy.

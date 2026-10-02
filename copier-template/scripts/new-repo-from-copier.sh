@@ -332,7 +332,9 @@ infer_project_owner_handle() {
   normalized_project_owner_handle "$raw"
 }
 
-repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+# A checkout entrypoint alias is not an authority path: pass the physical
+# company root to the descriptor/no-follow engine; caller source/dest stay checked.
+repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)"
 answers_file="$repo_root/.copier-answers.yml"
 answers_lib="$repo_root/scripts/lib/copier-answers.sh"
 [ -f "$answers_lib" ] || {
