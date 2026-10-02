@@ -184,8 +184,16 @@ Forbidden edges:
 
 - `scripts/check-l0-guardrails.sh`: validates required artifacts + recursion policy + contract presence.
 - `scripts/check-l0-generation.sh`: renders a sample L1 repo, runs its checks, and verifies idempotency.
+- `scripts/check-l1-ontology-gate.sh`: exercises the L1 full-CI manifest refusal and positive controls through the real entrypoint; the ROCS consumer checks include it.
 - `scripts/check-l0-adversarial.sh`: stress-tests operator surfaces (git worktrees, lane bootstrap adoption previews, migration portability, deep repo census).
 - `contracts/layer-contract.yml`: canonical L0 contract DSL for layer transitions.
+
+L1 `scripts/ci/full.sh` permits the empty or `.gitkeep`-only tracked ontology skeleton without a manifest.
+Once the index tracks any other ontology path, a missing, deleted or renamed `manifest.yaml` in that directory
+is an error, not a successful ROCS skip. The index must be readable; a non-repository or corrupt index refuses.
+An unmaterialized gitlink and a symlinked manifest also refuse.
+Local untracked content does not establish a committed ontology or prove a fold; adoption still requires
+its ownership receipts and strict checks against the committed source tree.
 
 ## Adoption + release operations
 
