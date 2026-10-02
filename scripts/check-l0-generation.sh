@@ -41,6 +41,13 @@ fail() {
 	exit 1
 }
 
+# These generated L1 entrypoint probes need a real index, not the caller's Git state.
+init_ontology_probe_index() (
+	unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+	git -C "$1" init -q
+	git -C "$1" add -- ontology/.gitkeep
+)
+
 assert_file_contains() {
 	path="$1"
 	needle="$2"
@@ -462,6 +469,7 @@ suffix_l1="$tmp_root/l1-template-suffix-allowlist"
 	-d repo_slug=l1-template-suffix-allowlist \
 	-d maintainer_handle=@template-owner \
 	--defaults --overwrite >/dev/null
+init_ontology_probe_index "$suffix_l1"
 mkdir -p "$suffix_l1/owned/demo"
 touch "$suffix_l1/owned/demo/stray.j2"
 printf 'repo_slug: {{ repo_slug }}\n' >"$suffix_l1/owned/demo/stray.txt"
@@ -826,9 +834,7 @@ rm -rf "$l1_rocs/local"
 # counterpart from the repo root, and the hook's failure fails the entry script.
 l1_hooks="$tmp_root/l1-local-hooks"
 cp -R "$tmp_root/l1-template-sample" "$l1_hooks"
-# Full CI must inspect a real index before treating the .gitkeep skeleton as a skip.
-git -C "$l1_hooks" init -q
-git -C "$l1_hooks" add -- ontology/.gitkeep
+init_ontology_probe_index "$l1_hooks"
 l1_hooks_real="$(cd "$l1_hooks" && pwd -P)"
 local_hook_log="$tmp_root/l1-local-hooks.log"
 write_local_hook() {
