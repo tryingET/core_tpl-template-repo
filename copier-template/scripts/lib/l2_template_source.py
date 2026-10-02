@@ -178,7 +178,7 @@ def read_regular(path: Path) -> bytes:
     return path.read_bytes()
 
 
-def parent_snapshot(company: Path) -> tuple[dict, dict, str, Path]:
+def parent_snapshot(company: Path) -> tuple[dict, dict, str, Path, bytes]:
     seal_path = checked_path(company / "contracts/provenance-seal.yml")
     seal_bytes = read_regular(seal_path)
     seal = yaml.safe_load(seal_bytes)
@@ -197,7 +197,7 @@ def parent_snapshot(company: Path) -> tuple[dict, dict, str, Path]:
         digest.update(len(value).to_bytes(8, "little")); digest.update(value)
     if (company / ".git").exists():
         digest.update(git(company, "ls-files", "--stage", "--", "ontology").encode())
-    return parent, seal, digest.hexdigest(), path
+    return parent, seal, digest.hexdigest(), path, parent_bytes
 
 
 def inputs(company: Path) -> str:
@@ -252,7 +252,7 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
     company, scratch = checked_path(company), checked_path(scratch)
     if template not in TEMPLATES or scratch.stat().st_uid != os.getuid() or stat.S_IMODE(scratch.stat().st_mode) != 0o700 or list(scratch.iterdir()):
         raise ValueError("invalid template or non-private/nonempty birth scratch")
-    parent, seal, before, _ = parent_snapshot(company)
+    parent, seal, before, _, parent_bytes = parent_snapshot(company)
     slug, repo_slug, pin = parent.get("company_slug"), parent.get("repo_slug"), parent.get("l0_source_sha")
     if not isinstance(slug, str) or not re.fullmatch(r"[a-z][a-z0-9-]*", slug) or not isinstance(repo_slug, str):
         raise ValueError("company identity is missing or invalid")
@@ -280,7 +280,9 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
     if inputs(company) != before:
         raise ValueError("company inputs changed during source interpretation")
     frozen_parent = scratch / "parent-answers.yml"
-    frozen_parent.write_text(yaml.safe_dump(parent))
+    # Retain exact input bytes, including explicit tags and quoting. Normalizing
+    # parsed YAML here would bypass the existing narrow-parser refusal boundary.
+    frozen_parent.write_bytes(parent_bytes)
     # Older pinned renderers read the default locator. Give them the same sealed
     # snapshot in a private input view, never a misleading live default file.
     render_input = scratch / "company-input"

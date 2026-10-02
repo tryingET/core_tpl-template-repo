@@ -153,6 +153,34 @@ class SourceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "inputs changed"):
             source.check_before_copy(meta, self.child)
 
+    def test_raw_parent_snapshot_preserves_tags_quoting_and_comments(self):
+        raw = ("# captured parent, not normalized YAML\r\n"
+               "company_slug: 'otherco'\r\n"
+               'repo_slug: "source-test"\r\n'
+               f"l0_source_sha: '{self.pin}'\r\n"
+               'company_name: !!str "Holding Company" # explicit tag\r\n').encode()
+        answers = self.company / ".copier-answers.yml"
+        answers.write_bytes(raw)
+        parent, seal, digest, locator, captured = source.parent_snapshot(self.company)
+        self.assertEqual(parent["company_name"], "Holding Company")
+        self.assertEqual(seal["template"]["source_sha"], self.pin)
+        self.assertEqual(locator, answers)
+        self.assertEqual(captured, raw)
+        self.assertEqual(digest, source.inputs(self.company))
+        self.prepare()
+        for relative in ("parent-answers.yml", "company-input/.copier-answers.yml"):
+            self.assertEqual((self.scratch / relative).read_bytes(), raw)
+        self.assertEqual(answers.read_bytes(), raw)
+
+    def test_raw_snapshot_does_not_weaken_safe_yaml_parsing(self):
+        (self.company / ".copier-answers.yml").write_text(
+            "company_name: !!python/object/apply:os.system ['touch UNSAFE']\n")
+        with patch.object(source, "run", side_effect=AssertionError("must not launch")):
+            with self.assertRaises(yaml.constructor.ConstructorError):
+                self.prepare()
+        self.assertEqual(list(self.scratch.iterdir()), [])
+        self.assertFalse(self.child.exists())
+
     def test_protected_destinations_fail_before_clone_or_render(self):
         for destination in (self.company, self.company.parent, self.l0, self.l0 / "child",
                             self.company / "copier/tpl-project-repo", self.company / "copier-overlay/test",

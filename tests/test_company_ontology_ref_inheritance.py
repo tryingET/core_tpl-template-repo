@@ -352,6 +352,63 @@ class RendererTests(unittest.TestCase):
                 self.assert_choice(name, dest, EXPLICIT)
         self.assertFalse(any(self.root.rglob("PWNED")))
 
+    def test_tagged_parent_no_host_yaml_refuses_but_pinned_yaml_renders(self) -> None:
+        self.render_l1("-d", "repo_slug=l1-template-tagged")
+        # This test must exercise the current library, not a stale generated copy.
+        self.assertEqual((self.l1 / "scripts/lib/l2_template_source.py").read_bytes(),
+                         (SOURCE / "scripts/lib/l2_template_source.py").read_bytes())
+        answers = self.l1 / ".copier-answers.yml"
+        raw = answers.read_bytes()
+        self.assertIn(b"company_name: Holding Company", raw)
+        raw = raw.replace(b"company_name: Holding Company",
+                          b"company_name: !!str Holding Company", 1)
+        answers.write_bytes(raw)
+        parent = yaml.safe_load(raw)
+        self.assertIsInstance(parent, dict)
+        pin = parent["l0_source_sha"]
+        self.assertRegex(pin, r"^[0-9a-f]{40}$")
+        self.assertEqual(run("git", "cat-file", "-t", pin, cwd=ROOT).stdout.strip(), "commit")
+
+        # Exact PATH harness from check-l0-generation.sh: both host Pythons fail.
+        no_yaml = self.root / "no-yaml-bin"
+        no_yaml.mkdir()
+        for name in ("python3", "python"):
+            wrapper = no_yaml / name
+            wrapper.write_text("#!/usr/bin/env sh\nexit 1\n")
+            wrapper.chmod(0o755)
+        env = dict(self.env, PATH=f"{no_yaml}:{self.env['PATH']}")
+        for key in ("COPIER_ANSWERS_PYTHON", "COPIER_ANSWERS_BASE_PYTHON"):
+            env.pop(key, None)
+        dest = self.root / "l2-template-tagged-no-yaml"
+        command = ("sh", str(self.l1 / "scripts/new-repo-from-copier.sh"),
+                   "tpl-project-repo", str(dest), "-d", "repo_slug=l2-template-tagged-no-yaml",
+                   "-d", f"template_source_sha={pin}", "--defaults", "--overwrite")
+        refused = run(*command, cwd=self.l1, env=env)
+        self.assertNotEqual(refused.returncode, 0, refused.stdout + refused.stderr)
+        self.assertIn("unable to parse 'company_name'", refused.stderr)
+        self.assertFalse(dest.exists(), "refused answers reached child creation")
+        self.assertEqual(answers.read_bytes(), raw)
+
+        # Keep the host harness blocked; explicitly enable the same pinned
+        # Copier runtime's PyYAML for the scalar reader, with real Copier copy.
+        runtime = run("uvx", "--from", "copier==9.11.1", "python", "-c",
+                      "import sys, yaml; print(sys.executable)", cwd=self.root, env=env)
+        self.assertEqual(runtime.returncode, 0, runtime.stderr)
+        env["COPIER_ANSWERS_PYTHON"] = runtime.stdout.strip()
+        rendered = run(*command, cwd=self.l1, env=env)
+        self.assertEqual(rendered.returncode, 0, rendered.stdout + rendered.stderr)
+        child = yaml.safe_load((dest / ".copier-answers.yml").read_bytes())
+        self.assertIsInstance(child, dict)
+        self.assertEqual(child["company_name"], "Holding Company")
+        self.assertEqual(child["_template_lineage"], {
+            "company": "otherco", "template": "tpl-project-repo", "l0_commit": pin})
+        self.assertEqual(yaml.safe_load((dest / "contracts/layer-contract.yml").read_bytes())["layer"], "L2")
+        self.assertEqual(answers.read_bytes(), raw)
+        # The ordinary host-PyYAML wrapper path remains compatible too.
+        normal = run(*command, cwd=self.l1, env=self.env)
+        self.assertEqual(normal.returncode, 0, normal.stdout + normal.stderr)
+        self.assertEqual(yaml.safe_load((dest / ".copier-answers.yml").read_bytes()), child)
+
     def test_real_completion_and_no_effect_operations(self) -> None:
         self.render_l1()
         dest = self.root / "no-effect-child"
