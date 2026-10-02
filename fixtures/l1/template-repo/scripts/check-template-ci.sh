@@ -565,10 +565,10 @@ assert_not_contains "scripts/bootstrap-lane-root.sh" "sed -i" "lane bootstrap he
 expected_pin="COPIER_VERSION=\"\${COPIER_VERSION:-9.11.1}\""
 expected_uvx="uvx --from \"copier==\${COPIER_VERSION}\" copier"
 expected_uvtool="uv tool run --from \"copier==\${COPIER_VERSION}\" copier"
-fallback_warning='warning: uvx/uv not found; falling back to unpinned copier on PATH'
+fallback_refusal='pinned-source births forbid unpinned copier fallback'
 uvx_guard='if command -v uvx >/dev/null 2>&1; then'
 uv_guard='if command -v uv >/dev/null 2>&1; then'
-copier_guard='if command -v copier >/dev/null 2>&1; then'
+
 
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_pin" "L1 wrapper must pin Copier version"
 assert_contains "scripts/new-repo-from-copier.sh" "scripts/lib/copier-answers.sh" "L1 wrapper should source the shared copier answers helper"
@@ -576,10 +576,11 @@ assert_contains "scripts/new-repo-from-copier.sh" "assert_repo_layer \"\$repo_ro
 assert_contains "scripts/new-repo-from-copier.sh" "destination already declares layer" "L1 wrapper should fail closed on destination layer mismatches"
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvx" "L1 wrapper must use pinned uvx invocation"
 assert_contains "scripts/new-repo-from-copier.sh" "$expected_uvtool" "L1 wrapper must use pinned uv tool invocation"
-assert_contains "scripts/new-repo-from-copier.sh" "$fallback_warning" "L1 wrapper must surface unpinned fallback warning"
+assert_contains "scripts/new-repo-from-copier.sh" "$fallback_refusal" "L1 births must refuse unpinned copier fallback"
 assert_not_contains "scripts/new-repo-from-copier.sh" "uvx copier" "L1 wrapper must not call unpinned uvx copier"
 assert_line_precedes "scripts/new-repo-from-copier.sh" "$uvx_guard" "$uv_guard" "L1 wrapper must prefer uvx before uv tool run"
-assert_line_precedes "scripts/new-repo-from-copier.sh" "$uv_guard" "$copier_guard" "L1 wrapper must prefer pinned runtimes before unpinned copier"
+assert_line_precedes "scripts/new-repo-from-copier.sh" "$uv_guard" "$fallback_refusal" "L1 wrapper must try pinned runtimes before refusing unpinned copier"
+assert_not_contains "scripts/new-repo-from-copier.sh" 'if command -v copier >/dev/null 2>&1; then' "L1 births must never invoke unpinned copier"
 assert_contains "scripts/check-task-scope-snapshots.sh" "scripts/lib/check-task-scope-snapshots.py" "L1 task-scope checker should use the shared parser-backed helper"
 assert_contains "scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
 assert_contains "scripts/check-template-ci.sh" "scripts/lib/repo-surface.sh" "L1 template CI should require the shared repo-surface helper"

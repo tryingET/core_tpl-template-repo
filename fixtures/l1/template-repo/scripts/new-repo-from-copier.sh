@@ -343,7 +343,7 @@ answers_lib="$repo_root/scripts/lib/copier-answers.sh"
 . "$answers_lib"
 # shellcheck source=/dev/null
 . "$repo_root/scripts/lib/company-ontology-ref.sh"
-source_python() { company_ontology_python "$repo_root/scripts/lib/l2_template_source.py" "$@"; }
+source_python() { company_ontology_python -B "$repo_root/scripts/lib/l2_template_source.py" "$@"; }
 
 layer_contract_path() {
   printf '%s/contracts/layer-contract.yml\n' "$1"
