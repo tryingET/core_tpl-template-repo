@@ -42,3 +42,16 @@ def company_seal(l1: Path, pin: str, repo_slug: str) -> None:
         "template": {"source_repository": "core/tpl-template-repo", "source_sha": pin},
         "render": {"repo_slug": repo_slug, "layer": "L1"},
     })
+
+
+def native_uv_pair(root: Path) -> Path:
+    """Actual executables relocated like setup-uv; not a Copier transport double."""
+    directory = root / "external-native-bin"
+    directory.mkdir()
+    uvx = Path(shutil.which("uvx")).resolve(strict=True)
+    for name, path in (("uvx", uvx), ("uv", uvx.with_name("uv"))):
+        with path.open("rb") as file:
+            if file.read(4) != b"\x7fELF":
+                raise AssertionError("native uv/uvx executables required for relocation proof")
+        shutil.copy2(path, directory / name)
+    return directory

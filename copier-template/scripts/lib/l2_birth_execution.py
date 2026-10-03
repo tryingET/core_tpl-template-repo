@@ -1,9 +1,9 @@
 """Bound final Copier execution to private scratch and the explicit child root."""
 import os
 import re
-import shutil
 from pathlib import Path
 from l2_birth_safety import directory, identity
+from l2_birth_runtime import runner, system_bindings
 
 
 def execute(meta: dict, destination: Path, argv: list[str], run, base_environment, check, guard) -> None:
@@ -29,11 +29,8 @@ def execute(meta: dict, destination: Path, argv: list[str], run, base_environmen
         elif arg.startswith("--data-file="):
             argv[i] = "--data-file=" + os.path.abspath(arg.split("=", 1)[1])
         i += 1
-    program = shutil.which(argv[0])
-    if not program:
-        raise ValueError("pinned Copier runner unavailable")
-    program = Path(program).resolve(strict=True)
     scratch = Path(meta["scratch"])
+    runtime = runner(scratch, argv[0])
     readonly = bool(meta["no_effect_requested"])
     if readonly and not destination.exists():
         target = scratch / "no-effect-target"
@@ -42,7 +39,7 @@ def execute(meta: dict, destination: Path, argv: list[str], run, base_environmen
         destination = guard(destination, Path(meta["company_root"]), Path(meta["source_root"]))
         target = destination
     env = base_environment()
-    env.update(HOME=str(scratch / "home"), TMPDIR=str(scratch / "tmp"),
+    env.update(HOME=str(scratch / "home"), PATH=runtime.path, TMPDIR=str(scratch / "tmp"),
                TMP=str(scratch / "tmp"), TEMP=str(scratch / "tmp"),
                UV_CACHE_DIR=str(scratch / "uv-cache"), XDG_CACHE_HOME=str(scratch / "home/.cache"))
     if "PYTHONWARNINGS" in os.environ:
@@ -55,21 +52,17 @@ def execute(meta: dict, destination: Path, argv: list[str], run, base_environmen
             raise ValueError(f"missing L2 birth environment input: {key}")
         env[key] = os.environ[key]
     cmd = ["bwrap", "--die-with-parent", "--unshare-pid", "--unshare-ipc", "--unshare-uts"]
-    for path in ("/usr", "/bin", "/sbin", "/lib", "/lib64", "/etc"):
-        if Path(path).exists():
-            cmd += ["--ro-bind", path, path]
-    resolver = Path("/etc/resolv.conf").resolve(strict=True)
-    if not resolver.is_relative_to("/etc"):
-        cmd += ["--ro-bind", str(resolver), str(resolver)]
+    cmd += system_bindings()
     cmd += ["--ro-bind", meta["company_root"], meta["company_root"]]
     cmd += ["--bind", str(scratch), str(scratch)]
     adapter = Path(__file__).with_name("l2_birth_completion.py").resolve(strict=True)
     completion = scratch / "copy-completed.txt"
     # These inputs stay read-only even when located inside scratch or the child.
-    for path in [program, adapter, *map(Path, meta["data_files"])]:
+    cmd += runtime.bindings
+    for path in [adapter, *map(Path, meta["data_files"])]:
         cmd += ["--ro-bind", str(path), str(path)]
     cmd += ["--dev", "/dev", "--proc", "/proc", "--chdir", str(destination),
-            str(program), *argv[1:len(prefix)+1], "python", "-B", str(adapter), str(completion), *argv[len(prefix)+2:]]
+            runtime.program, *argv[1:len(prefix)+1], "python", "-B", str(adapter), str(completion), *argv[len(prefix)+2:]]
     expected = meta["destination_snapshot"]["identity"] if target == destination else None
     with directory(target, create=not readonly, expected=expected) as root_fd:
         meta["execution_root_identity"] = identity(root_fd)

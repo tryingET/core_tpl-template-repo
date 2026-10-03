@@ -15,6 +15,7 @@ from pathlib import Path
 
 import yaml
 from l2_birth_safety import directory, record_answers
+from l2_birth_runtime import runner, system_bindings
 
 TEMPLATES = {"tpl-project-repo", "tpl-agent-repo", "tpl-org-repo", "tpl-monorepo", "tpl-package"}
 _active: subprocess.Popen | None = None
@@ -299,22 +300,14 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
     renderer = checked_path(clone / "scripts/render-l1.sh")
     for name in ("tmp", "home", "uv-cache"):
         (scratch / name).mkdir()
+    runtime = runner(scratch)
     env = environment()
-    env.update(HOME=str(scratch / "home"), PATH="/usr/local/bin:/usr/bin:/bin",
+    env.update(HOME=str(scratch / "home"), PATH=runtime.path,
                TMPDIR=str(scratch / "tmp"), TMP=str(scratch / "tmp"), TEMP=str(scratch / "tmp"),
                UV_CACHE_DIR=str(scratch / "uv-cache"), XDG_CACHE_HOME=str(scratch / "home/.cache"),
                COPIER_VERSION="9.11.1", COPIER_VCS_REF="HEAD")
-    # No unpinned fallback inside the owner render.
-    if not any(subprocess.run([name, "--version"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
-               for name in ("uvx", "uv") if __import__("shutil").which(name, path=env["PATH"])):
-        raise ValueError("pinned L0 rendering requires system uvx/uv")
     cmd = ["bwrap", "--die-with-parent", "--unshare-pid", "--unshare-ipc", "--unshare-uts"]
-    for path in ("/usr", "/bin", "/sbin", "/lib", "/lib64", "/etc"):
-        if Path(path).exists():
-            cmd += ["--ro-bind", path, path]
-    resolver = Path("/etc/resolv.conf").resolve(strict=True)
-    if not resolver.is_relative_to("/etc"):
-        cmd += ["--ro-bind", str(resolver), str(resolver)]
+    cmd += system_bindings()
     cmd += ["--ro-bind", str(company), str(company), "--bind", str(scratch), str(scratch),
             "--ro-bind", str(render_input), str(render_input)]
     # Preserve source-owned ontology index topology without copying company
@@ -326,8 +319,12 @@ def prepare(company: Path, template: str, destination: Path, scratch: Path, args
         else:
             (render_input / ".git").touch()
         cmd += ["--ro-bind", str(metadata), str(render_input / ".git")]
-    cmd += ["--dev", "/dev", "--proc", "/proc", "--chdir", str(clone),
-            "sh", str(renderer), str(render_input), str(render), repo_slug]
+    cmd += runtime.bindings
+    cmd += ["--dev", "/dev", "--proc", "/proc", "--chdir", str(clone)]
+    # Preflight and render share one sandbox/mount: even a host-side executable
+    # replacement cannot switch the binary between the query and actual copy.
+    cmd += ["/bin/sh", "-c", '"$1" --version >/dev/null && exec /bin/sh "$2" "$3" "$4" "$5"',
+            "pinned-owner-render", runtime.program, str(renderer), str(render_input), str(render), repo_slug]
     # The renderer also makes its own Git clone through Copier. Keep source
     # template modes canonical inside the same 0700 private sandbox.
     run(cmd, env=env, umask=0o022)

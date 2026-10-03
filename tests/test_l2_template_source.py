@@ -11,12 +11,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 import yaml
-from tests.l2_birth_test_support import stub_l0, company_seal, dump
+from tests.l2_birth_test_support import stub_l0, company_seal, dump, native_uv_pair
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "copier-template/scripts/lib"))
 import l2_birth_execution as execution
 import l2_birth_safety as safety
+import l2_birth_runtime as runtime
 
 SPEC = importlib.util.spec_from_file_location("l2_template_source", ROOT / "copier-template/scripts/lib/l2_template_source.py")
 source = importlib.util.module_from_spec(SPEC)
@@ -63,6 +64,141 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(value["_src_path"], "~/ai-society/otherco/copier/tpl-project-repo")
         self.assertEqual(answers.stat().st_mode & 0o777, 0o600)
         self.assertEqual(subprocess.check_output(["git", "-C", str(self.l0), "rev-parse", "HEAD"]), before)
+
+    def test_external_native_runner_bound_readonly_with_same_sandbox_preflight(self):
+        outside = native_uv_pair(self.root)
+        observed = []
+        original = source.run
+        def observe(cmd, **kwargs):
+            if cmd[0] == "bwrap":
+                observed.append((cmd, kwargs["env"]))
+            return original(cmd, **kwargs)
+        with patch.dict(os.environ, {"PATH": f"{outside}:{os.environ['PATH']}",
+                                     "GIT_DIR": "/bad", "LD_PRELOAD": "/bad"}), \
+                patch.object(source, "run", side_effect=observe):
+            meta = self.prepare()
+        self.assertEqual(meta["l0_commit"], self.pin)
+        self.assertFalse((self.company / "copier").exists())
+        self.assertFalse(self.child.exists())
+        self.assertEqual(len(observed), 1)  # One mount for actual preflight + stub owner render.
+        cmd, _ = observed[0]
+        self.assertEqual(cmd[-6:-4], ["pinned-owner-render", f"{runtime.RUNTIME}/uvx"])
+        self.assertEqual(cmd[cmd.index("-c")+1],
+                         '"$1" --version >/dev/null && exec /bin/sh "$2" "$3" "$4" "$5"')
+        for cmd, env in observed:
+            for name in ("uvx", "uv"):
+                self.assertIn(["--ro-bind", str(outside / name), str(outside / name)],
+                              [cmd[i:i+3] for i in range(len(cmd))])
+                self.assertIn(["--ro-bind", str(outside / name), f"{runtime.RUNTIME}/{name}"],
+                              [cmd[i:i+3] for i in range(len(cmd))])
+            self.assertNotIn(str(outside), cmd)  # No surrounding install/HOME/socket mount.
+            self.assertEqual(env["PATH"], f"{runtime.RUNTIME}:{runtime.SYSTEM_PATH}")
+            self.assertEqual(env["HOME"], str(self.scratch / "home"))
+            self.assertEqual(env["UV_CACHE_DIR"], str(self.scratch / "uv-cache"))
+            self.assertEqual(env["COPIER_VERSION"], "9.11.1")
+            self.assertEqual(env["GIT_CONFIG_GLOBAL"], "/dev/null")
+            self.assertNotIn("GIT_DIR", env)
+            self.assertNotIn("LD_PRELOAD", env)
+
+    def test_external_uv_only_cannot_fall_through_to_system_uvx(self):
+        outside = native_uv_pair(self.root)
+        original = shutil.which
+        def discovered(name, *args, **kwargs):
+            return None if name == "uvx" else original(name, *args, **kwargs)
+        with patch.dict(os.environ, {"PATH": f"{outside}:{os.environ['PATH']}"}), \
+                patch.object(runtime.shutil, "which", side_effect=discovered):
+            self.prepare()
+            bound = runtime.runner(self.scratch, "uv")
+            cmd = ["bwrap", "--die-with-parent", *runtime.system_bindings(),
+                   "--bind", str(self.scratch), str(self.scratch), *bound.bindings,
+                   "--dev", "/dev", "--proc", "/proc", f"{runtime.RUNTIME}/uvx", "--help"]
+            self.assertIn("Usage: uv tool run", source.run(cmd, env={**source.environment(), "PATH": bound.path}))
+            with self.assertRaisesRegex(ValueError, "Read-only file system"):
+                source.run([*cmd[:-2], "/bin/sh", "-c", f'printf unsafe >> "{self.scratch / "uvx-dispatch.sh"}"'],
+                           env={**source.environment(), "PATH": bound.path})
+        self.assertEqual(bound.program, f"{runtime.RUNTIME}/uv")
+        self.assertEqual((self.scratch / "uvx-dispatch.sh").read_text(),
+                         f'#!/bin/sh\nexec {runtime.RUNTIME}/uv tool run "$@"\n')
+        self.assertIn(str(outside / "uv"), bound.bindings)
+        self.assertNotIn("/usr/bin/uvx", bound.bindings)
+
+    def test_missing_and_unavailable_bound_runner_fail_closed_before_owner_render(self):
+        with patch.object(runtime.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(ValueError, "runner unavailable"):
+                self.prepare()
+        self.assertFalse((self.scratch / "render").exists())
+        self.assertFalse(self.child.exists())
+        # Direct helper refuses missing adjacent uv; never search system PATH.
+        outside = self.root / "missing-sibling"
+        outside.mkdir()
+        fake = outside / "uvx"
+        fake.write_bytes(b"\x7fELF unavailable executable")
+        fake.chmod(0o755)
+        with patch.dict(os.environ, {"PATH": f"{outside}:{os.environ['PATH']}"}):
+            with self.assertRaisesRegex(ValueError, "runner unavailable"):
+                runtime.runner(self.scratch)
+            (outside / "uv").write_bytes(fake.read_bytes())
+            (outside / "uv").chmod(0o755)
+            bound = runtime.runner(self.scratch)
+            cmd = ["bwrap", "--die-with-parent", *runtime.system_bindings(),
+                   *bound.bindings, "--dev", "/dev", "--proc", "/proc",
+                   bound.program, "--version"]
+            with self.assertRaisesRegex(ValueError, "pinned template command failed"):
+                source.run(cmd, env={**source.environment(), "PATH": bound.path})
+
+    def test_selected_outside_runner_failure_never_preflights_system_binary(self):
+        outside = self.root / "failed-runner"
+        outside.mkdir()
+        fake = outside / "uvx"
+        fake.write_text("#!/bin/sh\nexit 73\n")
+        fake.chmod(0o755)
+        with patch.dict(os.environ, {"PATH": f"{outside}:{os.environ['PATH']}"}):
+            with self.assertRaisesRegex(ValueError, r"command failed \(73\)"):
+                self.prepare()
+        self.assertFalse((self.scratch / "render").exists())
+        self.assertFalse(self.child.exists())
+
+    def test_unknown_external_interpreters_and_nonexecutables_are_not_bound(self):
+        path = self.root / "uvx"
+        for content, mode in ((b"#!/outside/python\n", 0o755),
+                              (b"#!/usr/bin/env -S python3 -I\n", 0o755),
+                              (b"", 0o755), (b"#!/bin/sh\n", 0o644)):
+            path.write_bytes(content)
+            path.chmod(mode)
+            with patch.object(runtime.shutil, "which", return_value=str(path)):
+                with self.assertRaisesRegex(ValueError, "unsupported|not an executable"):
+                    runtime.runner(self.scratch)
+
+    def test_final_executor_uses_same_external_binding_policy_and_completion(self):
+        meta = self.prepare()
+        outside = native_uv_pair(self.root)
+        def observed_run(cmd, *, env, pass_fds):
+            self.assertIn(["--ro-bind", str(outside / "uvx"), f"{runtime.RUNTIME}/uvx"],
+                          [cmd[i:i+3] for i in range(len(cmd))])
+            self.assertIn(["--ro-bind", str(outside / "uv"), f"{runtime.RUNTIME}/uv"],
+                          [cmd[i:i+3] for i in range(len(cmd))])
+            self.assertEqual(cmd[cmd.index("--chdir")+2], f"{runtime.RUNTIME}/uvx")
+            self.assertEqual(env["PATH"], f"{runtime.RUNTIME}:{runtime.SYSTEM_PATH}")
+            self.assertNotIn(str(outside), cmd)
+            self.assertEqual(len(pass_fds), 1)
+            # Controlled signal only; real Copier completion is RendererTests.
+            (self.scratch / "copy-completed.txt").write_text("non-pretend-copy-completed\n")
+        with patch.dict(os.environ, {"PATH": f"{outside}:{os.environ['PATH']}"}):
+            execution.execute(meta, self.child,
+                              ["uvx", "--from", "copier==9.11.1", "copier", "copy", meta["template_path"], str(self.child)],
+                              observed_run, source.environment, source.check_before_copy, source.destination_guard)
+        self.assertTrue(meta["copy_completed"])
+
+    def test_missing_final_runner_refused_before_child_creation(self):
+        meta = self.prepare()
+        with patch.object(runtime.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(ValueError, "runner unavailable"):
+                execution.execute(meta, self.child,
+                                  ["uvx", "--from", "copier==9.11.1", "copier", "copy", meta["template_path"], str(self.child)],
+                                  lambda *a, **k: self.fail("must not launch"),
+                                  source.environment, source.check_before_copy, source.destination_guard)
+        self.assertFalse(self.child.exists())
+        self.assertFalse((self.scratch / "copy-completed.txt").exists())
 
     def test_only_explicit_no_effect_operations_may_omit_answers(self):
         self.prepare("--pretend")

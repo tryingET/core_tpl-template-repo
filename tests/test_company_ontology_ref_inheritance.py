@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 
 import yaml
-from tests.l2_birth_test_support import stub_l0, company_seal
+from tests.l2_birth_test_support import stub_l0, company_seal, native_uv_pair
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "copier-template"
@@ -72,6 +72,9 @@ import json, os, sys
 from pathlib import Path
 import yaml
 
+if sys.argv[1:] == ['--version']:
+    print('uvx controlled transport double')
+    raise SystemExit(0)
 adapter_args = sys.argv[1:]
 completion = Path(adapter_args[5])
 args = adapter_args[:2] + ['copier'] + adapter_args[6:]
@@ -260,7 +263,7 @@ completion.write_text('non-pretend-copy-completed\\n')
     def test_source_fixture_copies_and_budgets(self) -> None:
         for relative in ("scripts/new-repo-from-copier.sh", "scripts/lib/company-ontology-ref.sh",
                          "scripts/lib/l2_template_source.py", "scripts/lib/l2_birth_execution.py",
-                         "scripts/lib/l2_birth_safety.py"):
+                         "scripts/lib/l2_birth_safety.py", "scripts/lib/l2_birth_runtime.py"):
             self.assertEqual((SOURCE / relative).read_bytes(),
                              (ROOT / "fixtures/l1/template-repo" / relative).read_bytes())
             self.assertLessEqual(len((SOURCE / relative).read_text().splitlines()), 500)
@@ -328,6 +331,28 @@ class RendererTests(unittest.TestCase):
             self.assertEqual(next(layer["ref"] for layer in layers if layer["name"] == "company"), expected)
         else:
             self.assertFalse(manifest.exists(), "metadata-only archetype gained ontology activation")
+
+    def test_external_native_uv_actual_pinned_source_birth_without_company_copies(self) -> None:
+        outside = native_uv_pair(self.root)
+        self.env["PATH"] = f"{outside}:{self.env['PATH']}"
+        self.render_l1()
+        # Preserve the scratch copy, but remove it from the company's birth path.
+        (self.l1 / "copier").rename(self.root / "unused-company-copier")
+        parent = yaml.safe_load((self.l1 / ".copier-answers.yml").read_text())
+        before = tree(self.l1)
+        dest = self.root / "external-runner-child"
+        self.render_child("tpl-project-repo", dest)
+        child = yaml.safe_load((dest / ".copier-answers.yml").read_text())
+        self.assertEqual(child["_template_lineage"], {
+            "company": "otherco", "template": "tpl-project-repo", "l0_commit": parent["l0_source_sha"]})
+        self.assertEqual(child["_src_path"], "~/ai-society/otherco/copier/tpl-project-repo")
+        self.assertEqual(yaml.safe_load((dest / "contracts/layer-contract.yml").read_text())["layer"], "L2")
+        self.assertEqual(tree(self.l1), before)
+        self.assertFalse((self.l1 / "copier").exists())
+        # Real rerender completion preserves the immutable birth/source pin.
+        prior = tree(dest)
+        self.render_child("tpl-project-repo", dest)
+        self.assertEqual(tree(dest), prior)
 
     def test_fresh_children_persist_and_reruns_preserve_choices(self) -> None:
         # Shell-active text is data, including on the real render path.
