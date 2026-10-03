@@ -120,3 +120,46 @@ work custody. Live API05:47Z still showed PR10 OPEN with no merge timestamp,
 contrary to an unverified merge report; no merge authority is inferred.
 
 Follow-up native and hosted verification remains pending at this capture.
+
+## Given / When / Then causal proof and final native result — 11:15:02Z
+
+Operator additionally required retrospective causal red-green checks in disposable
+clones, using unittest rather than adding Cucumber. Commands and raw results are
+retained in `diary/ak6351-ci-tdd/` (the proof scripts are captures, not new operator
+entrypoints). All scenarios use the compatible public ROCS commit above, frozen
+lock, explicit L0 source roots, private scratch and normal umask022.
+
+| Given / When / Then scenario | Pre-fix RED | Candidate GREEN |
+| --- | --- | --- |
+| No workstation AK; run both formerly failing ownership lifecycle methods through real template/full CI; each owns its proper synthetic authority | `dd067dd`: same two methods, exit1 / 2 failures, both `missing ak command: ak`, 353.447s; unrelated prerequisites present | final focused cohort passes both methods and the poisoned-ambient two-gate regression |
+| Clean template bytes; focused gate child imports the actual ownership module using SourceFileLoader; source stays bytecode-free | `d6cf555`: new cache scenario, exit1 / 1 failure, exact cache-contamination assertion, 0.279s; all imports complete | focused subprocess explicitly binds bytecode policy; assertion passes even after removing aggregate ambient policy |
+| Golden births must not read workstation/GitHub owner identity | `b09ce28`: clean-HOME full run refused fixture-owner drift; new input-binding assertion also RED before fix | fixture check/sync explicitly supply existing golden `@tryinget` values for all8 project/monorepo births; production inference unchanged |
+
+The first new full verification exposed bytecode left by a focused subprocess;
+the render-only and fixture protections correctly refused it. The identified
+session-owned cache was removed only after confirming no running test process.
+The causal regression now recreates that import boundary in owned scratch rather
+than merely relying on manual cleanup. The subsequent clean-HOME full run exposed
+implicit fixture-owner identity, which was fixed in harness arguments, not golden
+outputs or production defaults. These intermediate red attempts are retained.
+
+Final code subject `e2ec8191ededa6b80082dbb12ee93825d4435a19`:
+- Hosted-like PATH contains no `ak`; HOME is private empty scratch; ROCS is the
+  explicitly fetched public pin; no private workspace runtime/core is consumed.
+- `uvx --from copier==9.11.1 python -B -m unittest` explicit GWT/hosted/ownership
+  cohort:11 tests pass,848.752s.
+- `bash scripts/check-l0-fixtures.sh`: focused pass99.303s with no GitHub actor,
+  owner override environment, or workstation Git identity.
+- `bash scripts/check-l0.sh`: native7/7, exit0, zero skips,3893.343s. Guardrails907s,
+  docs/checkpoint/supply-chain0s, generation2502s, adversarial383s, fixtures101s.
+- Source cache inventory remains empty both after focused checks and after full
+  validation. Finite owner and production bounds are unchanged. Two existing Git
+  re-init warnings remain informational.
+- Strict docs and real tracked docs-reference check pass; `git diff --check` and
+  clean tracked status pass. Default AK closure reconciliation remains separately
+  disclosed, not falsely claimed as executed.
+
+This capture-only update does not change the verified code. Final exact-head
+hosted proof is still pending. No merge, task completion or company rollout is
+performed. Coordination follow-ups6512/6530 and ordered6352/6353 stay held for their
+own exact-task/source-admission authority;6160 overlap is explicitly coordinated.
