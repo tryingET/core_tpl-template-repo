@@ -1,0 +1,26 @@
+Docs — 614 match(es) — page 1/31
+AGENTS.md - AGENTS.md — tpl-template-repo.
+CONTRIBUTING.md - Contributing.
+README.md - tpl-template-repo L0.
+copier-template/CHANGELOG.md - Changelog.
+copier-template/CONTRIBUTING.md - Contributing L1 generated repo.
+copier-template/SECURITY.md - Security Policy.
+copier-template/copier/tpl-agent-repo/diary/README.md - Diary guidance for copier-template / copier / tpl-agent-repo / diary.
+copier-template/copier/tpl-agent-repo/docs/decisions/README.md - How to record agent-repo decisions and proposal-stage RFCs.
+copier-template/copier/tpl-agent-repo/docs/learnings/README.md - Learnings guidance for copier-template / copier / tpl-agent-repo / docs / learnings.
+copier-template/copier/tpl-agent-repo/docs/person/README.md - Agent persona docs (editable canonical inputs owned by the agent).
+copier-template/copier/tpl-agent-repo/docs/person/behavior_rules.md - Behavior rules and preferences.
+copier-template/copier/tpl-agent-repo/docs/person/dream_goal.md - Long-term aspiration (dream goal).
+copier-template/copier/tpl-agent-repo/docs/person/identity.md - Agent identity: name, scope, anti-goals.
+copier-template/copier/tpl-agent-repo/docs/person/main_task.md - Primary task(s) for this agent.
+copier-template/copier/tpl-agent-repo/docs/person/reason.md - Why this agent exists (reason).
+copier-template/copier/tpl-agent-repo/docs/system4d/compass.md - System4D: Compass (driver/outcome) for this agent.
+copier-template/copier/tpl-agent-repo/docs/system4d/container.md - System4D: Container (boundary/constraints) for this agent.
+copier-template/copier/tpl-agent-repo/docs/system4d/engine.md - System4D: Engine (states/invariants/lifecycle) for this agent.
+copier-template/copier/tpl-agent-repo/docs/system4d/fog.md - System4D: Fog (risks/assumptions/exceptions/debt) for this agent.
+copier-template/copier/tpl-agent-repo/governance/README.md - Governance guidance for copier-template / copier / tpl-agent-repo / governance.
+Showing 20 of 614 match(es) (page 1/31).
+Next steps: --page 2, --full-list, --verbose
+Strict check: pass
+
+Reminder: keep docs up to date as behavior changes. When your task matches any "Read when" hint above, read that doc before coding, and add missing coverage.
