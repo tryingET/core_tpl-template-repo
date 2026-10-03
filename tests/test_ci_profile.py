@@ -80,7 +80,10 @@ class Cases(unittest.TestCase):
 '''
         plain, observed, report = self.invoke(source)
         self.assertEqual(plain.returncode, observed.returncode)
-        self.assertEqual(observed.returncode, 1)
+        # Some stdlib patch releases report no-tests (5) before fixture-error
+        # status (1). Preserve the actual reference policy, never green either.
+        self.assertNotEqual(observed.returncode, 0)
+        self.assertFalse(report["successful"])
         self.assertEqual(report["tests_run"], 0)
         self.assertEqual(report["collected_ids"], ["sample.Cases.test_not_run"])
         self.assertEqual(report["events"][0]["kind"], "fixture")
