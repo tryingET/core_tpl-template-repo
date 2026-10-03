@@ -1,0 +1,28 @@
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+..................................................................../home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pathspec.py:326: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  patterns = [use_factory(__line) for __line in lines if __line]  # type: ignore[arg-type]
+/home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pattern.py:125: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  raw_regex, include = self.pattern_to_regex(pattern)
+....F.......................
+======================================================================
+FAIL: test_explicit_bootstrap_attests_old_paths_without_retiring_them (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_explicit_bootstrap_attests_old_paths_without_retiring_them)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 394, in test_explicit_bootstrap_attests_old_paths_without_retiring_them
+    self.checked("sh", str(ROOT / "scripts/propagate-l1-template.sh"), str(self.repo),
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                 "--bootstrap-map", "--evidence-ref", "evidence:123", "--apply")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 103, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/propagate-l1-template.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790972096-1b31e89b3ce9ba3f/work/tmp/l1-upgrade-4nnyaumy/case-qbtd7azf/repo', '--bootstrap-map', '--evidence-ref', 'evidence:123', '--apply'): 2 != 0
+
+error: L1 mutation requires a clean L0 worktree at an exact commit
+
+
+----------------------------------------------------------------------
+Ran 96 tests in 766.980s
+
+FAILED (failures=1)
+error: L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed
+heavy_job_result=failure exit_status=1 scratch_cleanup=removed

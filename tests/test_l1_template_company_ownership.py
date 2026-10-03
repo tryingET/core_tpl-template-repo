@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -33,15 +34,38 @@ def commit(repo: Path, message: str, *paths: str) -> str:
     return git(repo, "rev-parse", "HEAD")
 
 
+def bind_runtime_pin(repo: Path) -> None:
+    """Golden fixture normalization is not a runtime birth/source pin."""
+    pin = git(ROOT, "rev-parse", "HEAD")
+    for relative, placeholder in (
+        (".copier-answers.yml", "__VOLATILE_L0_SOURCE_SHA__"),
+        ("contracts/provenance-seal.yml", "__VOLATILE_SOURCE_SHA__"),
+    ):
+        path = repo / relative
+        raw = path.read_text()
+        assert raw.count(placeholder) == 1
+        path.write_text(raw.replace(placeholder, pin))
+
+
 class CompanyHarness(Harness):
     def __init__(self, parent: Path):
         super().__init__(parent, legacy_schema=True)
+        bind_runtime_pin(self.repo)
+        self.base = commit(self.repo, "bind runtime fixture to exact L0 source",
+                           ".copier-answers.yml", "contracts/provenance-seal.yml")
         self.next_map.write_text((self.repo / MAP).read_text().replace(
             "schema: ai-society.template-ownership/1", "schema: ai-society.template-ownership/2"
         ).replace("  - ontology/**\n", "") + "company_owned:\n  - ontology/**\n")
-        self.spec.update(git_delta=[])
+        self.spec.update(adr_commit=self.base, git_delta=[])
         self.spec_path.write_text(json.dumps(self.spec))
         self.original_task = None
+
+    def run_gate(self, gate: dict):
+        # Full CI needs this fixture's AK even for an empty snapshot directory.
+        # Template CI owns a separate snapshot-capable fixture; do not override it.
+        binding = ["env", f"AK_CMD={self.ak}"] if gate["id"] == "ci-full" else ["env", "-u", "AK_CMD"]
+        return run(*binding, f"L0_TEMPLATE_ROOT={ROOT}", "PYTHONDONTWRITEBYTECODE=1",
+                   "bash", *gate["command"].split()[1:], cwd=self.repo)
 
     def finish(self, plan: dict, real_gates: bool = False) -> dict:
         previous = copy.deepcopy(self.evidence)
@@ -52,7 +76,7 @@ class CompanyHarness(Harness):
         results = {"check-template-ci": 0, "ci-full": 0}
         if real_gates:
             for gate in TRANSITIONS.REQUIRED_VALIDATION:
-                result = run("bash", *gate["command"].split()[1:], cwd=self.repo)
+                result = self.run_gate(gate)
                 results[gate["id"]] = result.returncode
         else:
             run("python3", "-I", "-S", "-B", CHECKER, cwd=self.repo)
@@ -97,6 +121,22 @@ class CompanyHarness(Harness):
 
 
 class CompanyOntologyTests(unittest.TestCase):
+    def test_real_full_ci_binds_fixture_ak_without_ambient_runtime(self) -> None:
+        """GIVEN no ambient AK; WHEN both real gates run; THEN owned fixtures pass."""
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
+            h = CompanyHarness(Path(name))
+            refused = run("env", "AK_CMD=/definitely/missing-ak", "bash", "scripts/ci/full.sh",
+                          cwd=h.repo, expect=1)
+            self.assertIn("missing ak command", refused.stderr)
+            with mock.patch.dict(os.environ, {"AK_CMD": "/definitely/missing-ak"}):
+                for gate in TRANSITIONS.REQUIRED_VALIDATION:
+                    result = h.run_gate(gate)
+            # ci-full is last; template CI also passed with its own scoped fixture.
+            self.assertIn("ok: no task-scope snapshots", result.stdout)
+            self.assertIn("ok: ci full", result.stdout)
+            # The authority double must still refuse any unsupported scope request.
+            run(str(h.ak), "task", "scope", "export", "321", cwd=h.repo, expect=2)
+
     def test_real_forward_and_receipted_reverse_restore_ownership(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
@@ -278,7 +318,8 @@ class CompanyOntologyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
             # Actual pre-AK6328 readers from published main, not a private local ref.
-            for rel in (CHECKER, "scripts/check-template-ci.sh"):
+            for rel in (CHECKER, "scripts/check-template-ci.sh", "scripts/new-repo-from-copier.sh",
+                        "scripts/lib/company-ontology-ref.sh"):
                 original = TRANSITIONS.git_bytes(ROOT, "show", f"72828add2ec38e3a41aacd7fa0c6b4232a7595a3:copier-template/{rel}")
                 (h.repo / rel).write_bytes(original)
             (h.repo / "scripts/lib/l1_ontology_ownership.py").unlink()
@@ -286,6 +327,7 @@ class CompanyOntologyTests(unittest.TestCase):
             run("bash", "scripts/check-template-ci.sh", cwd=h.repo)
             incoming = h.parent / "incoming"
             shutil.copytree(FIXTURE, incoming)
+            bind_runtime_pin(incoming)
             prepared = h.parent / "prepared"
             before = controls(h.repo)
             run("python3", str(ROOT / "scripts/lib/l1_template_ownership.py"), "--repo-root", str(h.repo),
@@ -298,7 +340,7 @@ class CompanyOntologyTests(unittest.TestCase):
 
             def checked_finalize(*args):
                 for gate in TRANSITIONS.REQUIRED_VALIDATION:
-                    run("bash", *gate["command"].split()[1:], cwd=h.repo)
+                    h.run_gate(gate)
                 return real_finalize(*args)
 
             with mock.patch.object(RECEIPTS, "finalize", side_effect=checked_finalize):

@@ -1,4 +1,8 @@
 _src_path: __VOLATILE_SRC_PATH__
+_template_lineage:
+  company: holdingco
+  l0_commit: __VOLATILE_L0_COMMIT__
+  template: tpl-project-repo
 company_name: Holding Company
 company_ontology_ref: <repo:holdingco/ontology@main>
 company_slug: holdingco
@@ -15,5 +19,3 @@ org_owner_handle: '@org-owners'
 project_owner_handle: '@tryinget'
 repo_slug: fixture-project-elixir
 rocs_cli_version: 0.4.4
-
-

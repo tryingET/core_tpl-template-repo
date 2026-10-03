@@ -1,0 +1,18 @@
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+..................................................................../home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pathspec.py:326: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  patterns = [use_factory(__line) for __line in lines if __line]  # type: ignore[arg-type]
+/home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pattern.py:125: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  raw_regex, include = self.pattern_to_regex(pattern)
+............................
+----------------------------------------------------------------------
+Ran 96 tests in 777.062s
+
+OK
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.098s
+
+OK
+ok: l0 rocs consumer model
+ok: l0 guardrails
+heavy_job_result=success scratch_cleanup=removed

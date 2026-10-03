@@ -1,0 +1,15 @@
+{
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "7200s",
+    "bash",
+    "scripts/check-l0-generation.sh"
+  ],
+  "cwd": "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667",
+  "started_utc": "2026-10-02T17:28:38.733583+00:00",
+  "finished_utc": "2026-10-02T18:00:38.562286+00:00",
+  "elapsed_ns": 1919824092874,
+  "elapsed_seconds": 1919.824092874,
+  "exit_code": 1
+}

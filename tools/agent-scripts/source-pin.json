@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/tryingET/agent-scripts",
+  "commit": "81fa62b9fcf312a9939f8b4e8f6270951f1dfab0",
+  "files": {
+    "scripts/docs-ref-check.mjs": "9091d034c84a1f034e81505cd3d2f4dd85f9f6fcf50b1bc1651483fbbd5966b2",
+    "scripts/lib/docs-ref-check-core.mjs": "445c31977adfe7ddf02f27d56905eeb99af432b1bafce437c593d11a46e8b473",
+    "scripts/lib/list-core.mjs": "39747a49d8f7a9bf10a178461aa2fe525f610b51b3a7930ce631fd9f0196d70c",
+    "scripts/lib/list-core/args.mjs": "356ec40334eeee8a901df52563ecaff3cd6ef414186aea61cc90cafc4b7bcf55",
+    "scripts/lib/list-core/cli-output.mjs": "8c526e12a7c495d93471164dc53f0c1a65e42dad66161d272757ad73cc1ebc56",
+    "scripts/lib/list-core/fs-paths.mjs": "dc6e1bf84001e86fb83f1eb3e7f2707e2f09ee81574d572f8ba9fff09bf485fa",
+    "scripts/lib/list-core/text-parse.mjs": "7d4ce36aec4c5303bdb58f4c708b9d54d6961842ecd9843c5269e1b9b7499eab"
+  }
+}

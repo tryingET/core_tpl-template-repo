@@ -13,6 +13,12 @@ normalize_fixture_tree_volatiles() {
   find "$tree" -type f -name '.copier-answers.yml' | while IFS= read -r answers_file; do
     normalized_file="${answers_file}.normalized"
     awk '
+      /^_template_lineage:$/ { lineage = 1; print; next }
+      /^[^[:space:]]/ { lineage = 0 }
+      lineage && /^  l0_commit:/ {
+        print "  l0_commit: __VOLATILE_L0_COMMIT__"
+        next
+      }
       /^_commit:/ {
         print "_commit: __VOLATILE_COMMIT__"
         next

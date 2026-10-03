@@ -1,0 +1,23 @@
+timeout policy: base=1800s generation=3600s adversarial=1800s fixtures=1800s runner=timeout
+ok: check-l0-guardrails (739s, warnings: 0, timeout: 1800s)
+ok: check-doc-references (0s, warnings: 0, timeout: 1800s)
+ok: check-session-checkpoint (0s, warnings: 0, timeout: 1800s)
+ok: check-supply-chain (1s, warnings: 0, timeout: 1800s)
+warning[check-l0-generation]:
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+ok: check-l0-generation (2181s, warnings: 2, timeout: 3600s)
+ok: check-l0-adversarial (349s, warnings: 0, timeout: 1800s)
+ok: check-l0-fixtures (92s, warnings: 0, timeout: 1800s)
+overview:
+  passed: 7
+  failed: 0
+  skipped: 0
+  warnings: 2
+  - check-l0-guardrails: ok (739s, warnings: 0)
+  - check-doc-references: ok (0s, warnings: 0)
+  - check-session-checkpoint: ok (0s, warnings: 0)
+  - check-supply-chain: ok (1s, warnings: 0)
+  - check-l0-generation: ok (2181s, warnings: 2)
+  - check-l0-adversarial: ok (349s, warnings: 0)
+  - check-l0-fixtures: ok (92s, warnings: 0)

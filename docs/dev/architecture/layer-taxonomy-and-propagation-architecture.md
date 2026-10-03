@@ -70,7 +70,8 @@ The architecture below separates those concerns so a propagation plan can target
 
 **What it is**
 - a company-root template/control-plane repo generated from L0
-- embeds L2 templates and company-specific policy
+- contributes company configuration, company-owned policy/files, and later overlays
+- does not own or customize copies of L0's L2 templates (accepted decision 167)
 
 **Canonical examples**
 - `~/ai-society/softwareco`
@@ -79,18 +80,30 @@ The architecture below separates those concerns so a propagation plan can target
 **Authority**
 - company policy
 - lane layout
-- embedded L2 template catalog
+- company answers and the pinned L0 commit
+- reserved company-owned `copier-overlay/<template>/**`, not an implemented overlay engine
 - company-level deterministic wrappers
 
 **Allowed outbound transition**
 - `L1 -> L2`
+
+**Birth and migration contract (decision 167)**
+The lineage remains `L0 -> L1 -> L2`: L1 contributes its configuration, not copied
+L2 template authority. `new-repo-from-copier.sh` stages an independent exact-commit
+L0 clone, performs the company render, and creates the child from that final L2
+archetype. It records the closed `_template_lineage` block (company, template,
+full L0 commit); disposable scratch paths are not retained as child source locators.
+Existing company copies remain during the ordered migration until AK 6352's
+per-company operator-released deletion waves. `copier-overlay/**` is reserved and
+empty today; the first real customization request starts overlay implementation.
+No existing L2 repo is migrated by the birth wrapper.
 
 ---
 
 ### L2 — standalone repo generated from L1
 
 **What it is**
-- a repo generated from an L1 template and managed as its own repo boundary
+- a repo born from L0's template rendered for L1 at the company's pinned L0 commit, with its own repo boundary
 - may be a project repo, agent repo, org repo, monorepo root, or a special lane-root/group-root control-plane repo
 
 **Canonical examples**

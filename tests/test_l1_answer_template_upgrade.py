@@ -64,14 +64,21 @@ class UpgradeHarness(unittest.TestCase):
         ak.chmod(0o755)
         # Route all child Python/YAML reads to this pinned interpreter as well.
         (bin_dir / "python3").symlink_to(sys.executable)
-        cls.env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", AK_CMD=str(ak),
+        cls.env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", AK_CMD=str(ak), L0_TEMPLATE_ROOT=str(ROOT),
                        PYTHONDONTWRITEBYTECODE="1", COPIER_ANSWERS_PYTHON=sys.executable,
                        DISABLE_PROJECT_OWNER_HANDLE_INFERENCE="1", COPIER_VCS_REF="HEAD")
+        # Copier does not recognize linked-worktree .git files as local VCS
+        # sources: -r there silently renders HEAD's files. Use an independent
+        # ordinary clone so the historical upgrade fixture really is BASE.
+        cls.base_source = cls.root / "base-source"
+        cls.checked("git", "clone", "--quiet", "--no-local", str(ROOT), str(cls.base_source))
+        cls.checked("git", "-C", str(cls.base_source), "-c", "core.hooksPath=/dev/null",
+                    "checkout", "--quiet", "--detach", BASE)
         cls.base = cls.root / "base"
         cls.incoming = cls.root / "incoming"
         cls.checked("uvx", "--from", "copier==9.11.1", "copier", "copy", "--trust", "--quiet",
                     "-r", BASE, "--defaults", "--overwrite", "-d", "repo_slug=upgrade-test",
-                    str(ROOT), str(cls.base))
+                    str(cls.base_source), str(cls.base))
         cls.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(cls.incoming),
                     "--defaults", "--overwrite", "-d", "repo_slug=upgrade-test")
         for old in upgrade.APPROVED:

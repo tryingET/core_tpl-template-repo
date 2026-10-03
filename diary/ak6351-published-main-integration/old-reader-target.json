@@ -1,0 +1,24 @@
+{
+  "command": [
+    "timeout",
+    "3600",
+    "env",
+    "L0_TEMPLATE_ROOT=/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667",
+    "uvx",
+    "--from",
+    "copier==9.11.1",
+    "python",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_l1_template_company_ownership.CompanyOntologyTests.test_old_readers_upgrade_through_a_receipted_preparatory_refresh"
+  ],
+  "elapsed_seconds": 290.59795657201903,
+  "exit_status": 0,
+  "finished_unix": 1790984257.3289149,
+  "source_commit": "d09eb6647e9063db6786269db69e2e477819bf0e",
+  "source_status_before": "",
+  "started_unix": 1790983966.730954,
+  "timeout_overrides": {},
+  "tmpdir": "/home/tryinget/.cache/ai-society-scratch/runs/run-1790983966-f7d9ed05340b05ec/work/tmp"
+}

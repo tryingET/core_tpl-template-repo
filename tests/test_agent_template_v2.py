@@ -63,7 +63,20 @@ class AgentTemplateV2Tests(unittest.TestCase):
         for name in PERSONA:
             self.assertIn(f"`{name}`", readme)
         compiled = (FIXTURE / "docs/person/system-prompt.md").read_text(encoding="utf-8")
-        self.assertTrue(compiled.startswith("<!-- compiled: do not edit -->"))
+        self.assertTrue(compiled.startswith("---\n"))
+        metadata, body = compiled[4:].split("---\n\n", 1)
+        self.assertIn("summary:", metadata)
+        self.assertIn("read_when:", metadata)
+        self.assertTrue(body.startswith("<!-- compiled: do not edit -->"))
+        compiler_path = Path("scripts/compile-system-prompt.py")
+        self.assertEqual(
+            (FIXTURE / compiler_path).read_bytes(),
+            (L1_AGENT_TEMPLATE / compiler_path).read_bytes(),
+        )
+        self.assertEqual(
+            (FIXTURE / compiler_path).read_bytes(),
+            (ROOT / "copier-template/copier/tpl-agent-repo" / compiler_path).read_bytes(),
+        )
         for name in PERSONA:
             self.assertIn(f"## Persona source: {name}", compiled)
 

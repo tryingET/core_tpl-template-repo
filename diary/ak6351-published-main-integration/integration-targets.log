@@ -1,0 +1,52 @@
+...FFF
+======================================================================
+FAIL: test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_company_ownership.py", line 338, in test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology
+    self.assertIn("cannot change company ontology topology", rejected.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cannot change company ontology topology' not found in 'error: ownership reverse placeholder bytes/type/mode drift\n'
+
+======================================================================
+FAIL: test_dryrun_failed_render_and_v2_copy_do_not_retire (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_dryrun_failed_render_and_v2_copy_do_not_retire) (mixed=False, arguments=('--pretend',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 503, in test_dryrun_failed_render_and_v2_copy_do_not_retire
+    self.wrapper(*arguments, expected=expected)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790980784-fa2d8082d4de9ab3/work/tmp/l1-upgrade-cc1fi0xg/case-ffng5ge2/repo', '--defaults', '--overwrite', '--pretend'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_dryrun_failed_render_and_v2_copy_do_not_retire (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_dryrun_failed_render_and_v2_copy_do_not_retire) (mixed=True, arguments=('--pretend',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 503, in test_dryrun_failed_render_and_v2_copy_do_not_retire
+    self.wrapper(*arguments, expected=expected)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790980784-fa2d8082d4de9ab3/work/tmp/l1-upgrade-cc1fi0xg/case-ffng5ge2/repo', '--defaults', '--overwrite', '--pretend'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 14.190s
+
+FAILED (failures=3)

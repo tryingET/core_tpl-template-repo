@@ -1,0 +1,2 @@
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+ERROR: child launch failed: [Errno 2] No such file or directory: '/usr/bin/time'

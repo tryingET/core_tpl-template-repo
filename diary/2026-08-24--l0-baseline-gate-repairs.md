@@ -1,5 +1,7 @@
 ---
 summary: "Repair two pre-existing L0 full-gate failures exposed during protected-pin validation."
+read_when:
+  - "Inspecting the historical L0 baseline gate repairs."
 type: diary
 ---
 

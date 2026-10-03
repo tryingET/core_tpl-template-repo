@@ -27,6 +27,9 @@ Example:
     --defaults --overwrite
 
 Notes:
+  - Birth templates come from an isolated L0 company render at the sealed L0 pin.
+    Company copies are not read. L0_TEMPLATE_ROOT selects an explicit source root
+    for scratch L1s; normal companies resolve sibling core/tpl-template-repo.
   - Copier is pinned by default via COPIER_VERSION (default: 9.11.1).
   - Wrapper runs Copier in quiet mode by default; set `COPIER_QUIET=0` to show Copier progress logs.
   - `enable_vouch_gate`, `enable_community_pack`, and `enable_release_pack`
@@ -52,24 +55,20 @@ run_copier() {
   fi
 
   if command -v uvx >/dev/null 2>&1; then
-    if PYTHONWARNINGS="$pythonwarnings" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
+    if PYTHONWARNINGS="$pythonwarnings" source_python execute "$birth_scratch" "$dest_dir" uvx --from "copier==${COPIER_VERSION}" copier "$@"; then
       return
     fi
     echo "error: uvx pinned runtime (copier==${COPIER_VERSION}) failed" >&2
     exit 2
   fi
   if command -v uv >/dev/null 2>&1; then
-    if PYTHONWARNINGS="$pythonwarnings" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
+    if PYTHONWARNINGS="$pythonwarnings" source_python execute "$birth_scratch" "$dest_dir" uv tool run --from "copier==${COPIER_VERSION}" copier "$@"; then
       return
     fi
     echo "error: uv tool pinned runtime (copier==${COPIER_VERSION}) failed" >&2
     exit 2
   fi
-  if command -v copier >/dev/null 2>&1; then
-    echo "warning: uvx/uv not found; falling back to unpinned copier on PATH" >&2
-    PYTHONWARNINGS="$pythonwarnings" copier "$@"
-    return
-  fi
+  echo "error: pinned-source births forbid unpinned copier fallback" >&2
   echo "error: missing dependency: copier (or uvx/uv)" >&2
   exit 2
 }
@@ -333,7 +332,9 @@ infer_project_owner_handle() {
   normalized_project_owner_handle "$raw"
 }
 
-repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+# A checkout entrypoint alias is not an authority path: pass the physical
+# company root to the descriptor/no-follow engine; caller source/dest stay checked.
+repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)"
 answers_file="$repo_root/.copier-answers.yml"
 answers_lib="$repo_root/scripts/lib/copier-answers.sh"
 [ -f "$answers_lib" ] || {
@@ -344,6 +345,7 @@ answers_lib="$repo_root/scripts/lib/copier-answers.sh"
 . "$answers_lib"
 # shellcheck source=/dev/null
 . "$repo_root/scripts/lib/company-ontology-ref.sh"
+source_python() { company_ontology_python -B "$repo_root/scripts/lib/l2_template_source.py" "$@"; }
 
 layer_contract_path() {
   printf '%s/contracts/layer-contract.yml\n' "$1"
@@ -395,6 +397,13 @@ guard_destination_layer "$dest_dir" "L2" "L1 -> L2"
 if [ "$template_name" = "tpl-agent-repo" ]; then
   validate_agent_creation_gate "$@"
 fi
+# Snapshot once before deriving any inherited defaults. Never mix parent reads
+# from before staging with a later sealed render snapshot.
+birth_scratch="$(mktemp -d)"
+trap 'rm -rf "$birth_scratch"' EXIT
+source_python prepare "$birth_scratch" "$repo_root" "$template_name" "$dest_dir" "$@"
+template_dir="$(source_python template "$birth_scratch")"
+answers_file="$birth_scratch/parent-answers.yml"
 
 for key in enable_vouch_gate enable_community_pack enable_release_pack; do
   if has_data_override "$key" "$@"; then
@@ -471,21 +480,9 @@ if ! has_data_override template_source_sha "$@"; then
   set -- -d "template_source_sha=$template_source_sha" "$@"
 fi
 
-template_dir="$repo_root/copier/$template_name"
-
-[ -d "$template_dir" ] || {
-  echo "error: missing copier template: $template_dir" >&2
-  exit 2
-}
-
-if ! has_vcs_ref_override "$@"; then
-  if git -C "$template_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    set -- -r "$COPIER_VCS_REF" "$@"
-  fi
-fi
-
 if is_enabled "$COPIER_QUIET" && ! has_quiet_override "$@"; then
   set -- --quiet "$@"
 fi
 
 run_copier copy --trust "$@" "$template_dir" "$dest_dir"
+source_python record "$birth_scratch" "$dest_dir"

@@ -1,0 +1,11 @@
+copier-template/scripts/lib/l2_birth_execution.py: unchanged from b0239ca, exact L1 fixture equality, 87/500 lines
+copier-template/scripts/lib/l2_birth_safety.py: unchanged from b0239ca, exact L1 fixture equality, 73/500 lines
+copier-template/scripts/lib/l2_birth_completion.py: unchanged from b0239ca, exact L1 fixture equality, 35/500 lines
+copier-template/scripts/lib/l2_template_source.py: unchanged from c14e232, exact L1 fixture equality, 408/500 lines
+tests/test_l2_template_source.py: 402/1000 lines
+tests/test_company_ontology_ref_inheritance.py: 528/1000 lines
+tests/test_l1_template_ownership.py: 526/1000 lines
+tests/test_l0_check_timeouts.py: 69/1000 lines
+tests/test_agent_template_v2.py: 206/1000 lines
+new-repo-from-copier.sh: exact L1 fixture equality; company-root resolution only changed to pwd -P
+Historical equivalence report: byte-identical to ca530ee; acceptance_satisfied=false

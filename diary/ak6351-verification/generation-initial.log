@@ -1,0 +1,11 @@
+Installed 21 packages in 32ms
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+error: non-idempotent L0 -> L1 generation (l1-template-sample)
+ M contracts/provenance-seal.yml
+ M copier/tpl-agent-repo/scripts/compile-system-prompt.py

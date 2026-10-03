@@ -1,0 +1,21 @@
+{
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "7200s",
+    "uvx",
+    "--from",
+    "copier==9.11.1",
+    "python",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_apply_updates_template_and_preserves_company_owned_bytes"
+  ],
+  "cwd": "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667",
+  "started_utc": "2026-10-02T19:08:18.724473+00:00",
+  "finished_utc": "2026-10-02T19:10:46.608598+00:00",
+  "elapsed_ns": 147884071785,
+  "elapsed_seconds": 147.884071785,
+  "exit_code": 0
+}

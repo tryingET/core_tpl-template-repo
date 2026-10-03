@@ -504,7 +504,7 @@ assert_files_equal "copier-template/.github/workflows/template-check.yml" "fixtu
 assert_checkout_full_history "copier-template/.github/workflows/ci.yml"
 assert_checkout_full_history "copier-template/.github/workflows/template-check.yml"
 assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
-uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_l1_template_transitions tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes tests.test_company_ontology_ref_inheritance tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"
+uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_hosted_ci tests.test_ci_red_green tests.test_l1_template_transitions tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes tests.test_company_ontology_ref_inheritance tests.test_l2_template_source tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"
 # Required L2 template directories
 required_dirs="
 copier-template/copier/tpl-agent-repo
@@ -717,7 +717,7 @@ assert_contains "copier-template/scripts/new-repo-from-copier.sh" "scripts/lib/c
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" 'task show "$task_id"' "L1 wrapper must verify the exact AK agent-creation task exists"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "uvx --from \"copier==\${COPIER_VERSION}\" copier" "L1 wrapper must include pinned uvx invocation"
 assert_contains "copier-template/scripts/new-repo-from-copier.sh" "uv tool run --from \"copier==\${COPIER_VERSION}\" copier" "L1 wrapper must include pinned uv tool invocation"
-assert_contains "copier-template/scripts/new-repo-from-copier.sh" "warning: uvx/uv not found; falling back to unpinned copier on PATH" "L1 wrapper must surface unpinned fallback warning"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "pinned-source births forbid unpinned copier fallback" "L1 birth wrapper must refuse unpinned Copier fallback"
 assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "--init-lane-git" "L1 lane bootstrap helper must support lane git initialization"
 assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "tpl-project-repo" "L1 lane bootstrap helper must render tpl-project-repo baseline"
 assert_contains "copier-template/scripts/bootstrap-lane-root.sh" "scripts/lib/repo-surface.sh" "L1 lane bootstrap helper should source the shared repo-surface helper"
@@ -728,7 +728,7 @@ assert_not_contains "copier-template/scripts/bootstrap-lane-root.sh" "sed -i" "L
 assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must pin Copier version" "L1 template CI must enforce copier pinning"
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/copier-answers.sh" "L1 template CI should source the shared copier answers helper"
 assert_contains "copier-template/scripts/check-template-ci.sh" "scripts/lib/repo-surface.sh" "L1 template CI should require the shared repo-surface helper"
-assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must prefer pinned runtimes before unpinned copier" "L1 template CI must enforce copier runtime precedence"
+assert_contains "copier-template/scripts/check-template-ci.sh" "L1 wrapper must try pinned runtimes before refusing unpinned copier" "L1 template CI must enforce copier runtime precedence"
 for forbidden_policy_needle in \
 	'AK CLI: `ak <ak args...>`' \
 	'Organization docs profile' \

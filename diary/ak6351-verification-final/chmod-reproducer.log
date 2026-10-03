@@ -1,0 +1,5 @@
+Command: umask 077; chmod -x <0755 fixture>
+exit=1; mode=0655
+chmod: /home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/diary/ak6351-verification-final/tmpr0sulg8x/probe: new permissions are rw-r-xr-x, not rw-r--r--
+Command: umask 077; chmod a-x <0755 fixture>
+exit=0; mode=0644
