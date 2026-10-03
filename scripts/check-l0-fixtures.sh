@@ -110,7 +110,8 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 (
 	cd "$actual_l1"
 
-	run_step ./scripts/new-repo-from-copier.sh tpl-agent-repo "$actual_l2_agent" \
+	run_step env AK_CMD="$repo_root/tests/fixtures/ak-creation-task.sh" \
+		./scripts/new-repo-from-copier.sh tpl-agent-repo "$actual_l2_agent" \
 		-d repo_slug=fixture-agent \
 		-d agent_role=fixture-agent-role \
 		-d creation_task_id=AK-5105 \

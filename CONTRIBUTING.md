@@ -40,6 +40,14 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    verification budgets, not timing guarantees. Production birth/execution
    remains bounded at its unchanged `3600s` with its existing sandbox and
    process-group teardown; verification budgets are a separate concern.
+   Hosted CI checks out full history (retirement and pinned-reader ancestry proofs),
+   installs Bubblewrap and probes the real sandbox before checks. Ubuntu's AppArmor
+   user-namespace admission is scoped to `/usr/bin/bwrap`, not disabled globally.
+   Golden agent births bind a strict synthetic task-visibility executable through
+   `AK_CMD` per invocation; no private AK runtime or workspace database is required
+   by the test harness. Production creation gates remain unchanged.
+   Documentation references use the byte-identical pinned owner bundle in
+   `tools/agent-scripts/`; its source commit and file hashes are checked in guardrails.
 4. Prefer deterministic wrappers over ad-hoc scripting:
    ```bash
    ./scripts/rocs.sh --doctor

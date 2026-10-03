@@ -15,9 +15,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.12.22'
+          enable-cache: false
+
+      - name: Provision birth sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          # Ubuntu restricts user namespaces through AppArmor. Admit only bwrap;
+          # do not disable the host-wide restriction or the production sandbox.
+          if [ "$(cat /proc/sys/kernel/apparmor_restrict_unprivileged_userns)" = 1 ]; then
+            printf '%s\n' 'abi <abi/4.0>,' 'include <tunables/global>' \
+              'profile ci-bwrap /usr/bin/bwrap flags=(unconfined) {' '  userns,' '}' \
+              | sudo tee /etc/apparmor.d/ci-bwrap >/dev/null
+            sudo apparmor_parser -r /etc/apparmor.d/ci-bwrap
+          fi
+          bwrap --die-with-parent --unshare-pid --unshare-ipc --unshare-uts \
+            --ro-bind / / --dev /dev --proc /proc /usr/bin/true
 
       - name: Run L0 checks
+        env:
+          TMPDIR: ${{ runner.temp }}
+          L0_CHECK_VERBOSE: '1'
         run: bash ./scripts/check-l0.sh
