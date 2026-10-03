@@ -157,7 +157,8 @@ def main(argv=None):
         "condition": os.environ.get("L0_PROFILE_CONDITION") or None,
         "source_dirty": dirty.stdout.splitlines() if dirty.returncode == 0 else None,
         "source_commit": git.stdout.strip() if git.returncode == 0 else None,
-        "python": platform.python_version(), "copier": copier, "arguments": test_args,
+        "python": platform.python_version(), "python_executable": sys.executable,
+        "copier": copier, "arguments": test_args,
         "exit_code": code, "wall_seconds": time.perf_counter() - started, **observed,
     }
     # Never overwrite retained evidence; privacy/type/link checks apply to all IO.

@@ -218,6 +218,7 @@ render_l1_case() {
 	enable_vouch_gate="$4"
 	l1_org_docs_profile="$5"
 	l1_dir="$tmp_root/$case_name"
+	profile_phase "profile-$case_name"
 
 	"$repo_root/scripts/new-l1-from-copier.sh" "$l1_dir" \
 		-d repo_slug="$case_name" \
@@ -299,6 +300,7 @@ render_l1_case() {
 			./scripts/release/check.sh >/dev/null
 		)
 	fi
+	profile_phase "profile-$case_name-complete"
 }
 
 render_l1_case "l1-template-sample" false false false rich
