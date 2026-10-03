@@ -1,0 +1,24 @@
+{
+  "command": [
+    "env",
+    "-u",
+    "L0_CHECK_TIMEOUT_SECONDS",
+    "-u",
+    "L0_CHECK_TIMEOUT_GENERATION_SECONDS",
+    "-u",
+    "L0_CHECK_TIMEOUT_ADVERSARIAL_SECONDS",
+    "-u",
+    "L0_CHECK_TIMEOUT_FIXTURES_SECONDS",
+    "L0_CHECK_VERBOSE=1",
+    "bash",
+    "scripts/check-l0.sh"
+  ],
+  "elapsed_seconds": 2715.676081940008,
+  "exit_status": 1,
+  "finished_unix": 1790983592.3634222,
+  "source_commit": "4a01f516019d5db1dd1f6b80d5ed27e86d95eede",
+  "source_status_before": "",
+  "started_unix": 1790980876.687337,
+  "timeout_overrides": {},
+  "tmpdir": "/home/tryinget/.cache/ai-society-scratch/runs/run-1790980876-d128cbd36619dd92/work/tmp"
+}
