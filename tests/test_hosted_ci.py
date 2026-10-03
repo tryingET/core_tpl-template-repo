@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -17,6 +18,17 @@ VENDOR = ROOT / "tools/agent-scripts"
 
 
 class HostedCiTests(unittest.TestCase):
+    def test_golden_births_bind_owner_instead_of_ambient_git_or_actor(self):
+        """GIVEN golden outputs; WHEN fixtures render; THEN owner inputs are explicit."""
+        for name in ("check-l0-fixtures.sh", "sync-l0-fixtures.sh"):
+            source = (ROOT / "scripts" / name).read_text().replace("\\\n", " ")
+            births = [shlex.split(line) for line in source.splitlines()
+                      if line.strip().startswith("run_step ./scripts/new-repo-from-copier.sh")]
+            owner_births = [args for args in births if args[2] in ("tpl-project-repo", "tpl-monorepo")]
+            self.assertEqual(len(owner_births), 8, name)
+            for args in owner_births:
+                self.assertIn("project_owner_handle=@tryinget", args, name)
+
     def test_workflow_provisions_real_sandbox_and_history(self):
         workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
         self.assertEqual(workflow["permissions"], {"contents": "read"})

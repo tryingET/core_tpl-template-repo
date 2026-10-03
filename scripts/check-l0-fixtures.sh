@@ -129,6 +129,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_l2_project" \
 		-d repo_slug=fixture-product-repo \
+		-d project_owner_handle=@tryinget \
 		-d enable_community_pack=false \
 		-d enable_release_pack=false \
 		-d enable_vouch_gate=false \
@@ -136,6 +137,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-monorepo "$actual_l2_monorepo" \
 		-d repo_slug=fixture-monorepo \
+		-d project_owner_handle=@tryinget \
 		-d package_manager=uv \
 		-d enable_community_pack=false \
 		-d enable_release_pack=false \
@@ -150,6 +152,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_python" \
 		-d repo_slug=fixture-project-python \
+		-d project_owner_handle=@tryinget \
 		-d language=python \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -159,6 +162,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_node" \
 		-d repo_slug=fixture-project-node \
+		-d project_owner_handle=@tryinget \
 		-d language=node \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -168,6 +172,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_typescript" \
 		-d repo_slug=fixture-project-typescript \
+		-d project_owner_handle=@tryinget \
 		-d language=typescript \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -177,6 +182,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_rust" \
 		-d repo_slug=fixture-project-rust \
+		-d project_owner_handle=@tryinget \
 		-d language=rust \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -186,6 +192,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$actual_matrix_project_elixir" \
 		-d repo_slug=fixture-project-elixir \
+		-d project_owner_handle=@tryinget \
 		-d language=elixir \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -195,6 +202,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$actual_l1" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-monorepo "$actual_matrix_monorepo_root" \
 		-d repo_slug=fixture-monorepo-matrix \
+		-d project_owner_handle=@tryinget \
 		-d package_manager=uv \
 		-d enable_community_pack=false \
 		-d enable_release_pack=false \
