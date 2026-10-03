@@ -67,3 +67,26 @@ use normal creation umask022, while private staging remains0700 in production.
 
 Complete native owner checks on the committed candidate, final diff inspection,
 push, and exact new hosted result. No hosted-green or task-completion claim yet.
+
+## Native owner verification update — 04:59:56Z
+
+On code commit `29be298f74e00274277dcf1235249999afa819ea`:
+
+```text
+heavy-job run --label ak6351-ci-native-owner-check --task 6351 -- bash -c \
+  'umask 022; cd <PR-worktree>; time bash scripts/check-l0.sh'
+exit 0; passed 7; failed 0; skipped 0; elapsed 3508.283s
+```
+
+Guardrails767s, docs0s, checkpoint0s, supply-chain0s, generation2290s,
+adversarial355s, fixtures96s. The two warnings are existing Git re-init notices
+for `--initial-branch=main` and `work`, not skipped/refused checks. Normal finite
+1800s/3600s verification defaults and the production3600s bound are unchanged.
+An initial timing-wrapper attempt lacked `/usr/bin/time` and exited127 before
+any owner check; Bash's native `time` was used for the observed full run.
+
+Strict docs, real docs references, clean status, and `git diff --check` were rechecked
+again after the full run. Final work-product inspection found only the listed CI,
+test-harness, approved byte-identical tooling, and capture changes. Native logs
+are in `diary/ak6351-hosted-ci-native/`; this subsequent capture-only commit does
+not change the verified code. Hosted verification remains pending at publication.
