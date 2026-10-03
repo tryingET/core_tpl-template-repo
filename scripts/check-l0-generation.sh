@@ -43,6 +43,18 @@ fail() {
 	exit 1
 }
 
+# Opt-in observation only: named phase boundaries, no scheduling/coverage changes.
+profile_phase_file=""
+profile_phase() {
+	[ -n "${L0_PROFILE_DIR:-}" ] || return 0
+	if [ -z "$profile_phase_file" ]; then
+		profile_phase_file="$L0_PROFILE_DIR/generation-phases-$$.tsv"
+		"$python_exec" -B "$repo_root/tests/ci_profile_io.py" --initialize "$profile_phase_file" "$1"
+	else
+		"$python_exec" -B "$repo_root/tests/ci_profile_io.py" "$profile_phase_file" "$1"
+	fi
+}
+
 # These generated L1 entrypoint probes need a real index, not the caller's Git state.
 init_ontology_probe_index() (
 	unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
@@ -197,6 +209,8 @@ EOF
 done
 
 
+profile_phase profiles
+
 render_l1_case() {
 	case_name="$1"
 	enable_community_pack="$2"
@@ -302,6 +316,7 @@ done
 [ -s "$compact_l1/docs/org/operating_model.md" ] || fail "fresh compact L1 must retain docs/org/operating_model.md"
 
 # Regression check: inherited string values must preserve punctuation and quoting.
+profile_phase transport
 colon_l1="$tmp_root/l1-template-colon"
 colon_l2="$tmp_root/l2-template-colon"
 "$repo_root/scripts/new-l1-from-copier.sh" "$colon_l1" \
@@ -453,6 +468,7 @@ tab_company_name="$(yaml_scalar_value "$tab_l2/.copier-answers.yml" company_name
 	exit 1
 }
 
+profile_phase defaults-and-bootstrap
 org_default_l1="$tmp_root/l1-template-org-default"
 "$repo_root/scripts/new-l1-from-copier.sh" "$org_default_l1" \
 	-d repo_slug=l1-template-org-default \
@@ -544,6 +560,7 @@ assert_file_contains "$bootstrap_l1/team-data/CODEOWNERS" "docs/project/** @acme
 	}
 )
 
+profile_phase language-matrix
 # Language-matrix smoke: project language cases plus monorepo member-language cases.
 matrix_l1="$tmp_root/l1-template-matrix"
 matrix_project_python="$tmp_root/l2-project-python-matrix"
@@ -670,6 +687,7 @@ assert_file_contains "$matrix_agent/agent.json" '"thinking": "high"' "agent mani
 assert_file_contains "$matrix_agent/agent.json" '"fixture/repo"' "agent manifest should render scope"
 "$matrix_agent/scripts/compile-system-prompt.py" --check >/dev/null
 
+profile_phase toggle-matrix
 toggle_contract_l1="$tmp_root/l1-template-toggle-contract"
 toggle_agent_default="$tmp_root/l2-agent-toggle-default"
 toggle_agent_enabled="$tmp_root/l2-agent-toggle-enabled"
@@ -757,6 +775,7 @@ assert_trees_equal_without_answers "$toggle_monorepo_default" "$toggle_monorepo_
 
 assert_command_fails "root ROCS doctor must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing "$repo_root/scripts/rocs.sh" --doctor
 assert_command_fails "root ROCS which must fail closed when ROCS_BIN is invalid" env ROCS_BIN=/definitely/missing "$repo_root/scripts/rocs.sh" --which
+profile_phase rocs-launchers
 # Generated L2 ROCS launcher: runs the workspace rocs-cli core pinned by rocs_cli_version.
 # A stub `uv` records the exec so these checks need neither network nor a real core.
 rocs_stub_bin="$tmp_root/rocs-stub-bin"
@@ -836,6 +855,7 @@ set -e
 printf '%s\n' "$rocs_stderr" | grep -qxF "company guard: validate" || fail "local/rocs.env must see the launcher arguments (got: $rocs_stderr)"
 rm -rf "$l1_rocs/local"
 
+profile_phase local-hooks
 # Company-owned local/ extension points: every L1 root entry script runs its local/
 # counterpart from the repo root, and the hook's failure fails the entry script.
 l1_hooks="$tmp_root/l1-local-hooks"
@@ -932,6 +952,7 @@ git -C "$custom_hook_repo" config core.hooksPath .git/ubs-chain-hooks
 (cd "$custom_hook_repo" && ./scripts/install-hooks.sh >/dev/null 2>&1) || fail "install-hooks.sh must succeed when a custom hooks path is set"
 [ "$(git -C "$custom_hook_repo" config --get core.hooksPath)" = ".git/ubs-chain-hooks" ] || fail "install-hooks.sh must not replace an existing custom core.hooksPath"
 
+profile_phase rocs-workspace-and-real-core
 # Workspace discovery: inside a workspace holding every <repo:PATH@ref> layer the launcher
 # defaults ROCS_WORKSPACE_ROOT to that ancestor; outside it falls back to $HOME/ai-society.
 rocs_workspace="$tmp_root/rocs-workspace"
@@ -990,6 +1011,7 @@ else
 	echo "warning: skipping real-core ROCS end-to-end check (no compatible rocs-cli 0.4.x>=0.4.4 core at $rocs_real_core or uv missing)" >&2
 fi
 
+profile_phase metadata-assertions
 [ -s "$matrix_project_node/package.json" ] || fail "expected node project software-pack manifest"
 [ ! -e "$matrix_project_node/tsconfig.json" ] || fail "node project should not emit tsconfig.json"
 [ -s "$matrix_project_typescript/package.json" ] || fail "expected typescript project software-pack manifest"
@@ -1118,7 +1140,9 @@ for generated_package in \
 	assert_path_absent "$generated_package/governance/task-scopes" "generated tpl-package members must not ship standalone task-scope snapshot directories"
 done
 
+profile_phase python-cohort
 # Executed L1 ownership lifecycle gates belong in the declared generation lane.
-"$python_exec" -m unittest tests/test_agent_template_v2.py tests/test_l1_template_ownership.py tests/test_render_l1.py tests/test_l0_check_timeouts.py tests/test_l1_template_company_ownership.py
+sh "$repo_root/tests/ci_unittest.sh" generation-main "$python_exec" tests/test_agent_template_v2.py tests/test_l1_template_ownership.py tests/test_render_l1.py tests/test_l0_check_timeouts.py tests/test_l1_template_company_ownership.py
 
+profile_phase complete
 echo "ok: l0 generation smoke + idempotency + ownership-aware template propagation"

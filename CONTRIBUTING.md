@@ -53,6 +53,16 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    real-core integration probe executes instead of taking its no-core branch.
    Ownership tests bind their synthetic AK only for full CI; template CI keeps
    its own snapshot-capable fixture and is not overridden by ambient `AK_CMD`.
+   Optional timing observation retains the full serial schedule and all assertions:
+   ```bash
+   profile_dir="$(mktemp -d)" # external TMPDIR; directory must stay private
+   L0_PROFILE_DIR="$profile_dir" L0_PROFILE_CONDITION=serial bash ./scripts/check-l0.sh
+   ```
+   Unittest JSON preserves resolved IDs, subtests, outcomes, existing multiplicity,
+   method timings and unassigned overhead; generation TSV records monotonic phase
+   boundaries. Reports refuse source-tree, linked, public or retained output paths.
+   Use a fresh profile directory per condition. This is measurement, not a passing
+   substitute for checks or a performance guarantee.
 4. Prefer deterministic wrappers over ad-hoc scripting:
    ```bash
    ./scripts/rocs.sh --doctor

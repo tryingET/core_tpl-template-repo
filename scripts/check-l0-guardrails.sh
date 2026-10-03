@@ -504,7 +504,7 @@ assert_files_equal "copier-template/.github/workflows/template-check.yml" "fixtu
 assert_checkout_full_history "copier-template/.github/workflows/ci.yml"
 assert_checkout_full_history "copier-template/.github/workflows/template-check.yml"
 assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
-uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_hosted_ci tests.test_ci_red_green tests.test_l1_template_transitions tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes tests.test_company_ontology_ref_inheritance tests.test_l2_template_source tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"
+sh "$repo_root/tests/ci_unittest.sh" guardrails-main pinned tests.test_ci_profile tests.test_hosted_ci tests.test_ci_red_green tests.test_l1_template_transitions tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes tests.test_company_ontology_ref_inheritance tests.test_l2_template_source tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"
 # Required L2 template directories
 required_dirs="
 copier-template/copier/tpl-agent-repo
@@ -582,7 +582,7 @@ assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "ROCS co
 assert_contains "copier-template/copier/tpl-package/scripts/rocs.sh.j2" "Use: ../../scripts/rocs.sh <args>" "tpl-package ROCS wrapper should redirect to the monorepo-root launcher"
 assert_absent "copier-template/copier/tpl-package/scripts/ak.sh"
 # System4D context: agents read ontology/src/system4d.yaml, so it names the repo and never ships <...> tokens.
-uvx --from "copier==${COPIER_VERSION:-9.11.1}" python -B -m unittest tests.test_l2_system4d_context >/dev/null || fail "L2 system4d.yaml context tests failed"
+sh "$repo_root/tests/ci_unittest.sh" guardrails-system4d pinned tests.test_l2_system4d_context >/dev/null || fail "L2 system4d.yaml context tests failed"
 # ROCS consumer model (pinned-core launcher, CI gate, output ignores, LF attributes, ref defaults).
 sh "$repo_root/scripts/check-l0-rocs-consumer.sh" || fail "ROCS consumer-model guardrails failed"
 

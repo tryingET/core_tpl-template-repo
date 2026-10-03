@@ -118,8 +118,12 @@ class L1TemplateOwnershipTests(unittest.TestCase):
     def test_base_to_candidate_answer_template_upgrade_suite(self) -> None:
         # Keep real upgrade rendering in the declared 600s generation lane rather
         # than adding its render matrix to the already bounded 300s guardrail lane.
-        run("uvx", "--from", "copier==9.11.1", "python", "-B", "-m", "unittest",
-            "tests.test_l1_answer_template_upgrade.UpgradeTests", cwd=ROOT)
+        if os.environ.get("L0_PROFILE_DIR"):
+            run("sh", str(ROOT / "tests/ci_unittest.sh"), "generation-upgrade", "pinned-9.11.1",
+                "tests.test_l1_answer_template_upgrade.UpgradeTests", cwd=ROOT)
+        else:
+            run("uvx", "--from", "copier==9.11.1", "python", "-B", "-m", "unittest",
+                "tests.test_l1_answer_template_upgrade.UpgradeTests", cwd=ROOT)
 
     def copy_fixture(self, parent: Path, name: str) -> Path:
         target = parent / name
