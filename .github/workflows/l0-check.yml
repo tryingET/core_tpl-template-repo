@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - perf/ak6586-l0-ci-15min
 
 permissions:
   contents: read
@@ -18,6 +19,27 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      # Observation is restricted to this exact push branch or PR head. No PR
+      # branch rewrite, matrix, sharding, owner-budget reduction or 15-minute cap.
+      - name: Prepare hosted characterization
+        id: characterization
+        if: >-
+          (github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+          github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          umask 077
+          profile="$(mktemp -d "$RUNNER_TEMP/l0-profile.XXXXXX")"
+          scratch="$(mktemp -d "$RUNNER_TEMP/l0-reorder-tmp.XXXXXX")"
+          mkdir "$profile/serial" "$profile/reverse-modules"
+          {
+            date -u +'%FT%TZ'
+            git rev-parse HEAD
+            printf 'run=%s attempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+            printf '%s\n' 'Observation only; no hosted-green or cold-workflow timing proof.'
+          } >"$profile/preparation.txt"
+          printf 'profile=%s\ntmpdir=%s\n' "$profile" "$scratch" >>"$GITHUB_OUTPUT"
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
@@ -52,8 +74,65 @@ jobs:
           uv run --project "$core" --frozen rocs version
 
       - name: Run L0 checks
+        if: >-
+          !((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+          github.event.pull_request.head.repo.full_name == github.repository))
         env:
           TMPDIR: ${{ runner.temp }}
           L0_CHECK_VERBOSE: '1'
           ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
         run: bash ./scripts/check-l0.sh
+
+      - name: Observe unchanged serial L0 checks
+        id: serial_profile
+        if: >-
+          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+          github.event.pull_request.head.repo.full_name == github.repository)) &&
+          steps.characterization.outputs.profile != ''
+        env:
+          TMPDIR: ${{ runner.temp }}
+          L0_CHECK_VERBOSE: '1'
+          ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
+          L0_PROFILE_DIR: ${{ steps.characterization.outputs.profile }}/serial
+          L0_PROFILE_CONDITION: serial
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: >-
+          python3 -B tests/ci_reorder.py capture --out "$L0_PROFILE_DIR/command.json"
+          -- bash ./scripts/check-l0.sh
+
+      - name: Observe reversed-module unittest cohorts
+        if: >-
+          always() && !cancelled() &&
+          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+          github.event.pull_request.head.repo.full_name == github.repository)) &&
+          steps.characterization.outputs.profile != '' && steps.serial_profile.outcome != 'skipped' &&
+          steps.serial_profile.outcome != 'cancelled'
+        env:
+          PROFILE_ROOT: ${{ steps.characterization.outputs.profile }}
+          TMPDIR: ${{ steps.characterization.outputs.tmpdir }}
+          L0_CHECK_VERBOSE: '1'
+          ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: >-
+          python3 -B tests/ci_reorder.py reorder --serial-dir "$PROFILE_ROOT/serial"
+          --out-dir "$PROFILE_ROOT/reverse-modules" --tmpdir "$TMPDIR"
+
+      - name: Retain characterization artifacts even on failure
+        if: >-
+          always() &&
+          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+          github.event.pull_request.head.repo.full_name == github.repository)) &&
+          steps.characterization.outputs.profile != ''
+        # Raw logs are unredacted: no secret inputs or persisted checkout credentials.
+        # Inspect artifacts before sharing; do not add secrets to these observers.
+        # Public GitHub commits/v4 resolved to this immutable v4.6.2 commit.
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-characterization-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.characterization.outputs.profile }}
+          if-no-files-found: error
+          retention-days: 7
