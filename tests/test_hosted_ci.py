@@ -35,6 +35,11 @@ class HostedCiTests(unittest.TestCase):
         self.assertEqual(owner["run"], "bash ./scripts/check-l0.sh")
         self.assertEqual(owner["env"]["L0_CHECK_VERBOSE"], "1")
         self.assertEqual(owner["env"]["TMPDIR"], "${{ runner.temp }}")
+        core = next(s for s in steps if s["name"] == "Provision pinned ROCS core")["run"]
+        self.assertIn("https://github.com/tryingET/rocs-cli.git", core)
+        self.assertIn("ac75e95e30d66b3543abca27cb79d69a9dc01e93", core)
+        self.assertIn('uv sync --project "$core" --frozen', core)
+        self.assertEqual(owner["env"]["ROCS_CORE_PROJECT"], "${{ runner.temp }}/rocs-ci")
 
     def test_vendored_owner_bytes_match_pinned_inventory(self):
         pin = json.loads((VENDOR / "source-pin.json").read_text())

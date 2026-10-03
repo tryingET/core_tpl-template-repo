@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -59,6 +60,12 @@ class CompanyHarness(Harness):
         self.spec_path.write_text(json.dumps(self.spec))
         self.original_task = None
 
+    def run_gate(self, gate: dict):
+        # Full CI needs this fixture's AK even for an empty snapshot directory.
+        # Template CI owns a separate snapshot-capable fixture; do not override it.
+        binding = ["env", f"AK_CMD={self.ak}"] if gate["id"] == "ci-full" else ["env", "-u", "AK_CMD"]
+        return run(*binding, "bash", *gate["command"].split()[1:], cwd=self.repo)
+
     def finish(self, plan: dict, real_gates: bool = False) -> dict:
         previous = copy.deepcopy(self.evidence)
         with mock.patch.object(TRANSITIONS, "write_atomic", wraps=TRANSITIONS.write_atomic) as writes:
@@ -68,7 +75,7 @@ class CompanyHarness(Harness):
         results = {"check-template-ci": 0, "ci-full": 0}
         if real_gates:
             for gate in TRANSITIONS.REQUIRED_VALIDATION:
-                result = run("bash", *gate["command"].split()[1:], cwd=self.repo)
+                result = self.run_gate(gate)
                 results[gate["id"]] = result.returncode
         else:
             run("python3", "-I", "-S", "-B", CHECKER, cwd=self.repo)
@@ -113,6 +120,21 @@ class CompanyHarness(Harness):
 
 
 class CompanyOntologyTests(unittest.TestCase):
+    def test_real_full_ci_binds_fixture_ak_without_ambient_runtime(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
+            h = CompanyHarness(Path(name))
+            refused = run("env", "AK_CMD=/definitely/missing-ak", "bash", "scripts/ci/full.sh",
+                          cwd=h.repo, expect=1)
+            self.assertIn("missing ak command", refused.stderr)
+            with mock.patch.dict(os.environ, {"AK_CMD": "/definitely/missing-ak"}):
+                for gate in TRANSITIONS.REQUIRED_VALIDATION:
+                    result = h.run_gate(gate)
+            # ci-full is last; template CI also passed with its own scoped fixture.
+            self.assertIn("ok: no task-scope snapshots", result.stdout)
+            self.assertIn("ok: ci full", result.stdout)
+            # The authority double must still refuse any unsupported scope request.
+            run(str(h.ak), "task", "scope", "export", "321", cwd=h.repo, expect=2)
+
     def test_real_forward_and_receipted_reverse_restore_ownership(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
@@ -316,7 +338,7 @@ class CompanyOntologyTests(unittest.TestCase):
 
             def checked_finalize(*args):
                 for gate in TRANSITIONS.REQUIRED_VALIDATION:
-                    run("bash", *gate["command"].split()[1:], cwd=h.repo)
+                    h.run_gate(gate)
                 return real_finalize(*args)
 
             with mock.patch.object(RECEIPTS, "finalize", side_effect=checked_finalize):

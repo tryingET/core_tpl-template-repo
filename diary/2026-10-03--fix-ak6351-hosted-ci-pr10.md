@@ -90,3 +90,33 @@ again after the full run. Final work-product inspection found only the listed CI
 test-harness, approved byte-identical tooling, and capture changes. Native logs
 are in `diary/ak6351-hosted-ci-native/`; this subsequent capture-only commit does
 not change the verified code. Hosted verification remains pending at publication.
+
+## Hosted feedback — 05:45:34Z
+
+Run37098493655 on `dd067dd69445672ee3fad07bfb72b68403fe947d` finished red:
+6/7 leaves pass, generation failed1544s. The original infrastructure fixes passed.
+Verbose output exposed two remaining harness failures: company ownership forward/
+reverse and old-reader preparatory refresh run the real L1 `ci/full.sh` without
+binding their synthetic AK. The task-snapshot shell prerequisite then tries the
+absent ambient `ak`. This failure is retained in AK evidence12610, not relabeled.
+
+The follow-up binds `AK_CMD` only to the full-CI subprocess. The template-CI
+subprocess explicitly unsets it because that entrypoint owns a different,
+snapshot-capable fixture; independent inspection caught and corrected an initial
+proposal that would incorrectly override both. Regression covers both real gates
+under poisoned ambient AK, plus missing-AK and unsupported-export refusal.
+
+The log also reports the pre-existing optional real-core ROCS probe's no-core
+branch. Hosted provisioning now fetches the public owner commit
+`ac75e95e30d66b3543abca27cb79d69a9dc01e93` (compatible0.4.6) with its frozen lock,
+and explicitly binds `ROCS_CORE_PROJECT`, so final hosted proof will include that
+same real integration contract rather than relying on machine-local state.
+No checks, finite bounds, source pins or production protections are weakened.
+
+Accepted the originating controller's bounded Decision167 coordination handoff:
+finish/report6351 and hold6352/6353 in order despite empty runtime dependency
+arrays. No new execution, merge, completion, fleet/deletion, Decision168 or Rust
+work custody. Live API05:47Z still showed PR10 OPEN with no merge timestamp,
+contrary to an unverified merge report; no merge authority is inferred.
+
+Follow-up native and hosted verification remains pending at this capture.

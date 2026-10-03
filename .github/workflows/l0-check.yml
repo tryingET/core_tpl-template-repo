@@ -40,8 +40,20 @@ jobs:
           bwrap --die-with-parent --unshare-pid --unshare-ipc --unshare-uts \
             --ro-bind / / --dev /dev --proc /proc /usr/bin/true
 
+      - name: Provision pinned ROCS core
+        run: |
+          core="$RUNNER_TEMP/rocs-ci"
+          git init "$core"
+          git -C "$core" fetch --depth=1 https://github.com/tryingET/rocs-cli.git \
+            ac75e95e30d66b3543abca27cb79d69a9dc01e93
+          git -C "$core" checkout --detach FETCH_HEAD
+          test "$(git -C "$core" rev-parse HEAD)" = ac75e95e30d66b3543abca27cb79d69a9dc01e93
+          uv sync --project "$core" --frozen
+          uv run --project "$core" --frozen rocs version
+
       - name: Run L0 checks
         env:
           TMPDIR: ${{ runner.temp }}
           L0_CHECK_VERBOSE: '1'
+          ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
         run: bash ./scripts/check-l0.sh

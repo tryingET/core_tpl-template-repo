@@ -48,6 +48,11 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    by the test harness. Production creation gates remain unchanged.
    Documentation references use the byte-identical pinned owner bundle in
    `tools/agent-scripts/`; its source commit and file hashes are checked in guardrails.
+   Hosted CI also provisions the public ROCS core at immutable commit
+   `ac75e95e30d66b3543abca27cb79d69a9dc01e93` with its frozen lock, so the existing
+   real-core integration probe executes instead of taking its no-core branch.
+   Ownership tests bind their synthetic AK only for full CI; template CI keeps
+   its own snapshot-capable fixture and is not overridden by ambient `AK_CMD`.
 4. Prefer deterministic wrappers over ad-hoc scripting:
    ```bash
    ./scripts/rocs.sh --doctor
