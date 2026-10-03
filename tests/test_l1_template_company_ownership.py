@@ -122,6 +122,7 @@ class CompanyHarness(Harness):
 
 class CompanyOntologyTests(unittest.TestCase):
     def test_real_full_ci_binds_fixture_ak_without_ambient_runtime(self) -> None:
+        """GIVEN no ambient AK; WHEN both real gates run; THEN owned fixtures pass."""
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
             refused = run("env", "AK_CMD=/definitely/missing-ak", "bash", "scripts/ci/full.sh",
