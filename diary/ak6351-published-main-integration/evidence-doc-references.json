@@ -1,0 +1,14 @@
+{
+  "command": [
+    "bash",
+    "scripts/check-doc-references.sh"
+  ],
+  "elapsed_seconds": 0.11633647501002997,
+  "exit_status": 0,
+  "finished_unix": 1790987635.1800115,
+  "source_commit": "4f48272066943b8a85d79f6dd33cfd8379c74bfe",
+  "source_status_before": "",
+  "started_unix": 1790987635.0636718,
+  "timeout_overrides": {},
+  "tmpdir": "/home/tryinget/.local/state/pi-quests/tmp"
+}

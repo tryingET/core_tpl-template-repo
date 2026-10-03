@@ -1,0 +1,8 @@
+.
+----------------------------------------------------------------------
+Ran 1 test in 290.486s
+
+OK
+planned ownership transition 41b023999d810652f248fbf9e6f094255532b2b3cf0bf20b472d8792df75a00d (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:902; commit state only

@@ -1,0 +1,5 @@
+{
+  "criteria": "same-UID process cwd/argv references this worktree, proof directory, or task test run scratch; own ancestors and dispatch supervisors excluded",
+  "task_owned_test_process_matches": [],
+  "uninspectable_same_uid_entries": 1
+}

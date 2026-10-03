@@ -1,0 +1,28 @@
+..F
+======================================================================
+FAIL: test_old_readers_upgrade_through_a_receipted_preparatory_refresh (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_old_readers_upgrade_through_a_receipted_preparatory_refresh)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_company_ownership.py", line 302, in test_old_readers_upgrade_through_a_receipted_preparatory_refresh
+    run("bash", "scripts/check-template-ci.sh", cwd=h.repo)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_transitions.py", line 29, in run
+    raise AssertionError(f"{args}: {result.returncode} != {expect}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('bash', 'scripts/check-template-ci.sh'): 1 != 0
+ok: L1 ownership lifecycle structure
+
+/home/tryinget/.cache/ai-society-scratch/runs/run-1790983672-9aabccbe8c338163/work/tmp/tmpkn_pwhlq/canonical/scripts/lib/company-ontology-ref.sh: line 53: template_dir: unbound variable
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 271.102s
+
+FAILED (failures=1)
+planned ownership transition 8a8d296963a3d57a0ee490b770016ef3e1e29af0c727012990d5c10c0082c4f6 (no repository files changed)
+planned ownership transition 8a8d296963a3d57a0ee490b770016ef3e1e29af0c727012990d5c10c0082c4f6 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition f64f2dc3daca3c10bdc9bfb375a09260283186f2dfe6b564ad4ea373f380fb6f (no repository files changed)
+planned ownership transition f64f2dc3daca3c10bdc9bfb375a09260283186f2dfe6b564ad4ea373f380fb6f (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:902; commit state only

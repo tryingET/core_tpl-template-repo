@@ -1,0 +1,17 @@
+{
+  "command": [
+    "node",
+    "/home/tryinget/ai-society/core/agent-scripts/scripts/docs-list.mjs",
+    "--docs",
+    ".",
+    "--strict"
+  ],
+  "elapsed_seconds": 0.0971399390255101,
+  "exit_status": 1,
+  "finished_unix": 1790987635.0273445,
+  "source_commit": "4f48272066943b8a85d79f6dd33cfd8379c74bfe",
+  "source_status_before": "",
+  "started_unix": 1790987634.9302006,
+  "timeout_overrides": {},
+  "tmpdir": "/home/tryinget/.local/state/pi-quests/tmp"
+}

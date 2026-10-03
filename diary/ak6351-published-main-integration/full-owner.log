@@ -1,0 +1,191 @@
+timeout policy: base=1800s generation=3600s adversarial=1800s fixtures=1800s runner=timeout
+......................................F............................../home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pathspec.py:326: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  patterns = [use_factory(__line) for __line in lines if __line]  # type: ignore[arg-type]
+/home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/lib/python3.14/site-packages/pathspec/pattern.py:125: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  raw_regex, include = self.pattern_to_regex(pattern)
+............................
+======================================================================
+FAIL: test_source_fixture_copies_and_budgets (tests.test_company_ontology_ref_inheritance.WrapperTests.test_source_fixture_copies_and_budgets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_company_ontology_ref_inheritance.py", line 273, in test_source_fixture_copies_and_budgets
+    self.assertLessEqual(len((ROOT / "scripts/check-l0-guardrails.sh").read_text().splitlines()), 951)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 952 not less than or equal to 951
+
+----------------------------------------------------------------------
+Ran 97 tests in 715.860s
+
+FAILED (failures=1)
+error: L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed
+error: check-l0-guardrails failed (717s)
+docs-ref-check: scanned 4 file(s), 29 reference(s)
+docs-ref-check: pass
+ok: check-doc-references (0s, warnings: 0, timeout: 1800s)
+ok: session checkpoint guardrails
+ok: check-session-checkpoint (0s, warnings: 0, timeout: 1800s)
+ok: supply-chain checks
+ok: check-supply-chain (0s, warnings: 0, timeout: 1800s)
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+........................F...F......
+======================================================================
+FAIL: test_old_readers_upgrade_through_a_receipted_preparatory_refresh (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_old_readers_upgrade_through_a_receipted_preparatory_refresh)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_company_ownership.py", line 286, in test_old_readers_upgrade_through_a_receipted_preparatory_refresh
+    run("bash", "scripts/check-template-ci.sh", cwd=h.repo)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_transitions.py", line 29, in run
+    raise AssertionError(f"{args}: {result.returncode} != {expect}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('bash', 'scripts/check-template-ci.sh'): 1 != 0
+ok: L1 ownership lifecycle structure
+
+error: L1 wrapper must surface unpinned fallback warning (missing 'warning: uvx/uv not found; falling back to unpinned copier on PATH' in scripts/new-repo-from-copier.sh)
+
+
+======================================================================
+FAIL: test_real_forward_and_receipted_reverse_restore_ownership (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_real_forward_and_receipted_reverse_restore_ownership)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_company_ownership.py", line 113, in test_real_forward_and_receipted_reverse_restore_ownership
+    h.finish(plan, real_gates=True)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_company_ownership.py", line 55, in finish
+    result = run("bash", *gate["command"].split()[1:], cwd=self.repo)
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_template_transitions.py", line 29, in run
+    raise AssertionError(f"{args}: {result.returncode} != {expect}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('bash', 'scripts/check-template-ci.sh'): 2 != 0
+ok: L1 ownership lifecycle structure
+
+error: company L0 pin must be a full lowercase commit
+
+
+----------------------------------------------------------------------
+Ran 35 tests in 511.339s
+
+FAILED (failures=2)
+finalized ownership state from AK evidence:456; review and commit state closeout
+finalized ownership state from AK evidence:456; review and commit state closeout
+APPLY
+preserve: 14 rendered agent-owned path(s)
+note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+retire: copier/tpl-agent-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-agent-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-org-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-org-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-project-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-project-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-monorepo/.copier-answers.yml.j2 (approved sha256=781390e4ec6052dd8a2360d32b7a637c47dedde81f3841249b6a297da165f450; successor=copier/tpl-monorepo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-package/.copier-answers.yml.j2 (approved sha256=27dba22ed419dc971cdc8f8ccc714336476108f3b951a5e3c15f87a370bd6d76; successor=copier/tpl-package/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+update: scripts/ci/full.sh
+--- a/scripts/ci/full.sh
++++ b/scripts/ci/full.sh
+@@ -64,3 +64,5 @@
+ ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+ 
+ echo "ok: ci full"
++
++# refresh change
+APPLY
+preserve: 14 rendered agent-owned path(s)
+note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+update: scripts/ci/full.sh
+--- a/scripts/ci/full.sh
++++ b/scripts/ci/full.sh
+@@ -64,3 +64,5 @@
+ ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+ 
+ echo "ok: ci full"
++
++# incoming L0 update
+applied template-owned actions; commit applied_pending_receipt, run gates, record AK evidence, then finalize
+planned ownership transition d0061e79849b474d3dbdd16238e8ba62d277aee551df1f997c172e9a869e3495 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 3eba25f2392814f36df7e09c5e22671ea5e82e0f23a50717c348cfa4b36646ac (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 1108d46663da1ea747f67506382a97442ea545ab34f11a220f9dfd6c309104ee (no repository files changed)
+planned ownership transition 1108d46663da1ea747f67506382a97442ea545ab34f11a220f9dfd6c309104ee (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+planned ownership transition 95908936ee932fffd700b5c357bfb8eac784d947597f8902af7dc306e37935c3 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 339306f8a60c642df517736e331ad9092d69f76eb7d723dc2c013a88eb51a7f1 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:904; commit state only
+planned ownership transition 48e3b800f338cd6d3208b4c9e8f0e09e4ddea9d9be58c4ad7b482db42f962027 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition bd504358b9cbabf90ebcb8992da33b25a5af2bf9e2e05a2cdbad1f682bef9cb7 (no repository files changed)
+planned ownership transition ba94be276d43a05c3dbce4e944173788b1274327a946955993c4d56a3bc7029b (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition a8cbffb16d6741fdfdfb7a459b74084ec7d034b0c8d1cb3e0a26bcc1622b1d6e (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition fabc699751a63a8db1682267a1a0a7e7a9a190cc8551814dd36f2181b66d4f82 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+error: check-l0-generation failed (1569s)
+Preparing worktree (detached HEAD 4a01f51)
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (detached HEAD 0fc8edf)
+ok: l0 adversarial operator-surface checks
+ok: check-l0-adversarial (338s, warnings: 0, timeout: 1800s)
+ok: l0 fixtures
+ok: check-l0-fixtures (92s, warnings: 0, timeout: 1800s)
+overview:
+  passed: 5
+  failed: 2
+  skipped: 0
+  warnings: 0
+  - check-l0-guardrails: failed (717s, warnings: 0)
+  - check-doc-references: ok (0s, warnings: 0)
+  - check-session-checkpoint: ok (0s, warnings: 0)
+  - check-supply-chain: ok (0s, warnings: 0)
+  - check-l0-generation: failed (1569s, warnings: 0)
+  - check-l0-adversarial: ok (338s, warnings: 0)
+  - check-l0-fixtures: ok (92s, warnings: 0)
