@@ -64,7 +64,7 @@ class CompanyHarness(Harness):
         # Full CI needs this fixture's AK even for an empty snapshot directory.
         # Template CI owns a separate snapshot-capable fixture; do not override it.
         binding = ["env", f"AK_CMD={self.ak}"] if gate["id"] == "ci-full" else ["env", "-u", "AK_CMD"]
-        return run(*binding, "bash", *gate["command"].split()[1:], cwd=self.repo)
+        return run(*binding, f"L0_TEMPLATE_ROOT={ROOT}", "bash", *gate["command"].split()[1:], cwd=self.repo)
 
     def finish(self, plan: dict, real_gates: bool = False) -> dict:
         previous = copy.deepcopy(self.evidence)
