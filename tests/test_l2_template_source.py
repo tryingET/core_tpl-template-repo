@@ -318,11 +318,16 @@ class SourceTests(unittest.TestCase):
         self.assertFalse(self.child.exists())
 
     def test_protected_destinations_fail_before_clone_or_render(self):
-        for destination in (self.company, self.company.parent, self.l0, self.l0 / "child",
-                            self.company / "copier/tpl-project-repo", self.company / "copier-overlay/test",
-                            self.company / "contracts/test", self.company / ".git/test",
-                            self.company / "ontology/test", self.company / "scripts/test"):
-            with self.subTest(destination=destination):
+        for role, destination in (("company", self.company), ("scratch-parent", self.company.parent),
+                                  ("l0", self.l0), ("l0-child", self.l0 / "child"),
+                                  ("template", self.company / "copier/tpl-project-repo"),
+                                  ("overlay", self.company / "copier-overlay/test"),
+                                  ("contracts", self.company / "contracts/test"),
+                                  ("git", self.company / ".git/test"),
+                                  ("ontology", self.company / "ontology/test"),
+                                  ("scripts", self.company / "scripts/test")):
+            # The protected input remains the actual path, not a normalized proxy.
+            with self.subTest(destination_role=role):
                 with patch.object(source, "verify_source"), patch.object(source, "run", side_effect=AssertionError("must not launch")):
                     with self.assertRaisesRegex(ValueError, "authority|protected"):
                         source.prepare(self.company, "tpl-project-repo", destination, self.scratch, [])

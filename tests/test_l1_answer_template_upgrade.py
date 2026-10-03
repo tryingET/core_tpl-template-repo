@@ -416,13 +416,14 @@ class UpgradeSafetyTests(UpgradeHarness):
     def test_modified_untracked_modes_symlinks_and_ownership_fail_before_copy(self) -> None:
         old = self.repo / "copier/tpl-agent-repo" / upgrade.OLD
         mutations = (
-            lambda: old.write_text(old.read_text() + "# deliberately modified\n"),
-            lambda: old.chmod(0o755),
-            lambda: (old.unlink(), old.symlink_to(self.base / "copier/tpl-agent-repo" / upgrade.OLD)),
-            lambda: (self.repo / "copier/tpl-agent-repo/.git").mkdir(),
+            ("modified-bytes", lambda: old.write_text(old.read_text() + "# deliberately modified\n")),
+            ("executable-mode", lambda: old.chmod(0o755)),
+            ("symlink", lambda: (old.unlink(), old.symlink_to(self.base / "copier/tpl-agent-repo" / upgrade.OLD))),
+            ("nested-git", lambda: (self.repo / "copier/tpl-agent-repo/.git").mkdir()),
         )
-        for mutate in mutations:
-            with self.subTest(mutation=mutate):
+        for mutation_kind, mutate in mutations:
+            # Function addresses are invocation metadata, not mutation identities.
+            with self.subTest(mutation_kind=mutation_kind):
                 shutil.rmtree(self.repo)
                 shutil.copytree(self.base, self.repo)
                 mutate()
