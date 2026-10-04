@@ -161,6 +161,15 @@ class CandidateWorkflowTests(unittest.TestCase):
     def test_private_fresh_roots_source_identity_and_run_scoped_download(self):
         prep = self.worker_steps["Prepare private worker output"]
         self.assertEqual(prep["id"], "prepare")
+        for job in self.jobs.values():
+            for value in job.get("env", {}).values():
+                self.assertNotIn("runner.", str(value))
+        self.assertEqual(self.jobs["candidate"]["env"], {
+            "L0_CHECK_VERBOSE": "1", "PYTHONDONTWRITEBYTECODE": "1"})
+        self.assertIn('printf \'TMPDIR=%s\\nROCS_CORE_PROJECT=%s/rocs-ci\\n\' "$RUNNER_TEMP" "$RUNNER_TEMP" >>"$GITHUB_ENV"', prep["run"])
+        names = list(self.worker_steps)
+        for name in ("Provision birth sandbox", "Provision pinned ROCS core", "Run slot 1"):
+            self.assertLess(names.index(prep["name"]), names.index(name))
         self.assertIn('test "$(git rev-parse HEAD)" = "$GITHUB_SHA"', prep["run"])
         self.assertIn('mktemp -d "$RUNNER_TEMP/l0-candidate.XXXXXX"', prep["run"])
         self.assertIn('case "$root/" in "$GITHUB_WORKSPACE/"*) exit 1 ;; esac', prep["run"])

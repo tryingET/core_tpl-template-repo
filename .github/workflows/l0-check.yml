@@ -83,9 +83,7 @@ jobs:
           - {worker: 5, slots: 5}
           - {worker: 6, slots: 9}
     env:
-      TMPDIR: ${{ runner.temp }}
       L0_CHECK_VERBOSE: '1'
-      ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - name: Checkout
@@ -102,6 +100,7 @@ jobs:
           case "$root/" in "$GITHUB_WORKSPACE/"*) exit 1 ;; esac
           chmod 0700 "$root"
           printf 'root=%s\n' "$root" >>"$GITHUB_OUTPUT"
+          printf 'TMPDIR=%s\nROCS_CORE_PROJECT=%s/rocs-ci\n' "$RUNNER_TEMP" "$RUNNER_TEMP" >>"$GITHUB_ENV"
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
         with:
