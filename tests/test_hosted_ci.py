@@ -85,8 +85,8 @@ class HostedCiTests(unittest.TestCase):
         self.assertEqual(serial["env"]["L0_PROFILE_DIR"], "${{ steps.characterization.outputs.profile }}/serial")
         second = steps["Observe reversed-module unittest cohorts"]
         self.assertEqual(normalize(second["if"]), "always() && !cancelled() && " + predicate +
-                         " && steps.characterization.outputs.profile != '' && steps.serial_profile.outcome != 'skipped'"
-                         " && steps.serial_profile.outcome != 'cancelled'")
+                         " && steps.characterization.outputs.profile != '' && steps.serial_profile.outcome == 'success'"
+                         " && steps.serial_artifact.outcome == 'success'")
         self.assertEqual(second["env"]["TMPDIR"], "${{ steps.characterization.outputs.tmpdir }}")
         self.assertIn('reorder --serial-dir "$PROFILE_ROOT/serial"', second["run"])
         self.assertIn('--out-dir "$PROFILE_ROOT/reverse-modules" --tmpdir "$TMPDIR"', second["run"])
@@ -94,7 +94,7 @@ class HostedCiTests(unittest.TestCase):
     def test_characterization_uploader_is_immutable_and_retains_failure_evidence(self):
         workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
         upload = next(s for s in workflow["jobs"]["check"]["steps"]
-                      if s.get("uses", "").startswith("actions/upload-artifact@"))
+                      if s["name"] == "Retain characterization artifacts even on failure")
         self.assertEqual(upload["uses"], "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02")
         self.assertTrue(upload["if"].startswith("always() &&"))
         self.assertIn("github.ref == 'refs/heads/perf/ak6586-l0-ci-15min'", upload["if"])
@@ -108,26 +108,50 @@ class HostedCiTests(unittest.TestCase):
         self.assertEqual(upload["with"]["if-no-files-found"], "error")
         self.assertEqual(upload["with"]["retention-days"], 7)
 
+    def test_serial_evidence_upload_precedes_replay_and_final_upload(self):
+        workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
+        steps = workflow["jobs"]["check"]["steps"]
+        names = [step["name"] for step in steps]
+        before = next(s for s in steps if s["name"] == "Retain serial characterization before replay")
+        final = next(s for s in steps if s["name"] == "Retain characterization artifacts even on failure")
+        self.assertLess(names.index("Observe unchanged serial L0 checks"), names.index(before["name"]))
+        self.assertLess(names.index(before["name"]), names.index("Observe reversed-module unittest cohorts"))
+        self.assertLess(names.index("Observe reversed-module unittest cohorts"), names.index(final["name"]))
+        self.assertEqual(" ".join(before["if"].split()), " ".join(final["if"].split()))
+        self.assertEqual(before["uses"], final["uses"])
+        self.assertEqual(before["id"], "serial_artifact")
+        self.assertEqual(before["with"], {
+            "name": "l0-serial-${{ github.run_id }}-${{ github.run_attempt }}",
+            "path": "${{ steps.characterization.outputs.profile }}/serial",
+            "if-no-files-found": "error", "retention-days": 7,
+        })
+        self.assertNotEqual(before["with"]["name"], final["with"]["name"])
+        self.assertNotIn("continue-on-error", before)
+        self.assertNotIn("continue-on-error", next(s for s in steps if s["name"] == "Observe unchanged serial L0 checks"))
+
     def test_characterization_cancel_and_fork_condition_truth_table(self):
         workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
         steps = {s["name"]: s for s in workflow["jobs"]["check"]["steps"]}
         branch = "perf/ak6586-l0-ci-15min"
         # Evaluate only the trusted, fixed condition expressions asserted above;
         # this checks predicates, not GitHub's runtime scheduling implementation.
-        for event, head_repo, cancelled, outcome, profile, expected in (
-                ("push", "owner/repo", False, "success", "ready", (False, True, True)),
-                ("push", "owner/repo", False, "failure", "ready", (False, True, True)),
-                ("push", "owner/repo", True, "cancelled", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "cancelled", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "skipped", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "success", "", (False, False, False)),
-                ("pull_request", "owner/repo", False, "success", "ready", (False, True, True)),
-                ("pull_request", "fork/repo", False, "success", "ready", (True, False, False))):
+        for event, head_repo, cancelled, outcome, upload, profile, expected in (
+                ("push", "owner/repo", False, "success", "success", "ready", (False, True, True)),
+                ("push", "owner/repo", False, "success", "failure", "ready", (False, False, True)),
+                ("push", "owner/repo", False, "success", "skipped", "ready", (False, False, True)),
+                ("push", "owner/repo", False, "failure", "success", "ready", (False, False, True)),
+                ("push", "owner/repo", True, "cancelled", "success", "ready", (False, False, True)),
+                ("push", "owner/repo", False, "cancelled", "success", "ready", (False, False, True)),
+                ("push", "owner/repo", False, "skipped", "success", "ready", (False, False, True)),
+                ("push", "owner/repo", False, "success", "success", "", (False, False, False)),
+                ("pull_request", "owner/repo", False, "success", "success", "ready", (False, True, True)),
+                ("pull_request", "fork/repo", False, "success", "success", "ready", (True, False, False))):
             with self.subTest(event=event, head_repo=head_repo, cancelled=cancelled, outcome=outcome, profile=profile):
                 values = {"github.event_name": event, "github.ref": "refs/heads/" + branch,
                           "github.head_ref": branch, "github.repository": "owner/repo",
                           "github.event.pull_request.head.repo.full_name": head_repo,
-                          "steps.characterization.outputs.profile": profile, "steps.serial_profile.outcome": outcome}
+                          "steps.characterization.outputs.profile": profile, "steps.serial_profile.outcome": outcome,
+                          "steps.serial_artifact.outcome": upload}
                 actual = []
                 for name in ("Run L0 checks", "Observe reversed-module unittest cohorts",
                              "Retain characterization artifacts even on failure"):

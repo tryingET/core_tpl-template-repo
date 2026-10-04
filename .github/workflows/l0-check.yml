@@ -102,14 +102,31 @@ jobs:
           python3 -B tests/ci_reorder.py capture --out "$L0_PROFILE_DIR/command.json"
           -- bash ./scripts/check-l0.sh
 
+      # Publish the completed condition before replay: a later runner loss must
+      # not erase the earlier result. This adds evidence, not a passing gate.
+      - name: Retain serial characterization before replay
+        id: serial_artifact
+        if: >-
+          always() &&
+          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+          github.event.pull_request.head.repo.full_name == github.repository)) &&
+          steps.characterization.outputs.profile != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-serial-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.characterization.outputs.profile }}/serial
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Observe reversed-module unittest cohorts
         if: >-
           always() && !cancelled() &&
           ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
           (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
           github.event.pull_request.head.repo.full_name == github.repository)) &&
-          steps.characterization.outputs.profile != '' && steps.serial_profile.outcome != 'skipped' &&
-          steps.serial_profile.outcome != 'cancelled'
+          steps.characterization.outputs.profile != '' && steps.serial_profile.outcome == 'success' &&
+          steps.serial_artifact.outcome == 'success'
         env:
           PROFILE_ROOT: ${{ steps.characterization.outputs.profile }}
           TMPDIR: ${{ steps.characterization.outputs.tmpdir }}
