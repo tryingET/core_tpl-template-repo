@@ -328,7 +328,7 @@ class CompanyOntologyTests(unittest.TestCase):
                 original = TRANSITIONS.git_bytes(ROOT, "show", f"72828add2ec38e3a41aacd7fa0c6b4232a7595a3:copier-template/{rel}")
                 (h.repo / rel).write_bytes(original)
             (h.repo / "scripts/lib/l1_ontology_ownership.py").unlink()
-            commit(h.repo, "pre-company reader generation", "scripts")
+            commit(h.repo, "pre-company reader generation", "scripts", "copier")
             run("bash", "scripts/check-template-ci.sh", cwd=h.repo)
             incoming = h.parent / "incoming"
             shutil.copytree(FIXTURE, incoming)
