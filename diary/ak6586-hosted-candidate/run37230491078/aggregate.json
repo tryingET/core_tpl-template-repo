@@ -1,0 +1,242 @@
+{
+  "assertion_execution_proven": false,
+  "attempt": 1,
+  "auto_promoted": false,
+  "cold_workflow_seconds": null,
+  "coverage": {
+    "assertion_execution_proven": false,
+    "differences": [],
+    "errors": [],
+    "expected_nested_count": 2,
+    "expected_root_count": 282,
+    "expected_source_commit": "fb26d63b22bc15aaee51aad4cd12b47382ca9fb3",
+    "host_authenticity_proven": false,
+    "performance_proven": false,
+    "product_equivalence_proven": false,
+    "profiles_received": 23,
+    "receipts_received": 11,
+    "schema": "l0.coverage-check/1",
+    "scope": "independent frozen coverage and explicit receipt assertions only",
+    "shell_receipts_valid": true,
+    "unittest_coverage_valid": true,
+    "valid": true
+  },
+  "coverage_valid": true,
+  "duration_scope": "accepted correlated captures only; excludes rejected/missing units",
+  "errors": [],
+  "expected_slots": 33,
+  "host_authenticity_proven": false,
+  "inventory_sha256": "dd2a7797c5674273885a8d8d96e6b04467471c1257eb181559c09c9b31ca19b9",
+  "metadata_authenticated": false,
+  "owner_equivalence_proven": false,
+  "performance_proven": false,
+  "plan_sha256": "351e6926c473c272d7b9f6439bf38c44b8f19891854a6345fd4e7048e4170246",
+  "product_equivalence_proven": false,
+  "ready_for_hosted": false,
+  "run_id": 37230491078,
+  "schema": "l0.candidate-aggregate/1",
+  "source_commit": "fb26d63b22bc15aaee51aad4cd12b47382ca9fb3",
+  "sum_unit_wall_seconds": 3796.616056244,
+  "units": [
+    {
+      "slot": 1,
+      "unit": "sample-shell",
+      "wall_seconds": 591.22005666,
+      "worker": 1
+    },
+    {
+      "slot": 2,
+      "unit": "R5",
+      "wall_seconds": 109.44434338899998,
+      "worker": 1
+    },
+    {
+      "slot": 3,
+      "unit": "SYS",
+      "wall_seconds": 0.44350694500008103,
+      "worker": 1
+    },
+    {
+      "slot": 4,
+      "unit": "planning",
+      "wall_seconds": 1.3813922919999868,
+      "worker": 1
+    },
+    {
+      "slot": 1,
+      "unit": "UPG",
+      "wall_seconds": 279.018313099,
+      "worker": 2
+    },
+    {
+      "slot": 2,
+      "unit": "profile-community",
+      "wall_seconds": 101.26993990099999,
+      "worker": 2
+    },
+    {
+      "slot": 3,
+      "unit": "fixtures",
+      "wall_seconds": 65.832140686,
+      "worker": 2
+    },
+    {
+      "slot": 4,
+      "unit": "seam",
+      "wall_seconds": 0.5049875500000098,
+      "worker": 2
+    },
+    {
+      "slot": 1,
+      "unit": "adversarial",
+      "wall_seconds": 371.025931254,
+      "worker": 3
+    },
+    {
+      "slot": 2,
+      "unit": "profile-compact",
+      "wall_seconds": 142.994590662,
+      "worker": 3
+    },
+    {
+      "slot": 3,
+      "unit": "Wrapper",
+      "wall_seconds": 107.950785774,
+      "worker": 3
+    },
+    {
+      "slot": 4,
+      "unit": "R4",
+      "wall_seconds": 15.339027328000043,
+      "worker": 3
+    },
+    {
+      "slot": 5,
+      "unit": "static-contracts",
+      "wall_seconds": 0.7212031660000093,
+      "worker": 3
+    },
+    {
+      "slot": 1,
+      "unit": "PREP",
+      "wall_seconds": 371.838367088,
+      "worker": 4
+    },
+    {
+      "slot": 2,
+      "unit": "profile-vouch",
+      "wall_seconds": 171.691468849,
+      "worker": 4
+    },
+    {
+      "slot": 3,
+      "unit": "Safety",
+      "wall_seconds": 148.3597765359999,
+      "worker": 4
+    },
+    {
+      "slot": 4,
+      "unit": "Gf",
+      "wall_seconds": 38.43066214800001,
+      "worker": 4
+    },
+    {
+      "slot": 5,
+      "unit": "R2",
+      "wall_seconds": 17.707497343,
+      "worker": 4
+    },
+    {
+      "slot": 6,
+      "unit": "candidate-contracts",
+      "wall_seconds": 11.620118359000003,
+      "worker": 4
+    },
+    {
+      "slot": 1,
+      "unit": "REV",
+      "wall_seconds": 308.122497238,
+      "worker": 5
+    },
+    {
+      "slot": 2,
+      "unit": "profile-release",
+      "wall_seconds": 162.92064656400004,
+      "worker": 5
+    },
+    {
+      "slot": 3,
+      "unit": "FULL",
+      "wall_seconds": 152.95334297600004,
+      "worker": 5
+    },
+    {
+      "slot": 4,
+      "unit": "R7",
+      "wall_seconds": 44.33899928999995,
+      "worker": 5
+    },
+    {
+      "slot": 5,
+      "unit": "Mf",
+      "wall_seconds": 33.602973969000004,
+      "worker": 5
+    },
+    {
+      "slot": 1,
+      "unit": "R1",
+      "wall_seconds": 222.51897234700002,
+      "worker": 6
+    },
+    {
+      "slot": 2,
+      "unit": "R3",
+      "wall_seconds": 134.66180694399998,
+      "worker": 6
+    },
+    {
+      "slot": 3,
+      "unit": "APPLY",
+      "wall_seconds": 121.21868736699997,
+      "worker": 6
+    },
+    {
+      "slot": 4,
+      "unit": "R6",
+      "wall_seconds": 50.45870817699995,
+      "worker": 6
+    },
+    {
+      "slot": 5,
+      "unit": "R8",
+      "wall_seconds": 17.448334905000024,
+      "worker": 6
+    },
+    {
+      "slot": 6,
+      "unit": "guardrails-static",
+      "wall_seconds": 1.2600182599999243,
+      "worker": 6
+    },
+    {
+      "slot": 7,
+      "unit": "doc-references",
+      "wall_seconds": 0.25968309899997166,
+      "worker": 6
+    },
+    {
+      "slot": 8,
+      "unit": "session-checkpoint",
+      "wall_seconds": 0.030612310000037724,
+      "worker": 6
+    },
+    {
+      "slot": 9,
+      "unit": "supply-chain",
+      "wall_seconds": 0.026663769000037973,
+      "worker": 6
+    }
+  ],
+  "valid": true,
+  "worker_result": "success"
+}
