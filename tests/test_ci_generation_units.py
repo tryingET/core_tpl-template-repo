@@ -17,7 +17,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = "scripts/check-l0-generation.sh"
 PRIVATE = "tests/ci_generation_unit.sh"
-BASELINE_SHA256 = "ab516ad1e3d80b2670f28a6e07a36a6375257ae679afa361dc59727b935f930c"
+# 5acfd49 pre-extraction bytes with only the AK6648 kernel pin v0.3.0 -> v0.4.0 applied.
+BASELINE_SHA256 = "017ac60fa502b510e1e126504b57e711dfd24868025bd32266e4c1803f0dfad4"
 SOURCE_MAP = json.loads((ROOT / "tests/ci_generation_source_map.json").read_text())
 PATHS = sorted({block["target"] for block in SOURCE_MAP["blocks"]} | {
     PRIVATE, "tests/ci_generation_schedule.sh",

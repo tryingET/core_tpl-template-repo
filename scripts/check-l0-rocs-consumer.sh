@@ -91,7 +91,7 @@ assert_files_equal() {
 }
 
 for tpl in tpl-project-repo tpl-monorepo tpl-package; do
-	assert_yaml_default "copier-template/copier/$tpl/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.3.0>' "$tpl should default core ontology refs to the protected release tag"
+	assert_yaml_default "copier-template/copier/$tpl/copier.yml" kernel_ontology_ref '<repo:core/ontology-kernel@v0.4.0>' "$tpl should default core ontology refs to the protected release tag"
 	assert_contains "copier-template/copier/$tpl/copier.yml" 'default: "<repo:{{ company_slug }}/ontology@main>"' "$tpl should default company ontology refs to workspace repo locators"
 	assert_not_contains "copier-template/copier/$tpl/copier.yml" "<gitlab:" "$tpl must not default to legacy gitlab locators rejected by rocs-cli"
 done

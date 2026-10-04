@@ -15,9 +15,9 @@ make_rocs_ref_repo() {
 	git -C "$ref_repo" -c user.name=l0-check -c user.email=l0-check@example.invalid -c commit.gpgsign=false commit -q -m init
 }
 make_rocs_ref_repo "$rocs_workspace/core/ontology-kernel"
-git -C "$rocs_workspace/core/ontology-kernel" -c tag.gpgsign=false tag v0.3.0
+git -C "$rocs_workspace/core/ontology-kernel" -c tag.gpgsign=false tag v0.4.0
 make_rocs_ref_repo "$rocs_workspace/holdingco/ontology"
-assert_file_contains "$matrix_project_python/ontology/manifest.yaml" "<repo:core/ontology-kernel@v0.3.0>" "generated tpl-project-repo must layer the protected kernel release"
+assert_file_contains "$matrix_project_python/ontology/manifest.yaml" "<repo:core/ontology-kernel@v0.4.0>" "generated tpl-project-repo must layer the protected kernel release"
 assert_file_contains "$matrix_project_python/ontology/manifest.yaml" "<repo:holdingco/ontology@main>" "generated tpl-project-repo must layer the company ontology"
 assert_file_contains "$matrix_monorepo/ontology/manifest.yaml" "<repo:holdingco/ontology@main>" "generated tpl-monorepo must layer the company ontology"
 mkdir -p "$rocs_workspace/holdingco/owned"
