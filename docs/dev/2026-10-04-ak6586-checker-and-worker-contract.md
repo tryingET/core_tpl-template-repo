@@ -1,5 +1,5 @@
 ---
-summary: "AK6586 independent coverage checker, closed six-worker assignment and fast routing verification; not hosted adoption."
+summary: "AK6586 frozen coverage, static extraction and experimental six-worker contract; real candidate evidence pending."
 read_when:
   - "Using or changing AK6586 coverage accounting or the six-worker preparation."
 type: "reference"
@@ -10,17 +10,19 @@ task_id: 6586
 
 ## Implemented and checked
 
-The operator ordered: coverage checker, worker assignment, then fast synthetic
-checks. Those steps were implemented in that order without a hosted launch.
+The operator ordered coverage accounting, assignment and fast checks, then
+explicitly approved static extraction and the experimental worker/aggregation
+candidate. Implementation is local; real clean-source candidate evidence is pending.
 
 - [Coverage checker](../../tests/ci_coverage.py): strict JSON data accounting.
-- [Frozen inventory](../../tests/ci_coverage_inventory.json):235 root executions,
-  two nested upgrades,401 exact raw subtests,11 separate shell obligations.
+- [Frozen inventory](../../tests/ci_coverage_inventory.json):282 root executions,
+  two nested upgrades,391 exact raw subtests,11 separate shell obligations.
 - [Closed assignment](../../tests/ci_schedule.json) and
-  [routing helper](../../tests/ci_schedule.py):31 units across six workers.
+  [routing helper](../../tests/ci_schedule.py):33 slots across six workers.
 - [Checker tests](../../tests/test_ci_coverage.py) and
   [routing tests](../../tests/test_ci_schedule.py):23 new fast contracts, selected
-  by a separate owner guardrail cohort. Existing product cohorts stay unchanged.
+  by a separate owner guardrail cohort. Static/candidate cohorts add47 contracts;
+  existing product cohorts stay unchanged.
 
 The checker rejects missing/excess/duplicate/unknown methods and raw subtests,
 invalid collection/execution/ordinal/status data, empty selector arguments,
@@ -31,20 +33,21 @@ its ownership parent rather than an additional top-level execution.
 
 The expected inventory comes from retained historical reports and explicit
 source-inspected safety-net deltas, not the candidate's discovered results.
-Three label-fix methods use their exact stable captures. One changed observer
-truth table uses its ten passing raw subcases from the retained08f4de1 serial
-profile; that full profile failed another method, so it is not relabelled green.
+Three label-fix methods use their exact stable captures. The approved observer
+truth table now uses direct assertions; its previous ten raw subcases and the
+retained08f4de1 red profile remain recorded in the source bridge. No general raw
+ID normalization or relabelling of that profile as green is permitted.
 Literal raw suffix concatenation and provenance-reference aliases are lossless
 compression, not parameter normalization or exclusion.
 
-## Proposed assignment and estimates
+## Closed assignment and estimates
 
 | Worker | Closed units in order | Estimated total including allowances |
 |---|---|---:|
 | 1 | sample-shell, R5, SYS, planning |857.4s|
 | 2 | UPG, profile-community, fixtures, seam |863s|
-| 3 | adversarial, profile-compact, Wrapper, R4 |848s|
-| 4 | PREP, profile-vouch, Safety, Gf, R2 |861s|
+| 3 | adversarial, profile-compact, Wrapper, R4, static-contracts |858s|
+| 4 | PREP, profile-vouch, Safety, Gf, R2, candidate-contracts |871s|
 | 5 | REV, profile-release, FULL, R7, Mf |841s|
 | 6 | R1, R3, APPLY, R6, R8, guardrails-static, doc-references, session-checkpoint, supply-chain |843s|
 
@@ -75,9 +78,12 @@ that same source and an empty dirty-state list. Report packets retain the existi
 unittest profile schema. Receipt envelopes bind a closed unit and exact canonical
 command to a complete successful managed capture with clean process-group teardown.
 
-Both CLIs produce JSON only and launch no processes. The routing helper's callback
-API accepts an explicitly injected fake spy, stops at its first failure, and stops
-before an unimplemented route. There is no default real execution backend.
+Both preparation CLIs produce JSON only and launch no processes. The routing
+helper's callback API accepts an explicitly injected fake spy and stops at first
+failure. A separate [experimental backend](../../tests/ci_worker.py) executes one
+closed slot per explicit call; [aggregation](../../tests/ci_aggregate.py) reads
+correlated captures without rerunning units. See the
+[local candidate update](2026-10-04-ak6586-local-candidate-contract-update.md).
 
 ## Proof limits and remaining obligations
 
@@ -86,9 +92,11 @@ or prove that supplied shell receipt assertions are truthful. Successful synthet
 accounting therefore keeps performance, product equivalence, host authenticity and
 assertion-execution proof flags false. The assignment keeps `ready_for_hosted=false`.
 
-The planned guardrails-static entrypoint is still absent. It must preserve all
-original shell assertions and negative cases, without a broad skip flag or duplicate
-Python execution, before a complete real candidate can run. Actual unit isolation,
+The [static entrypoint](../../tests/ci_guardrails_static.sh) is present and its
+actual focused shell command passes locally. Mechanical reconstruction preserves
+all951 original lines/bytes and four original cohort calls; the public wrapper
+adds only two fast contract calls. No skip flag or duplicate product Python run
+is introduced. Real clean-source slot/candidate receipts, full isolation and
 serial/unit equivalence, cold hosted results and required native wide proof remain.
 Local heavy-job admission has no confirmed repair; no retry or bypass is implied.
 
@@ -98,9 +106,14 @@ unchanged source budgets. Use the pinned Copier runtime for collection dependenc
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 uvx --from copier==9.11.1 python -B -m unittest \
-  tests.test_ci_coverage tests.test_ci_schedule tests.test_ci_generation_units \
-  tests.test_ci_reorder tests.test_ci_profile tests.test_hosted_ci tests.test_l0_check_timeouts
+  tests.test_ci_guardrails tests.test_ci_worker tests.test_ci_aggregate \
+  tests.test_ci_candidate_workflow tests.test_ci_coverage tests.test_ci_schedule \
+  tests.test_ci_generation_units tests.test_ci_reorder tests.test_ci_profile \
+  tests.test_hosted_ci tests.test_l0_check_timeouts \
+  tests.test_company_ontology_ref_inheritance.WrapperTests.test_source_fixture_copies_and_budgets
 ```
 
-Reverting the scoped safety-net commit removes this preparation. No production
-output, main/PR10 workflow, source admission or task completion was changed.
+Revert the local candidate commit to remove this slice. Default main's complete
+serial command remains unchanged; only the explicit performance-branch candidate
+path is prepared. No production output, source admission, hosted success or task
+completion is claimed.

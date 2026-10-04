@@ -12,6 +12,10 @@ permissions:
 
 jobs:
   check:
+    if: >-
+      !((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+      github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,27 +23,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      # Observation is restricted to this exact push branch or PR head. No PR
-      # branch rewrite, matrix, sharding, owner-budget reduction or 15-minute cap.
-      - name: Prepare hosted characterization
-        id: characterization
-        if: >-
-          (github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
-          github.event.pull_request.head.repo.full_name == github.repository)
-        run: |
-          umask 077
-          profile="$(mktemp -d "$RUNNER_TEMP/l0-profile.XXXXXX")"
-          scratch="$(mktemp -d "$RUNNER_TEMP/l0-reorder-tmp.XXXXXX")"
-          mkdir "$profile/serial" "$profile/reverse-modules"
-          {
-            date -u +'%FT%TZ'
-            git rev-parse HEAD
-            printf 'run=%s attempt=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
-            printf '%s\n' 'Observation only; no hosted-green or cold-workflow timing proof.'
-          } >"$profile/preparation.txt"
-          printf 'profile=%s\ntmpdir=%s\n' "$profile" "$scratch" >>"$GITHUB_OUTPUT"
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
@@ -74,82 +57,309 @@ jobs:
           uv run --project "$core" --frozen rocs version
 
       - name: Run L0 checks
-        if: >-
-          !((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
-          github.event.pull_request.head.repo.full_name == github.repository))
         env:
           TMPDIR: ${{ runner.temp }}
           L0_CHECK_VERBOSE: '1'
           ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
         run: bash ./scripts/check-l0.sh
 
-      - name: Observe unchanged serial L0 checks
-        id: serial_profile
-        if: >-
-          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
-          github.event.pull_request.head.repo.full_name == github.repository)) &&
-          steps.characterization.outputs.profile != ''
+  candidate:
+    if: >-
+      ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+      github.event.pull_request.head.repo.full_name == github.repository))
+    runs-on: ubuntu-latest
+    # Verification budget, not a 15-minute passing cap.
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include:
+          - {worker: 1, slots: 4}
+          - {worker: 2, slots: 4}
+          - {worker: 3, slots: 5}
+          - {worker: 4, slots: 6}
+          - {worker: 5, slots: 5}
+          - {worker: 6, slots: 9}
+    env:
+      TMPDIR: ${{ runner.temp }}
+      L0_CHECK_VERBOSE: '1'
+      ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare private worker output
+        id: prepare
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          umask 077
+          root="$(mktemp -d "$RUNNER_TEMP/l0-candidate.XXXXXX")"
+          case "$root/" in "$GITHUB_WORKSPACE/"*) exit 1 ;; esac
+          chmod 0700 "$root"
+          printf 'root=%s\n' "$root" >>"$GITHUB_OUTPUT"
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: '0.12.22'
+          enable-cache: false
+      - name: Provision birth sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          if [ "$(cat /proc/sys/kernel/apparmor_restrict_unprivileged_userns)" = 1 ]; then
+            printf '%s\n' 'abi <abi/4.0>,' 'include <tunables/global>' \
+              'profile ci-bwrap /usr/bin/bwrap flags=(unconfined) {' '  userns,' '}' \
+              | sudo tee /etc/apparmor.d/ci-bwrap >/dev/null
+            sudo apparmor_parser -r /etc/apparmor.d/ci-bwrap
+          fi
+          bwrap --die-with-parent --unshare-pid --unshare-ipc --unshare-uts \
+            --ro-bind / / --dev /dev --proc /proc /usr/bin/true
+      - name: Provision pinned ROCS core
+        run: |
+          core="$RUNNER_TEMP/rocs-ci"
+          git init "$core"
+          git -C "$core" fetch --depth=1 https://github.com/tryingET/rocs-cli.git \
+            ac75e95e30d66b3543abca27cb79d69a9dc01e93
+          git -C "$core" checkout --detach FETCH_HEAD
+          test "$(git -C "$core" rev-parse HEAD)" = ac75e95e30d66b3543abca27cb79d69a9dc01e93
+          uv sync --project "$core" --frozen
+          uv run --project "$core" --frozen rocs version
+      - name: Prewarm pinned outer Copier
         env:
-          TMPDIR: ${{ runner.temp }}
-          L0_CHECK_VERBOSE: '1'
-          ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
-          L0_PROFILE_DIR: ${{ steps.characterization.outputs.profile }}/serial
-          L0_PROFILE_CONDITION: serial
-          PYTHONDONTWRITEBYTECODE: '1'
-        run: >-
-          python3 -B tests/ci_reorder.py capture --out "$L0_PROFILE_DIR/command.json"
-          -- bash ./scripts/check-l0.sh
+          UV_NO_MANAGED_PYTHON: '1'
+        run: |
+          uvx --from copier==9.11.1 python -B -c 'import importlib.metadata as m; assert m.version("copier") == "9.11.1"'
+          python3 -B -c 'import yaml'
 
-      # Publish the completed condition before replay: a later runner loss must
-      # not erase the earlier result. This adds evidence, not a passing gate.
-      - name: Retain serial characterization before replay
-        id: serial_artifact
-        if: >-
-          always() &&
-          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
-          github.event.pull_request.head.repo.full_name == github.repository)) &&
-          steps.characterization.outputs.profile != ''
+      # One unit per call. Retain it before the next slot can start.
+      # Raw logs are unredacted: no secrets or persisted checkout credentials.
+      - name: Run slot 1
+        if: success() && matrix.slots >= 1
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot1"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 1 --out "$OUTPUT_ROOT/slot1" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 1
+        if: always() && !cancelled() && matrix.slots >= 1 && steps.prepare.outputs.root != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: l0-serial-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ steps.characterization.outputs.profile }}/serial
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot1
+          path: ${{ steps.prepare.outputs.root }}/slot1
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 2
+        if: success() && matrix.slots >= 2
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot2"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 2 --out "$OUTPUT_ROOT/slot2" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 2
+        if: always() && !cancelled() && matrix.slots >= 2 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot2
+          path: ${{ steps.prepare.outputs.root }}/slot2
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 3
+        if: success() && matrix.slots >= 3
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot3"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 3 --out "$OUTPUT_ROOT/slot3" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 3
+        if: always() && !cancelled() && matrix.slots >= 3 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot3
+          path: ${{ steps.prepare.outputs.root }}/slot3
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 4
+        if: success() && matrix.slots >= 4
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot4"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 4 --out "$OUTPUT_ROOT/slot4" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 4
+        if: always() && !cancelled() && matrix.slots >= 4 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot4
+          path: ${{ steps.prepare.outputs.root }}/slot4
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 5
+        if: success() && matrix.slots >= 5
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot5"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 5 --out "$OUTPUT_ROOT/slot5" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 5
+        if: always() && !cancelled() && matrix.slots >= 5 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot5
+          path: ${{ steps.prepare.outputs.root }}/slot5
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 6
+        if: success() && matrix.slots >= 6
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot6"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 6 --out "$OUTPUT_ROOT/slot6" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 6
+        if: always() && !cancelled() && matrix.slots >= 6 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot6
+          path: ${{ steps.prepare.outputs.root }}/slot6
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 7
+        if: success() && matrix.slots >= 7
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot7"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 7 --out "$OUTPUT_ROOT/slot7" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 7
+        if: always() && !cancelled() && matrix.slots >= 7 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot7
+          path: ${{ steps.prepare.outputs.root }}/slot7
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 8
+        if: success() && matrix.slots >= 8
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot8"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 8 --out "$OUTPUT_ROOT/slot8" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 8
+        if: always() && !cancelled() && matrix.slots >= 8 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot8
+          path: ${{ steps.prepare.outputs.root }}/slot8
+          if-no-files-found: error
+          retention-days: 7
+      - name: Run slot 9
+        if: success() && matrix.slots >= 9
+        env:
+          OUTPUT_ROOT: ${{ steps.prepare.outputs.root }}
+        run: |
+          umask 077
+          mkdir -m 0700 "$OUTPUT_ROOT/slot9"
+          python3 -B tests/ci_worker.py --worker ${{ matrix.worker }} --slot 9 --out "$OUTPUT_ROOT/slot9" --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+      - name: Retain slot 9
+        if: always() && !cancelled() && matrix.slots >= 9 && steps.prepare.outputs.root != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot9
+          path: ${{ steps.prepare.outputs.root }}/slot9
           if-no-files-found: error
           retention-days: 7
 
-      - name: Observe reversed-module unittest cohorts
-        if: >-
-          always() && !cancelled() &&
-          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
-          github.event.pull_request.head.repo.full_name == github.repository)) &&
-          steps.characterization.outputs.profile != '' && steps.serial_profile.outcome == 'success' &&
-          steps.serial_artifact.outcome == 'success'
+  aggregate:
+    needs: candidate
+    if: >-
+      always() && !cancelled() &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
+      (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+      github.event.pull_request.head.repo.full_name == github.repository))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare private aggregate roots
+        id: prepare
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 -B -c 'import yaml'
+          umask 077
+          inputs="$(mktemp -d "$RUNNER_TEMP/l0-incoming.XXXXXX")"
+          out="$(mktemp -d "$RUNNER_TEMP/l0-aggregate.XXXXXX")"
+          case "$inputs/" in "$GITHUB_WORKSPACE/"*) exit 1 ;; esac
+          case "$out/" in "$GITHUB_WORKSPACE/"*) exit 1 ;; esac
+          chmod 0700 "$inputs" "$out"
+          printf 'inputs=%s\nout=%s\n' "$inputs" "$out" >>"$GITHUB_OUTPUT"
+      - name: Download this run and attempt only
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker*-slot*
+          merge-multiple: false
+          path: ${{ steps.prepare.outputs.inputs }}
+      - name: Refuse unsafe transport then restore private modes
+        id: transport
+        if: always() && !cancelled() && steps.prepare.outputs.inputs != ''
         env:
-          PROFILE_ROOT: ${{ steps.characterization.outputs.profile }}
-          TMPDIR: ${{ steps.characterization.outputs.tmpdir }}
-          L0_CHECK_VERBOSE: '1'
-          ROCS_CORE_PROJECT: ${{ runner.temp }}/rocs-ci
-          PYTHONDONTWRITEBYTECODE: '1'
+          INPUTS: ${{ steps.prepare.outputs.inputs }}
+        run: |
+          python3 -B - <<'PY'
+          import os
+          import stat
+          from pathlib import Path
+          root = Path(os.environ["INPUTS"])
+          assert root.is_absolute() and not root.resolve().is_relative_to(Path.cwd().resolve())
+          paths = []
+          pending = [root]
+          while pending:
+              path = pending.pop()
+              info = path.lstat()
+              if info.st_uid != os.getuid() or stat.S_ISLNK(info.st_mode):
+                  raise ValueError("transport must be owned and unlinked")
+              if stat.S_ISDIR(info.st_mode):
+                  paths.append((path, 0o700))
+                  pending.extend(path.iterdir())
+              elif stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
+                  paths.append((path, 0o600))
+              else:
+                  raise ValueError("transport must contain only directories and singly linked regular files")
+          # Reject the entire tree before chmod; never rewrite artifact bytes.
+          for path, mode in paths:
+              os.chmod(path, mode, follow_symlinks=False)
+          PY
+      - name: Aggregate correlated unit evidence
+        if: always() && !cancelled() && steps.transport.outcome == 'success' && steps.prepare.outputs.out != ''
+        env:
+          INPUTS: ${{ steps.prepare.outputs.inputs }}
+          OUT: ${{ steps.prepare.outputs.out }}
+          WORKER_RESULT: ${{ needs.candidate.result }}
         run: >-
-          python3 -B tests/ci_reorder.py reorder --serial-dir "$PROFILE_ROOT/serial"
-          --out-dir "$PROFILE_ROOT/reverse-modules" --tmpdir "$TMPDIR"
-
-      - name: Retain characterization artifacts even on failure
-        if: >-
-          always() &&
-          ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-          (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
-          github.event.pull_request.head.repo.full_name == github.repository)) &&
-          steps.characterization.outputs.profile != ''
-        # Raw logs are unredacted: no secret inputs or persisted checkout credentials.
-        # Inspect artifacts before sharing; do not add secrets to these observers.
-        # Public GitHub commits/v4 resolved to this immutable v4.6.2 commit.
+          python3 -B tests/ci_aggregate.py --inputs "$INPUTS" --out "$OUT"
+          --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
+          --worker-result "$WORKER_RESULT"
+      - name: Retain aggregate even on failure
+        if: always() && !cancelled() && steps.prepare.outputs.out != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: l0-characterization-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ steps.characterization.outputs.profile }}
+          name: l0-candidate-aggregate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.prepare.outputs.out }}/aggregate.json
           if-no-files-found: error
           retention-days: 7

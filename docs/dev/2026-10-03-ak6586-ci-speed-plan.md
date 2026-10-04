@@ -55,6 +55,8 @@ task_id: 6586
   was complete with child exit1 and clean teardown. The current narrow fix removes
   non-executable lines, retains951, and passes the isolated budget assertion.
   This diagnoses that run, not the earlier lost runner or whole current-head CI.
+  The subsequent static extraction reconstructs those951 original lines/bytes;
+  the public wrapper retains four original calls and adds two fast contract calls.
 
 ### Independent inventory and compatibility bridge
 
@@ -68,19 +70,25 @@ task_id: 6586
   reverse methods collected through `load_tests` and nested upgrades through their
   ownership parent; never replay the nested suite as extra top-level work.
 - The implemented [coverage checker](../../tests/ci_coverage.py) uses the expanded
-  [frozen inventory](../../tests/ci_coverage_inventory.json):235 root methods,
-  two nested upgrades and401 exact raw subtests, including23 new fast contracts.
+  [frozen inventory](../../tests/ci_coverage_inventory.json):282 root methods,
+  two nested upgrades and391 exact raw subtests, including23 planning and47
+  static/candidate contracts. Approved observer direct assertions replace only
+  its ten former raw subcases, retained in the source bridge.
   It rejects missing/excess/duplicate/unknown coverage, malformed ledgers, source
   mismatch, broken nested ownership and missing/failed command-bound shell receipts.
   Matching omissions cannot define the expected inventory. Receipt inputs are not
   host-authenticated execution proof; its proof-limit flags remain false.
 - The [closed six-worker assignment](../../tests/ci_schedule.json) and
-  [dry-run routing helper](../../tests/ci_schedule.py) prepare31 units with exact
-  membership and fixed proposed cold/setup allowances. Their synthetic and
-  collection-only checks pass; no hosted scheduler has been activated.
-- Actual shell/negative-case execution accounting still requires the missing
-  guardrails-static entrypoint and real captures. Body hashes and synthetic spies
-  are supporting evidence, not evidence that every product assertion executed.
+  [dry-run routing helper](../../tests/ci_schedule.py) prepare33 slots with exact
+  membership and fixed proposed cold/setup allowances; maximum estimate871s is
+  not timing proof. The separate experimental worker/aggregation backend and
+  per-slot artifact workflow are locally implemented, not launched or published.
+- The [guardrails-static entrypoint](../../tests/ci_guardrails_static.sh) now
+  exists, preserves original assertions/negative cases, and passes its actual
+  focused command locally. Real clean-source candidate captures remain pending.
+  Body hashes and synthetic spies are not evidence of full product execution.
+  The [contract update](2026-10-04-ak6586-local-candidate-contract-update.md)
+  records exact transport, pin, deadline and outer-only offline limits.
 - Do not weaken `ci_reorder`'s strict same-source comparison or generally normalize
   raw IDs. Compare same-revision conditions there; document any cross-revision
   compatibility claim separately, with exact approved deltas and remaining gaps.
@@ -152,8 +160,11 @@ task_id: 6586
 - Fast pinned-runtime contracts:
   ```bash
   PYTHONDONTWRITEBYTECODE=1 uvx --from copier==9.11.1 python -B -m unittest \
+    tests.test_ci_guardrails tests.test_ci_worker tests.test_ci_aggregate \
+    tests.test_ci_candidate_workflow tests.test_ci_coverage tests.test_ci_schedule \
     tests.test_ci_generation_units tests.test_ci_reorder tests.test_ci_profile \
-    tests.test_hosted_ci tests.test_l0_check_timeouts
+    tests.test_hosted_ci tests.test_l0_check_timeouts \
+    tests.test_company_ontology_ref_inheritance.WrapperTests.test_source_fixture_copies_and_budgets
   ```
 - Actual targeted command: select explicitly from the diagnosed failing unit and
   its retained contract; record the exact command before execution. Heavy local
@@ -170,7 +181,7 @@ task_id: 6586
 
 ## Rollback
 
-Each executable slice remains separately reversible on the isolated performance
+The atomic local candidate slice remains reversible on the isolated performance
 branch. Revert only its scoped commit; preserve historical red evidence and the
 frozen green PR10 head. Draft plan/inventory changes do not constitute scheduler
 adoption, task completion or a source-owner migration.

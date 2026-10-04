@@ -11,6 +11,7 @@ from contextlib import contextmanager
 import ctypes
 import errno
 import json
+import math
 import os
 from pathlib import Path
 import selectors
@@ -201,8 +202,12 @@ def teardown(process, pump, signum):
             "final_drain_iterations": iterations, "final_drain_limited": limited}
 
 
-def capture(command, target, *, env=None, root=ROOT, artifact_opener=None, packet_writer=None):
-    """Cleanup and close first; attempt JSON only after all process/global cleanup."""
+def capture(command, target, *, env=None, root=ROOT, artifact_opener=None, packet_writer=None,
+            timeout_seconds=None):
+    """Cleanup first; optional positive finite deadline uses the existing teardown."""
+    if timeout_seconds is not None and (type(timeout_seconds) not in (int, float)
+            or not 0 < timeout_seconds <= sys.float_info.max or not math.isfinite(timeout_seconds)):
+        raise ValueError("timeout_seconds must be positive and finite, or None")
     opener = artifact_opener or open_artifact
     writer = packet_writer or write_json
     target = checked_target(target)
@@ -210,6 +215,8 @@ def capture(command, target, *, env=None, root=ROOT, artifact_opener=None, packe
     if target.exists() or log.exists():
         raise ValueError("command artifacts already exist")
     started = time.perf_counter()
+    deadline = None if timeout_seconds is None else started + timeout_seconds
+    timed_out = False
     process = drain = cleanup = pending = None
     interrupted = None
     stopping = False
@@ -239,7 +246,11 @@ def capture(command, target, *, env=None, root=ROOT, artifact_opener=None, packe
                                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                         drain = Drain(process.stdout, output, selector)
                     while process is not None and process.poll() is None and not interrupted and not drain.disabled:
-                        drain.pump(0.05)
+                        remaining = None if deadline is None else deadline - time.perf_counter()
+                        if remaining is not None and remaining <= 0:
+                            timed_out = True
+                            break
+                        drain.pump(0.05 if remaining is None else min(0.05, remaining))
                 except KeyboardInterrupt:
                     interrupted = interrupted or signal.SIGINT
                 except BaseException as failure:
@@ -276,6 +287,9 @@ def capture(command, target, *, env=None, root=ROOT, artifact_opener=None, packe
     if code is None or error or io_errors or not complete or (cleanup and not cleanup["process_group_gone"]):
         code = 128 + interrupted if interrupted else 1 if process is not None else 127
         error = error or (io_errors[0]["message"] if io_errors else "capture/managed cleanup incomplete")
+    if timed_out and not interrupted:
+        code = 124
+        error = error or "capture deadline exceeded"
     effective_env = os.environ if env is None else env
     packet = {
         "schema": "l0.profile-command/1", "command": command, "cwd": str(root),
@@ -285,6 +299,8 @@ def capture(command, target, *, env=None, root=ROOT, artifact_opener=None, packe
         "log": log.name, "error": error, "condition": effective_env.get("L0_PROFILE_CONDITION"),
         "tmpdir": effective_env.get("TMPDIR"),
     }
+    if timeout_seconds is not None:
+        packet.update(timeout_seconds=timeout_seconds, deadline_perf_counter=deadline, timed_out=timed_out)
     writer(target, packet)  # Cleanup, pipe closure, and global restoration precede JSON IO.
     if pending is not None:
         raise pending

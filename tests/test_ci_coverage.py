@@ -42,7 +42,7 @@ def manifest():
     # Expectations are literals written independently, never from packet collection.
     return {
         "schema": "l0.coverage-inventory/1", "fixture_count": 0,
-        "expected_root_count": 6, "expected_nested_count": 1,
+        "expected_root_count": 8, "expected_nested_count": 1,
         "inputs": {"independent": {"path": "frozen/synthetic.json",
                                    "sha256": "a" * 64, "source_commit": "b" * 40}},
         "cohorts": [
@@ -58,6 +58,10 @@ def manifest():
              "methods": [row(OWNER)]},
             {"cohort": "generation-upgrade", "parent_cohort": "generation-main", "parent_method": OWNER,
              "methods": [row("example.Upgrade.test_render")]},
+            {"cohort": "guardrails-ci-static", "parent_cohort": None, "parent_method": None,
+             "methods": [row("example.Static.test_contract")]},
+            {"cohort": "guardrails-ci-candidate", "parent_cohort": None, "parent_method": None,
+             "methods": [row("example.Candidate.test_contract")]},
         ],
         "shell_units": [{"unit": unit, "command": command[:]} for unit, command in COMMANDS],
     }
@@ -88,6 +92,8 @@ def packets():
         profile("generation-main", [OWNER], [event(OWNER)]),
         profile("generation-upgrade", ["example.Upgrade.test_render"],
                 [event("example.Upgrade.test_render")], "generation-main"),
+        profile("guardrails-ci-static", ["example.Static.test_contract"], [event("example.Static.test_contract")]),
+        profile("guardrails-ci-candidate", ["example.Candidate.test_contract"], [event("example.Candidate.test_contract")]),
     ]
 
 
@@ -125,13 +131,36 @@ class IndependentCoverageTests(unittest.TestCase):
         self.assertTrue(checker.validate_shell_receipts(manifest(), receipts(), expected_source_commit=SHA)["valid"])
         # A trusted explicit repeated-method obligation must not be deduplicated.
         inv, repeated = manifest(), packets()
-        inv["expected_root_count"] = 7
+        inv["expected_root_count"] = 9
         inv["cohorts"][0]["methods"].append(row(SHARED))
         repeated[0]["collected_ids"].append(SHARED)
         repeated[0]["events"].append(event(SHARED, 3))
         repeated[0]["tests_run"] = 3
         self.assertTrue(self.check(repeated, inventory=inv)["valid"])
         self.assertFalse(self.check(inventory=inv)["valid"])
+        # Lossless explicit metadata aliases: IDs and suffix bytes remain literal.
+        aliased = manifest()
+        aliased["origin_references"] = {"@i": {"origin": "independent", "outcome": "success", "subtests": []}}
+        for cohort in aliased["cohorts"]:
+            for method in cohort["methods"]:
+                method["origin"] = "@i"
+                del method["outcome"]
+                if method["subtests"] == []:
+                    del method["subtests"]
+        self.assertEqual(checker.expand_inventory(aliased), manifest())
+        self.assertEqual(checker.load_json(io.StringIO(json.dumps(aliased))), manifest())
+        self.assertTrue(self.check(inventory=aliased)["valid"])
+        for kind in ("unknown", "missing", "outcome", "subtests", "extra", "unused", "override"):
+            changed = deepcopy(aliased)
+            fields = changed["origin_references"]["@i"]
+            if kind == "unknown": fields["origin"] = "missing"
+            elif kind == "missing": del fields["outcome"]
+            elif kind == "outcome": fields["outcome"] = True
+            elif kind == "subtests": fields["subtests"] = None
+            elif kind == "extra": fields["extra"] = 1
+            elif kind == "unused": changed["origin_references"]["@unused"] = deepcopy(fields)
+            else: changed["cohorts"][0]["methods"][0]["outcome"] = "success"
+            self.assertFalse(self.check(inventory=changed)["valid"], kind)
 
     def test_matching_omission_and_empty_profiles_never_define_expected_coverage(self):
         omitted = packets()[1:]

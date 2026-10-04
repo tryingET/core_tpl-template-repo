@@ -116,6 +116,10 @@ class ReorderContractTests(unittest.TestCase):
                 "guardrails-generation-units": ("tests.test_ci_generation_units.GenerationSourceContracts.test_case",),
                 "guardrails-ci-planning": ("tests.test_ci_coverage.IndependentCoverageTests.test_case",
                                            "tests.test_ci_schedule.ScheduleContractTests.test_case"),
+                "guardrails-ci-static": ("tests.test_ci_guardrails.GuardrailsSeamTests.test_case",),
+                "guardrails-ci-candidate": ("tests.test_ci_worker.WorkerContractTests.test_case",
+                                            "tests.test_ci_aggregate.AggregateContractTests.test_case",
+                                            "tests.test_ci_candidate_workflow.CandidateWorkflowTests.test_case"),
                 "generation-upgrade": ("tests.test_l1_answer_template_upgrade.UpgradeTests.test_case",),
             }.get(cohort, ("sample.Cases.test_case",))
             before = packet(ids=ids)
@@ -684,12 +688,30 @@ class Planning(unittest.TestCase):
     def test_coverage(self): pass
     def test_schedule(self): pass
 ''')
+            (root / "statics.py").write_text('''import unittest
+class Statics(unittest.TestCase):
+    def id(self): return 'tests.test_ci_guardrails.GuardrailsSeamTests.test_synthetic'
+    def test_static(self): pass
+''')
+            (root / "candidate.py").write_text('''import unittest
+class Candidate(unittest.TestCase):
+    def id(self):
+        module = {'test_worker': 'test_ci_worker.WorkerContractTests',
+                  'test_aggregate': 'test_ci_aggregate.AggregateContractTests',
+                  'test_workflow': 'test_ci_candidate_workflow.CandidateWorkflowTests'}[self._testMethodName]
+        return 'tests.' + module + '.test_synthetic'
+    def test_worker(self): pass
+    def test_aggregate(self): pass
+    def test_workflow(self): pass
+''')
             env = {k: v for k, v in os.environ.items() if not k.startswith("L0_PROFILE_")}
             env.update(PYTHONPATH=str(root), L0_PROFILE_DIR=str(serial), L0_PROFILE_CONDITION="serial",
                        PYTHONDONTWRITEBYTECODE="1", UV_OFFLINE="1")
             for cohort, arguments in (("guardrails-main", ["alpha", "beta"]),
                                       ("guardrails-generation-units", ["units"]),
                                       ("guardrails-ci-planning", ["planning"]),
+                                      ("guardrails-ci-static", ["statics"]),
+                                      ("guardrails-ci-candidate", ["candidate"]),
                                       ("guardrails-system4d", ["context"]), ("generation-main", ["owner", "tail"])):
                 result = subprocess.run(["sh", str(HELPER), cohort, sys.executable, *arguments],
                                         cwd=ROOT, env=env, capture_output=True, text=True)
@@ -701,17 +723,19 @@ class Planning(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             summary = json.loads((second / "comparison.json").read_text())
             self.assertTrue(summary["exact_match"])
-            self.assertEqual(len(summary["comparisons"]), 6)
-            self.assertEqual(len(summary["commands"]), 5, "nested upgrade must not be replayed separately")
+            self.assertEqual(len(summary["comparisons"]), 8)
+            self.assertEqual(len(summary["commands"]), 7, "nested upgrade must not be replayed separately")
             self.assertEqual([c["command"][c["command"].index(str(HELPER)) + 1] for c in summary["commands"]],
-                             ["guardrails-main", "guardrails-generation-units", "guardrails-ci-planning", "guardrails-system4d", "generation-main"])
-            unit_command = summary["commands"][1]["command"]
-            self.assertEqual(unit_command[unit_command.index(str(HELPER)) + 2], "pinned-9.11.1")
+                             ["guardrails-main", "guardrails-generation-units", "guardrails-ci-planning",
+                              "guardrails-ci-static", "guardrails-ci-candidate", "guardrails-system4d", "generation-main"])
+            for index in (1, 2, 3, 4):
+                unit_command = summary["commands"][index]["command"]
+                self.assertEqual(unit_command[unit_command.index(str(HELPER)) + 2], "pinned-9.11.1")
             serial_main = next(p for _, p in observer.profiles(serial) if p["cohort"] == "guardrails-main")
             first = summary["commands"][0]["command"]
             self.assertEqual(first[first.index(str(HELPER)) + 2],
                              "pinned" if serial_main["copier"] else sys.executable)
-            self.assertEqual([c["tmpdir"] for c in summary["commands"]], [str(scratch)] * 5)
+            self.assertEqual([c["tmpdir"] for c in summary["commands"]], [str(scratch)] * 7)
             reports = observer.profiles(second)
             nested = [p for _, p in reports if p["cohort"] == "generation-upgrade"]
             self.assertEqual(len(nested), 1)

@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter, defaultdict
+from copy import deepcopy
 import json
 from pathlib import Path
 import sys
@@ -42,7 +43,8 @@ OWNER_METHOD = ("tests.test_l1_template_ownership.L1TemplateOwnershipTests."
                 "test_base_to_candidate_answer_template_upgrade_suite")
 COHORTS = {("guardrails-main", None), ("guardrails-system4d", None),
            ("guardrails-generation-units", None), ("guardrails-ci-planning", None), ("generation-main", None),
-           ("generation-upgrade", "generation-main")}
+           ("generation-upgrade", "generation-main"),
+           ("guardrails-ci-static", None), ("guardrails-ci-candidate", None)}
 SHELL_COMMANDS = {
     "guardrails-static": ["sh", "tests/ci_guardrails_static.sh"],
     "doc-references": ["sh", "scripts/check-doc-references.sh"],
@@ -80,8 +82,51 @@ def result(errors, **fields):
             "scope": "independent frozen coverage and explicit receipt assertions only", **fields}
 
 
+def expand_inventory(inventory):
+    """Lossless explicit origin-reference bundles; no ID or raw-suffix rewriting.
+
+    Every alias supplies all three required method fields. Rows may override only
+    subtests with their explicit literal array. No implicit success/empty defaults.
+    The expanded manifest retains the original strict field/type checks below.
+    """
+    if not isinstance(inventory, dict) or "origin_references" not in inventory:
+        return inventory
+    inventory = deepcopy(inventory)
+    references = inventory.pop("origin_references")
+    inputs = inventory.get("inputs")
+    require(isinstance(references, dict) and bool(references)
+            and isinstance(inputs, dict), "inventory origin reference table")
+    for alias, fields in references.items():
+        require(text(alias) and alias.startswith("@") and alias not in inputs
+                and isinstance(fields, dict) and set(fields) == {"origin", "outcome", "subtests"},
+                "inventory origin reference fields")
+        require(text(fields["origin"]) and fields["origin"] in inputs
+                and fields["outcome"] == "success" and fields["subtests"] == []
+                and type(fields["subtests"]) is list, "inventory origin reference values")
+    cohorts = inventory.get("cohorts")
+    require(isinstance(cohorts, list), "inventory reference cohorts")
+    used = set()
+    for cohort in cohorts:
+        require(isinstance(cohort, dict) and isinstance(cohort.get("methods"), list),
+                "inventory reference methods")
+        for row in cohort["methods"]:
+            require(isinstance(row, dict), "inventory reference method shape")
+            origin = row.get("origin")
+            if isinstance(origin, str) and origin.startswith("@"):
+                require(origin in references and set(row) in ({"id", "origin"},
+                        {"id", "origin", "subtests"}), "inventory unknown/malformed origin reference")
+                used.add(origin)
+                explicit = {k: v for k, v in row.items() if k != "origin"}
+                row.clear()
+                row.update(deepcopy(references[origin]))
+                row.update(explicit)
+    require(used == set(references), "inventory unused origin reference")
+    return inventory
+
+
 def inventory_counters(inventory):
     """Check the complete manifest before trusting any candidate packet."""
+    inventory = expand_inventory(inventory)
     require(isinstance(inventory, dict), "inventory must be an object")
     require(inventory.get("schema") == "l0.coverage-inventory/1", "inventory schema")
     require(inventory.get("fixture_count") == 0 and type(inventory.get("fixture_count")) is int,
@@ -294,7 +339,10 @@ def unique_object(pairs):
 def load_json(stream):
     def nonfinite(value):
         raise ValueError(f"non-finite JSON number: {value}")
-    return json.load(stream, object_pairs_hook=unique_object, parse_constant=nonfinite)
+    value = json.load(stream, object_pairs_hook=unique_object, parse_constant=nonfinite)
+    if isinstance(value, dict) and value.get("schema") == "l0.coverage-inventory/1":
+        value = expand_inventory(value)
+    return value
 
 
 class JsonArgumentParser(argparse.ArgumentParser):

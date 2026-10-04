@@ -5,6 +5,7 @@ Only JSON dry-run output is available. No discovery, exclusion or execute switch
 validate_schedule and worker_commands are pure; route_to_spy requires an injected
 callback and has NO process backend. Spy success is not command/coverage proof.
 Frozen product methods come from independent inventory, never live collection.
+ci_worker is a separate explicitly experimental execution backend, not this API.
 Planning alone may defer its expected IDs until the parent freezes that cohort.
 """
 from __future__ import annotations
@@ -107,6 +108,11 @@ SPECS = {
                         ["tests.test_ci_generation_units"], 15000),
     "planning": python_spec(PLANNING, "pinned-9.11.1",
                             ["tests.test_ci_coverage", "tests.test_ci_schedule"], 15000),
+    "static-contracts": python_spec("guardrails-ci-static", "pinned-9.11.1",
+                                  ["tests.test_ci_guardrails"], 2000),
+    "candidate-contracts": python_spec("guardrails-ci-candidate", "pinned-9.11.1",
+                                     ["tests.test_ci_worker", "tests.test_ci_aggregate",
+                                      "tests.test_ci_candidate_workflow"], 10000),
     "Mf": python_spec("generation-main", "python3", GENERATION_FAST, 31000),
     "UPG": python_spec("generation-main", "python3",
                        [OWNER], 438000),
@@ -158,6 +164,7 @@ def integer(value, minimum=0):
 
 def expected_methods(inventory):
     """Reuse the unchanged checker for product inventory; allow one future cohort."""
+    inventory = coverage.expand_inventory(inventory)
     require(isinstance(inventory, dict), "inventory object")
     original = deepcopy(inventory)
     rows = original.get("cohorts")
@@ -224,8 +231,7 @@ def _validate(plan, inventory):
             require(row[field] == spec[field], f"{name}: {field} drift")
         require(row["parent_cohort"] is None, "top-level nested unit forbidden")
         require(row["command"] == canonical_command(spec), f"{name}: command drift")
-        route = "unimplemented" if name == "guardrails-static" else "planned"
-        require(row["route"] == route, f"{name}: route drift")
+        require(row["route"] == "planned", f"{name}: route drift")
         estimate = row["estimate_ms"]
         require(integer(estimate, 1), f"{name}: estimate integer")
         if name in {"seam", "planning"}:
@@ -298,8 +304,7 @@ def _validate(plan, inventory):
         require(total <= worker["budget_ms"], f"worker {number}: cold/aggregation budget exceeded")
         budgets.append({"worker": number, "estimated_ms": total, "budget_ms": worker["budget_ms"]})
     require(assignments == Counter({name: 1 for name in SPECS}), "missing/double unit assignment")
-    blockers = ["guardrails-static route unimplemented; no assertion-execution receipt",
-                "actual unit isolation/equivalence and candidate/hosted evidence still required"]
+    blockers = ["actual unit isolation/equivalence and candidate/hosted evidence still required"]
     if pending:
         blockers.append("parent must freeze guardrails-ci-planning expected IDs in independent inventory/checker")
     return {"planning_inventory_pending": pending, "root_methods_assigned": sum(
@@ -323,7 +328,7 @@ def validate_schedule(plan, inventory):
 
 
 def worker_commands(plan, inventory, worker):
-    """Prepare fresh command descriptors only; missing guardstatics remains explicit."""
+    """Prepare fresh command descriptors only; no execution or readiness proof."""
     packet = validate_schedule(plan, inventory)
     require(packet["valid"], "; ".join(packet["errors"]))
     require(type(worker) is int and worker in range(1, 7), "worker must be integer 1..6")

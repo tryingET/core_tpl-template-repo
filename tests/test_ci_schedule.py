@@ -28,7 +28,7 @@ SYNTHETIC_PLANNING = "tests.test_ci_schedule.SyntheticCase.test_contract"
 def frozen_inputs():
     # Independent frozen data, NOT loader/candidate-derived expectations.
     plan = json.loads((ROOT / "tests/ci_schedule.json").read_text())
-    inventory = json.loads((ROOT / "tests/ci_coverage_inventory.json").read_text())
+    inventory = schedule.coverage.load_json(io.StringIO((ROOT / "tests/ci_coverage_inventory.json").read_text()))
     return plan, inventory
 
 
@@ -75,7 +75,7 @@ class ScheduleContractTests(unittest.TestCase):
         saved = deepcopy((plan, inventory))
         result = schedule.validate_schedule(plan, inventory)
         self.assertTrue(result["valid"], result)
-        self.assertEqual(result["root_methods_assigned"], 213)
+        self.assertEqual(result["root_methods_assigned"], 260)
         self.assertEqual(result["nested_methods_assigned"], 2)
         self.assertEqual(result["shell_units_assigned"], 11)
         self.assertIs(result["planning_inventory_pending"], False)
@@ -83,7 +83,12 @@ class ScheduleContractTests(unittest.TestCase):
         self.assertIs(result["performance_proven"], False)
         self.assertIs(result["coverage_execution_proven"], False)
         assigned = Counter(a["unit"] for w in plan["workers"] for a in w["assignments"])
-        self.assertEqual(len(assigned), 31)
+        self.assertEqual(len(assigned), 33)
+        self.assertEqual([len(w["assignments"]) for w in plan["workers"]], [4, 4, 5, 6, 5, 9])
+        self.assertEqual(len(unit(plan, "static-contracts")["methods"]), 11)
+        self.assertEqual(len(unit(plan, "candidate-contracts")["methods"]), 36)
+        self.assertEqual(schedule.worker_commands(plan, inventory, 3)[4]["unit"], "static-contracts")
+        self.assertEqual(schedule.worker_commands(plan, inventory, 4)[5]["unit"], "candidate-contracts")
         self.assertEqual(set(assigned.values()), {1})
         self.assertEqual(len(unit(plan, "Gf")["methods"]), 121)
         self.assertEqual(len(unit(plan, "Mf")["methods"]), 31)
@@ -134,7 +139,7 @@ class ScheduleContractTests(unittest.TestCase):
                              ("kind", "shell"), ("route", "implemented")):
             plan, inventory = synthetic_inputs(); unit(plan, "Gf")[field] = value
             self.assert_rejected(plan, inventory)
-        for name in ("UPG", "seam", "planning", "SYS"):
+        for name in ("UPG", "seam", "planning", "SYS", "static-contracts", "candidate-contracts"):
             plan, inventory = synthetic_inputs(); unit(plan, name)["runtime"] = "pinned-9.11.1" if name == "UPG" else "python3"
             self.assert_rejected(plan, inventory)
         plan, inventory = synthetic_inputs()
@@ -179,7 +184,7 @@ class ScheduleContractTests(unittest.TestCase):
         plan, inventory = synthetic_inputs()
         result = schedule.validate_schedule(plan, inventory)
         self.assertEqual([w["estimated_ms"] for w in result["worker_estimates"]],
-                         [857400, 863000, 848000, 861000, 841000, 843000])
+                         [857400, 863000, 850000, 871000, 841000, 843000])
         self.assertIs(result["performance_proven"], False)
         # Reviewer's counterexample: an overloaded worker cannot be made feasible
         # by replacing declared setup/aggregation allowances with one millisecond.
@@ -220,15 +225,16 @@ class ScheduleContractTests(unittest.TestCase):
             calls.append(command)
             return 0
         result = schedule.route_to_spy(plan, inventory, 3, spy=spy)
-        self.assertEqual([c["unit"] for c in calls], ["adversarial", "profile-compact", "Wrapper", "R4"])
+        self.assertEqual([c["unit"] for c in calls], ["adversarial", "profile-compact", "Wrapper", "R4", "static-contracts"])
         self.assertEqual([c["command"] for c in calls], [
             ["sh", "scripts/check-l0-adversarial.sh"],
             ["sh", "tests/ci_generation_unit.sh", "profile-compact"],
             ["sh", "tests/ci_unittest.sh", "guardrails-main", "pinned",
              "tests.test_company_ontology_ref_inheritance.WrapperTests"],
             ["sh", "tests/ci_unittest.sh", "guardrails-main", "pinned",
-             "tests.test_company_ontology_ref_inheritance.RendererTests.test_external_native_uv_actual_pinned_source_birth_without_company_copies"]])
-        self.assertEqual([c["order"] for c in calls], [1, 2, 3, 4])
+             "tests.test_company_ontology_ref_inheritance.RendererTests.test_external_native_uv_actual_pinned_source_birth_without_company_copies"],
+            ["sh", "tests/ci_unittest.sh", "guardrails-ci-static", "pinned-9.11.1", "tests.test_ci_guardrails"]])
+        self.assertEqual([c["order"] for c in calls], [1, 2, 3, 4, 5])
         self.assertIs(result["execution_proven"], False)
         calls.clear()
         def failing(command):
@@ -246,12 +252,19 @@ class ScheduleContractTests(unittest.TestCase):
             calls.append(command["unit"])
             return 0
         result = schedule.route_to_spy(plan, inventory, 6, spy=spy)
-        self.assertEqual(calls, ["R1", "R3", "APPLY", "R6", "R8"])
-        self.assertEqual(result["stopped_at"], "guardrails-static")
-        self.assertEqual(result["reason"], "unimplemented")
+        self.assertEqual(calls, ["R1", "R3", "APPLY", "R6", "R8", "guardrails-static",
+                                 "doc-references", "session-checkpoint", "supply-chain"])
+        self.assertIsNone(result["stopped_at"])
+        self.assertEqual(result["reason"], "spy-only")
         descriptor = schedule.worker_commands(plan, inventory, 6)[5]
         self.assertEqual(descriptor["command"], ["sh", "tests/ci_guardrails_static.sh"])
-        for field, value in (("route", "planned"), ("command", ["sh", "true"])):
+        self.assertTrue((ROOT / descriptor["command"][1]).is_file())
+        # The separate experimental backend must refuse an unavailable entrypoint.
+        from tests import ci_worker as backend
+        with mock.patch.object(Path, "is_file", return_value=False), \
+                self.assertRaisesRegex(ValueError, "entrypoint"):
+            backend.descriptor(plan, inventory, 6, 6)
+        for field, value in (("route", "unimplemented"), ("command", ["sh", "true"])):
             changed = deepcopy(plan); unit(changed, "guardrails-static")[field] = value
             self.assert_rejected(changed, inventory)
         for change in ("readiness", "safety"):
@@ -323,6 +336,8 @@ class ScheduleContractTests(unittest.TestCase):
         self.assertEqual(actual[("guardrails-main", None)][SHARED], 1)
         self.assertEqual(actual[("generation-main", None)][SHARED], 1)
         self.assertEqual(len(unit(plan, "UPG")["nested"][0]["methods"]), 2)
+        self.assertEqual(sum(actual[("guardrails-ci-static", None)].values()), 11)
+        self.assertEqual(sum(actual[("guardrails-ci-candidate", None)].values()), 36)
 
 
 if __name__ == "__main__":

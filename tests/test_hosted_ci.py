@@ -61,107 +61,93 @@ class HostedCiTests(unittest.TestCase):
         workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
         events = workflow.get("on", workflow.get(True))  # PyYAML YAML-1.1 boolean key
         self.assertEqual(events, {"pull_request": None, "push": {"branches": ["main", "perf/ak6586-l0-ci-15min"]}})
-        self.assertEqual(set(workflow["jobs"]), {"check"})
-        self.assertEqual(set(workflow["jobs"]["check"]), {"runs-on", "steps"})
+        self.assertEqual(set(workflow["jobs"]), {"check", "candidate", "aggregate"})
+        self.assertEqual(set(workflow["jobs"]["check"]), {"if", "runs-on", "steps"})
         predicate = ("((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') || "
                      "(github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' && "
                      "github.event.pull_request.head.repo.full_name == github.repository))")
         steps = {s["name"]: s for s in workflow["jobs"]["check"]["steps"]}
         normalize = lambda value: " ".join(value.split())
         default = steps["Run L0 checks"]
-        self.assertEqual(normalize(default["if"]), "!" + predicate)
+        self.assertEqual(normalize(workflow["jobs"]["check"]["if"]), "!" + predicate)
+        self.assertNotIn("if", default)
         self.assertEqual(default["run"], "bash ./scripts/check-l0.sh")
         self.assertEqual(default["env"], {"TMPDIR": "${{ runner.temp }}", "L0_CHECK_VERBOSE": "1",
                                          "ROCS_CORE_PROJECT": "${{ runner.temp }}/rocs-ci"})
-        prep = steps["Prepare hosted characterization"]
-        self.assertEqual("(" + normalize(prep["if"]) + ")", predicate)
-        self.assertIn("umask 077", prep["run"])
-        self.assertIn('mktemp -d "$RUNNER_TEMP/l0-profile.XXXXXX"', prep["run"])
-        self.assertIn('mktemp -d "$RUNNER_TEMP/l0-reorder-tmp.XXXXXX"', prep["run"])
-        serial = steps["Observe unchanged serial L0 checks"]
-        self.assertEqual(normalize(serial["if"]), predicate + " && steps.characterization.outputs.profile != ''")
-        self.assertEqual(serial["run"], 'python3 -B tests/ci_reorder.py capture --out "$L0_PROFILE_DIR/command.json" -- bash ./scripts/check-l0.sh')
-        self.assertEqual(serial["env"]["L0_PROFILE_CONDITION"], "serial")
-        self.assertEqual(serial["env"]["L0_PROFILE_DIR"], "${{ steps.characterization.outputs.profile }}/serial")
-        second = steps["Observe reversed-module unittest cohorts"]
-        self.assertEqual(normalize(second["if"]), "always() && !cancelled() && " + predicate +
-                         " && steps.characterization.outputs.profile != '' && steps.serial_profile.outcome == 'success'"
-                         " && steps.serial_artifact.outcome == 'success'")
-        self.assertEqual(second["env"]["TMPDIR"], "${{ steps.characterization.outputs.tmpdir }}")
-        self.assertIn('reorder --serial-dir "$PROFILE_ROOT/serial"', second["run"])
-        self.assertIn('--out-dir "$PROFILE_ROOT/reverse-modules" --tmpdir "$TMPDIR"', second["run"])
+        self.assertEqual(normalize(workflow["jobs"]["candidate"]["if"]), predicate)
+        self.assertEqual(normalize(workflow["jobs"]["aggregate"]["if"]),
+                         "always() && !cancelled() && " + predicate)
+        self.assertEqual(workflow["jobs"]["aggregate"]["needs"], "candidate")
+        source = (ROOT / ".github/workflows/l0-check.yml").read_text()
+        for obsolete in ("ci_reorder.py", "serial_profile", "reverse-modules", "L0_PROFILE_CONDITION"):
+            self.assertNotIn(obsolete, source)
 
     def test_characterization_uploader_is_immutable_and_retains_failure_evidence(self):
         workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
-        upload = next(s for s in workflow["jobs"]["check"]["steps"]
-                      if s["name"] == "Retain characterization artifacts even on failure")
-        self.assertEqual(upload["uses"], "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02")
-        self.assertTrue(upload["if"].startswith("always() &&"))
-        self.assertIn("github.ref == 'refs/heads/perf/ak6586-l0-ci-15min'", upload["if"])
-        self.assertIn("github.head_ref == 'perf/ak6586-l0-ci-15min'", upload["if"])
-        self.assertIn("steps.characterization.outputs.profile != ''", upload["if"])
-        self.assertNotIn("serial_profile.outcome", upload["if"])
-        self.assertNotIn("cancelled()", upload["if"])
-        self.assertIn("github.event.pull_request.head.repo.full_name == github.repository", upload["if"])
+        uploads = [s for job in workflow["jobs"].values() for s in job["steps"]
+                   if s.get("uses", "").startswith("actions/upload-artifact@")]
+        self.assertEqual(len(uploads), 10)
+        names = set()
+        for upload in uploads:
+            self.assertEqual(upload["uses"], "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02")
+            self.assertTrue(upload["if"].startswith("always() && !cancelled() &&"))
+            self.assertNotIn(".outcome", upload["if"])
+            self.assertIn("steps.prepare.outputs.", upload["if"])
+            self.assertEqual(upload["with"]["if-no-files-found"], "error")
+            self.assertEqual(upload["with"]["retention-days"], 7)
+            self.assertIn("${{ github.run_id }}-${{ github.run_attempt }}", upload["with"]["name"])
+            names.add(upload["with"]["name"])
+        self.assertEqual(len(names), 10)
+        self.assertEqual(uploads[-1]["with"]["path"], "${{ steps.prepare.outputs.out }}/aggregate.json")
         self.assertIn("Raw logs are unredacted", (ROOT / ".github/workflows/l0-check.yml").read_text())
-        self.assertEqual(upload["with"]["path"], "${{ steps.characterization.outputs.profile }}")
-        self.assertEqual(upload["with"]["if-no-files-found"], "error")
-        self.assertEqual(upload["with"]["retention-days"], 7)
 
     def test_serial_evidence_upload_precedes_replay_and_final_upload(self):
         workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
-        steps = workflow["jobs"]["check"]["steps"]
+        steps = workflow["jobs"]["candidate"]["steps"]
         names = [step["name"] for step in steps]
-        before = next(s for s in steps if s["name"] == "Retain serial characterization before replay")
-        final = next(s for s in steps if s["name"] == "Retain characterization artifacts even on failure")
-        self.assertLess(names.index("Observe unchanged serial L0 checks"), names.index(before["name"]))
-        self.assertLess(names.index(before["name"]), names.index("Observe reversed-module unittest cohorts"))
-        self.assertLess(names.index("Observe reversed-module unittest cohorts"), names.index(final["name"]))
-        self.assertEqual(" ".join(before["if"].split()), " ".join(final["if"].split()))
-        self.assertEqual(before["uses"], final["uses"])
-        self.assertEqual(before["id"], "serial_artifact")
-        self.assertEqual(before["with"], {
-            "name": "l0-serial-${{ github.run_id }}-${{ github.run_attempt }}",
-            "path": "${{ steps.characterization.outputs.profile }}/serial",
-            "if-no-files-found": "error", "retention-days": 7,
-        })
-        self.assertNotEqual(before["with"]["name"], final["with"]["name"])
-        self.assertNotIn("continue-on-error", before)
-        self.assertNotIn("continue-on-error", next(s for s in steps if s["name"] == "Observe unchanged serial L0 checks"))
+        for slot in range(1, 10):
+            index = names.index(f"Run slot {slot}")
+            before = steps[index + 1]
+            self.assertEqual(before["name"], f"Retain slot {slot}")
+            self.assertEqual(before["with"], {
+                "name": "l0-candidate-${{ github.run_id }}-${{ github.run_attempt }}-worker${{ matrix.worker }}-slot" + str(slot),
+                "path": "${{ steps.prepare.outputs.root }}/slot" + str(slot),
+                "if-no-files-found": "error", "retention-days": 7,
+            })
+            if slot < 9:
+                self.assertEqual(steps[index + 2]["name"], f"Run slot {slot + 1}")
+            self.assertNotIn("continue-on-error", before)
+            self.assertNotIn("continue-on-error", steps[index])
 
     def test_characterization_cancel_and_fork_condition_truth_table(self):
         workflow = yaml.safe_load((ROOT / ".github/workflows/l0-check.yml").read_text())
-        steps = {s["name"]: s for s in workflow["jobs"]["check"]["steps"]}
         branch = "perf/ak6586-l0-ci-15min"
-        # Evaluate only the trusted, fixed condition expressions asserted above;
-        # this checks predicates, not GitHub's runtime scheduling implementation.
-        for event, head_repo, cancelled, outcome, upload, profile, expected in (
-                ("push", "owner/repo", False, "success", "success", "ready", (False, True, True)),
-                ("push", "owner/repo", False, "success", "failure", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "success", "skipped", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "failure", "success", "ready", (False, False, True)),
-                ("push", "owner/repo", True, "cancelled", "success", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "cancelled", "success", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "skipped", "success", "ready", (False, False, True)),
-                ("push", "owner/repo", False, "success", "success", "", (False, False, False)),
-                ("pull_request", "owner/repo", False, "success", "success", "ready", (False, True, True)),
-                ("pull_request", "fork/repo", False, "success", "success", "ready", (True, False, False))):
-            with self.subTest(event=event, head_repo=head_repo, cancelled=cancelled, outcome=outcome, profile=profile):
-                values = {"github.event_name": event, "github.ref": "refs/heads/" + branch,
-                          "github.head_ref": branch, "github.repository": "owner/repo",
-                          "github.event.pull_request.head.repo.full_name": head_repo,
-                          "steps.characterization.outputs.profile": profile, "steps.serial_profile.outcome": outcome,
-                          "steps.serial_artifact.outcome": upload}
-                actual = []
-                for name in ("Run L0 checks", "Observe reversed-module unittest cohorts",
-                             "Retain characterization artifacts even on failure"):
-                    condition = " ".join(steps[name]["if"].split())
-                    for key in sorted(values, key=len, reverse=True):
-                        condition = condition.replace(key, repr(values[key]))
-                    condition = condition.replace("always()", "True").replace("cancelled()", repr(cancelled))
-                    condition = re.sub(r"!(?!=)", "not ", condition).replace("&&", " and ").replace("||", " or ")
-                    actual.append(eval(condition, {"__builtins__": {}}, {}))
-                self.assertEqual(tuple(actual), expected)
+        # Trusted fixed expressions only; not a GitHub scheduler simulation.
+        # No subTest: frozen observer-delta expectations remain empty.
+        for event, head, head_repo, cancelled, outcome, expected in (
+                ("push", branch, "owner/repo", False, "success", (False, True, True)),
+                ("push", branch, "owner/repo", False, "failure", (False, True, True)),
+                ("push", branch, "owner/repo", False, "skipped", (False, True, True)),
+                ("push", branch, "owner/repo", False, "cancelled", (False, True, True)),
+                ("push", branch, "owner/repo", True, "cancelled", (False, True, False)),
+                ("push", "main", "owner/repo", False, "skipped", (True, False, False)),
+                ("pull_request", branch, "owner/repo", False, "success", (False, True, True)),
+                ("pull_request", branch, "owner/repo", False, "failure", (False, True, True)),
+                ("pull_request", branch, "fork/repo", False, "skipped", (True, False, False)),
+                ("pull_request", "feature", "owner/repo", False, "skipped", (True, False, False))):
+            values = {"github.event_name": event, "github.ref": "refs/heads/" + head,
+                      "github.head_ref": head, "github.repository": "owner/repo",
+                      "github.event.pull_request.head.repo.full_name": head_repo,
+                      "needs.candidate.result": outcome}
+            actual = []
+            for name in ("check", "candidate", "aggregate"):
+                condition = " ".join(workflow["jobs"][name]["if"].split())
+                for key in sorted(values, key=len, reverse=True):
+                    condition = condition.replace(key, repr(values[key]))
+                condition = condition.replace("always()", "True").replace("cancelled()", repr(cancelled))
+                condition = re.sub(r"!(?!=)", "not ", condition).replace("&&", " and ").replace("||", " or ")
+                actual.append(eval(condition, {"__builtins__": {}}, {}))
+            self.assertEqual(tuple(actual), expected, (event, head, head_repo, cancelled, outcome))
 
     def test_vendored_owner_bytes_match_pinned_inventory(self):
         pin = json.loads((VENDOR / "source-pin.json").read_text())
