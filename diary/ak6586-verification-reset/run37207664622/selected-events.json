@@ -1,0 +1,68 @@
+{
+  "source_profile_sha256": "a5a16e81de90ba60d932001ea5defbc4e31dd6a923315a74020cfce0a6f26772",
+  "source_commit": "08f4de1abf9e3e545e4c20fbabd82e52255b11a2",
+  "source_dirty": [],
+  "cohort": "guardrails-main",
+  "tests_run": 153,
+  "successful": false,
+  "scope": "only selected events, not the full profile",
+  "events": [
+    {
+      "kind": "test",
+      "ordinal": 11,
+      "outcome": "success",
+      "seconds": 0.009163258999990376,
+      "subtests": [
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=False, outcome='failure', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=True, outcome='cancelled', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=False, outcome='cancelled', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=False, outcome='skipped', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='pull_request', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')"
+        },
+        {
+          "outcome": "success",
+          "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table (event='pull_request', head_repo='fork/repo', cancelled=False, outcome='success', profile='ready')"
+        }
+      ],
+      "test_id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table"
+    },
+    {
+      "kind": "test",
+      "ordinal": 88,
+      "outcome": "failure",
+      "seconds": 0.024505978000206596,
+      "subtests": [],
+      "test_id": "tests.test_company_ontology_ref_inheritance.WrapperTests.test_source_fixture_copies_and_budgets"
+    }
+  ]
+}

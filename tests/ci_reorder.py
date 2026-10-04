@@ -31,11 +31,12 @@ else:
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {
-    ("guardrails-main", None), ("guardrails-generation-units", None), ("guardrails-system4d", None),
+    ("guardrails-main", None), ("guardrails-generation-units", None), ("guardrails-ci-planning", None),
+    ("guardrails-system4d", None),
     ("generation-main", None), ("generation-upgrade", "generation-main"),
 }
-ROOT_COHORT_ORDER = {"guardrails-main": 0, "guardrails-generation-units": 1,
-                     "guardrails-system4d": 2, "generation-main": 3}
+ROOT_COHORT_ORDER = {"guardrails-main": 0, "guardrails-generation-units": 1, "guardrails-ci-planning": 2,
+                     "guardrails-system4d": 3, "generation-main": 4}
 FLAGS = {"-v", "--verbose", "-q", "--quiet", "-b", "--buffer", "-c", "--catch", "-f", "--failfast"}
 
 
@@ -225,6 +226,8 @@ def compare_manifests(serial, second, *, require_full=True):
         for label, packets in (("serial", serial), ("second", second)):
             for cohort, needle in (("guardrails-main", "test_l1_template_reverse_transitions."),
                                    ("guardrails-generation-units", "test_ci_generation_units."),
+                                   ("guardrails-ci-planning", "test_ci_coverage."),
+                                   ("guardrails-ci-planning", "test_ci_schedule."),
                                    ("generation-upgrade", "test_l1_answer_template_upgrade.UpgradeTests.")):
                 if not any(needle in test_id for _, packet in packets if packet["cohort"] == cohort
                            for test_id in packet.get("collected_ids", [])):
@@ -273,7 +276,7 @@ def reorder(serial_dir, out_dir, tmpdir):
                 # PATH/environment. A direct venv Python would add a confound.
                 runtime = "pinned"
                 env["COPIER_VERSION"] = packet["copier"]
-            if packet["cohort"] == "guardrails-generation-units":
+            if packet["cohort"] in {"guardrails-generation-units", "guardrails-ci-planning"}:
                 runtime = "pinned-9.11.1"
             if packet["cohort"] == "generation-main":
                 env["L0_TEMPLATE_ROOT"] = str(ROOT)

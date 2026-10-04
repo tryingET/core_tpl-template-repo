@@ -1,0 +1,31 @@
+{
+  "child_exit_code": 1,
+  "command": [
+    "bash",
+    "./scripts/check-l0.sh"
+  ],
+  "condition": "serial",
+  "cwd": "/home/runner/work/core_tpl-template-repo/core_tpl-template-repo",
+  "error": null,
+  "exit_code": 1,
+  "interrupted_signal": null,
+  "io_errors": [],
+  "log": "command.log",
+  "output_complete": true,
+  "raw_child_returncode": 1,
+  "schema": "l0.profile-command/1",
+  "teardown": {
+    "descendants_reaped": 0,
+    "drain_errors": [],
+    "escalated": false,
+    "final_drain_bytes": 0,
+    "final_drain_iterations": 0,
+    "final_drain_limited": false,
+    "grace_seconds": 0.3,
+    "initial_signal": 15,
+    "kill_wait_seconds": 1.0,
+    "process_group_gone": true
+  },
+  "tmpdir": "/home/runner/work/_temp",
+  "wall_seconds": 4195.799991749
+}

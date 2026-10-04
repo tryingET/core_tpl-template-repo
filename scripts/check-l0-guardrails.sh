@@ -1,9 +1,7 @@
 #!/usr/bin/env sh
 set -eu
-
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$repo_root"
-
 fail() {
 	echo "error: $*" >&2
 	exit 1
@@ -505,8 +503,8 @@ assert_checkout_full_history "copier-template/.github/workflows/ci.yml"
 assert_checkout_full_history "copier-template/.github/workflows/template-check.yml"
 assert_files_equal "copier-template/contracts/template-ownership.yml" "fixtures/l1/template-repo/contracts/template-ownership.yml" "rendered L1 ownership map must match source"
 sh "$repo_root/tests/ci_unittest.sh" guardrails-main pinned tests.test_ci_profile tests.test_hosted_ci tests.test_ci_red_green tests.test_l1_template_transitions tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes tests.test_company_ontology_ref_inheritance tests.test_l2_template_source tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"
-# Separate fast seam contract cohort; existing product cohorts stay unchanged.
 sh "$repo_root/tests/ci_unittest.sh" guardrails-generation-units pinned-9.11.1 tests.test_ci_generation_units >/dev/null || fail "generation unit seam contracts failed"
+sh "$repo_root/tests/ci_unittest.sh" guardrails-ci-planning pinned-9.11.1 tests.test_ci_coverage tests.test_ci_schedule >/dev/null || fail "independent coverage and routing contracts failed"
 # Required L2 template directories
 required_dirs="
 copier-template/copier/tpl-agent-repo

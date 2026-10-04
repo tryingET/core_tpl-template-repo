@@ -546,6 +546,7 @@ class OwnerSelectionAndBytecodeContracts(unittest.TestCase):
         self.assertEqual(calls, [
             'sh "$repo_root/tests/ci_unittest.sh" guardrails-main pinned tests.test_ci_profile tests.test_hosted_ci tests.test_ci_red_green tests.test_l1_template_transitions tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes tests.test_company_ontology_ref_inheritance tests.test_l2_template_source tests.test_l1_answer_template_upgrade.UpgradeSafetyTests tests.test_l1_answer_template_legacy tests.test_l1_template_gitlink_retirements >/dev/null || fail "L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed"',
             'sh "$repo_root/tests/ci_unittest.sh" guardrails-generation-units pinned-9.11.1 tests.test_ci_generation_units >/dev/null || fail "generation unit seam contracts failed"',
+            'sh "$repo_root/tests/ci_unittest.sh" guardrails-ci-planning pinned-9.11.1 tests.test_ci_coverage tests.test_ci_schedule >/dev/null || fail "independent coverage and routing contracts failed"',
             'sh "$repo_root/tests/ci_unittest.sh" guardrails-system4d pinned tests.test_l2_system4d_context >/dev/null || fail "L2 system4d.yaml context tests failed"',
         ])
         # Execute the actual selected line against a command spy, not its comments.
@@ -554,11 +555,12 @@ class OwnerSelectionAndBytecodeContracts(unittest.TestCase):
             log = root / "selection.log"
             executable(root / "tests/ci_unittest.sh", 'printf "%s\\n" "$*" >"$SPY_LOG"\n')
             env = environment(repo_root=str(root), SPY_LOG=str(log))
-            result = subprocess.run(["sh", "-eu", "-c", calls[1]], env=env,
-                                    capture_output=True, text=True, timeout=10)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertEqual(log.read_text(),
-                             "guardrails-generation-units pinned-9.11.1 tests.test_ci_generation_units\n")
+            for index, expected in ((1, "guardrails-generation-units pinned-9.11.1 tests.test_ci_generation_units\n"),
+                                    (2, "guardrails-ci-planning pinned-9.11.1 tests.test_ci_coverage tests.test_ci_schedule\n")):
+                result = subprocess.run(["sh", "-eu", "-c", calls[index]], env=env,
+                                        capture_output=True, text=True, timeout=10)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(log.read_text(), expected)
 
     def invoke_bare_python_unit(self, remove_guard=False, ambient=None):
         with tempfile.TemporaryDirectory(dir=os.environ.get("TMPDIR")) as tmp:

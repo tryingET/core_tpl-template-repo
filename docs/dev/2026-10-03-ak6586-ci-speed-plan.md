@@ -49,9 +49,12 @@ task_id: 6586
   during replay. Logs returned404 and no artifact survived. **Cause unknown.**
   Evidence13620 retains red; no harmless-flake inference or scheduler adoption.
 - `08f4de1abf9e3e545e4c20fbabd82e52255b11a2` uploads serial evidence before replay;
-  replay requires serial success and successful upload. Existing run37207664622
-  is the diagnostic opportunity, not a new timing proof. Checkpointing cannot
-  save an unfinished serial condition if its runner dies before upload.
+  replay requires serial success and successful upload. Run37207664622 completed
+  red with retained artifacts: six owner checks passed; guardrails failed solely
+  because its script had953 lines against the unchanged951-line limit. The capture
+  was complete with child exit1 and clean teardown. The current narrow fix removes
+  non-executable lines, retains951, and passes the isolated budget assertion.
+  This diagnoses that run, not the earlier lost runner or whole current-head CI.
 
 ### Independent inventory and compatibility bridge
 
@@ -64,13 +67,20 @@ task_id: 6586
   the company-ontology method present in two original cohorts. Preserve dynamic
   reverse methods collected through `load_tests` and nested upgrades through their
   ownership parent; never replay the nested suite as extra top-level work.
-- A later candidate checker must reject missing, excess, duplicate and unknown
-  executions against this independent inventory. Compare outcomes, fixture events,
-  raw subtests and parent relationships, not counts alone. Matching omissions
-  from both conditions are not acceptance.
-- A complete raw-subtest bridge and actual shell/negative-case execution accounting
-  remain to be built. Body hashes and synthetic spies are supporting evidence,
-  not evidence that every product assertion executed.
+- The implemented [coverage checker](../../tests/ci_coverage.py) uses the expanded
+  [frozen inventory](../../tests/ci_coverage_inventory.json):235 root methods,
+  two nested upgrades and401 exact raw subtests, including23 new fast contracts.
+  It rejects missing/excess/duplicate/unknown coverage, malformed ledgers, source
+  mismatch, broken nested ownership and missing/failed command-bound shell receipts.
+  Matching omissions cannot define the expected inventory. Receipt inputs are not
+  host-authenticated execution proof; its proof-limit flags remain false.
+- The [closed six-worker assignment](../../tests/ci_schedule.json) and
+  [dry-run routing helper](../../tests/ci_schedule.py) prepare31 units with exact
+  membership and fixed proposed cold/setup allowances. Their synthetic and
+  collection-only checks pass; no hosted scheduler has been activated.
+- Actual shell/negative-case execution accounting still requires the missing
+  guardrails-static entrypoint and real captures. Body hashes and synthetic spies
+  are supporting evidence, not evidence that every product assertion executed.
 - Do not weaken `ci_reorder`'s strict same-source comparison or generally normalize
   raw IDs. Compare same-revision conditions there; document any cross-revision
   compatibility claim separately, with exact approved deltas and remaining gaps.
