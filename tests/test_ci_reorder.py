@@ -1,4 +1,9 @@
-"""Fast contracts for hosted observation; synthetic cohorts only, no rendering."""
+"""Fast contracts for hosted observation; synthetic cohorts only, no rendering.
+
+Run via ``uvx --from copier==9.11.1 python -B -m unittest tests.test_ci_reorder``.
+The fixed-version generation-unit replay intentionally requires the same runtime
+as its serial fixture; bare Python without Copier is not that condition.
+"""
 import copy
 import errno
 import json
@@ -102,6 +107,28 @@ class ReorderContractTests(unittest.TestCase):
         self.assertTrue(any("reverse_transitions" in issue.get("missing_collected_coverage", "")
                             for issue in result["manifest_issues"]))
         self.assertFalse(observer.compare_manifests([], [], require_full=False)["exact_match"])
+
+    def test_generation_unit_cohort_cannot_be_omitted_from_both_full_conditions(self):
+        serial = []
+        for cohort, parent in sorted(observer.EXPECTED, key=lambda key: key[0]):
+            ids = {
+                "guardrails-main": ("tests.test_l1_template_reverse_transitions.ReverseTests.test_case",),
+                "guardrails-generation-units": ("tests.test_ci_generation_units.GenerationSourceContracts.test_case",),
+                "generation-upgrade": ("tests.test_l1_answer_template_upgrade.UpgradeTests.test_case",),
+            }.get(cohort, ("sample.Cases.test_case",))
+            before = packet(ids=ids)
+            before.update(cohort=cohort, parent_cohort=parent)
+            serial.append((cohort + ".json", before))
+        second = [(name, reversed_packet(before)) for name, before in serial]
+        self.assertTrue(observer.compare_manifests(serial, second)["exact_match"])
+        serial = [(name, before) for name, before in serial if before["cohort"] != "guardrails-generation-units"]
+        second = [(name, before) for name, before in second if before["cohort"] != "guardrails-generation-units"]
+        missing = observer.compare_manifests(serial, second)
+        self.assertFalse(missing["exact_match"])
+        self.assertTrue(any(issue.get("cohort") == "guardrails-generation-units"
+                            for issue in missing["manifest_issues"]))
+        self.assertTrue(any(issue.get("missing_collected_coverage") == "test_ci_generation_units."
+                            for issue in missing["manifest_issues"]))
 
     def test_command_failure_retains_exact_output_exit_and_refuses_overwrite(self):
         with tempfile.TemporaryDirectory(dir=os.environ.get("TMPDIR")) as tmp:
@@ -642,10 +669,16 @@ class Owner(unittest.TestCase):
 ''')
             (root / "tail.py").write_text("import unittest\nclass Tail(unittest.TestCase):\n    def test_tail(self): pass\n")
             (root / "context.py").write_text("import unittest\nclass Context(unittest.TestCase):\n    def test_context(self): pass\n")
+            (root / "units.py").write_text('''import unittest
+class Units(unittest.TestCase):
+    def id(self): return 'tests.test_ci_generation_units.GenerationSourceContracts.test_synthetic'
+    def test_synthetic(self): pass
+''')
             env = {k: v for k, v in os.environ.items() if not k.startswith("L0_PROFILE_")}
             env.update(PYTHONPATH=str(root), L0_PROFILE_DIR=str(serial), L0_PROFILE_CONDITION="serial",
                        PYTHONDONTWRITEBYTECODE="1", UV_OFFLINE="1")
             for cohort, arguments in (("guardrails-main", ["alpha", "beta"]),
+                                      ("guardrails-generation-units", ["units"]),
                                       ("guardrails-system4d", ["context"]), ("generation-main", ["owner", "tail"])):
                 result = subprocess.run(["sh", str(HELPER), cohort, sys.executable, *arguments],
                                         cwd=ROOT, env=env, capture_output=True, text=True)
@@ -657,15 +690,17 @@ class Owner(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             summary = json.loads((second / "comparison.json").read_text())
             self.assertTrue(summary["exact_match"])
-            self.assertEqual(len(summary["comparisons"]), 4)
-            self.assertEqual(len(summary["commands"]), 3, "nested upgrade must not be replayed separately")
+            self.assertEqual(len(summary["comparisons"]), 5)
+            self.assertEqual(len(summary["commands"]), 4, "nested upgrade must not be replayed separately")
             self.assertEqual([c["command"][c["command"].index(str(HELPER)) + 1] for c in summary["commands"]],
-                             ["guardrails-main", "guardrails-system4d", "generation-main"])
+                             ["guardrails-main", "guardrails-generation-units", "guardrails-system4d", "generation-main"])
+            unit_command = summary["commands"][1]["command"]
+            self.assertEqual(unit_command[unit_command.index(str(HELPER)) + 2], "pinned-9.11.1")
             serial_main = next(p for _, p in observer.profiles(serial) if p["cohort"] == "guardrails-main")
             first = summary["commands"][0]["command"]
             self.assertEqual(first[first.index(str(HELPER)) + 2],
                              "pinned" if serial_main["copier"] else sys.executable)
-            self.assertEqual([c["tmpdir"] for c in summary["commands"]], [str(scratch)] * 3)
+            self.assertEqual([c["tmpdir"] for c in summary["commands"]], [str(scratch)] * 4)
             reports = observer.profiles(second)
             nested = [p for _, p in reports if p["cohort"] == "generation-upgrade"]
             self.assertEqual(len(nested), 1)

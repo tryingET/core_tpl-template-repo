@@ -31,10 +31,11 @@ else:
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {
-    ("guardrails-main", None), ("guardrails-system4d", None),
+    ("guardrails-main", None), ("guardrails-generation-units", None), ("guardrails-system4d", None),
     ("generation-main", None), ("generation-upgrade", "generation-main"),
 }
-ROOT_COHORT_ORDER = {"guardrails-main": 0, "guardrails-system4d": 1, "generation-main": 2}
+ROOT_COHORT_ORDER = {"guardrails-main": 0, "guardrails-generation-units": 1,
+                     "guardrails-system4d": 2, "generation-main": 3}
 FLAGS = {"-v", "--verbose", "-q", "--quiet", "-b", "--buffer", "-c", "--catch", "-f", "--failfast"}
 
 
@@ -223,6 +224,7 @@ def compare_manifests(serial, second, *, require_full=True):
     if require_full:
         for label, packets in (("serial", serial), ("second", second)):
             for cohort, needle in (("guardrails-main", "test_l1_template_reverse_transitions."),
+                                   ("guardrails-generation-units", "test_ci_generation_units."),
                                    ("generation-upgrade", "test_l1_answer_template_upgrade.UpgradeTests.")):
                 if not any(needle in test_id for _, packet in packets if packet["cohort"] == cohort
                            for test_id in packet.get("collected_ids", [])):
@@ -271,6 +273,8 @@ def reorder(serial_dir, out_dir, tmpdir):
                 # PATH/environment. A direct venv Python would add a confound.
                 runtime = "pinned"
                 env["COPIER_VERSION"] = packet["copier"]
+            if packet["cohort"] == "guardrails-generation-units":
+                runtime = "pinned-9.11.1"
             if packet["cohort"] == "generation-main":
                 env["L0_TEMPLATE_ROOT"] = str(ROOT)
             command = ["sh", str(ROOT / "tests/ci_unittest.sh"), packet["cohort"], runtime, *args]
