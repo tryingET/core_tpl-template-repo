@@ -14,8 +14,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github/workflows/l0-check.yml"
 BRANCH = "perf/ak6586-l0-ci-15min"
-PREDICATE = ("((github.event_name == 'push' && github.ref == 'refs/heads/" + BRANCH + "') || "
-             "(github.event_name == 'pull_request' && github.head_ref == '" + BRANCH + "' && "
+PREDICATE = ("((github.event_name == 'push' && (github.ref == 'refs/heads/main' || "
+             "github.ref == 'refs/heads/" + BRANCH + "')) || "
+             "(github.event_name == 'pull_request' && "
              "github.event.pull_request.head.repo.full_name == github.repository))")
 UPLOAD = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
 DOWNLOAD = "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093"
@@ -288,11 +289,16 @@ class CandidateWorkflowTests(unittest.TestCase):
         self.assertEqual(self.jobs["candidate"]["if"], PREDICATE)
         for event, ref, head, repo, cancelled, expected in (
             ("push", "refs/heads/" + BRANCH, "", "owner/repo", False, (False, True, True)),
-            ("push", "refs/heads/main", BRANCH, "owner/repo", False, (True, False, False)),
+            ("push", "refs/heads/main", "", "owner/repo", False, (False, True, True)),
+            ("push", "refs/heads/main", "", "owner/repo", True, (False, True, False)),
+            ("push", "refs/heads/perf/ak6586-main-landing", "", "owner/repo", False, (True, False, False)),
             ("push", "refs/tags/" + BRANCH, BRANCH, "owner/repo", False, (True, False, False)),
             ("pull_request", "refs/pull/1/merge", BRANCH, "owner/repo", False, (False, True, True)),
             ("pull_request", "refs/pull/1/merge", BRANCH, "fork/repo", False, (True, False, False)),
-            ("pull_request", "refs/pull/1/merge", "feature", "owner/repo", False, (True, False, False)),
+            ("pull_request", "refs/pull/1/merge", "feature", "owner/repo", False, (False, True, True)),
+            ("pull_request", "refs/pull/1/merge", "feature", "owner/repo", True, (False, True, False)),
+            ("pull_request", "refs/pull/1/merge", "feature", "fork/repo", False, (True, False, False)),
+            ("pull_request", "refs/pull/1/merge", "feature", "fork/repo", True, (True, False, False)),
             ("pull_request_target", "refs/heads/main", BRANCH, "owner/repo", False, (True, False, False)),
             ("push", "refs/heads/" + BRANCH, "", "owner/repo", True, (False, True, False))):
             values = {"github.event_name": event, "github.ref": ref, "github.head_ref": head,

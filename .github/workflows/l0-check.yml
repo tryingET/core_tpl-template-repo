@@ -13,8 +13,9 @@ permissions:
 jobs:
   check:
     if: >-
-      !((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-      (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+      !((github.event_name == 'push' && (github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/perf/ak6586-l0-ci-15min')) ||
+      (github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     steps:
@@ -65,8 +66,9 @@ jobs:
 
   candidate:
     if: >-
-      ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-      (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+      ((github.event_name == 'push' && (github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/perf/ak6586-l0-ci-15min')) ||
+      (github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     # Verification budget, not a 15-minute passing cap.
@@ -286,8 +288,9 @@ jobs:
     needs: candidate
     if: >-
       always() && !cancelled() &&
-      ((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') ||
-      (github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' &&
+      ((github.event_name == 'push' && (github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/perf/ak6586-l0-ci-15min')) ||
+      (github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     steps:

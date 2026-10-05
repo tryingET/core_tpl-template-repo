@@ -63,8 +63,9 @@ class HostedCiTests(unittest.TestCase):
         self.assertEqual(events, {"pull_request": None, "push": {"branches": ["main", "perf/ak6586-l0-ci-15min"]}})
         self.assertEqual(set(workflow["jobs"]), {"check", "candidate", "aggregate"})
         self.assertEqual(set(workflow["jobs"]["check"]), {"if", "runs-on", "steps"})
-        predicate = ("((github.event_name == 'push' && github.ref == 'refs/heads/perf/ak6586-l0-ci-15min') || "
-                     "(github.event_name == 'pull_request' && github.head_ref == 'perf/ak6586-l0-ci-15min' && "
+        predicate = ("((github.event_name == 'push' && (github.ref == 'refs/heads/main' || "
+                     "github.ref == 'refs/heads/perf/ak6586-l0-ci-15min')) || "
+                     "(github.event_name == 'pull_request' && "
                      "github.event.pull_request.head.repo.full_name == github.repository))")
         steps = {s["name"]: s for s in workflow["jobs"]["check"]["steps"]}
         normalize = lambda value: " ".join(value.split())
@@ -130,11 +131,16 @@ class HostedCiTests(unittest.TestCase):
                 ("push", branch, "owner/repo", False, "skipped", (False, True, True)),
                 ("push", branch, "owner/repo", False, "cancelled", (False, True, True)),
                 ("push", branch, "owner/repo", True, "cancelled", (False, True, False)),
-                ("push", "main", "owner/repo", False, "skipped", (True, False, False)),
+                ("push", "main", "owner/repo", False, "skipped", (False, True, True)),
+                ("push", "main", "owner/repo", True, "cancelled", (False, True, False)),
+                ("push", "perf/ak6586-main-landing", "owner/repo", False, "skipped", (True, False, False)),
                 ("pull_request", branch, "owner/repo", False, "success", (False, True, True)),
                 ("pull_request", branch, "owner/repo", False, "failure", (False, True, True)),
                 ("pull_request", branch, "fork/repo", False, "skipped", (True, False, False)),
-                ("pull_request", "feature", "owner/repo", False, "skipped", (True, False, False))):
+                ("pull_request", "feature", "owner/repo", False, "skipped", (False, True, True)),
+                ("pull_request", "feature", "owner/repo", True, "cancelled", (False, True, False)),
+                ("pull_request", "feature", "fork/repo", False, "skipped", (True, False, False)),
+                ("pull_request", "feature", "fork/repo", True, "cancelled", (True, False, False))):
             values = {"github.event_name": event, "github.ref": "refs/heads/" + head,
                       "github.head_ref": head, "github.repository": "owner/repo",
                       "github.event.pull_request.head.repo.full_name": head_repo,
