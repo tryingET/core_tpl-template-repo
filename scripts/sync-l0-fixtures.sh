@@ -3,6 +3,8 @@ set -eu
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$repo_root"
+# Scratch L1s have no enclosing workspace; bind births to this exact L0 source.
+export L0_TEMPLATE_ROOT="$repo_root"
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || {
@@ -80,7 +82,8 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 	cd "$l1_render"
 
 	# Baseline L2 fixtures (one per template archetype)
-	run_step ./scripts/new-repo-from-copier.sh tpl-agent-repo "$l2_render_agent" \
+	run_step env AK_CMD="$repo_root/tests/fixtures/ak-creation-task.sh" \
+		./scripts/new-repo-from-copier.sh tpl-agent-repo "$l2_render_agent" \
 		-d repo_slug=fixture-agent \
 		-d agent_role=fixture-agent-role \
 		-d creation_task_id=AK-5105 \
@@ -98,6 +101,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$l2_render_project" \
 		-d repo_slug=fixture-product-repo \
+		-d project_owner_handle=@tryinget \
 		-d enable_community_pack=false \
 		-d enable_release_pack=false \
 		-d enable_vouch_gate=false \
@@ -105,6 +109,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-monorepo "$l2_render_monorepo" \
 		-d repo_slug=fixture-monorepo \
+		-d project_owner_handle=@tryinget \
 		-d package_manager=uv \
 		-d enable_community_pack=false \
 		-d enable_release_pack=false \
@@ -120,6 +125,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 	# Language matrix: tpl-project-repo varies by project language.
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_render_project_python" \
 		-d repo_slug=fixture-project-python \
+		-d project_owner_handle=@tryinget \
 		-d language=python \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -129,6 +135,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_render_project_node" \
 		-d repo_slug=fixture-project-node \
+		-d project_owner_handle=@tryinget \
 		-d language=node \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -138,6 +145,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_render_project_typescript" \
 		-d repo_slug=fixture-project-typescript \
+		-d project_owner_handle=@tryinget \
 		-d language=typescript \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -147,6 +155,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_render_project_rust" \
 		-d repo_slug=fixture-project-rust \
+		-d project_owner_handle=@tryinget \
 		-d language=rust \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -156,6 +165,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 
 	run_step ./scripts/new-repo-from-copier.sh tpl-project-repo "$matrix_render_project_elixir" \
 		-d repo_slug=fixture-project-elixir \
+		-d project_owner_handle=@tryinget \
 		-d language=elixir \
 		-d enable_software_pack=true \
 		-d enable_community_pack=false \
@@ -166,6 +176,7 @@ run_step "$repo_root/scripts/new-l1-from-copier.sh" "$l1_render" \
 	# Language matrix: tpl-monorepo varies through member packages, not root archetype.
 	run_step ./scripts/new-repo-from-copier.sh tpl-monorepo "$matrix_render_monorepo" \
 		-d repo_slug=fixture-monorepo-matrix \
+		-d project_owner_handle=@tryinget \
 		-d package_manager=uv \
 		-d enable_community_pack=false \
 		-d enable_release_pack=false \

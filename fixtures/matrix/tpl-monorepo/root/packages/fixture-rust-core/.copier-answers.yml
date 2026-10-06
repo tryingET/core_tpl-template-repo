@@ -1,3 +1,8 @@
+_src_path: __VOLATILE_SRC_PATH__
+_template_lineage:
+  company: holdingco
+  l0_commit: __VOLATILE_L0_COMMIT__
+  template: tpl-package
 company_name: Holding Company
 company_ontology_ref: <repo:holdingco/ontology@main>
 company_slug: holdingco
@@ -8,4 +13,3 @@ package_name: fixture-rust-core
 package_owner_handle: '@project-owners'
 package_type: library
 template_source_sha: __VOLATILE_TEMPLATE_SOURCE_SHA__
-

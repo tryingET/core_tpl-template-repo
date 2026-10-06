@@ -36,6 +36,7 @@ template_owned:
   - tests/**
   - tips/**
 agent_owned:
+  - copier-overlay/**
   - contracts/template-ownership-adoption.json
   - .github/workflows/ci.yml
   - .gitignore

@@ -61,10 +61,13 @@ if is_enabled "${L0_CHECK_VERBOSE:-}"; then
 	verbose=1
 fi
 
-base_check_timeout_seconds="$(resolve_timeout_seconds "L0_CHECK_TIMEOUT_SECONDS" "300")"
+base_check_timeout_seconds="$(resolve_timeout_seconds "L0_CHECK_TIMEOUT_SECONDS" "1800")"
 
-generation_timeout_default="$base_check_timeout_seconds"
-if [ "$base_check_timeout_seconds" -gt 0 ]; then
+# Finite defaults calibrated from retained successful AK6351 measurements.
+# Keep the historical base-override contract: generation gets twice an explicit
+# base unless its own override is supplied. Default generation has its own budget.
+generation_timeout_default="3600"
+if [ -n "${L0_CHECK_TIMEOUT_SECONDS:-}" ]; then
 	generation_timeout_default="$((base_check_timeout_seconds * 2))"
 fi
 

@@ -1,0 +1,22 @@
+{
+  "command": [
+    "env",
+    "-u",
+    "L0_CHECK_TIMEOUT_SECONDS",
+    "-u",
+    "L0_CHECK_TIMEOUT_GENERATION_SECONDS",
+    "-u",
+    "L0_CHECK_TIMEOUT_ADVERSARIAL_SECONDS",
+    "-u",
+    "L0_CHECK_TIMEOUT_FIXTURES_SECONDS",
+    "L0_CHECK_VERBOSE=1",
+    "bash",
+    "scripts/check-l0.sh"
+  ],
+  "cwd": "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667",
+  "started_utc": "2026-10-02T19:54:24.442925+00:00",
+  "finished_utc": "2026-10-02T20:14:24.984258+00:00",
+  "elapsed_ns": 1200436838857,
+  "elapsed_seconds": 1200.436838857,
+  "exit_code": 1
+}

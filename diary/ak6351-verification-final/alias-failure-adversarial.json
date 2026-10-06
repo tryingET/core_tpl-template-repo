@@ -1,0 +1,15 @@
+{
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "7200s",
+    "bash",
+    "scripts/check-l0-adversarial.sh"
+  ],
+  "cwd": "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667",
+  "started_utc": "2026-10-02T19:38:45.109701+00:00",
+  "finished_utc": "2026-10-02T19:44:50.257458+00:00",
+  "elapsed_ns": 365092593417,
+  "elapsed_seconds": 365.092593417,
+  "exit_code": 2
+}

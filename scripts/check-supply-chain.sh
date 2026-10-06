@@ -70,11 +70,13 @@ copier_guard='if command -v copier >/dev/null 2>&1; then'
 assert_line_precedes "scripts/new-l1-from-copier.sh" "$uvx_guard" "$uv_guard" "L0 copier wrapper must prefer uvx before uv tool run"
 assert_line_precedes "scripts/new-l1-from-copier.sh" "$uv_guard" "$copier_guard" "L0 copier wrapper must prefer pinned runtimes before unpinned copier"
 assert_line_precedes "copier-template/scripts/new-repo-from-copier.sh" "$uvx_guard" "$uv_guard" "L1 copier wrapper must prefer uvx before uv tool run"
-assert_line_precedes "copier-template/scripts/new-repo-from-copier.sh" "$uv_guard" "$copier_guard" "L1 copier wrapper must prefer pinned runtimes before unpinned copier"
+fallback_refusal='pinned-source births forbid unpinned copier fallback'
+assert_line_precedes "copier-template/scripts/new-repo-from-copier.sh" "$uv_guard" "$fallback_refusal" "L1 births must try pinned runtimes before refusing unpinned copier"
+assert_not_contains "copier-template/scripts/new-repo-from-copier.sh" "$copier_guard" "L1 births must not invoke unpinned copier"
 
 fallback_warning='warning: uvx/uv not found; falling back to unpinned copier on PATH'
 assert_contains "scripts/new-l1-from-copier.sh" "$fallback_warning" "L0 copier wrapper must surface unpinned fallback warning"
-assert_contains "copier-template/scripts/new-repo-from-copier.sh" "$fallback_warning" "L1 copier wrapper must surface unpinned fallback warning"
+assert_contains "copier-template/scripts/new-repo-from-copier.sh" "$fallback_refusal" "L1 births must refuse unpinned copier fallback"
 
 assert_contains ".github/workflows/l0-check.yml" "setup-uv" "L0 CI must provision uv"
 assert_contains ".github/workflows/l0-check.yml" "bash ./scripts/check-l0.sh" "L0 CI must run full L0 checks"

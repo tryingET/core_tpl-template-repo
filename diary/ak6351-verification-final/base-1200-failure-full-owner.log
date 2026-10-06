@@ -1,0 +1,23 @@
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+timeout policy: base=1200s generation=3600s adversarial=1200s fixtures=1200s runner=timeout
+.......................................error: check-l0-guardrails timed out after 1200s (1200s elapsed)
+error: aborting remaining checks after timeout in check-l0-guardrails
+skip: check-doc-references (aborted_after_timeout_in_check-l0-guardrails)
+skip: check-session-checkpoint (aborted_after_timeout_in_check-l0-guardrails)
+skip: check-supply-chain (aborted_after_timeout_in_check-l0-guardrails)
+skip: check-l0-generation (aborted_after_timeout_in_check-l0-guardrails)
+skip: check-l0-adversarial (aborted_after_timeout_in_check-l0-guardrails)
+skip: check-l0-fixtures (aborted_after_timeout_in_check-l0-guardrails)
+overview:
+  passed: 0
+  failed: 1
+  skipped: 6
+  warnings: 0
+  - check-l0-guardrails: failed (1200s, warnings: 0; timed_out_after_1200s)
+  - check-doc-references: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-guardrails)
+  - check-session-checkpoint: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-guardrails)
+  - check-supply-chain: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-guardrails)
+  - check-l0-generation: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-guardrails)
+  - check-l0-adversarial: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-guardrails)
+  - check-l0-fixtures: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-guardrails)
+heavy_job_result=failure exit_status=1 scratch_cleanup=removed

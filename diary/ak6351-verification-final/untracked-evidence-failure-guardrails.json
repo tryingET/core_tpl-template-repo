@@ -1,0 +1,15 @@
+{
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "7200s",
+    "bash",
+    "scripts/check-l0-guardrails.sh"
+  ],
+  "cwd": "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667",
+  "started_utc": "2026-10-02T20:14:56.864864+00:00",
+  "finished_utc": "2026-10-02T20:27:44.373701+00:00",
+  "elapsed_ns": 767503919485,
+  "elapsed_seconds": 767.503919485,
+  "exit_code": 1
+}

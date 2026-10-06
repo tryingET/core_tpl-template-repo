@@ -4,6 +4,7 @@ read_when:
   - "Starting a session that continues the system4d.yaml work after AK 6133."
   - "Before touching AK 6135 or any generated repo's ontology/src/system4d.yaml."
 type: "reference"
+task_id: 6133
 ---
 
 # Handoff 2026-10-02: system4d.yaml after AK 6133

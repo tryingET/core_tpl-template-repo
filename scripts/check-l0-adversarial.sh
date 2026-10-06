@@ -3,6 +3,7 @@ set -eu
 
 repo_root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$repo_root"
+export L0_TEMPLATE_ROOT="$repo_root"
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || {

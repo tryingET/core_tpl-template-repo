@@ -1,0 +1,2 @@
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+heavy_job_result=failure exit_status=2 scratch_cleanup=removed

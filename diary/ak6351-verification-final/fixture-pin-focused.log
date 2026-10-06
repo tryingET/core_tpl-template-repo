@@ -1,0 +1,7 @@
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+.
+----------------------------------------------------------------------
+Ran 1 test in 147.786s
+
+OK
+heavy_job_result=success scratch_cleanup=removed

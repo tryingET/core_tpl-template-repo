@@ -1,0 +1,208 @@
+timeout policy: base=1800s generation=3600s adversarial=1800s fixtures=1800s runner=timeout
+error: check-l0-guardrails failed (702s)
+---- check-l0-guardrails output (last 200 lines) ----
+======================================================================
+FAIL: test_informational_exits_preserve_old_only_and_mixed_bytes_and_index (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_informational_exits_preserve_old_only_and_mixed_bytes_and_index) (mixed=True, arguments=('-h',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 285, in test_informational_exits_preserve_old_only_and_mixed_bytes_and_index
+    result = self.wrapper(*arguments)
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-q8286lmv/repo', '--defaults', '--overwrite', '-h'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_informational_exits_preserve_old_only_and_mixed_bytes_and_index (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_informational_exits_preserve_old_only_and_mixed_bytes_and_index) (mixed=True, arguments=('--help-all',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 285, in test_informational_exits_preserve_old_only_and_mixed_bytes_and_index
+    result = self.wrapper(*arguments)
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-q8286lmv/repo', '--defaults', '--overwrite', '--help-all'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_informational_exits_preserve_old_only_and_mixed_bytes_and_index (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_informational_exits_preserve_old_only_and_mixed_bytes_and_index) (mixed=True, arguments=('--version',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 285, in test_informational_exits_preserve_old_only_and_mixed_bytes_and_index
+    result = self.wrapper(*arguments)
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-q8286lmv/repo', '--defaults', '--overwrite', '--version'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_informational_exits_preserve_old_only_and_mixed_bytes_and_index (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_informational_exits_preserve_old_only_and_mixed_bytes_and_index) (mixed=True, arguments=('-v',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 285, in test_informational_exits_preserve_old_only_and_mixed_bytes_and_index
+    result = self.wrapper(*arguments)
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-q8286lmv/repo', '--defaults', '--overwrite', '-v'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_informational_exits_preserve_old_only_and_mixed_bytes_and_index (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_informational_exits_preserve_old_only_and_mixed_bytes_and_index) (mixed=True, arguments=('--completions', 'bash'))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 285, in test_informational_exits_preserve_old_only_and_mixed_bytes_and_index
+    result = self.wrapper(*arguments)
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-q8286lmv/repo', '--defaults', '--overwrite', '--completions', 'bash'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_informational_exits_preserve_old_only_and_mixed_bytes_and_index (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_informational_exits_preserve_old_only_and_mixed_bytes_and_index) (mixed=True, arguments=('--completions=bash',))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 285, in test_informational_exits_preserve_old_only_and_mixed_bytes_and_index
+    result = self.wrapper(*arguments)
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-q8286lmv/repo', '--defaults', '--overwrite', '--completions=bash'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_option_values_containing_n_are_forwarded_as_data_not_dryruns (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_option_values_containing_n_are_forwarded_as_data_not_dryruns) (mixed=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 362, in test_option_values_containing_n_are_forwarded_as_data_not_dryruns
+    self.wrapper("-d", "company_name=-fn", "-drepo_slug=name-with-n",
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                 "--exclude", "--help", "--exclude=--version")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-675_ixbw/repo', '--defaults', '--overwrite', '-d', 'company_name=-fn', '-drepo_slug=name-with-n', '--exclude', '--help', '--exclude=--version'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_option_values_containing_n_are_forwarded_as_data_not_dryruns (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_option_values_containing_n_are_forwarded_as_data_not_dryruns) (mixed=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 362, in test_option_values_containing_n_are_forwarded_as_data_not_dryruns
+    self.wrapper("-d", "company_name=-fn", "-drepo_slug=name-with-n",
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                 "--exclude", "--help", "--exclude=--version")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 133, in wrapper
+    return self.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        "--defaults", "--overwrite", *args, expected=expected)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-675_ixbw/repo', '--defaults', '--overwrite', '-d', 'company_name=-fn', '-drepo_slug=name-with-n', '--exclude', '--help', '--exclude=--version'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_unwritable_ancestor_refused_before_mutation (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_unwritable_ancestor_refused_before_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 457, in test_unwritable_ancestor_refused_before_mutation
+    self.assertIn("unwritable obsolete-template parent", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'unwritable obsolete-template parent' not found in 'error: ownership reverse placeholder bytes/type/mode drift\n'
+
+======================================================================
+FAIL: test_zero_exit_without_worker_completion_cannot_retire_or_reseal (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_zero_exit_without_worker_completion_cannot_retire_or_reseal) (mixed=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 311, in test_zero_exit_without_worker_completion_cannot_retire_or_reseal
+    self.checked("env", f"PATH={shadow}:{self.env['PATH']}", "sh",
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                 str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                 "--defaults", "--overwrite")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('env', 'PATH=/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-os4dozbj/no-copy:/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/bin:/home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/bin:/home/tryinget/.local/state/pi-quests/tmp/pi-subagent-agent-dir-gqeilJ/bin:/home/tryinget/.local/share/semantic-code-intelligence/current/node_modules/.bin:/home/tryinget/.atuin/bin:/home/tryinget/.bun/bin:/home/tryinget/.npm-global/bin:/home/tryinget/.local/bin:/home/tryinget/.amp/bin:/home/tryinget/.cargo/bin:/home/tryinget/.deno/bin:/home/tryinget/.local/share/semantic-code-intelligence/current/node_modules/.bin:/home/tryinget/.bun/bin:/home/tryinget/.cargo/bin:/home/tryinget/bin:/home/tryinget/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/tryinget/.local/opt/ghostty-origin-main/492300cad104195411d12217dd22f1cd05f31376/bin', 'sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-os4dozbj/repo', '--defaults', '--overwrite'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+======================================================================
+FAIL: test_zero_exit_without_worker_completion_cannot_retire_or_reseal (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_zero_exit_without_worker_completion_cannot_retire_or_reseal) (mixed=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 311, in test_zero_exit_without_worker_completion_cannot_retire_or_reseal
+    self.checked("env", f"PATH={shadow}:{self.env['PATH']}", "sh",
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                 str(ROOT / "scripts/new-l1-from-copier.sh"), str(self.repo),
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                 "--defaults", "--overwrite")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/tests/test_l1_answer_template_upgrade.py", line 112, in checked
+    raise AssertionError(f"{args}: {result.returncode} != {expected}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('env', 'PATH=/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-os4dozbj/no-copy:/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/bin:/home/tryinget/.cache/uv/archive-v0/sBcTnhmO8fRO0fSv/bin:/home/tryinget/.local/state/pi-quests/tmp/pi-subagent-agent-dir-gqeilJ/bin:/home/tryinget/.local/share/semantic-code-intelligence/current/node_modules/.bin:/home/tryinget/.atuin/bin:/home/tryinget/.bun/bin:/home/tryinget/.npm-global/bin:/home/tryinget/.local/bin:/home/tryinget/.amp/bin:/home/tryinget/.cargo/bin:/home/tryinget/.deno/bin:/home/tryinget/.local/share/semantic-code-intelligence/current/node_modules/.bin:/home/tryinget/.bun/bin:/home/tryinget/.cargo/bin:/home/tryinget/bin:/home/tryinget/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/tryinget/.local/opt/ghostty-origin-main/492300cad104195411d12217dd22f1cd05f31376/bin', 'sh', '/home/tryinget/.local/state/pi-quests/tmp/ak6351-l0-01a0f678-716c-785f-a310-9a0d2ff48667/scripts/new-l1-from-copier.sh', '/home/tryinget/.cache/ai-society-scratch/runs/run-1790990673-e7f5451b706f5314/work/tmp/l1-upgrade-vbqr0b48/case-os4dozbj/repo', '--defaults', '--overwrite'): 2 != 0
+
+error: ownership reverse placeholder bytes/type/mode drift
+
+
+----------------------------------------------------------------------
+Ran 105 tests in 702.123s
+
+FAILED (failures=23)
+error: L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed
+---- end check-l0-guardrails output ----
+hint: set L0_CHECK_VERBOSE=1 for live command output
+ok: check-doc-references (0s, warnings: 0, timeout: 1800s)
+ok: check-session-checkpoint (0s, warnings: 0, timeout: 1800s)
+ok: check-supply-chain (0s, warnings: 0, timeout: 1800s)

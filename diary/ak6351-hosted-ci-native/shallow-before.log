@@ -1,0 +1,31 @@
+FF
+======================================================================
+FAIL: test_dirty_untracked_staged_and_unowned_matches_refuse (tests.test_l1_template_gitlink_retirements.RetirementTests.test_dirty_untracked_staged_and_unowned_matches_refuse)
+----------------------------------------------------------------------
+ValueError: retired_by is not an L0 ancestor commit: copier/*/tools/rocs-cli/**
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-ci-01a0ffd7-c705-7ed4-87ea-1eb822a5bb16/shallow-before/tests/test_l1_template_gitlink_retirements.py", line 365, in test_dirty_untracked_staged_and_unowned_matches_refuse
+    with self.assertRaisesRegex(ValueError, "untracked or dirty"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "untracked or dirty" does not match "retired_by is not an L0 ancestor commit: copier/*/tools/rocs-cli/**"
+
+======================================================================
+FAIL: test_symlink_and_gitlink_matches_refuse_and_ancestor_swap_is_caught (tests.test_l1_template_gitlink_retirements.RetirementTests.test_symlink_and_gitlink_matches_refuse_and_ancestor_swap_is_caught)
+----------------------------------------------------------------------
+ValueError: retired_by is not an L0 ancestor commit: copier/*/tools/rocs-cli/**
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6351-ci-01a0ffd7-c705-7ed4-87ea-1eb822a5bb16/shallow-before/tests/test_l1_template_gitlink_retirements.py", line 385, in test_symlink_and_gitlink_matches_refuse_and_ancestor_swap_is_caught
+    with self.assertRaisesRegex(ValueError, r"non-regular tracked entry \(120000\)"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "non-regular tracked entry \(120000\)" does not match "retired_by is not an L0 ancestor commit: copier/*/tools/rocs-cli/**"
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.412s
+
+FAILED (failures=2)

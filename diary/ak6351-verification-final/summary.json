@@ -1,0 +1,93 @@
+{
+  "verified_code_commit": "40d2d05f5bd997b54785e051e3875aaa0a1ea61a",
+  "defaults_seconds": {
+    "base": 1800,
+    "generation": 3600,
+    "adversarial": 1800,
+    "fixtures": 1800
+  },
+  "temporary_calibration_cap_seconds": 7200,
+  "temporary_kill_after_seconds": 30,
+  "successful_calibration_seconds": {
+    "guardrails": 778.654000745,
+    "generation": 1653.568129274,
+    "adversarial": 367.709930772
+  },
+  "calibration_source_commits": {
+    "guardrails": "64b63ba",
+    "generation": "0ee107f",
+    "adversarial": "edf06ba"
+  },
+  "full_owner": {
+    "elapsed_seconds": 2893.039813572,
+    "exit_code": 0,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "reported_leaf_seconds": {
+      "check-l0-guardrails": 830,
+      "check-doc-references": 0,
+      "check-session-checkpoint": 0,
+      "check-supply-chain": 0,
+      "check-l0-generation": 1628,
+      "check-l0-adversarial": 342,
+      "check-l0-fixtures": 93
+    },
+    "command": [
+      "env",
+      "-u",
+      "L0_CHECK_TIMEOUT_SECONDS",
+      "-u",
+      "L0_CHECK_TIMEOUT_GENERATION_SECONDS",
+      "-u",
+      "L0_CHECK_TIMEOUT_ADVERSARIAL_SECONDS",
+      "-u",
+      "L0_CHECK_TIMEOUT_FIXTURES_SECONDS",
+      "L0_CHECK_VERBOSE=1",
+      "bash",
+      "scripts/check-l0.sh"
+    ]
+  },
+  "production_birth_execution_timeout_seconds": 3600,
+  "birth_exception": {
+    "operator_evidence": "AK evidence 12202 (dispatch authority)",
+    "accepted_omissions": [
+      ".gitlab-ci.yml",
+      "gitlab/ci/rocs.yml",
+      "governance/work-items.cue",
+      "governance/work-items.json"
+    ],
+    "exact_equivalence": false,
+    "historical_acceptance_satisfied": false,
+    "historical_report_unchanged": true
+  },
+  "warning_free_claim": false,
+  "diagnostics": [
+    "Verbose aggregate warning counters are zero by implementation, not a warning-free proof.",
+    "Retained logs include re-init warnings, pathspec deprecations, optional UBS-helper-unavailable messages, and heavy runner protected-process inspection warning."
+  ],
+  "coverage_limits": [
+    "Isolated owner contract and repo docs, not fleet/index equivalence or production rollout.",
+    "Evidence-only final commit does not modify verified code.",
+    "No lifecycle authority or AK mutation."
+  ],
+  "canonical_observation": {
+    "head": "49e34ac4556cd9a708b878233f40c3e530d0381e",
+    "branch": "feat/ak6328-company-ontology-ownership",
+    "clean": true,
+    "canonical_writes_by_this_slice": false,
+    "earlier_c14_main_unchanged_claim": false
+  },
+  "docs_strict": {
+    "command": [
+      "node",
+      "/home/tryinget/ai-society/core/agent-scripts/scripts/docs-list.mjs",
+      "--docs",
+      ".",
+      "--strict"
+    ],
+    "exit_code": 0,
+    "artifact": "docs-final.log"
+  },
+  "owned_live_verification_processes_at_handoff": 0
+}

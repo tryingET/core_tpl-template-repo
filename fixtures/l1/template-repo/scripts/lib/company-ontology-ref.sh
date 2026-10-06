@@ -51,7 +51,7 @@ company_ontology_python() {
 company_ontology_ref_default() {
   # Validate CLI values too, but leave explicit -d/--data-file precedence to Copier.
   company_ontology_python - "$answers_file" "$dest_dir" \
-    "$repo_root/copier/$template_name/copier.yml" "$@" <<'PY'
+    "$template_dir/copier.yml" "$@" <<'PY'
 import sys
 from pathlib import Path
 import yaml

@@ -91,6 +91,12 @@ def compile_prompt(root: Path) -> bytes:
 
     manifest = load_manifest(manifest_path)
     parts = [
+        "---\n",
+        'summary: "Compiled agent system prompt from the manifest and persona inputs."\n',
+        "read_when:\n",
+        '  - "Inspecting the generated agent system prompt."\n',
+        "type: reference\n",
+        "---\n\n",
         "<!-- compiled: do not edit -->\n",
         "# Agent system prompt\n\n",
         "## Manifest\n\n",

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "timeout",
+    "1800",
+    "uvx",
+    "--from",
+    "copier==9.11.1",
+    "python",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_l2_template_source",
+    "tests.test_l0_check_timeouts",
+    "tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes"
+  ],
+  "elapsed_seconds": 3.9528951010433957,
+  "exit_status": 0,
+  "finished_unix": 1790980771.3262,
+  "source_commit": "01d3031a19712336c498a8a4a07b31eed664c846",
+  "source_status_before": "M  README.md\nM  copier-template/contracts/template-ownership-state.json\nM  copier-template/contracts/template-ownership.yml\nM  copier-template/scripts/check-template-ci.sh\nM  copier-template/scripts/lib/check-l1-ownership-state.py\nA  copier-template/scripts/lib/l1_ontology_ownership.py\nM  copier.yml\nA  diary/2026-10-02--feat-l1-company-ontology-ownership.md\nA  docs/dev/l1-ontology-ownership.md\nM  fixtures/l1/template-repo/contracts/template-ownership-state.json\nM  fixtures/l1/template-repo/contracts/template-ownership.yml\nM  fixtures/l1/template-repo/scripts/check-template-ci.sh\nM  fixtures/l1/template-repo/scripts/lib/check-l1-ownership-state.py\nA  fixtures/l1/template-repo/scripts/lib/l1_ontology_ownership.py\nM  scripts/check-l0-generation.sh\nM  scripts/check-l0-guardrails.sh\nM  scripts/lib/l1_answer_template_upgrade.py\nA  scripts/lib/l1_template_company.py\nM  scripts/lib/l1_template_ownership.py\nM  scripts/lib/l1_template_receipts.py\nM  scripts/lib/l1_template_transition_delta.py\nA  scripts/lib/l1_template_transition_plan.py\nM  scripts/lib/l1_template_transitions.py\nM  scripts/new-l1-from-copier.sh\nM  tests/test_l1_answer_template_upgrade.py\nA  tests/test_l1_template_company_ownership.py\nM  tests/test_l1_template_gitlink_retirements.py\nM  tests/test_l1_template_ownership.py\nM  tests/test_l1_template_transitions.py\n",
+  "started_unix": 1790980767.3733008,
+  "timeout_overrides": {},
+  "tmpdir": "/home/tryinget/.cache/ai-society-scratch/runs/run-1790980767-18f59f3b2fd7d73e/work/tmp"
+}

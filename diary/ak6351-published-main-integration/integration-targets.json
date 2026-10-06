@@ -1,0 +1,24 @@
+{
+  "command": [
+    "timeout",
+    "1800",
+    "uvx",
+    "--from",
+    "copier==9.11.1",
+    "python",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_render_l1",
+    "tests.test_l1_template_company_ownership.CompanyOntologyTests.test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology",
+    "tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_dryrun_failed_render_and_v2_copy_do_not_retire"
+  ],
+  "elapsed_seconds": 14.31470458599506,
+  "exit_status": 1,
+  "finished_unix": 1790980799.049542,
+  "source_commit": "4a01f516019d5db1dd1f6b80d5ed27e86d95eede",
+  "source_status_before": "",
+  "started_unix": 1790980784.7348332,
+  "timeout_overrides": {},
+  "tmpdir": "/home/tryinget/.cache/ai-society-scratch/runs/run-1790980784-fa2d8082d4de9ab3/work/tmp"
+}

@@ -17,10 +17,42 @@ This repository is the **L0 source template** for AI Society (`L0 -> L1 -> L2`).
    ```bash
    bash ./scripts/check-l0.sh
    ```
-   Optional fail-fast timeout per sub-check (default `300` seconds):
+   Finite wall-clock defaults: `1800` seconds for guardrails, the light checks,
+   adversarial and fixtures; `3600` seconds for generation. Optional base override:
    ```bash
    L0_CHECK_TIMEOUT_SECONDS=120 bash ./scripts/check-l0.sh
    ```
+   An explicit base override retains the historical generation multiplier of two.
+   Per-lane overrides take precedence: `L0_CHECK_TIMEOUT_GENERATION_SECONDS`,
+   `L0_CHECK_TIMEOUT_ADVERSARIAL_SECONDS`, `L0_CHECK_TIMEOUT_FIXTURES_SECONDS`.
+   The runner still invokes `timeout`/`gtimeout`, fails on timeout, and aborts
+   subsequent checks. No coverage is excluded to fit the budget.
+
+   Calibration evidence: `diary/ak6351-verification-final/generation.json`
+   records a successful `1653.568129274s` generation run; `adversarial.json`
+   records a successful `367.709930772s` adversarial run; `guardrails.json`
+   records the actual full guardrail leaf passing in `778.654000745s` (96 + 4
+   tests and shell guardrails). An initial `1200s` owner attempt timed out in
+   guardrails, so the earlier `661.065s` focused subset was not sufficient
+   calibration. The new defaults allow approximately 2.18x generation and
+   2.31x the measured full guardrail leaf, plus 50% above that failed cap,
+   with larger margin for adversarial/fixtures. These are single-host
+   verification budgets, not timing guarantees. Production birth/execution
+   remains bounded at its unchanged `3600s` with its existing sandbox and
+   process-group teardown; verification budgets are a separate concern.
+   Hosted CI checks out full history (retirement and pinned-reader ancestry proofs),
+   installs Bubblewrap and probes the real sandbox before checks. Ubuntu's AppArmor
+   user-namespace admission is scoped to `/usr/bin/bwrap`, not disabled globally.
+   Golden agent births bind a strict synthetic task-visibility executable through
+   `AK_CMD` per invocation; no private AK runtime or workspace database is required
+   by the test harness. Production creation gates remain unchanged.
+   Documentation references use the byte-identical pinned owner bundle in
+   `tools/agent-scripts/`; its source commit and file hashes are checked in guardrails.
+   Hosted CI also provisions the public ROCS core at immutable commit
+   `ac75e95e30d66b3543abca27cb79d69a9dc01e93` with its frozen lock, so the existing
+   real-core integration probe executes instead of taking its no-core branch.
+   Ownership tests bind their synthetic AK only for full CI; template CI keeps
+   its own snapshot-capable fixture and is not overridden by ambient `AK_CMD`.
 4. Prefer deterministic wrappers over ad-hoc scripting:
    ```bash
    ./scripts/rocs.sh --doctor
