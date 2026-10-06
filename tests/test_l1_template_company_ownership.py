@@ -375,6 +375,7 @@ class CompanyOntologyTests(unittest.TestCase):
                 self.assertEqual(controls(company), snapshot)
                 self.assertEqual(seed.read_bytes() if seed.exists() else None, content)
             (company / "ontology/.gitkeep").write_bytes(b"")
+            (company / "ontology/.gitkeep").chmod(0o644)  # the loop recreated it under the ambient umask
             rejected = run("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(company),
                            "-d", "l1_ontology_layout=gitlink", "--defaults", "--overwrite", cwd=ROOT, expect=2)
             self.assertIn("cannot change company ontology topology", rejected.stderr)
