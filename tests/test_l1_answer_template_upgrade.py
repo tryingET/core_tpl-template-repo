@@ -70,15 +70,22 @@ class UpgradeHarness(unittest.TestCase):
         # Copier does not recognize linked-worktree .git files as local VCS
         # sources: -r there silently renders HEAD's files. Use an independent
         # ordinary clone so the historical upgrade fixture really is BASE.
+        # Both clones (ours and Copier's) check files out under the process umask and
+        # Copier copies those modes; build BASE as committed (0644), not 0600 under a
+        # private runner umask. The code under test keeps the ambient umask.
         cls.base_source = cls.root / "base-source"
-        cls.checked("git", "clone", "--quiet", "--no-local", str(ROOT), str(cls.base_source))
-        cls.checked("git", "-C", str(cls.base_source), "-c", "core.hooksPath=/dev/null",
-                    "checkout", "--quiet", "--detach", BASE)
         cls.base = cls.root / "base"
         cls.incoming = cls.root / "incoming"
-        cls.checked("uvx", "--from", "copier==9.11.1", "copier", "copy", "--trust", "--quiet",
-                    "-r", BASE, "--defaults", "--overwrite", "-d", "repo_slug=upgrade-test",
-                    str(cls.base_source), str(cls.base))
+        ambient_umask = os.umask(0o022)
+        try:
+            cls.checked("git", "clone", "--quiet", "--no-local", str(ROOT), str(cls.base_source))
+            cls.checked("git", "-C", str(cls.base_source), "-c", "core.hooksPath=/dev/null",
+                        "checkout", "--quiet", "--detach", BASE)
+            cls.checked("uvx", "--from", "copier==9.11.1", "copier", "copy", "--trust", "--quiet",
+                        "-r", BASE, "--defaults", "--overwrite", "-d", "repo_slug=upgrade-test",
+                        str(cls.base_source), str(cls.base))
+        finally:
+            os.umask(ambient_umask)
         cls.checked("sh", str(ROOT / "scripts/new-l1-from-copier.sh"), str(cls.incoming),
                     "--defaults", "--overwrite", "-d", "repo_slug=upgrade-test")
         for old in upgrade.APPROVED:
