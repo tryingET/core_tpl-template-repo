@@ -1,0 +1,8 @@
+{
+  "encoding": "base64",
+  "original_filename": "command.log",
+  "stored_filename": "command.log.b64",
+  "original_sha256": "0a4b91076157a5337a236b1922548f766a6d07322e6bb00b59ae0de407f5b70a",
+  "round_trip_equal": true,
+  "reason": "Preserve original bytes including Git-diff whitespace; no whitespace rewriting or check exclusion"
+}

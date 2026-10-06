@@ -178,9 +178,11 @@ completion.write_text('non-pretend-copy-completed\\n')
         literal = ("--exclude", "--data-file=not-an-input.yml")
         for value in (EXPLICIT, ""):
             dump(data, {KEY: value})
-            for path in (str(data), data.name):
-                for option in (("--data-file", path), (f"--data-file={path}",)):
-                    with self.subTest(value=value, option=option):
+            for path_kind, path in (("absolute", str(data)), ("relative", data.name)):
+                for option_kind, option in (("separate", ("--data-file", path)),
+                                            ("joined", (f"--data-file={path}",))):
+                    # Stable case identity; actual path/options and assertions stay exact.
+                    with self.subTest(value=value, path_kind=path_kind, option_kind=option_kind):
                         args = self.invoke(*literal, *option)
                         self.assertEqual(self.defaults(args), [])
                         expected = (["--data-file", str(data)] if len(option) == 2

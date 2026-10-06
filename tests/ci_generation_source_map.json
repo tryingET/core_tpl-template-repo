@@ -1,0 +1,357 @@
+{
+  "baseline": "operator-supplied 5acfd49; observed pre-extraction generation source bytes",
+  "original_lines": 1150,
+  "original_sha256": "ab516ad1e3d80b2670f28a6e07a36a6375257ae679afa361dc59727b935f930c",
+  "blocks": [
+    {
+      "label": "public-header-and-root",
+      "original": [
+        1,
+        4
+      ],
+      "target": "scripts/check-l0-generation.sh",
+      "extracted": [
+        1,
+        4
+      ],
+      "sha256": "3ac9774b69f9a6acbfff367675e80dc4e2f3d0eda6cc9d4f42b8f624922d27cf",
+      "assertion_lines": []
+    },
+    {
+      "label": "cwd-and-source-binding",
+      "original": [
+        5,
+        8
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        147,
+        150
+      ],
+      "sha256": "fe7269e9cf49dd770290aa754a9fffad1e73bda0443ec6934c7b2366dda0994b",
+      "assertion_lines": []
+    },
+    {
+      "label": "dependency-helper",
+      "original": [
+        9,
+        14
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        3,
+        8
+      ],
+      "sha256": "3cfa49560fd98db442a6f0a7ef6e9034ae40c1db07b1d154fafd24218c187988",
+      "assertion_lines": [11]
+    },
+    {
+      "label": "dependencies-and-answer-library",
+      "original": [
+        15,
+        40
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        151,
+        176
+      ],
+      "sha256": "773e2bfc2628be32fbc90d86abc9152fd0581e1e22c874c625230d41230c62bb",
+      "assertion_lines": [29, 35]
+    },
+    {
+      "label": "failure-helper-and-observer-comment",
+      "original": [
+        41,
+        46
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        9,
+        14
+      ],
+      "sha256": "cd97804310c435b55e9f1a8d14d0daccc7e5c751f823c67e82591cbb42e7cb36",
+      "assertion_lines": [42]
+    },
+    {
+      "label": "phase-state-initialization",
+      "original": [
+        47,
+        47
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        177,
+        177
+      ],
+      "sha256": "5fa9dd24624de719bd6481a5256049c48600e42f552d6a8417d86cba083e380a",
+      "assertion_lines": []
+    },
+    {
+      "label": "assertion-and-observation-helpers",
+      "original": [
+        48,
+        138
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        15,
+        105
+      ],
+      "sha256": "fcf88b0ea087dd37e799668a6f389d635d392d5912123d5f3d7465bc6eea35f7",
+      "assertion_lines": [70, 77, 85, 97, 101]
+    },
+    {
+      "label": "scratch-and-teardown",
+      "original": [
+        139,
+        141
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        178,
+        180
+      ],
+      "sha256": "34f6c58f2f7a01600af76c1f7949b24ad6b3ce71d12dadc1fa0673d6e10aa63e",
+      "assertion_lines": []
+    },
+    {
+      "label": "tree-comparison-helpers",
+      "original": [
+        142,
+        181
+      ],
+      "target": "tests/ci_generation_common.sh",
+      "extracted": [
+        106,
+        145
+      ],
+      "sha256": "28d3e7f1506093962083180be2a9d426ba952dd076be42358e44c082ea230802",
+      "assertion_lines": [172, 179]
+    },
+    {
+      "label": "preprofile-negative-probes",
+      "original": [
+        182,
+        191
+      ],
+      "target": "tests/ci_generation_profiles.sh",
+      "extracted": [
+        4,
+        13
+      ],
+      "sha256": "136dd8f50855f33f5e0bf5103fe6a4cc6975f00d0b3d850b98ac933806896ccd",
+      "assertion_lines": [189, 190]
+    },
+    {
+      "label": "ambient-ak-and-no-yaml-fixtures",
+      "original": [
+        192,
+        211
+      ],
+      "target": "tests/ci_generation_profiles.sh",
+      "extracted": [
+        17,
+        36
+      ],
+      "sha256": "a36f258cc0ba7e5da1fcf8cb980510fa528929a2c11474ca79a2fce3d99945e5",
+      "assertion_lines": [196]
+    },
+    {
+      "label": "original-profiles-phase",
+      "original": [
+        212,
+        213
+      ],
+      "target": "scripts/check-l0-generation.sh",
+      "extracted": [
+        15,
+        16
+      ],
+      "sha256": "5edef46afd566fda983c86d3aa4692fc3d591d2ec52abd89348c7d3388417623",
+      "assertion_lines": []
+    },
+    {
+      "label": "complete-render-rerender-history-preview-proof",
+      "original": [
+        214,
+        305
+      ],
+      "target": "tests/ci_generation_profiles.sh",
+      "extracted": [
+        39,
+        130
+      ],
+      "sha256": "6428930071ef2658837aa80c1d3c3e265cbd6ef87df156aca1d8c613a9e4821e",
+      "assertion_lines": [243, 264, 282, 291]
+    },
+    {
+      "label": "five-profile-order-variables-and-doc-loop",
+      "original": [
+        306,
+        314
+      ],
+      "target": "scripts/check-l0-generation.sh",
+      "extracted": [
+        17,
+        25
+      ],
+      "sha256": "5c4a787f7a2e42a732309a718b5362c77370d18ebf8ed47df95613448ec70b92",
+      "assertion_lines": []
+    },
+    {
+      "label": "rich-org-doc-assertion",
+      "original": [
+        315,
+        315
+      ],
+      "target": "tests/ci_generation_profiles.sh",
+      "extracted": [
+        132,
+        132
+      ],
+      "sha256": "823da394ecbab7f4a06c10996d626e3e8174c8a2aca9cb2817b6747179d7fa49",
+      "assertion_lines": [315]
+    },
+    {
+      "label": "compact-org-doc-assertion",
+      "original": [
+        316,
+        316
+      ],
+      "target": "tests/ci_generation_profiles.sh",
+      "extracted": [
+        136,
+        136
+      ],
+      "sha256": "1982fd70dfd04753b607df8425686b08e5ad28282ec83907e25a615153f81bf0",
+      "assertion_lines": [316]
+    },
+    {
+      "label": "original-doc-loop-end",
+      "original": [
+        317,
+        317
+      ],
+      "target": "scripts/check-l0-generation.sh",
+      "extracted": [
+        28,
+        28
+      ],
+      "sha256": "d117fa006ba9208500b2930ce69cbde436c647afa917cb7396a9bc9111a46dd2",
+      "assertion_lines": []
+    },
+    {
+      "label": "compact-operating-model-assertion",
+      "original": [
+        318,
+        318
+      ],
+      "target": "tests/ci_generation_profiles.sh",
+      "extracted": [
+        140,
+        140
+      ],
+      "sha256": "43702a03a436b73b24caab7c5565a4af62ec51405cb45cbb3ddd36c1f5db62de",
+      "assertion_lines": [318]
+    },
+    {
+      "label": "original-doc-spacing",
+      "original": [
+        319,
+        319
+      ],
+      "target": "scripts/check-l0-generation.sh",
+      "extracted": [
+        29,
+        29
+      ],
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "assertion_lines": []
+    },
+    {
+      "label": "scalar-transport-defaults-bootstrap",
+      "original": [
+        320,
+        564
+      ],
+      "target": "tests/ci_generation_shell_transport.sh",
+      "extracted": [
+        4,
+        248
+      ],
+      "sha256": "2c78f398b050e5387814f5353ea22d2d5d4d83e58bba227e3f0b4373b80338b3",
+      "assertion_lines": [337, 340, 341, 351, 362, 381, 400, 406, 410, 428, 434, 439, 440, 449, 450, 468, 482, 511, 521, 522, 523, 524, 525, 526, 527, 533, 534, 535, 536, 537, 538, 539, 542, 550, 551, 560]
+    },
+    {
+      "label": "language-and-toggle-birth-matrices",
+      "original": [
+        565,
+        777
+      ],
+      "target": "tests/ci_generation_shell_matrix.sh",
+      "extracted": [
+        4,
+        216
+      ],
+      "sha256": "19162b9bd71f63a7a3adcaa70d8f8635c9aba3881a7a78492ad8bcd71cfa0de6",
+      "assertion_lines": [612, 615, 618, 623, 628, 682, 683, 684, 685, 686, 687, 688, 689, 769, 770, 771, 772, 773, 774, 775, 776]
+    },
+    {
+      "label": "rocs-launchers-and-local-hooks",
+      "original": [
+        778,
+        956
+      ],
+      "target": "tests/ci_generation_shell_launchers.sh",
+      "extracted": [
+        4,
+        182
+      ],
+      "sha256": "db5c4dd4b0ab5f96ee3bfd873a9e1584492c0425c018811c24aec6ea071acbf1",
+      "assertion_lines": [778, 779, 802, 804, 806, 807, 810, 812, 813, 820, 822, 828, 830, 832, 838, 839, 841, 843, 844, 845, 850, 856, 857, 888, 891, 893, 895, 899, 904, 908, 910, 915, 918, 931, 932, 933, 934, 935, 937, 938, 939, 940, 941, 949, 954, 955]
+    },
+    {
+      "label": "workspace-real-core-and-descendant-metadata",
+      "original": [
+        957,
+        1144
+      ],
+      "target": "tests/ci_generation_shell_metadata.sh",
+      "extracted": [
+        4,
+        191
+      ],
+      "sha256": "3db2258a87fbdb9c3d7fcf1ac49f5ff579fb98c04c7532e9a3c866730ed833a0",
+      "assertion_lines": [973, 974, 975, 983, 989, 1005, 1007, 1008, 1009, 1017, 1018, 1019, 1020, 1047, 1063, 1067, 1083, 1087, 1091, 1097, 1101, 1105, 1117, 1118, 1119, 1125, 1126, 1130, 1131, 1132, 1139, 1140, 1141, 1142]
+    },
+    {
+      "label": "whole-original-python-cohort",
+      "original": [
+        1145,
+        1148
+      ],
+      "target": "tests/ci_generation_python.sh",
+      "extracted": [
+        4,
+        7
+      ],
+      "sha256": "467a41cfed8b5f8a81c816f444f21fe7175499178a3607ffc42bf50d721f9deb",
+      "assertion_lines": []
+    },
+    {
+      "label": "original-completion-and-output",
+      "original": [
+        1149,
+        1150
+      ],
+      "target": "scripts/check-l0-generation.sh",
+      "extracted": [
+        35,
+        36
+      ],
+      "sha256": "b4f64fe8ba06af93ce1bfd8b43ae7c60f9c8529fbf1f01db1c5a9e110675f98b",
+      "assertion_lines": []
+    }
+  ]
+}
