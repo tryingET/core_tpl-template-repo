@@ -1,0 +1,6 @@
+bb09b39dc00140e9ee20559634b5518c3db4bf7f1627ed16f1b062b614e3b5e1  copier-template/copier/tpl-agent-repo/AGENTS.md.j2
+d41e8b40a1d8a4bc3578d217a6e527581346c76caa4923b563ffdc2798dd9735  scripts/check-l0-guardrails.sh
+ef0f6858bda8bb57307c3c0cfa70da7a1e1803bc3f98f1ffce54dce8633686f8  scripts/check-l0-generation.sh
+12f62d0d65aa236dd8218e5747790a3380baab356a7056e5b77044d026e1f8e5  tests/test_agent_instruction_conformance.py
+bb09b39dc00140e9ee20559634b5518c3db4bf7f1627ed16f1b062b614e3b5e1  fixtures/l1/template-repo/copier/tpl-agent-repo/AGENTS.md.j2
+555e7b825b428e64f488b6bc810a7cdf38545ee6090a45ef35786e17247af513  fixtures/l2/tpl-agent-repo/AGENTS.md

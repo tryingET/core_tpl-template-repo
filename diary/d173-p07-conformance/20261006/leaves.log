@@ -1,0 +1,78 @@
+subject=d65900ecfba68d981a9f211547e1e802234a8c30 dirty=0 started_at=2026-10-06T06:34:55Z
+old_runs_preserved=18
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+umask=0077
+leaf=check-l0-generation exit=1 seconds=665
+  [check-l0-generation] retire: copier/tpl-monorepo/.copier-answers.yml.j2 (approved sha256=781390e4ec6052dd8a2360d32b7a637c47dedde81f3841249b6a297da165f450; successor=copier/tpl-monorepo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+  [check-l0-generation] retire: copier/tpl-package/.copier-answers.yml.j2 (approved sha256=27dba22ed419dc971cdc8f8ccc714336476108f3b951a5e3c15f87a370bd6d76; successor=copier/tpl-package/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+  [check-l0-generation] update: scripts/ci/full.sh
+  [check-l0-generation] --- a/scripts/ci/full.sh
+  [check-l0-generation] +++ b/scripts/ci/full.sh
+  [check-l0-generation] @@ -64,3 +64,5 @@
+  [check-l0-generation]  ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+  [check-l0-generation]  
+  [check-l0-generation]  echo "ok: ci full"
+  [check-l0-generation] +
+  [check-l0-generation] +# refresh change
+  [check-l0-generation] APPLY
+  [check-l0-generation] preserve: 14 rendered agent-owned path(s)
+  [check-l0-generation] note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+  [check-l0-generation] update: scripts/ci/full.sh
+  [check-l0-generation] --- a/scripts/ci/full.sh
+  [check-l0-generation] +++ b/scripts/ci/full.sh
+  [check-l0-generation] @@ -64,3 +64,5 @@
+  [check-l0-generation]  ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+  [check-l0-generation]  
+  [check-l0-generation]  echo "ok: ci full"
+  [check-l0-generation] +
+  [check-l0-generation] +# incoming L0 update
+  [check-l0-generation] applied template-owned actions; commit applied_pending_receipt, run gates, record AK evidence, then finalize
+  [check-l0-generation] planned ownership transition 9b31c393307816fdf763dac65d870c109ca3aa2bd280ebdbc2c358945814d316 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+  [check-l0-generation] planned ownership transition 26ec4026d80208375cdd766a98d14fdc532f5371e1f22efff392152b7aa91596 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:902; commit state only
+  [check-l0-generation] planned ownership transition 20e30bd7324cccf9b295f2e7b32e77c125e60767c7cf0622b5006228cda1b743 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+  [check-l0-generation] planned ownership transition 1a5c68af0296d83997d61010ba9d4724bfe7c3a61c112124081ebfec1919e7c7 (no repository files changed)
+  [check-l0-generation] planned ownership transition 1a5c68af0296d83997d61010ba9d4724bfe7c3a61c112124081ebfec1919e7c7 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+  [check-l0-generation] planned ownership transition 88040d31690bd5c4b62b6a927b37e669751e81256fed7d023a4dcce005357416 (no repository files changed)
+  [check-l0-generation] planned ownership transition 88040d31690bd5c4b62b6a927b37e669751e81256fed7d023a4dcce005357416 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:902; commit state only
+  [check-l0-generation] planned ownership transition a7c11578c8a74eac0d6094f4426c42cbf6479c9fcafb31234615950e6250a467 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+  [check-l0-generation] planned ownership transition d2fdedacca5717843d7e608af97a451cf435e7d756d34b30221bd3ecd9756966 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:904; commit state only
+  [check-l0-generation] planned ownership transition 603963d4b17d8312f04d6dbd702b858905ab8c8fffe65d7abff8812f3e9641c6 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+  [check-l0-generation] planned ownership transition b8155135bbe9e98cb23da4002288f512c560ae41e088cab235842bec9aea3cfe (no repository files changed)
+  [check-l0-generation] planned ownership transition 0631c90275643922f8eb37cd4b583bd791c1e51b8d288e5813d76593b095b389 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+  [check-l0-generation] planned ownership transition 60180b128fff37146897865f96fa66a23057f535c90e8d97bd1f12272b08e496 (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+  [check-l0-generation] planned ownership transition b60bc730bafbf363f5779c6bb157333939f2c729e5a51fe38e5190af7339d7bd (no repository files changed)
+  [check-l0-generation] applied successor map and ownership_transition_pending_receipt; stage control files and commit
+  [check-l0-generation] finalized successor ownership state from AK evidence:901; commit state only
+leaf=check-l0-adversarial exit=0 seconds=122
+  [check-l0-adversarial] Preparing worktree (detached HEAD d65900e)
+  [check-l0-adversarial] Preparing worktree (new branch 'demo-templates')
+  [check-l0-adversarial] Preparing worktree (new branch 'demo-templates')
+  [check-l0-adversarial] Preparing worktree (new branch 'demo-templates')
+  [check-l0-adversarial] Preparing worktree (new branch 'demo-templates')
+  [check-l0-adversarial] Preparing worktree (detached HEAD 35156a2)
+  [check-l0-adversarial] ok: l0 adversarial operator-surface checks
+leaf=check-l0-fixtures exit=0 seconds=20
+  [check-l0-fixtures] ok: l0 fixtures
+dirty_after=0
+heavy_job_result=success scratch_cleanup=removed
+runner_exit=0 finished_at=2026-10-06T06:48:31Z

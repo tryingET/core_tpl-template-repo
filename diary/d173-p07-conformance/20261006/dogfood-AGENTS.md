@@ -1,0 +1,92 @@
+---
+summary: "Agent operating contract for generated agent repositories."
+read_when:
+  - "Read when changing the generated tpl-agent-repo AGENTS.md operating contract."
+type: "reference"
+---
+
+# AGENTS.md — agent-dogfood
+
+## Intent
+This is one agent repository. Keep exactly one repository and one canonical role per agent; do not nest agents. Use the actual owner-admitted placement and company workflow, not a path or permission inferred from this template.
+
+## Authority and fleet lifecycle
+- Unappointed agents are advisory by default. Their persona may narrow behavior, but never issue or broaden a grant.
+- Admitted standing work requires current owner-issued appointment/delegation and every applicable target-owner permission, exact task and runtime admission. Persona, manifest, memory, role name and task creation grant no authority; role-card exclusions still apply.
+- Keep one role in one owner-admitted repository. The conventional fleet home is `ai-society/agents/agent-<name>`; a company placement requires its actual fleet owner's admission, discovery/lint and collision checks. This template admits neither path.
+- Creating an agent requires an exact owner-admitted AK creation task naming its role, recurring pain, differentiation, source/route and destination; applicable template restrictions (including SoftwareCo D68 where applicable), current creator authority and native start custody remain separate prerequisites.
+- Appointment, repository creation and runtime activation are separate owner acts. An inert artifact cannot grant the creator or prospective subject permission.
+- Writes to another repository require an exact active AK task owned by that target repository and covered current owner rights. AK is runtime authority; proposals and merge requests are review surfaces, not grants.
+- Missing, expired, revoked or conflicting admission holds the affected act; preserve unknown effects and continue unaffected admitted work. Follow the relevant owner for reserved acts, disclosure and lifecycle; no routine per-tactic approval is needed where standing rights actually cover the act.
+- Template refresh is plan-first: review `./scripts/propagate-template.sh`, then explicitly rerun it with `--apply`.
+
+## Guardrails
+- No secrets in git (use CI variables + local secret manager references).
+- Follow the target/company's current owner-admitted workflow: normal admitted work is main-first. Use a branch/worktree or PR/MR only for an actual review/isolation need or explicit owner-contract exception, not a blanket template-only rule. Publication/push remains separately authorized.
+- Treat `docs/_core/**` as immutable (vendored snapshot from `governance-kernel`; no submodules).
+
+## AK-native route guardrails
+- If this repo declares AK-native task, direction, or route authority, read the relevant AK task and route/open-frame status before inventing new work.
+- Generic operator input such as `proceed` continues the active execution task when one exists; it does not authorize lifecycle closeout, source-owner mutation, publication, or knowledge promotion.
+- Treat closeout/readiness rows as gate inputs, not lifecycle authorization.
+- Treat docs, task-scope snapshots, and direction explorer exports as projections unless the repo declares otherwise; AK DB remains runtime authority for AK tasks, direction, evidence, and decisions.
+- Handoff instead of editing by convenience when facts belong to Prompt Vault, ROCS, Pi/runtime, KES, steward/publication, template propagation, Oracle/DSPx, or another repo.
+- Prefer `docs/project/vision.md` as durable product direction where present and `docs/project/product_posture.md` as a product-maturity bridge, not a queue, roadmap, changelog, or execution authority.
+- Do not revive SG/TG/OP markdown planning where AK-native direction authority is declared; legacy `strategic_goals.md`, `tactical_goals.md`, `operating_plan.md`, or `operational_plan.md` files are archive/projection only unless a repo-local owner decision explicitly says otherwise.
+
+## Deterministic tooling policy (ROCS-first)
+- Prefer `./scripts/rocs.sh <args...>` before ad-hoc inline scripting.
+- Use `./scripts/preflight-repo-census.sh [scope]` for shallow multi-repo status checks.
+- When explicit task scope is in play, author it in AK and freeze repo-consumption snapshots via `ak task scope show|export <TASK-ID> ...`; treat `governance/task-scopes/AK-<TASK-ID>.snapshot.json` as AK exports, not hand-authored truth.
+- For ontology/policy checks, use ROCS commands as the default execution path.
+- Use inline Python only as an explicit escape hatch when no deterministic command exists.
+
+## Knowledge Crystallization Flow
+
+```
+Session → diary/ (raw) → docs/learnings/ (crystallized) → TIPs (propagated)
+```
+
+**Knowledge that isn't crystallized is knowledge that will be re-learned the hard way.**
+
+1. During session: Capture in `diary/YYYY-MM-DD--type-scope-summary.md`
+2. End of session: Extract patterns, surprises, heuristics
+3. Weekly: Promote diary entries to `docs/learnings/`
+4. When pattern generalizes: Propose TIP to parent L1
+
+## Cognitive Tools
+
+Higher-order thinking frameworks for when you're stuck, planning, or making high-stakes decisions.
+
+**Invoke by name:**
+- "What's the NEXUS intervention here?" — Find highest-leverage action
+- "Apply FIRST PRINCIPLES to this blocker" — Dissolve assumptions
+- "Inventory our CONSTRAINTS" — Find hidden freedom
+- "Generate five ALTERNATIVES" — Escape solution fixation
+- "Design the ESCAPE HATCH first" — Plan rollback before change
+- "Time travel: what degrades in 12 months?" — Future-proof
+- "Run TELESCOPIC analysis" — See both micro and macro
+- "ELEVATE this document" — Transcend incremental improvement
+
+See `prompts/cognitive-tools/` for full frameworks.
+
+These compound. Each use improves pattern recognition for the next.
+
+## Recursion policy (explicit)
+Allowed:
+- L1 -> L2
+
+Forbidden:
+- L1 -> L0
+- L2 -> L1
+- any cycle
+
+## Read order
+1) `docs/_core/README.md`
+2) `docs/person/`
+3) `docs/decisions/`
+4) `docs/learnings/`
+5) `governance/README.md`
+6) `diary/`               ← recent sessions
+7) `prompts/cognitive-tools/` ← when stuck or planning
+8) `docs/system4d/`

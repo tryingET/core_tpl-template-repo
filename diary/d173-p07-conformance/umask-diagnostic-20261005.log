@@ -1,0 +1,15 @@
+purpose=bounded chmod omitted-who versus explicit-all probe before source repair
+started_at=2026-10-05T05:22:20Z
+old_runs_preserved=19
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+actual_child_umask=0077
+initial_mode=755
+chmod: /home/tryinget/.cache/ai-society-scratch/runs/run-1791177743-39f3a1ca6307a2c9/work/tmp/ak6690-chmod.20W6lk: new permissions are rw-r-xr-x, not rw-r--r--
+omitted_who_exit=1
+omitted_who_mode=655
+explicit_all_exit=0
+explicit_all_mode=644
+final_child_umask=0077
+heavy_job_result=success scratch_cleanup=removed
+runner_exit=0
+log_writer_exit=0

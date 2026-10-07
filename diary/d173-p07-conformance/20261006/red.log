@@ -1,0 +1,22 @@
+old_runs_preserved=18
+WARN: 7 kernel-protected current-uid process(es) were outside reference inspection
+E
+======================================================================
+ERROR: setUpClass (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/tests/test_l1_answer_template_upgrade.py", line 79, in setUpClass
+    upgrade.record(cls.base, path, upgrade.APPROVED[old])
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/scripts/lib/l1_answer_template_upgrade.py", line 56, in record
+    info = path.lstat()
+  File "/home/tryinget/.local/share/uv/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py", line 661, in lstat
+    return os.lstat(self)
+           ~~~~~~~~^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/tryinget/.cache/ai-society-scratch/runs/run-1791260063-d0f1912ac3ddc987/work/tmp/l1-upgrade-fq57s0l5/base/copier/tpl-agent-repo/.copier-answers.yml.j2'
+
+----------------------------------------------------------------------
+Ran 0 tests in 3.929s
+
+FAILED (errors=1)
+heavy_job_result=success scratch_cleanup=removed

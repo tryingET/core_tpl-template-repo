@@ -1,0 +1,116 @@
+test_compiler_validates_manifest_and_detects_staleness (tests.test_agent_template_v2.AgentTemplateV2Tests.test_compiler_validates_manifest_and_detects_staleness) ... ok
+test_manifest_shell_and_six_canonical_persona_inputs (tests.test_agent_template_v2.AgentTemplateV2Tests.test_manifest_shell_and_six_canonical_persona_inputs) ... ok
+test_propagation_refuses_ambiguous_map_and_symlinked_parent (tests.test_agent_template_v2.AgentTemplateV2Tests.test_propagation_refuses_ambiguous_map_and_symlinked_parent) ... ok
+test_propagation_refuses_unknown_top_level_file (tests.test_agent_template_v2.AgentTemplateV2Tests.test_propagation_refuses_unknown_top_level_file) ... ok
+test_propagation_renders_l1_plan_first_and_preserves_agent_bytes (tests.test_agent_template_v2.AgentTemplateV2Tests.test_propagation_renders_l1_plan_first_and_preserves_agent_bytes) ... ok
+test_native_render_does_not_prescribe_unadmitted_home_or_mr_only_work (tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_does_not_prescribe_unadmitted_home_or_mr_only_work) ... ok
+test_native_render_preserves_owner_authority_and_unappointed_ceiling (tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_preserves_owner_authority_and_unappointed_ceiling) ... ok
+test_no_rendered_grant_or_loader_override_is_introduced (tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_no_rendered_grant_or_loader_override_is_introduced) ... ok
+test_apply_updates_template_and_preserves_company_owned_bytes (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_apply_updates_template_and_preserves_company_owned_bytes) ... ok
+test_base_to_candidate_answer_template_upgrade_suite (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_base_to_candidate_answer_template_upgrade_suite) ... ok
+test_bootstrap_installs_only_map_and_census_attestation (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_bootstrap_installs_only_map_and_census_attestation) ... ok
+test_clean_target_ignores_ambient_status_config (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_clean_target_ignores_ambient_status_config) ... ok
+test_finalize_accepts_only_linked_worktree_of_canonical_task_repo (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_finalize_accepts_only_linked_worktree_of_canonical_task_repo) ... ok
+test_first_refresh_consumes_attestation_and_establishes_state (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_first_refresh_consumes_attestation_and_establishes_state) ... ok
+test_invalid_or_unclassified_render_fails_closed (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_invalid_or_unclassified_render_fails_closed) ... ok
+test_preview_rejects_symlinked_destination_before_reading (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_preview_rejects_symlinked_destination_before_reading) ... ok
+test_retirement_revalidates_all_old_templates_after_copy_before_any_delete (tests.test_l1_template_ownership.L1TemplateOwnershipTests.test_retirement_revalidates_all_old_templates_after_copy_before_any_delete) ... ok
+test_owner_gitlink_target_renders_the_gitlink_layout (tests.test_render_l1.RenderL1Tests.test_owner_gitlink_target_renders_the_gitlink_layout) ... ok
+test_render_only_writes_output_and_leaves_target_untouched (tests.test_render_l1.RenderL1Tests.test_render_only_writes_output_and_leaves_target_untouched) ... ok
+test_usage_errors_exit_2 (tests.test_render_l1.RenderL1Tests.test_usage_errors_exit_2) ... ok
+test_company_birth_and_refresh_preserve_all_ontology_and_never_seed_missing_file (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_company_birth_and_refresh_preserve_all_ontology_and_never_seed_missing_file) ... ok
+test_inverse_source_must_exist_in_historical_base_not_just_current_head (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_inverse_source_must_exist_in_historical_base_not_just_current_head) ... ok
+test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes) ... ok
+test_old_readers_upgrade_through_a_receipted_preparatory_refresh (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_old_readers_upgrade_through_a_receipted_preparatory_refresh) ... ok
+test_ordinary_refresh_and_retirement_cannot_transfer_or_touch_company_ontology (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_ordinary_refresh_and_retirement_cannot_transfer_or_touch_company_ontology) ... ok
+test_planning_outputs_cannot_mutate_a_target_or_its_shared_git_metadata (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_planning_outputs_cannot_mutate_a_target_or_its_shared_git_metadata) ... ok
+test_preparation_refuses_dropping_existing_agent_claims (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_preparation_refuses_dropping_existing_agent_claims) ... ok
+test_real_forward_and_receipted_reverse_restore_ownership (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_real_forward_and_receipted_reverse_restore_ownership) ... ok
+test_reverse_after_repeated_v3_refresh_preserves_other_map_changes (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_reverse_after_repeated_v3_refresh_preserves_other_map_changes) ... ok
+test_reverse_rechecks_census_and_rejects_forged_receipt_or_extra_ownership (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_reverse_rechecks_census_and_rejects_forged_receipt_or_extra_ownership) ... ok
+test_reverse_refuses_birth_ownership_and_residual_ignored_content_or_seed_drift (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_reverse_refuses_birth_ownership_and_residual_ignored_content_or_seed_drift) ... ok
+test_v1_birth_relabel_cannot_erase_an_executed_ownership_transition (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_v1_birth_relabel_cannot_erase_an_executed_ownership_transition) ... ok
+test_v3_birth_origin_and_applied_commit_forgery_do_not_bypass_wave_receipt (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_v3_birth_origin_and_applied_commit_forgery_do_not_bypass_wave_receipt) ... ok
+test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology) ... FAIL
+
+======================================================================
+FAIL: test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/tests/test_l1_template_company_ownership.py", line 338, in test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology
+    self.assertIn("cannot change company ontology topology", rejected.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cannot change company ontology topology' not found in 'error: ownership reverse placeholder bytes/type/mode drift\n'
+
+----------------------------------------------------------------------
+Ran 34 tests in 356.476s
+
+FAILED (failures=1)
+finalized ownership state from AK evidence:456; review and commit state closeout
+finalized ownership state from AK evidence:456; review and commit state closeout
+APPLY
+preserve: 14 rendered agent-owned path(s)
+note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+retire: copier/tpl-agent-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-agent-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-org-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-org-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-project-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-project-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-monorepo/.copier-answers.yml.j2 (approved sha256=781390e4ec6052dd8a2360d32b7a637c47dedde81f3841249b6a297da165f450; successor=copier/tpl-monorepo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-package/.copier-answers.yml.j2 (approved sha256=27dba22ed419dc971cdc8f8ccc714336476108f3b951a5e3c15f87a370bd6d76; successor=copier/tpl-package/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+update: scripts/ci/full.sh
+--- a/scripts/ci/full.sh
++++ b/scripts/ci/full.sh
+@@ -64,3 +64,5 @@
+ ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+ 
+ echo "ok: ci full"
++
++# refresh change
+APPLY
+preserve: 14 rendered agent-owned path(s)
+note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+update: scripts/ci/full.sh
+--- a/scripts/ci/full.sh
++++ b/scripts/ci/full.sh
+@@ -64,3 +64,5 @@
+ ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+ 
+ echo "ok: ci full"
++
++# incoming L0 update
+applied template-owned actions; commit applied_pending_receipt, run gates, record AK evidence, then finalize
+planned ownership transition 709f115119797bfdcca8a564b1c6e4be90b301ea5dad754d3bea25d7d57568ad (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition f949cc8393ed272a8b5b2f17ff90e65ca689d1c96fde4fe012b55a075e6d45d6 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:902; commit state only
+planned ownership transition 262886e543dbf74703211a54a4dec9912a171a610aa613a1bd1dc1b68c515cae (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition da013c486b484baad5d0d144b1bcb9c9073de1ef33e8e66cc8889241ca19ba07 (no repository files changed)
+planned ownership transition da013c486b484baad5d0d144b1bcb9c9073de1ef33e8e66cc8889241ca19ba07 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition dcdaef55718753032949ccc190000cb5e29453fb8828e912fdf0dd047bdfc16d (no repository files changed)
+planned ownership transition dcdaef55718753032949ccc190000cb5e29453fb8828e912fdf0dd047bdfc16d (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:902; commit state only
+planned ownership transition 44c6ee9f9053893bb5f6a5026038796523336503370314237fa6a043e171e7a8 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 5bc1c15b7d0892456abbe9d9b28fcab20a8e13590d6501fb779118d63ffc05ef (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:904; commit state only
+planned ownership transition f6a2f128efd40173d1de7f3cb37497e0cbc6910b462def209ed3d71b7b90f01b (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition ae459f163cf39df7853e24a7ea45a90551fba15cadd86b380c1a4896ce68a5d3 (no repository files changed)
+planned ownership transition c3189ed2efdd477241e7e1d4a925e7352beaa8ea89d21bc3167a9b088207f3c7 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 350486afb3c3994d28b98b99627c3882d573a6300924612062da3693d96f709b (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 25a2aaa661f610d0ff945237f9159cbab9833ae28d113a0754e69712f001e79e (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only

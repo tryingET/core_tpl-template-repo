@@ -1,0 +1,76 @@
+subject=d65900ecfba68d981a9f211547e1e802234a8c30 dirty=0 started_at=2026-10-06T05:27:13Z
+heavy_job_admission=waiting_for_capacity (admission denied: scratch filesystem free MiB 51622 < 61440); rechecking every 30s for up to 1800s (HEAVY_JOB_CAPACITY_WAIT_SECONDS=0 fails fast)
+old_runs_preserved=18
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+timeout policy: base=300s generation=600s adversarial=300s fixtures=300s runner=timeout
+ok: check-l0-guardrails (273s, warnings: 0, timeout: 300s)
+ok: check-doc-references (0s, warnings: 0, timeout: 300s)
+ok: check-session-checkpoint (0s, warnings: 0, timeout: 300s)
+ok: check-supply-chain (0s, warnings: 0, timeout: 300s)
+warning[check-l0-generation]:
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+error: check-l0-generation timed out after 600s (600s elapsed)
+---- check-l0-generation output (last 200 lines) ----
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+...........................---- end check-l0-generation output ----
+hint: set L0_CHECK_VERBOSE=1 for live command output
+error: aborting remaining checks after timeout in check-l0-generation
+skip: check-l0-adversarial (aborted_after_timeout_in_check-l0-generation)
+skip: check-l0-fixtures (aborted_after_timeout_in_check-l0-generation)
+overview:
+  passed: 4
+  failed: 1
+  skipped: 2
+  warnings: 2
+  - check-l0-guardrails: ok (273s, warnings: 0)
+  - check-doc-references: ok (0s, warnings: 0)
+  - check-session-checkpoint: ok (0s, warnings: 0)
+  - check-supply-chain: ok (0s, warnings: 0)
+  - check-l0-generation: failed (600s, warnings: 2; timed_out_after_600s)
+  - check-l0-adversarial: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-generation)
+  - check-l0-fixtures: skipped (0s, warnings: 0; aborted_after_timeout_in_check-l0-generation)
+heavy_job_result=failure exit_status=1 scratch_cleanup=removed
+runner_exit=1 finished_at=2026-10-06T06:00:26Z
