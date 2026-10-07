@@ -35,7 +35,9 @@ class AgentInstructionConformanceTests(unittest.TestCase):
             encoding="utf-8",
         )
         lookup.chmod(0o755)
-        env = dict(os.environ, AK_CMD=str(lookup), PYTHONDONTWRITEBYTECODE="1", COPIER_VERSION="9.11.1")
+        # Child births stage this exact L0 source, not a guessed sibling core/ path.
+        env = dict(os.environ, AK_CMD=str(lookup), L0_TEMPLATE_ROOT=str(ROOT),
+                   PYTHONDONTWRITEBYTECODE="1", COPIER_VERSION="9.11.1")
         if not (shutil.which("uvx", path=env.get("PATH")) or shutil.which("uv", path=env.get("PATH"))):
             raise AssertionError("native conformance requires the wrapper's pinned uvx/uv runtime; no unpinned fallback")
         # Test one committed exact source: dirty edits cannot become implicit proof.
