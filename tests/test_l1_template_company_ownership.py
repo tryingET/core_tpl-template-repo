@@ -317,13 +317,18 @@ class CompanyOntologyTests(unittest.TestCase):
     def test_old_readers_upgrade_through_a_receipted_preparatory_refresh(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as name:
             h = CompanyHarness(Path(name))
-            # Actual pre-AK6328 readers from published main, not a private local ref.
+            # Actual pre-AK6328 readers and their release-pin expectations from
+            # published main, not a private local ref. A newer fixture's default
+            # must not be checked by the historical reader before the refresh.
             for rel in (CHECKER, "scripts/check-template-ci.sh", "scripts/new-repo-from-copier.sh",
-                        "scripts/lib/company-ontology-ref.sh"):
+                        "scripts/lib/company-ontology-ref.sh",
+                        "copier/tpl-project-repo/copier.yml",
+                        "copier/tpl-monorepo/copier.yml",
+                        "copier/tpl-package/copier.yml"):
                 original = TRANSITIONS.git_bytes(ROOT, "show", f"72828add2ec38e3a41aacd7fa0c6b4232a7595a3:copier-template/{rel}")
                 (h.repo / rel).write_bytes(original)
             (h.repo / "scripts/lib/l1_ontology_ownership.py").unlink()
-            commit(h.repo, "pre-company reader generation", "scripts")
+            commit(h.repo, "pre-company reader generation", "scripts", "copier")
             run("bash", "scripts/check-template-ci.sh", cwd=h.repo)
             incoming = h.parent / "incoming"
             shutil.copytree(FIXTURE, incoming)
