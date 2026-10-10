@@ -150,6 +150,92 @@ class IndependentCoverageTests(unittest.TestCase):
         self.assertEqual(checker.expand_inventory(aliased), manifest())
         self.assertEqual(checker.load_json(io.StringIO(json.dumps(aliased))), manifest())
         self.assertTrue(self.check(inventory=aliased)["valid"])
+        # Strict lossless ID-prefix representation; suffix/outcome data is untouched.
+        prefixed = deepcopy(aliased)
+        prefixed["method_prefix_references"] = {"@case": "example.Case."}
+        for cohort in prefixed["cohorts"]:
+            for method in cohort["methods"]:
+                if method["id"].startswith("example.Case."):
+                    method["id"] = ["@case", method["id"][len("example.Case."):]]
+        before = deepcopy(prefixed)
+        with mock.patch("builtins.open", side_effect=AssertionError("pure expansion")):
+            self.assertEqual(checker.expand_inventory(prefixed), manifest())
+        self.assertEqual(prefixed, before)
+        self.assertEqual(checker.load_json(io.StringIO(json.dumps(prefixed))), manifest())
+        self.assertTrue(self.check(inventory=prefixed)["valid"])
+        explicit_origins = checker.expand_inventory(aliased)
+        explicit_origins["method_prefix_references"] = {"@case": "example.Case."}
+        for cohort in explicit_origins["cohorts"]:
+            for method in cohort["methods"]:
+                if method["id"].startswith("example.Case."):
+                    method["id"] = ["@case", method["id"][len("example.Case."):]]
+        self.assertEqual(checker.expand_inventory(explicit_origins), manifest())
+        for kind in ("unknown", "unused", "table", "empty", "prefix", "prefix-type", "prefix-recursive", "alias",
+                     "length", "suffix-type", "suffix-empty", "suffix-dot", "suffix-alias", "cohorts", "methods", "row"):
+            changed = deepcopy(prefixed)
+            target = changed["cohorts"][0]["methods"][0]
+            if kind == "unknown": target["id"][0] = "@unknown"
+            elif kind == "unused": changed["method_prefix_references"]["@unused"] = "example.Other."
+            elif kind == "table": changed["method_prefix_references"] = []
+            elif kind == "empty": changed["method_prefix_references"] = {}
+            elif kind == "prefix": changed["method_prefix_references"]["@case"] = "example.Case"
+            elif kind == "prefix-type": changed["method_prefix_references"]["@case"] = True
+            elif kind == "prefix-recursive": changed["method_prefix_references"]["@case"] = "@recursive."
+            elif kind == "alias": changed["method_prefix_references"] = {"case": "example.Case."}
+            elif kind == "length": target["id"].append("extra")
+            elif kind == "suffix-type": target["id"][1] = True
+            elif kind == "suffix-empty": target["id"][1] = ""
+            elif kind == "suffix-dot": target["id"][1] = "other.test_shared"
+            elif kind == "cohorts": changed["cohorts"] = {}
+            elif kind == "methods": changed["cohorts"][0]["methods"] = {}
+            elif kind == "row": changed["cohorts"][0]["methods"][0] = []
+            else: target["id"][1] = "@recursive"
+            with self.assertRaises(ValueError):
+                checker.expand_inventory(changed)
+            self.assertFalse(self.check(inventory=changed)["valid"], kind)
+        # Allocation budget is checked before any full reference ID is built.
+        with mock.patch.object(checker, "MAX_METHOD_ID_EXPANSION_BYTES", 69):
+            self.assertEqual(checker.expand_inventory(prefixed), manifest())
+        with mock.patch.object(checker, "MAX_METHOD_ID_EXPANSION_BYTES", 68):
+            with self.assertRaisesRegex(ValueError, "expansion budget"):
+                checker.expand_inventory(prefixed)
+        oversized = deepcopy(prefixed)
+        oversized["method_prefix_references"]["@case"] = "x" * 8192 + "."
+        saved = deepcopy(oversized)
+        with mock.patch.object(checker, "MAX_METHOD_ID_EXPANSION_BYTES", 16 * 1024):
+            with self.assertRaisesRegex(ValueError, "expansion budget"):
+                checker.expand_inventory(oversized)
+        self.assertEqual(oversized, saved)
+        unicode_case = deepcopy(prefixed)
+        unicode_case["method_prefix_references"] = {"@case": "Ω.", "@other": "界."}
+        unicode_case["cohorts"][0]["methods"][1]["id"][0] = "@other"
+        with mock.patch.object(checker, "MAX_METHOD_ID_EXPANSION_BYTES", 40):
+            expanded_unicode = checker.expand_inventory(unicode_case)
+        self.assertEqual(expanded_unicode["cohorts"][0]["methods"][0]["id"], "Ω.test_shared")
+        self.assertEqual(expanded_unicode["cohorts"][0]["methods"][1]["id"], "界.test_raw")
+        with mock.patch.object(checker, "MAX_METHOD_ID_EXPANSION_BYTES", 39):
+            with self.assertRaisesRegex(ValueError, "expansion budget"):
+                checker.expand_inventory(unicode_case)
+        concatenations = []
+        class AuditedPrefix(str):
+            def __add__(self, suffix):
+                concatenations.append(suffix)
+                return super().__add__(suffix)
+        late_bad = deepcopy(prefixed)
+        late_bad["method_prefix_references"]["@case"] = AuditedPrefix("example.Case.")
+        late_bad["cohorts"][1]["methods"][0]["id"][0] = "@unknown"
+        with self.assertRaises(ValueError):
+            checker.expand_inventory(late_bad)
+        self.assertEqual(concatenations, [])
+        amplified = {"schema": "l0.coverage-inventory/1",
+                     "method_prefix_references": {"@large": AuditedPrefix("x" * 65536 + ".")},
+                     "cohorts": [{"methods": [{"id": ["@large", "test_case"]} for _ in range(257)]}]}
+        self.assertEqual(checker.MAX_METHOD_ID_EXPANSION_BYTES, 16 * 1024 * 1024)
+        with self.assertRaisesRegex(ValueError, "expansion budget"):
+            checker.expand_inventory(amplified)
+        self.assertEqual(concatenations, [])
+        with self.assertRaisesRegex(ValueError, "expansion budget"):
+            checker.load_json(io.StringIO(json.dumps(amplified)))
         for kind in ("unknown", "missing", "outcome", "subtests", "extra", "unused", "override"):
             changed = deepcopy(aliased)
             fields = changed["origin_references"]["@i"]
@@ -195,6 +281,27 @@ class IndependentCoverageTests(unittest.TestCase):
         self.assertFalse(self.check(packets()[:1] + packets()[2:])["valid"])
 
     def test_raw_subtest_identity_outcome_multiplicity_and_parent_are_exact(self):
+        # AK6800's two exact companies are positive success obligations, not skips.
+        method = "example.Conformance.test_instructions"
+        suffixes = [" (company='holdingco')", " (company='softwareco')"]
+        independent, observed = manifest(), packets()
+        independent["expected_root_count"] += 1
+        independent["cohorts"][4]["methods"].append(row(method, [[s, "success"] for s in suffixes]))
+        observed[4]["collected_ids"].append(method)
+        observed[4]["events"].append(event(method, 2, [
+            {"test_id": method + s, "outcome": "success"} for s in suffixes]))
+        observed[4]["tests_run"] += 1
+        self.assertTrue(self.check(observed, inventory=independent)["valid"])
+        for kind in ("missing-method", "missing-company", "duplicate-company", "wrong-company", "skip"):
+            changed = deepcopy(observed)
+            subs = changed[4]["events"][-1]["subtests"]
+            if kind == "missing-method":
+                changed[4]["events"].pop(); changed[4]["collected_ids"].pop(); changed[4]["tests_run"] -= 1
+            elif kind == "missing-company": subs.pop()
+            elif kind == "duplicate-company": subs.append(deepcopy(subs[0]))
+            elif kind == "wrong-company": subs[0]["test_id"] = method + " (company='other')"
+            else: subs[0]["outcome"] = "skip"
+            self.assertFalse(self.check(changed, inventory=independent)["valid"], kind)
         for kind in ("path", "lambda", "missing", "extra", "duplicate", "outcome", "parent", "malformed", "failure", "error", "unknown-outcome", "missing-outcome"):
             data = packets()
             subs = data[0]["events"][1]["subtests"]

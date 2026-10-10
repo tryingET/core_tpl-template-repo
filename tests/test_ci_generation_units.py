@@ -17,8 +17,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = "scripts/check-l0-generation.sh"
 PRIVATE = "tests/ci_generation_unit.sh"
-# 5acfd49 pre-extraction bytes with only the AK6648/AK6936 kernel pin v0.3.0 -> v0.5.0 applied.
-BASELINE_SHA256 = "d98d72d04953c5909a8cd03b09aadfa8643454199911337215d8dcd3d06a1b5c"
+# AK6800 appends only the conformance module to the prior kernel-pin-adjusted freeze.
+PRIOR_BASELINE_SHA256 = "d98d72d04953c5909a8cd03b09aadfa8643454199911337215d8dcd3d06a1b5c"
+BASELINE_SHA256 = "44782a6895961a733d66a5bec58e8ff9790b72b64dcc11098781332f9d7c359f"
 SOURCE_MAP = json.loads((ROOT / "tests/ci_generation_source_map.json").read_text())
 PATHS = sorted({block["target"] for block in SOURCE_MAP["blocks"]} | {
     PRIVATE, "tests/ci_generation_schedule.sh",
@@ -37,7 +38,8 @@ DOCS = ("purpose.md", "mission.md", "vision.md", "strategic_objectives.md",
 SHELL = ["shell:transport", "shell:matrix", "shell:launchers", "shell:metadata"]
 COHORT = ("generation-main", "python3", "tests/test_agent_template_v2.py",
           "tests/test_l1_template_ownership.py", "tests/test_render_l1.py",
-          "tests/test_l0_check_timeouts.py", "tests/test_l1_template_company_ownership.py")
+          "tests/test_l0_check_timeouts.py", "tests/test_l1_template_company_ownership.py",
+          "tests/test_agent_instruction_conformance.py")
 
 
 def executable_lines(text):
@@ -194,7 +196,13 @@ class GenerationSourceContracts(unittest.TestCase):
         self.assertEqual(coverage, list(range(1, 1151)))
         self.assertEqual(SOURCE_MAP["original_lines"], 1150)
         self.assertEqual(SOURCE_MAP["original_sha256"], BASELINE_SHA256)
+        self.assertEqual(SOURCE_MAP["previous_original_sha256"], PRIOR_BASELINE_SHA256)
         self.assertEqual(hashlib.sha256(b"".join(reconstructed)).hexdigest(), BASELINE_SHA256)
+        amended = b"".join(reconstructed)
+        addition = b" tests/test_agent_instruction_conformance.py"
+        self.assertEqual(amended.count(addition), 1)
+        self.assertEqual(hashlib.sha256(amended.replace(addition, b"")).hexdigest(),
+                         PRIOR_BASELINE_SHA256)
 
     def test_explicit_assertion_inventory_maps_retained_bodies_to_closed_routes(self):
         # Diagnostic/invocation anchors are an explicit inspection index. The full

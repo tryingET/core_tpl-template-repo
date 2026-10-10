@@ -1,0 +1,116 @@
+{
+  "label_fix_methods": [
+    "tests.test_company_ontology_ref_inheritance.WrapperTests.test_custom_answers_paths_and_cli_data_files",
+    "tests.test_l2_template_source.SourceTests.test_protected_destinations_fail_before_clone_or_render",
+    "tests.test_l1_answer_template_upgrade.UpgradeSafetyTests.test_modified_untracked_modes_symlinks_and_ownership_fail_before_copy"
+  ],
+  "label_fix_revision": "5acfd49efa351cbc5e8afe99b408e63a00993b92",
+  "label_reverse_comparison_exact_match": true,
+  "generation_seam_revision": "08f4de1abf9e3e545e4c20fbabd82e52255b11a2",
+  "observer_revision": "f3a751685c49074ae90f9b4efe48a027aac9c8bd",
+  "observer_subtests": "Source-inspected: neither of the two added observer methods calls unittest.subTest. Success is a declared expectation, not a new execution claim.",
+  "current_head_full_equivalence_proven": false,
+  "raw_subtest_compression": "Each [suffix,outcome] reconstructs the exact raw ID as method id + literal suffix. No rewriting, filtering or normalization.",
+  "planning_delta": {
+    "base_revision": "f3a751685c49074ae90f9b4efe48a027aac9c8bd",
+    "methods": 23,
+    "authority": "operator explicitly ordered checker, assignment, synthetic tests",
+    "subtests": "Source-inspected no unittest.subTest; declared success expectations, not execution proof"
+  },
+  "retention_observer_delta": {
+    "method": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table",
+    "subtests": 10,
+    "source_revision": "08f4de1abf9e3e545e4c20fbabd82e52255b11a2",
+    "full_profile_passing": false,
+    "no_raw_id_normalization": true
+  },
+  "static_and_candidate_delta": {
+    "authoring_base": "1b92011ad09a25eb2510468be5c9d0244dbf84b1",
+    "methods": 47,
+    "cohorts": {
+      "guardrails-ci-static": 11,
+      "guardrails-ci-candidate": 36
+    },
+    "method_derivation": "Explicit authored AST class methods only: GuardrailsSeamTests, WorkerContractTests, AggregateContractTests, CandidateWorkflowTests, in source_files order; no candidate collection inference.",
+    "subtests": "All four authored sources inspected: no unittest.subTest; empty expected arrays. Success expectations are not execution proof."
+  },
+  "approved_workflow_observer_delta": {
+    "method": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table",
+    "authoring_base": "1b92011ad09a25eb2510468be5c9d0244dbf84b1",
+    "authority": "dispatch explicitly approves prepared workflow observer delta only",
+    "source_inspection": "Authored truth table now uses direct assertions without unittest.subTest; only this method changes from ten raw suffixes to empty.",
+    "previous_expectation": {
+      "id": "tests.test_hosted_ci.HostedCiTests.test_characterization_cancel_and_fork_condition_truth_table",
+      "outcome": "success",
+      "origin": "12",
+      "subtests": [
+        [
+          " (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='push', head_repo='owner/repo', cancelled=False, outcome='failure', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='push', head_repo='owner/repo', cancelled=True, outcome='cancelled', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='push', head_repo='owner/repo', cancelled=False, outcome='cancelled', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='push', head_repo='owner/repo', cancelled=False, outcome='skipped', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='push', head_repo='owner/repo', cancelled=False, outcome='success', profile='')",
+          "success"
+        ],
+        [
+          " (event='pull_request', head_repo='owner/repo', cancelled=False, outcome='success', profile='ready')",
+          "success"
+        ],
+        [
+          " (event='pull_request', head_repo='fork/repo', cancelled=False, outcome='success', profile='ready')",
+          "success"
+        ]
+      ]
+    },
+    "current_origin": "14",
+    "current_subtests": [],
+    "execution_proven": false
+  },
+  "planning_refresh": {
+    "previous_input": {
+      "path": "authorized-delta:tests/test_ci_coverage.py+tests/test_ci_schedule.py",
+      "sha256": "6993cff67baab2500b02f7a1ee4f43a9be7f09bb2ee5714cfff945e5039cc9aa",
+      "source_commit": "f3a751685c49074ae90f9b4efe48a027aac9c8bd",
+      "commit_role": "authoring base; delta not asserted present in base",
+      "label": "planning-delta",
+      "derivation": "SHA256(concat for source_files in declared order: UTF-8 basename + NUL byte + exact file bytes))",
+      "source_files": [
+        {
+          "path": "tests/test_ci_coverage.py",
+          "sha256": "d305971dedaed3a7e7cc9985460c504d31dab8d0e346dd4f469af0dae7f1185e"
+        },
+        {
+          "path": "tests/test_ci_schedule.py",
+          "sha256": "9e95e3bd238c25ce38bf27975369098da7da72397bd58177ed640347acb76ac5"
+        }
+      ]
+    },
+    "authoring_base": "1b92011ad09a25eb2510468be5c9d0244dbf84b1",
+    "methods": 23,
+    "reason": "Same authored method IDs; new closed-cohort fixtures and planned-route contracts. Current source digests refreshed using the previously declared recipe; not execution evidence."
+  }
+}

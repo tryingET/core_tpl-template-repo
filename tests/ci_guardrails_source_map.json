@@ -92,14 +92,26 @@
     {
       "original": [
         586,
-        951
+        950
       ],
       "path": "tests/ci_guardrails_tail.sh",
       "destination": [
         1,
-        366
+        365
       ],
-      "sha256": "43068a43bf6fcba46527ac336b8daf9e074a58892c1f6f4828e58da952641a1f"
+      "sha256": "456a127c23aa69d476a61a5983b2cafb9f032ce9665c92fe1abdf127d94d6c47"
+    },
+    {
+      "original": [
+        951,
+        951
+      ],
+      "path": "tests/ci_guardrails_tail.sh",
+      "destination": [
+        372,
+        372
+      ],
+      "sha256": "9f41038f48d9f33ad8475c3fa5e6e242a4c4819197c4151df47f8fc4e673e0d4"
     }
   ],
   "additions": [
@@ -120,6 +132,66 @@
       ],
       "sha256": "034e1fcbc36b05da7fd01133cfad41669b98d71fa5716aa86636e1889bd4a829",
       "command": "sh \"$repo_root/tests/ci_unittest.sh\" guardrails-ci-candidate pinned-9.11.1 tests.test_ci_worker tests.test_ci_aggregate tests.test_ci_candidate_workflow >/dev/null || fail \"candidate execution contracts failed\""
+    },
+    {
+      "path": "tests/ci_guardrails_tail.sh",
+      "destination": [
+        366,
+        366
+      ],
+      "task": 6800,
+      "sha256": "58e760643a4f71bdb5bdc8828660810c69b7f285843a7dd73fd1d8aa22ef1693",
+      "command": "assert_contains \"copier-template/copier/tpl-agent-repo/AGENTS.md.j2\" \"owner-admitted placement\" \"tpl-agent-repo must preserve owner-admitted placement\""
+    },
+    {
+      "path": "tests/ci_guardrails_tail.sh",
+      "destination": [
+        367,
+        367
+      ],
+      "task": 6800,
+      "sha256": "07debba89e633a61ca3c5a095df7d0761f2ae8f313b110125a7b6e522312a278",
+      "command": "assert_contains \"copier-template/copier/tpl-agent-repo/AGENTS.md.j2\" \"main-first\" \"tpl-agent-repo must preserve main-first work\""
+    },
+    {
+      "path": "tests/ci_guardrails_tail.sh",
+      "destination": [
+        368,
+        368
+      ],
+      "task": 6800,
+      "sha256": "82ab07d1bc4c20ac056af533548679b69be613cd5c81a6ef0f516c3f3bb3a254",
+      "command": "assert_contains \"copier-template/copier/tpl-agent-repo/AGENTS.md.j2\" \"Unappointed agents are advisory\" \"tpl-agent-repo must preserve the unappointed ceiling\""
+    },
+    {
+      "path": "tests/ci_guardrails_tail.sh",
+      "destination": [
+        369,
+        369
+      ],
+      "task": 6800,
+      "sha256": "993bde53c44c3741b06734d095b3a176038090413e0ef31a82b10e1ece08cc87",
+      "command": "assert_contains \"copier-template/copier/tpl-agent-repo/AGENTS.md.j2\" \"never issue or broaden a grant\" \"tpl-agent-repo must not grant authority\""
+    },
+    {
+      "path": "tests/ci_guardrails_tail.sh",
+      "destination": [
+        370,
+        370
+      ],
+      "task": 6800,
+      "sha256": "2bb16915ef97ec6e607a8504d77892d2b576655393b93d8108c23fb9179ef25d",
+      "command": "assert_not_contains \"copier-template/copier/tpl-agent-repo/AGENTS.md.j2\" 'Never push to `main`; open branches + MRs.' \"tpl-agent-repo must not require MR-only work\""
+    },
+    {
+      "path": "tests/ci_guardrails_tail.sh",
+      "destination": [
+        371,
+        371
+      ],
+      "task": 6800,
+      "sha256": "41a71b88bad0ab191d1835cc25842f98711cc80ff0deedf7ec7808ccbf4f9c32",
+      "command": "assert_not_contains \"copier-template/copier/tpl-agent-repo/AGENTS.md.j2\" 'Keep one role in one `ai-society/agents/agent-<name>` repository' \"tpl-agent-repo must not prescribe an unadmitted home\""
     }
   ],
   "assertion_call_lines": [

@@ -1,7 +1,8 @@
 {
-  "baseline": "operator-supplied 5acfd49; observed pre-extraction generation source bytes, with only the AK6648/AK6936 kernel pin v0.3.0 -> v0.5.0 applied",
+  "baseline": "operator-supplied 5acfd49; observed pre-extraction generation source bytes, with only the AK6648/AK6936 kernel pin v0.3.0 -> v0.5.0 applied; AK6800 appends only test_agent_instruction_conformance.py to the original generation-main call",
   "original_lines": 1150,
-  "original_sha256": "d98d72d04953c5909a8cd03b09aadfa8643454199911337215d8dcd3d06a1b5c",
+  "original_sha256": "44782a6895961a733d66a5bec58e8ff9790b72b64dcc11098781332f9d7c359f",
+  "previous_original_sha256": "d98d72d04953c5909a8cd03b09aadfa8643454199911337215d8dcd3d06a1b5c",
   "blocks": [
     {
       "label": "public-header-and-root",
@@ -336,7 +337,7 @@
         4,
         7
       ],
-      "sha256": "467a41cfed8b5f8a81c816f444f21fe7175499178a3607ffc42bf50d721f9deb",
+      "sha256": "34d6062cab5ad817c557d6ef40a83de85c0d4274856d95b3a2c440dc00203661",
       "assertion_lines": []
     },
     {
