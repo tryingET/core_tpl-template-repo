@@ -18,6 +18,17 @@ from tests.test_l1_template_company_ownership import CompanyHarness, commit
 
 
 class InspectionBlockerTests(unittest.TestCase):
+    def test_live_lease_boundary_uses_matching_nanosecond_representation(self):
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            h = ConvergenceHarness(Path(raw)); plan = h.plan()
+            expiry = LIVE.ak_instant("2099-01-01T00:00:00.900000000Z", "fixture")
+            h.task["lease_expires_at"] = "2099-01-01T00:00:00.900000000Z"; h.write_authority()
+            with mock.patch.object(FOLD, "current_instant", return_value=(expiry[0], 100000000)):
+                FOLD.verify_live_lease(plan, h.ak)
+            for fraction in (900000000, 900000001):
+                with self.subTest(nanoseconds=fraction), mock.patch.object(FOLD, "current_instant", return_value=(expiry[0], fraction)), self.assertRaisesRegex(ValueError, "unexpired"):
+                    FOLD.verify_live_lease(plan, h.ak)
+
     def test_expired_or_missing_live_lease_refuses_plan_apply_and_finalize(self):
         with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
             h = ConvergenceHarness(Path(raw))

@@ -125,13 +125,18 @@ def verify(repo: Path, plan: dict, ak: Path | None, live: bool = False) -> None:
     predecessor(repo, plan, ak)
 
 
-def verify_live_lease(plan: dict, ak: Path | None) -> None:
+def current_instant() -> tuple:
     from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    return now.replace(microsecond=0), now.microsecond * 1000
+
+
+def verify_live_lease(plan: dict, ak: Path | None) -> None:
     import l1_template_transitions as transition
     task = transition.ak_json(transition.authoritative_ak(ak), "task", "show", str(plan["transition_task_id"]), "-F", "json")
     if (not isinstance(task, dict) or task.get("status") != "claimed"
             or task.get("claimed_by") != plan["executor"]
-            or transition.ak_instant(task.get("lease_expires_at"), "transition lease expiry") <= (datetime.now(timezone.utc), 0)):
+            or transition.ak_instant(task.get("lease_expires_at"), "transition lease expiry") <= current_instant()):
         raise ValueError("convergence requires an unexpired live task lease")
 
 
