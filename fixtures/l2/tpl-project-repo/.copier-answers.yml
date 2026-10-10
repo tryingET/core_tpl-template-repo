@@ -11,7 +11,7 @@ enable_community_pack: false
 enable_release_pack: false
 enable_software_pack: false
 enable_vouch_gate: false
-kernel_ontology_ref: <repo:core/ontology-kernel@v0.4.0>
+kernel_ontology_ref: <repo:core/ontology-kernel@v0.5.0>
 language: python
 location: owned
 org_docs_profile: compact

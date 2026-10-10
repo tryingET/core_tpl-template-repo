@@ -1,7 +1,7 @@
 {
-  "baseline": "operator-supplied 5acfd49; observed pre-extraction generation source bytes, with only the AK6648 kernel pin v0.3.0 -> v0.4.0 applied",
+  "baseline": "operator-supplied 5acfd49; observed pre-extraction generation source bytes, with only the AK6648/AK6936 kernel pin v0.3.0 -> v0.5.0 applied",
   "original_lines": 1150,
-  "original_sha256": "017ac60fa502b510e1e126504b57e711dfd24868025bd32266e4c1803f0dfad4",
+  "original_sha256": "d98d72d04953c5909a8cd03b09aadfa8643454199911337215d8dcd3d06a1b5c",
   "blocks": [
     {
       "label": "public-header-and-root",
@@ -322,7 +322,7 @@
         4,
         191
       ],
-      "sha256": "fdd24b91f4871b8917154eaa890b9c384c0a3c6448dd1c5f32b4a6bde8f1e457",
+      "sha256": "8d2555405d7e2aff16fd70eceac5f02924f2437a35547b7591c91b3fd1e155fe",
       "assertion_lines": [973, 974, 975, 983, 989, 1005, 1007, 1008, 1009, 1017, 1018, 1019, 1020, 1047, 1063, 1067, 1083, 1087, 1091, 1097, 1101, 1105, 1117, 1118, 1119, 1125, 1126, 1130, 1131, 1132, 1139, 1140, 1141, 1142]
     },
     {
