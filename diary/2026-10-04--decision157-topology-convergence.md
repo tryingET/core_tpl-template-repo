@@ -78,3 +78,23 @@ identity retirement, archive, secret removal or knowledge promotion occurred her
 
 Retained command logs: `$TMPDIR/ak6663-focused-final.log`,
 `$TMPDIR/ak6663-corrections-focused-final.log`, `$TMPDIR/ak6663-check-l0.log`.
+
+Corrected implementation and authorized helper fixtures were committed, then rebased
+onto merged main1f14166 (PR11/12/14/15 were not changed by this session). Independent
+inspection confirmed all four code corrections but found stale frozen CI metadata.
+The next full run proved 173 behavior tests and generation-seam checks, then failed
+exact test inventory; generation/fixture failures identified exploratory-import
+bytecode. Those task-owned scratch caches were moved intact to
+`$TMPDIR/ak6663-owned-bytecode-quarantine-QiK4d6`, not deleted or normalized in the
+shared checkout. Owner authorized precise metadata (15152) and corresponding
+namespace/count check reconciliation (15159). No equality/refusal checks were
+weakened. A plain system Python CI-contract attempt lacked Jinja2; the declared
+pinned Copier runtime passed all 23 contracts.
+
+Parent ran all 21 new methods/56 successful subtests at clean commit7709782, profile
+`$TMPDIR/ak6663-inventory-profile/ak6663-convergence-117585.json`, SHA256
+`7bcf1ca60e1d3d90260d0651777e5757c30be73aba9ac42bd9d4d493e9a6d953`.
+That exact profile supplies the added frozen inventory provenance, not a claim that
+candidate discovery authorizes runtime coverage. A final clean full run and final
+independent inspection are required against the committed metadata correction;
+publication readiness and Softwareco execution remain separate.

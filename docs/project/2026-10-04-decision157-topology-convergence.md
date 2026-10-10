@@ -34,6 +34,20 @@ hosted checks are required before the PR can be reported ready; this text does n
 claim those outcomes. Fixture-only scope expansion was explicitly authorized in
 operator interview and recorded as evidence15057.
 
+Subsequent independent inspection confirmed those code corrections, including
+fresh-clone retained-source proof and both actual L1 commands. It found an additional
+frozen CI inventory mismatch. Owner evidence15152/15159 authorized only the exact
+inventory/schedule and namespace/count reconciliation. Parent executed all 21 new
+methods and 56 subtests successfully on clean commit7709782, retaining profile
+`ak6663-inventory-profile/ak6663-convergence-117585.json` (SHA256
+`7bcf1ca60e1d3d90260d0651777e5757c30be73aba9ac42bd9d4d493e9a6d953`).
+The frozen inventory now includes those exact expectations; routes, selectors,
+commands and strict equality/refusal checks remain unchanged. Focused pinned CI
+contracts passed all 23 tests. Early lease refusal was corrected to matching
+nanosecond representation with before/at/after-expiry tests. Session-owned ignored
+bytecode from exploratory imports was quarantined intact outside the worktree;
+no shared checkout artifacts were removed.
+
 ## Historical preparation — 2026-10-04
 
 The remaining diagnostic and PROPOSED sections preserve the original preparation
