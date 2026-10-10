@@ -5,7 +5,7 @@ read_when:
 type: "reference"
 ---
 
-# AGENTS.md — {{ repo_slug }}
+# AGENTS.md — agent-dogfood
 
 ## Intent
 This is one agent repository. Keep exactly one repository and one canonical role per agent; do not nest agents. Use the actual owner-admitted placement and company workflow, not a path or permission inferred from this template.

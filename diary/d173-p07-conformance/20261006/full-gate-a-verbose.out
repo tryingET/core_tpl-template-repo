@@ -1,0 +1,166 @@
+timeout policy: base=900s generation=1800s adversarial=900s fixtures=900s runner=timeout
+...................................../home/tryinget/.cache/uv/archive-v0/VdhFygfeJf-M8Jtq/lib/python3.14/site-packages/pathspec/pathspec.py:326: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  patterns = [use_factory(__line) for __line in lines if __line]  # type: ignore[arg-type]
+/home/tryinget/.cache/uv/archive-v0/VdhFygfeJf-M8Jtq/lib/python3.14/site-packages/pathspec/pattern.py:125: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  raw_regex, include = self.pattern_to_regex(pattern)
+............................
+----------------------------------------------------------------------
+Ran 65 tests in 273.432s
+
+OK
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.102s
+
+OK
+ok: l1 ontology manifest gate (15 cases)
+ok: l0 rocs consumer model
+ok: l0 guardrails
+ok: check-l0-guardrails (275s, warnings: 0, timeout: 900s)
+docs-ref-check: scanned 4 file(s), 29 reference(s)
+docs-ref-check: pass
+ok: check-doc-references (0s, warnings: 0, timeout: 900s)
+ok: session checkpoint guardrails
+ok: check-session-checkpoint (0s, warnings: 0, timeout: 900s)
+ok: supply-chain checks
+ok: check-supply-chain (0s, warnings: 0, timeout: 900s)
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+warning: re-init: ignored --initial-branch=main
+pre-commit: UBS helper not found at /home/tryinget/ai-society/holdingco/scripts/ubs-staged.sh; skipping UBS scan (set UBS_STAGED to enable)
+..................................
+----------------------------------------------------------------------
+Ran 34 tests in 363.745s
+
+OK
+finalized ownership state from AK evidence:456; review and commit state closeout
+finalized ownership state from AK evidence:456; review and commit state closeout
+APPLY
+preserve: 14 rendered agent-owned path(s)
+note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+retire: copier/tpl-agent-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-agent-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-org-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-org-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-project-repo/.copier-answers.yml.j2 (approved sha256=b900dec6d3a387588b29433dc78d5c01224e680ac8ab2bb123fc9a930b5e2050; successor=copier/tpl-project-repo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-monorepo/.copier-answers.yml.j2 (approved sha256=781390e4ec6052dd8a2360d32b7a637c47dedde81f3841249b6a297da165f450; successor=copier/tpl-monorepo/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+retire: copier/tpl-package/.copier-answers.yml.j2 (approved sha256=27dba22ed419dc971cdc8f8ccc714336476108f3b951a5e3c15f87a370bd6d76; successor=copier/tpl-package/{{ '.' ~ _copier_conf.sep ~ _copier_conf.answers_file }}.j2)
+update: scripts/ci/full.sh
+--- a/scripts/ci/full.sh
++++ b/scripts/ci/full.sh
+@@ -64,3 +64,5 @@
+ ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+ 
+ echo "ok: ci full"
++
++# refresh change
+APPLY
+preserve: 14 rendered agent-owned path(s)
+note: target-only paths are outside this refresh except the fingerprint-approved obsolete answer templates and the L0 retirement manifest entries listed below
+update: scripts/ci/full.sh
+--- a/scripts/ci/full.sh
++++ b/scripts/ci/full.sh
+@@ -64,3 +64,5 @@
+ ./scripts/lib/run-local-hook.sh local/ci/full.sh "$@"
+ 
+ echo "ok: ci full"
++
++# incoming L0 update
+applied template-owned actions; commit applied_pending_receipt, run gates, record AK evidence, then finalize
+planned ownership transition 232ad368db2817ee7813c7ea3100034596976fb84dcb65396cc7eed03349c719 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 0ba78beeda38fed09e760266a376ab8f6580a7e5979d041d004173d761ca72bb (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:902; commit state only
+planned ownership transition 6088cb6864bc943f416ee0392fcb7cc8888ceea5b3489f5afc29d1fb2a3df769 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition a94a419761ac94290b4e45f3e7a1b949a91b2d81c3da75a418072df2a8b72eda (no repository files changed)
+planned ownership transition a94a419761ac94290b4e45f3e7a1b949a91b2d81c3da75a418072df2a8b72eda (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition c8a6f9110679a388c40256b0e56cba74ba596472496b4aae4c59049a0c78d309 (no repository files changed)
+planned ownership transition c8a6f9110679a388c40256b0e56cba74ba596472496b4aae4c59049a0c78d309 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:902; commit state only
+planned ownership transition 2b43702743f2ad141b43d2c136c99f958cb80214d1f54c08f04f568ee9308e1f (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 85dd4425b4ad4f43a004920fdcaf19d8d6c9a4b6ecffb941904349e9acbb9beb (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:904; commit state only
+planned ownership transition db27fe659a5c5c018fd5966748b4623b71e9562df0cb28f4ef9bda4a0cc614d8 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition eb7eb8da70cc2edd0d258bb3388f45ca11e993b40a89dfd1d6e2e97c3c1691c2 (no repository files changed)
+planned ownership transition 2622c53c3752948b3d4cbb9a11dea81e37a371e35c9421d03f51971e670ff732 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 14685dca40d676852815d2f3e7b2609b2a942b48479cffc059d5e6d749e17293 (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+planned ownership transition 79704b594efa9c6e59e9839b6c505a8c839a42620a48a8a0a5c1c61013c3669e (no repository files changed)
+applied successor map and ownership_transition_pending_receipt; stage control files and commit
+finalized successor ownership state from AK evidence:901; commit state only
+ok: l0 generation smoke + idempotency + ownership-aware template propagation
+ok: check-l0-generation (682s, warnings: 0, timeout: 1800s)
+Preparing worktree (detached HEAD 8f8a91a)
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (detached HEAD c5b0625)
+ok: l0 adversarial operator-surface checks
+ok: check-l0-adversarial (124s, warnings: 0, timeout: 900s)
+ok: l0 fixtures
+ok: check-l0-fixtures (20s, warnings: 0, timeout: 900s)
+overview:
+  passed: 7
+  failed: 0
+  skipped: 0
+  warnings: 0
+  - check-l0-guardrails: ok (275s, warnings: 0)
+  - check-doc-references: ok (0s, warnings: 0)
+  - check-session-checkpoint: ok (0s, warnings: 0)
+  - check-supply-chain: ok (0s, warnings: 0)
+  - check-l0-generation: ok (682s, warnings: 0)
+  - check-l0-adversarial: ok (124s, warnings: 0)
+  - check-l0-fixtures: ok (20s, warnings: 0)

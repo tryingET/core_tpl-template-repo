@@ -1,0 +1,6 @@
+WARN: 1 kernel-protected current-uid process(es) were outside reference inspection
+WARN: 1 kernel-protected current-uid process(es) were outside reference inspection
+WARN: 1 kernel-protected current-uid process(es) were outside reference inspection
+WARN: 1 kernel-protected current-uid process(es) were outside reference inspection
+WARN: 1 kernel-protected current-uid process(es) were outside reference inspection
+ERROR: retained-run enforcement failed: process-reference scan incomplete for /home/tryinget/.cache/ai-society-scratch/runs/run-1790784897-f914eae2dccdefd3; process-reference scan incomplete for /home/tryinget/.cache/ai-society-scratch/runs/run-1790784951-887bddfde8c245df; process-reference scan incomplete for /home/tryinget/.cache/ai-society-scratch/runs/run-1790784978-a8a694e083c718de; process-reference scan incomplete for /home/tryinget/.cache/ai-society-scratch/runs/run-1790785023-da40dd10e23c49d9; process-reference scan incomplete for /home/tryinget/.cache/ai-society-scratch/runs/run-1790789367-18e427eb571bf6ee

@@ -1,0 +1,27 @@
+Installed 21 packages in 63ms
+E
+======================================================================
+ERROR: setUpClass (tests.test_agent_instruction_conformance.AgentInstructionConformanceTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/tests/test_agent_instruction_conformance.py", line 53, in setUpClass
+    run(
+    ~~~^
+        "sh", "./scripts/new-repo-from-copier.sh", "tpl-agent-repo", str(l2),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        cwd=l1, env=env,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/tests/test_agent_instruction_conformance.py", line 22, in run
+    raise AssertionError(f"{args}: exit {result.returncode}\n{result.stdout}\n{result.stderr}")
+AssertionError: ('sh', './scripts/new-repo-from-copier.sh', 'tpl-agent-repo', '/home/tryinget/.local/state/pi-quests/tmp/claude-1000/-home-tryinget-ai-society-core-tpl-template-repo/35a9e2cb-b0ec-4a37-9df6-4aaae7531439/scratchpad/probe/tmpce0wvto3/holdingco-agent', '-d', 'repo_slug=fixture-agent', '-d', 'agent_role=Fixture Role', '-d', 'creation_task_id=AK-5105', '--defaults', '--overwrite'): exit 2
+
+error: missing source/provenance path: /home/tryinget/.local/state/pi-quests/tmp/claude-1000/-home-tryinget-ai-society-core-tpl-template-repo/35a9e2cb-b0ec-4a37-9df6-4aaae7531439/scratchpad/probe/tmpce0wvto3/core
+
+
+----------------------------------------------------------------------
+Ran 0 tests in 2.478s
+
+FAILED (errors=1)

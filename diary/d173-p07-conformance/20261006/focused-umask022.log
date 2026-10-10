@@ -1,0 +1,15 @@
+heavy_job_admission=waiting_for_capacity (admission denied: scratch filesystem free MiB 68395 < 81920); rechecking every 30s for up to 1800s (HEAVY_JOB_CAPACITY_WAIT_SECONDS=0 fails fast)
+old_runs_preserved=19
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+umask=0022 head=91d8f3d44156ab384e2e23edd9f7f996e1c24ccd dirty=0
+./home/tryinget/.cache/uv/archive-v0/VdhFygfeJf-M8Jtq/lib/python3.14/site-packages/pathspec/pathspec.py:326: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  patterns = [use_factory(__line) for __line in lines if __line]  # type: ignore[arg-type]
+/home/tryinget/.cache/uv/archive-v0/VdhFygfeJf-M8Jtq/lib/python3.14/site-packages/pathspec/pattern.py:125: DeprecationWarning: GitWildMatchPattern ('gitwildmatch') is deprecated. Use 'gitignore' for GitIgnoreBasicPattern or GitIgnoreSpecPattern instead.
+  raw_regex, include = self.pattern_to_regex(pattern)
+...............
+----------------------------------------------------------------------
+Ran 16 tests in 216.676s
+
+OK
+unittest_exit=0
+heavy_job_result=success scratch_cleanup=removed

@@ -1,0 +1,49 @@
+diff --git a/scripts/check-l0-generation.sh b/scripts/check-l0-generation.sh
+index e3ee565..b7a226e 100755
+--- a/scripts/check-l0-generation.sh
++++ b/scripts/check-l0-generation.sh
+@@ -534,7 +534,7 @@ assert_file_contains "$bootstrap_l1/team-data/CODEOWNERS" "docs/project/** @acme
+ 	git init -b main >/dev/null
+ 	git config user.name "tpl-template-repo hooks check" >/dev/null
+ 	git config user.email "ci@tpl-template-repo.local" >/dev/null
+-	chmod -x scripts/rocs.sh
++	chmod a-x scripts/rocs.sh
+ 	./scripts/install-hooks.sh >/dev/null
+ 	[ -x scripts/rocs.sh ] || {
+ 		echo "error: install-hooks should restore executable bit for the generated L1 ROCS wrapper" >&2
+@@ -866,7 +866,7 @@ for local_case in \
+ 	if run_l1_entry LOCAL_HOOK_STATUS=1 "$l1_hooks/$entry"; then
+ 		fail "L1 $entry must fail when $hook fails"
+ 	fi
+-	chmod -x "$l1_hooks/$hook"
++	chmod a-x "$l1_hooks/$hook"
+ 	if run_l1_entry "$l1_hooks/$entry"; then
+ 		fail "L1 $entry must fail when $hook exists but is not executable"
+ 	fi
+diff --git a/scripts/check-l0-guardrails.sh b/scripts/check-l0-guardrails.sh
+index b562519..d6a6658 100755
+--- a/scripts/check-l0-guardrails.sh
++++ b/scripts/check-l0-guardrails.sh
+@@ -661,19 +661,15 @@ for field in agent_name agent_role creation_task_id system_prompt_file skill_pro
+ 	assert_contains "copier-template/copier/tpl-agent-repo/copier.yml" "$field:" "tpl-agent-repo copier config must expose manifest field $field"
+ done
+ assert_contains "copier-template/copier/tpl-agent-repo/agent.json.j2" '"schema": "ai-society.agent/1"' "tpl-agent-repo manifest must declare schema v1"
+-assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "owner-admitted placement" "tpl-agent-repo AGENTS must resolve placement through its owner"
+-assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "main-first" "tpl-agent-repo AGENTS must preserve admitted main-first work"
+-assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "Unappointed agents are advisory" "tpl-agent-repo AGENTS must retain the unappointed ceiling"
+-assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "never issue or broaden a grant" "tpl-agent-repo AGENTS must not grant authority through persona"
++for instruction in "owner-admitted placement" "main-first" "Unappointed agents are advisory" "never issue or broaden a grant" "AK is runtime authority" "persona may narrow"; do
++	assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "$instruction" "tpl-agent-repo AGENTS must preserve '$instruction'"
++done
+ assert_not_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" 'Never push to `main`; open branches + MRs.' "tpl-agent-repo AGENTS must not impose blanket MR-only work"
+-assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "AK is runtime authority" "tpl-agent-repo AGENTS must preserve AK runtime authority"
+-assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "persona may narrow" "tpl-agent-repo persona may only narrow authority"
+ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "org_docs_profile" "L2 tpl-project-repo copier config must expose org-context profile toggle"
+ assert_contains "copier-template/copier/tpl-monorepo/copier.yml" "org_docs_profile" "L2 tpl-monorepo copier config must expose org-context profile toggle"
+ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_community_pack" "L2 copier config must expose community pack toggle"
+ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_release_pack" "L2 copier config must expose release pack toggle"
+ assert_contains "copier-template/copier/tpl-project-repo/copier.yml" "enable_vouch_gate" "L2 copier config must expose vouch gate toggle"
+-
+ for tpl in tpl-agent-repo tpl-org-repo tpl-project-repo tpl-monorepo tpl-package; do
+ 	assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "Deterministic tooling policy" "L2 template $tpl AGENTS should include deterministic tooling policy"
+ 	assert_contains "copier-template/copier/$tpl/AGENTS.md.j2" "scripts/rocs.sh" "L2 template $tpl AGENTS should reference scripts/rocs.sh"

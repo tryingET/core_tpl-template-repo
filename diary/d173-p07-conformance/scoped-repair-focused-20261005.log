@@ -1,0 +1,8 @@
+base_head=dafd202d286a8143764b3835abff8d3572e4f71b
+repair_diff_sha256=7278f25ad73e5a4da49ae52d1b0e510676971bd079ed8e5de11429d31e99be56
+started_at=2026-10-05T05:24:48Z
+old_runs_preserved=21
+ERROR: admission denied: scratch filesystem free MiB 89741 < 102400
+runner_exit=74
+log_writer_exit=0
+finished_at=2026-10-05T05:24:48Z

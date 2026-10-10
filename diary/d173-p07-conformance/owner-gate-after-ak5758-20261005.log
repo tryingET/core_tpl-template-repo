@@ -1,0 +1,109 @@
+subject=dafd202d286a8143764b3835abff8d3572e4f71b
+route=stock-heavy-job
+started_at=2026-10-05T05:07:57Z
+old_runs_preserved=20
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+timeout policy: base=300s generation=600s adversarial=300s fixtures=300s runner=timeout
+error: check-l0-guardrails failed (196s)
+---- check-l0-guardrails output (last 200 lines) ----
+Installed 21 packages in 46ms
+.................................F..E................
+======================================================================
+ERROR: setUpClass (tests.test_l1_answer_template_upgrade.UpgradeSafetyTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/tests/test_l1_answer_template_upgrade.py", line 79, in setUpClass
+    upgrade.record(cls.base, path, upgrade.APPROVED[old])
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/scripts/lib/l1_answer_template_upgrade.py", line 56, in record
+    info = path.lstat()
+  File "/home/tryinget/.local/share/uv/python/cpython-3.14.7-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py", line 661, in lstat
+    return os.lstat(self)
+           ~~~~~~~~^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/tryinget/.cache/ai-society-scratch/runs/run-1791176880-781b9c1fb49d2cc7/work/tmp/l1-upgrade-119xu8tp/base/copier/tpl-agent-repo/.copier-answers.yml.j2'
+
+======================================================================
+FAIL: test_source_fixture_copies_and_budgets (tests.test_company_ontology_ref_inheritance.WrapperTests.test_source_fixture_copies_and_budgets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/tests/test_company_ontology_ref_inheritance.py", line 193, in test_source_fixture_copies_and_budgets
+    self.assertLessEqual(len((ROOT / "scripts/check-l0-guardrails.sh").read_text().splitlines()), 951)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 955 not less than or equal to 951
+
+----------------------------------------------------------------------
+Ran 52 tests in 194.836s
+
+FAILED (failures=1, errors=1)
+error: L1 transition / company ontology upgrade / gitlink and retirement behavior tests failed
+---- end check-l0-guardrails output ----
+hint: set L0_CHECK_VERBOSE=1 for live command output
+ok: check-doc-references (0s, warnings: 0, timeout: 300s)
+ok: check-session-checkpoint (0s, warnings: 0, timeout: 300s)
+ok: check-supply-chain (0s, warnings: 0, timeout: 300s)
+warning[check-l0-generation]:
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+error: check-l0-generation failed (281s)
+---- check-l0-generation output (last 200 lines) ----
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+ok: L1 ownership lifecycle structure
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+ok: template ci
+ok: ci smoke
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=main
+warning: re-init: ignored --initial-branch=work
+warning: re-init: ignored --initial-branch=main
+chmod: scripts/rocs.sh: new permissions are rw-r-xr-x, not rw-r--r--
+---- end check-l0-generation output ----
+hint: set L0_CHECK_VERBOSE=1 for live command output
+ok: check-l0-adversarial (127s, warnings: 0, timeout: 300s)
+ok: check-l0-fixtures (20s, warnings: 0, timeout: 300s)
+overview:
+  passed: 5
+  failed: 2
+  skipped: 0
+  warnings: 2
+  - check-l0-guardrails: failed (196s, warnings: 0)
+  - check-doc-references: ok (0s, warnings: 0)
+  - check-session-checkpoint: ok (0s, warnings: 0)
+  - check-supply-chain: ok (0s, warnings: 0)
+  - check-l0-generation: failed (281s, warnings: 2)
+  - check-l0-adversarial: ok (127s, warnings: 0)
+  - check-l0-fixtures: ok (20s, warnings: 0)
+heavy_job_result=failure exit_status=1 scratch_cleanup=removed
+
+runner_exit=1
+log_writer_exit=0
+finished_at=2026-10-05T05:18:29Z

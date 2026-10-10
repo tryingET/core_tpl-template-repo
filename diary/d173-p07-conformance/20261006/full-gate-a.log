@@ -1,0 +1,28 @@
+subject=8f8a91ac2e8f1829c00032b02681ee5bedb91170 dirty=0 started_at=2026-10-06T17:47:44Z
+old_runs_preserved=18
+WARN: 8 kernel-protected current-uid process(es) were outside reference inspection
+umask=0077
+check_l0_exit=0
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (new branch 'demo-templates')
+Preparing worktree (detached HEAD c5b0625)
+ok: l0 adversarial operator-surface checks
+ok: check-l0-adversarial (124s, warnings: 0, timeout: 900s)
+ok: l0 fixtures
+ok: check-l0-fixtures (20s, warnings: 0, timeout: 900s)
+overview:
+  passed: 7
+  failed: 0
+  skipped: 0
+  warnings: 0
+  - check-l0-guardrails: ok (275s, warnings: 0)
+  - check-doc-references: ok (0s, warnings: 0)
+  - check-session-checkpoint: ok (0s, warnings: 0)
+  - check-supply-chain: ok (0s, warnings: 0)
+  - check-l0-generation: ok (682s, warnings: 0)
+  - check-l0-adversarial: ok (124s, warnings: 0)
+  - check-l0-fixtures: ok (20s, warnings: 0)
+dirty_after=0
+heavy_job_result=success scratch_cleanup=removed
+runner_exit=0 finished_at=2026-10-06T18:06:15Z

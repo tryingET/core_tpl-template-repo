@@ -1,0 +1,8 @@
+test_native_render_does_not_prescribe_unadmitted_home_or_mr_only_work (tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_does_not_prescribe_unadmitted_home_or_mr_only_work) ... ok
+test_native_render_preserves_owner_authority_and_unappointed_ceiling (tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_preserves_owner_authority_and_unappointed_ceiling) ... ok
+test_no_rendered_grant_or_loader_override_is_introduced (tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_no_rendered_grant_or_loader_override_is_introduced) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 17.629s
+
+OK

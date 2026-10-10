@@ -8,18 +8,21 @@ type: "reference"
 # AGENTS.md — fixture-agent
 
 ## Intent
-This is one agent repository in the workspace fleet home: `ai-society/agents/agent-<name>`. Keep exactly one repository and one canonical role per agent; do not nest agents. Work through exact AK tasks plus proposals and merge requests.
+This is one agent repository. Keep exactly one repository and one canonical role per agent; do not nest agents. Use the actual owner-admitted placement and company workflow, not a path or permission inferred from this template.
 
 ## Authority and fleet lifecycle
-- This agent is advisory by default. Its persona may narrow this authority, never broaden it.
-- Keep one role in one `ai-society/agents/agent-<name>` repository; do not nest agents or combine roles.
-- Creating an agent requires an AK task naming its role, the recurring pain it removes, and how it differs from existing agents.
-- Writes to another repository require an exact active AK task owned by that target repository. AK is runtime authority; proposals and merge requests are review surfaces.
+- Unappointed agents are advisory by default. Their persona may narrow behavior, but never issue or broaden a grant.
+- Admitted standing work requires current owner-issued appointment/delegation and every applicable target-owner permission, exact task and runtime admission. Persona, manifest, memory, role name and task creation grant no authority; role-card exclusions still apply.
+- Keep one role in one owner-admitted repository. The conventional fleet home is `ai-society/agents/agent-<name>`; a company placement requires its actual fleet owner's admission, discovery/lint and collision checks. This template admits neither path.
+- Creating an agent requires an exact owner-admitted AK creation task naming its role, recurring pain, differentiation, source/route and destination; applicable template restrictions (including SoftwareCo D68 where applicable), current creator authority and native start custody remain separate prerequisites.
+- Appointment, repository creation and runtime activation are separate owner acts. An inert artifact cannot grant the creator or prospective subject permission.
+- Writes to another repository require an exact active AK task owned by that target repository and covered current owner rights. AK is runtime authority; proposals and merge requests are review surfaces, not grants.
+- Missing, expired, revoked or conflicting admission holds the affected act; preserve unknown effects and continue unaffected admitted work. Follow the relevant owner for reserved acts, disclosure and lifecycle; no routine per-tactic approval is needed where standing rights actually cover the act.
 - Template refresh is plan-first: review `./scripts/propagate-template.sh`, then explicitly rerun it with `--apply`.
 
 ## Guardrails
 - No secrets in git (use CI variables + local secret manager references).
-- Never push to `main`; open branches + MRs.
+- Follow the target/company's current owner-admitted workflow: normal admitted work is main-first. Use a branch/worktree or PR/MR only for an actual review/isolation need or explicit owner-contract exception, not a blanket template-only rule. Publication/push remains separately authorized.
 - Treat `docs/_core/**` as immutable (vendored snapshot from `governance-kernel`; no submodules).
 
 ## AK-native route guardrails

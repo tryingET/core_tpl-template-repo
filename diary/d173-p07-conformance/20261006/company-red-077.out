@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology (tests.test_l1_template_company_ownership.CompanyOntologyTests.test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/tryinget/.local/state/pi-quests/tmp/ak6690-p07-01a10760-fd27-7413-8a88-a8dded527f50/tests/test_l1_template_company_ownership.py", line 338, in test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology
+    self.assertIn("cannot change company ontology topology", rejected.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cannot change company ontology topology' not found in 'error: ownership reverse placeholder bytes/type/mode drift\n'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.977s
+
+FAILED (failures=1)

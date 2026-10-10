@@ -1,0 +1,4 @@
+subject=d65900ecfba68d981a9f211547e1e802234a8c30 dirty=0 started_at=2026-10-06T04:55:28Z
+heavy_job_admission=waiting_for_capacity (admission denied: scratch filesystem free MiB 58467 < 61440); rechecking every 30s for up to 1800s (HEAVY_JOB_CAPACITY_WAIT_SECONDS=0 fails fast)
+ERROR: admission denied: scratch filesystem free MiB 51706 < 61440; waited 1800s. This is temporary capacity held by other jobs or files, not an owner decision: retry later
+runner_exit=75 finished_at=2026-10-06T05:25:28Z
