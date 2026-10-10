@@ -96,6 +96,13 @@ def configure_plan(repo: Path, plan: dict[str, Any], ak: Path | None) -> None:
 def verify_transfer(repo: Path, plan: dict[str, Any], ak: Path | None, live: bool = False) -> None:
     from l1_template_receipts import git_output
 
+    from l1_ontology_convergence import PLAN_SCHEMA as CONVERGENCE_SCHEMA
+    if plan["schema"] == CONVERGENCE_SCHEMA:
+        import l1_template_fold as fold
+        fold.verify(repo, plan, ak, live=live)
+        if live:
+            fold.verify_live(repo, plan)
+        return
     old = git_output(repo, "show", f"{plan['base_commit']}:{MAP}").encode()
     direction = transfer_direction(old, plan["next_map_text"].encode())
     if plan["schema"] != PLAN_SCHEMA:
@@ -173,7 +180,14 @@ def prepare_render(repo: Path, rendered: Path, output: Path) -> int:
     validate_established_provenance(repo, json.loads(raw))
     current = map_sections((repo / MAP).read_bytes())
     incoming = map_sections((rendered / MAP).read_bytes())
-    if current.get("company", []) or ONTOLOGY not in current["template"] or incoming.get("company") != [ONTOLOGY]:
+    post_convergence = current.get("company") == [ONTOLOGY]
+    if post_convergence:
+        import l1_template_fold as fold
+        fold.proven_convergence(repo, json.loads(raw))
+        placeholder_files(rendered)
+        if incoming.get("company") != [ONTOLOGY]:
+            raise ValueError("company-tree preparation must preserve company ontology ownership")
+    elif current.get("company", []) or ONTOLOGY not in current["template"] or incoming.get("company") != [ONTOLOGY]:
         raise ValueError("prepare render requires template-owned tree ontology and incoming company ontology")
     if output.exists() or output.is_symlink():
         raise ValueError("prepare render output must be absent")
@@ -182,10 +196,13 @@ def prepare_render(repo: Path, rendered: Path, output: Path) -> int:
         if target == protected or target.is_relative_to(protected) or protected.is_relative_to(target):
             raise ValueError("prepare render output must be disjoint from target and input")
     dropped = sorted(set(current["agent"]) - set(incoming["agent"]))
-    if dropped:
-        raise ValueError(f"prepare render refuses dropping company-owned patterns: {', '.join(dropped)}")
-    incoming["company"] = []
-    incoming["template"] = [ONTOLOGY, *incoming["template"]]
+    if post_convergence:
+        incoming["agent"] = sorted(set(incoming["agent"]) | set(current["agent"]))
+    else:
+        if dropped:
+            raise ValueError(f"prepare render refuses dropping company-owned patterns: {', '.join(dropped)}")
+        incoming["company"] = []
+        incoming["template"] = [ONTOLOGY, *incoming["template"]]
     successor = map_text(incoming)
     prepared = map_sections(successor.encode())
     if prepared.get("company", []) != current.get("company", []):
