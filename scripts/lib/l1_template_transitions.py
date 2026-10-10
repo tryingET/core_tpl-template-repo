@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import argparse
 import json
 import os
 import pwd
@@ -192,8 +191,9 @@ def create_plan(repo: Path, spec_path: Path, output: Path, ak_command: Path | No
     company.external_output(repo, output)
     spec = load_object(spec_path, "transition spec")
     required = {"decision_id", "adr_commit", "transition_task_id", "executor", "next_map", "git_delta", "validation", "rollback"}
-    if set(spec) != required:
-        raise ValueError("transition spec must use the exact eight-field schema")
+    convergence = "ontology_convergence" in spec
+    if set(spec) != required | ({"ontology_convergence"} if convergence else set()):
+        raise ValueError("transition spec must use exact authority fields and optional convergence preflight")
     executor = spec["executor"]
     if not isinstance(executor, str) or not EXECUTOR_RE.fullmatch(executor):
         raise ValueError("invalid fixed executor")
@@ -219,7 +219,11 @@ def create_plan(repo: Path, spec_path: Path, output: Path, ak_command: Path | No
         "map_delta": delta, "git_delta": validate_git_delta(spec["git_delta"], allow_empty=True),
         "validation": spec["validation"], "rollback": spec["rollback"],
     }
-    company.configure_plan(repo, plan, ak_command)
+    if convergence:
+        import l1_template_fold as fold
+        fold.configure(repo, plan, spec["ontology_convergence"], ak_command)
+    else:
+        company.configure_plan(repo, plan, ak_command)
     plan["canonical_plan_sha256"] = plan_hash(plan)
     validate_plan(plan)
     write_atomic(canonical_bytes(plan), output)
@@ -297,7 +301,6 @@ def bind_plan(repo: Path, plan: dict[str, Any], ak_command: Path | None) -> None
     validate_established_provenance(repo, json.loads(state_raw), ak_command=ak_command)
     company.verify_transfer(repo, plan, ak_command, live=True)
 
-
 def apply(repo: Path, plan_path: Path, ak_command: Path | None = None) -> int:
     plan = validate_plan(load_object(plan_path, "transition plan")); bind_plan(repo, plan, ak_command)
     status = git_run(repo, "status", "--porcelain", "--untracked-files=all", "--ignore-submodules=none").stdout.splitlines()
@@ -309,6 +312,8 @@ def apply(repo: Path, plan_path: Path, ak_command: Path | None = None) -> int:
     write_atomic(plan["next_map_text"].encode(), repo / MAP_PATH)
     write_atomic(pending_bytes(plan), repo / STATE_PATH)
     print("applied successor map and ownership_transition_pending_receipt; stage control files and commit")
+    if "ontology_convergence" in plan:
+        print("convergence /3 requires commit-message --plan <plan> --output <external-file>, then git commit -F <external-file>")
     return 0
 
 
@@ -342,6 +347,10 @@ def verify_applied(repo: Path, plan: dict[str, Any], applied: str, pending_raw: 
     parents = git_output(repo, "rev-list", "--parents", "-n", "1", applied).split()
     if len(parents) != 2 or parents[1] != plan["base_commit"]:
         raise ValueError("pending topology commit must be the direct child of transition base")
+    if "ontology_convergence" in plan:
+        from l1_ontology_convergence import trailer_plan
+        if trailer_plan(lambda *args: git_output(repo, *args), applied) != plan:
+            raise ValueError("applied convergence commit trailer differs from exact canonical plan")
     committed_state = git_bytes(repo, "show", f"{applied}:{STATE_PATH}")
     committed_map = git_bytes(repo, "show", f"{applied}:{MAP_PATH}")
     if committed_state != pending_raw or committed_map != plan["next_map_text"].encode():
@@ -475,21 +484,8 @@ def validate_inherited_transition(repo: Path, binding: object, ak_command: Path 
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo-root", type=Path, required=True)
-    sub = parser.add_subparsers(dest="command", required=True)
-    for action in ("plan", "reverse-plan"):
-        p = sub.add_parser(action); p.add_argument("--spec", type=Path, required=True); p.add_argument("--output", type=Path, required=True)
-    p = sub.add_parser("apply"); p.add_argument("--plan", type=Path, required=True)
-    p = sub.add_parser("finalize"); p.add_argument("--plan", type=Path, required=True); p.add_argument("--finalize-task", required=True)
-    args = parser.parse_args(); repo = args.repo_root.resolve()
-    try:
-        if args.command == "plan": return create_plan(repo, args.spec.resolve(), args.output.resolve(), None)
-        if args.command == "reverse-plan": return company.reverse_plan(repo, args.spec.resolve(), args.output.resolve(), None)
-        if args.command == "apply": return apply(repo, args.plan.resolve(), None)
-        return finalize(repo, args.plan.resolve(), args.finalize_task, None)
-    except (OSError, ValueError, KeyError, TypeError) as exc:
-        print(f"error: {exc}", file=sys.stderr); return 2
+    from l1_template_transition_cli import main as run_cli
+    return run_cli()
 
 
 if __name__ == "__main__":
