@@ -169,7 +169,13 @@ class Harness:
     def pending_commit(self, plan: dict[str, object]) -> str:
         TRANSITIONS.apply(self.repo, self.plan_path, self.ak)
         run("git", "add", "contracts/template-ownership.yml", "contracts/template-ownership-state.json", cwd=self.repo)
-        run("git", "commit", "--quiet", "-m", "pending ownership topology", cwd=self.repo)
+        if plan["schema"] == "ai-society.template-ownership-transition-plan/3":
+            from l1_template_fold import commit_message
+            message = self.parent / "pending-message.txt"
+            commit_message(self.repo, self.plan_path, message)
+            run("git", "commit", "--quiet", "-F", str(message), cwd=self.repo)
+        else:
+            run("git", "commit", "--quiet", "-m", "pending ownership topology", cwd=self.repo)
         applied = git(self.repo, "rev-parse", "HEAD")
         details = {
             "plan": plan, "applied_commit": applied,
@@ -467,6 +473,9 @@ def load_tests(loader: unittest.TestLoader, suite: unittest.TestSuite, pattern: 
     # The L0 gate names this module explicitly; discovery already finds both files.
     if pattern is None:
         suite.addTests(loader.loadTestsFromName("tests.test_l1_template_reverse_transitions"))
+        suite.addTests(loader.loadTestsFromName("tests.test_l1_template_transitions_convergence"))
+        suite.addTests(loader.loadTestsFromName("tests.test_l1_ontology_convergence"))
+        suite.addTests(loader.loadTestsFromName("tests.test_l1_template_transitions_blockers"))
     return suite
 
 

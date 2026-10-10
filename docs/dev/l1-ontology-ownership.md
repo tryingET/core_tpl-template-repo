@@ -106,6 +106,88 @@ Commit **state only**, directly after the pending commit. Later ordinary refresh
 carry the original transition binding into `/3`, re-proving it through pinned AK
 evidence and Git history, including after the original task completes.
 
+## Combined Softwareco gitlink-to-company-tree convergence
+
+Plan `ai-society.template-ownership-transition-plan/3` is distinct from topology
+`/1` and empty-payload ontology transfer `/2`. This first implementation consumes
+only source-owner evidence14868/task5651 and the exact Softwareco source URL. It
+requires established state `/2` or proven refresh `/3`, agent claims for `ontology`
+and `.gitmodules`, and one exact ontology submodule declaration without ancillary
+settings. Install these readers first through a separately receipted, gitlink-layout
+preserving refresh. The combined payload cannot contain tooling upgrades.
+
+The spec retains the eight normal authority fields but has a nonempty exact
+`git_delta` and one additional `ontology_convergence` preflight object:
+
+```json
+{
+  "source_repo": "/absolute/clean/source-worktree",
+  "source_tree_manifest_sha256": "<sha256-of-canonical-complete-manifest>",
+  "source_owner_evidence": {
+    "task_id": 5651,
+    "evidence_ref": "evidence:14868",
+    "details_sha256": "<sha256-of-canonical-AK-evidence-details>"
+  }
+}
+```
+
+Canonical JSON is UTF-8, sorted keys, compact separators, `ensure_ascii=false`,
+with one final newline. The complete manifest is path-sorted entries with exact
+`path` (`ontology/` prefix), `mode` (`100644`/`100755`), blob `oid`, and
+`content_sha256`. Planning independently inventories the source commit and requires
+source HEAD to equal the parent's committed gitlink OID. It verifies every live
+tracked file's type, bytes and executable mode, refuses unsafe index flags, dirty,
+untracked and ignored files, symlinks and nested gitlinks, and compares the supplied
+manifest digest. Preserve/dispose source WIP through its owner before this clean
+preflight; a Git bundle does not capture uncommitted WIP.
+
+The plan's exact convergence fields are `kind`, `predecessor_layout`,
+`successor_layout`, `ontology_gitlink_oid`, `retained_files`, `source_commit_base64`,
+`source_tree_oid`, `source_tree_manifest_sha256`, and `source_owner_evidence`.
+The original source commit bytes plus reconstructed complete Git tree bind every
+retained path and executable mode to the old OID. AK verification checks the pinned
+accepted packet details and digest; this neither grants source admission nor proves
+a writer fence. The delta deletes only the old gitlink and `.gitmodules`, adds every
+source file byte/mode exact, and substitutes explicit `l1_ontology_layout: gitlink`
+with `tree` without changing other answer bytes. Unrelated ownership claims survive.
+Plan/apply/finalize require an unexpired live task lease; completed history uses
+pinned evidence, not a recovered claimant.
+
+Plan with the normal `--transition-action plan` entrypoint. Stage the exact payload
+under the separately authorized source move; apply still writes only map and pending
+state. Then create the mandatory immutable pending commit message:
+
+```bash
+python3 -B scripts/lib/l1_template_transitions.py --repo-root "$target" \
+  commit-message --plan "$plan" --output "$message"
+# Stage exact map/state controls along with the already reviewed payload.
+git -C "$target" add contracts/template-ownership.yml contracts/template-ownership-state.json
+git -C "$target" commit -F "$message"
+```
+
+`$message` is an external task-owned path. Its final
+`L1-Ownership-Transition-Plan:` trailer contains the canonical plan as base64.
+Do not amend or rewrite it. The generated checker binds this plan to the pending
+state hash and exact applied tree, so fresh clones can prove complete retention
+without private submodule objects or AK access. Missing, duplicate, substituted or
+noncanonical trailers refuse. L0 additionally proves AK authority/evidence and
+recursive predecessor history. No state-schema fields were added.
+
+Execute both exact L1 commands, record the normal target-scoped transition receipt,
+finalize, and commit state only as the direct child. Pending state cannot refresh;
+interrupted writes require the plan-bound recovery/rollback procedure, never an
+unqualified reset of a live worktree. Fixture inverse commits/rematerialization do
+not discharge external source/WIP/identity rollback obligations.
+
+After proven convergence, when a fresh render omits unrelated private agent claims,
+use the same `prepare-render` command above to derive a company-tree refresh input.
+This narrowly preserves those claims and company ontology after proving convergence
+history; it does not adopt them into template ownership. Birth/map-only company
+states do not qualify, and ordinary fresh-map dropped-claim refusal remains strict.
+Use the prepared directory in the normal receipted refresh lifecycle. Repeat refresh
+carries the original inherited binding and never overwrites company ontology or
+recreates its absent/customized placeholder.
+
 ## Reverse: actual receipted action, not a symmetric edit
 
 Revert company source effects through their owners first. For this narrowly supported

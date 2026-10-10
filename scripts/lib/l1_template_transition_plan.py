@@ -58,8 +58,11 @@ def validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
         "next_map_sha256", "next_map_text", "map_delta", "git_delta", "validation",
         "rollback", "canonical_plan_sha256",
     }
+    from l1_ontology_convergence import PLAN_SCHEMA as CONVERGENCE_SCHEMA, validate_model
     is_company = plan.get("schema") == company.PLAN_SCHEMA
-    if set(plan) != required | ({"reverse_of"} if is_company else set()) or plan.get("schema") not in {PLAN_SCHEMA, company.PLAN_SCHEMA}:
+    is_convergence = plan.get("schema") == CONVERGENCE_SCHEMA
+    extra = {"ontology_convergence"} if is_convergence else ({"reverse_of"} if is_company else set())
+    if set(plan) != required | extra or plan.get("schema") not in {PLAN_SCHEMA, company.PLAN_SCHEMA, CONVERGENCE_SCHEMA}:
         raise ValueError("transition plan has wrong schema or keys")
     target = plan.get("target_repo")
     if not isinstance(target, str) or not Path(target).is_absolute() or str(Path(target).resolve()) != target:
@@ -77,7 +80,7 @@ def validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(plan.get("next_map_text"), str) or digest_bytes(plan["next_map_text"].encode()) != plan["next_map_sha256"]:
         raise ValueError("next_map_text digest mismatch")
     delta = plan.get("map_delta")
-    delta_keys = company.DELTA_KEYS if is_company else {"template_added", "template_removed", "agent_added", "agent_removed"}
+    delta_keys = company.DELTA_KEYS if is_company or is_convergence else {"template_added", "template_removed", "agent_added", "agent_removed"}
     if not isinstance(delta, dict) or set(delta) != delta_keys or any(
         not isinstance(value, list) or value != sorted(set(value))
         or any(not isinstance(item, str) for item in value) for value in delta.values()
@@ -87,6 +90,12 @@ def validate_plan(plan: dict[str, Any]) -> dict[str, Any]:
         company.validate_model(plan)
     else:
         plan["git_delta"] = validate_git_delta(plan["git_delta"])
+        if is_convergence:
+            validate_model(plan)
+        elif company.map_sections(plan["next_map_text"].encode()).get("company") and any(
+            company.matches(entry["path"], company.ONTOLOGY) for entry in plan["git_delta"]
+        ):
+            raise ValueError("legacy plan /1 may not carry company ontology payload")
     if plan.get("validation") != REQUIRED_VALIDATION:
         raise ValueError("validation must contain the exact required L1 gate commands")
     if not isinstance(plan.get("rollback"), str) or not plan["rollback"].strip():

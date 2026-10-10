@@ -205,8 +205,11 @@ def canonical_command(spec):
 def selector_owns(unit, method):
     selectors = SPECS[unit]["selectors"]
     if unit == "Gf" and method.startswith(("tests.test_ci_reorder.",
-                                          "tests.test_l1_template_reverse_transitions.")):
-        return True  # Imported class and original module load_tests, respectively.
+                                          "tests.test_l1_template_reverse_transitions.",
+                                          "tests.test_l1_template_transitions_convergence.",
+                                          "tests.test_l1_template_transitions_blockers.",
+                                          "tests.test_l1_ontology_convergence.")):
+        return True  # Imported classes / transition load_tests; exact frozen methods still required.
     return any(method == s or method.startswith(s + ".") for s in selectors)
 
 

@@ -180,6 +180,12 @@ def forward_source(git: Callable[..., str], state: dict[str, object], raw: bytes
 
 
 def structural_transfer(git: Callable[..., str], old_raw: bytes, new_raw: bytes, base: str, applied: str) -> None:
+    from l1_ontology_convergence import retention_direction, structural_convergence
+    if retention_direction(old_raw, new_raw):
+        structural_convergence(git, old_raw, new_raw, base, applied)
+        from l1_transition_history import structural_predecessor
+        structural_predecessor(git, base)
+        return
     direction = transfer_direction(old_raw, new_raw)
     if direction is None:
         return
