@@ -32,7 +32,7 @@ PARTS = (
 COHORT_LINES = (505, 506, 507, 585)
 SOURCE_TERMINATOR = b"# end of preserved guardrail source range\n"
 TERMINATED_PARTS = ("helpers", "context")
-# Only these two literal additions; original cohort bytes remain pinned.
+# Original cohort bytes stay pinned; AK6800 adds only the literal tail assertions below.
 STATIC_COHORT = (
     b'sh "$repo_root/tests/ci_unittest.sh" guardrails-ci-static pinned-9.11.1 '
     b'tests.test_ci_guardrails >/dev/null || fail "static guardrail seam contracts failed"\n'
@@ -43,6 +43,14 @@ CANDIDATE_COHORT = (
     b'>/dev/null || fail "candidate execution contracts failed"\n'
 )
 ADDED_COHORTS = (STATIC_COHORT, CANDIDATE_COHORT)
+# Owner-approved AK6800 delta, separate from the historical 951-line object.
+INSTRUCTION_ADDITIONS = b'''assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "owner-admitted placement" "tpl-agent-repo must preserve owner-admitted placement"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "main-first" "tpl-agent-repo must preserve main-first work"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "Unappointed agents are advisory" "tpl-agent-repo must preserve the unappointed ceiling"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "never issue or broaden a grant" "tpl-agent-repo must not grant authority"
+assert_not_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" 'Never push to `main`; open branches + MRs.' "tpl-agent-repo must not require MR-only work"
+assert_not_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" 'Keep one role in one `ai-society/agents/agent-<name>` repository' "tpl-agent-repo must not prescribe an unadmitted home"
+'''.splitlines(keepends=True)
 DEFINITIONS = (
     "fail", "assert_file", "assert_exec", "assert_dir", "assert_absent",
     "assert_contains", "assert_not_contains", "assert_yaml_default",
@@ -92,7 +100,13 @@ def shell_definitions(data):
 
 def expected_entries(lines):
     entries = [(1, 4, PUBLIC, 1, 4)]
-    entries.extend((a, b, lib(n), 1, b - a + 1) for n, a, b in PARTS)
+    for name, first, last in PARTS:
+        if name == "tail":
+            entries.extend(((first, last - 1, lib(name), 1, last - first),
+                            (last, last, lib(name), last - first + len(INSTRUCTION_ADDITIONS) + 1,
+                             last - first + len(INSTRUCTION_ADDITIONS) + 1)))
+        else:
+            entries.append((first, last, lib(name), 1, last - first + 1))
     entries.extend(((505, 507, PUBLIC, 8, 10), (585, 585, PUBLIC, 14, 14)))
     return [
         {"original": [a, b], "path": p, "destination": [c, d],
@@ -132,7 +146,10 @@ def validate(original, files, mapping):
         "cohort_call_lines": list(COHORT_LINES),
         "additions": [{"path": PUBLIC, "destination": [number, number],
                        "sha256": sha(command), "command": command.decode().rstrip("\n")}
-                      for number, command in zip((11, 12), ADDED_COHORTS)],
+                      for number, command in zip((11, 12), ADDED_COHORTS)] + [
+            {"path": lib("tail"), "destination": [number, number], "task": 6800,
+             "sha256": sha(command), "command": command.decode().rstrip("\n")}
+            for number, command in enumerate(INSTRUCTION_ADDITIONS, 366)],
     }
     if mapping != expected_map:
         raise ValueError("noncanonical source map")
@@ -144,6 +161,8 @@ def validate(original, files, mapping):
         body = files[lib(name)]
         definitions.extend(n for n, _ in shell_definitions(body))
         expected_body = b"".join(lines[a - 1:b])
+        if name == "tail":
+            expected_body = b"".join(lines[a - 1:b - 1] + INSTRUCTION_ADDITIONS + lines[b - 1:b])
         if name in TERMINATED_PARTS:
             expected_body += SOURCE_TERMINATOR
         if body != expected_body:
@@ -239,11 +258,11 @@ class GuardrailsSeamTests(unittest.TestCase):
 
     def test_exact_head_reconstruction_and_limits(self):
         validate(self.original, self.files, self.mapping)
-        self.assertEqual(8, len(self.mapping["segments"]))
+        self.assertEqual(9, len(self.mapping["segments"]))
         self.assertEqual(364, len(self.mapping["assertion_call_lines"]))
         self.assertEqual(14, len(DEFINITIONS))
         self.assertEqual(15, len(self.files[PUBLIC].splitlines()))
-        self.assertEqual(2, len(self.mapping["additions"]))
+        self.assertEqual(8, len(self.mapping["additions"]))
         self.assertEqual(list(ADDED_COHORTS), self.files[PUBLIC].splitlines(keepends=True)[10:12])
         self.assertLess((ROOT / MAP).stat().st_size, 80_000)
         self.assertLess(Path(__file__).stat().st_size, 80_000)
@@ -307,6 +326,11 @@ class GuardrailsSeamTests(unittest.TestCase):
                                 command.replace(b"tests.test_ci_", b"tests.shadow_ci_")):
                 changed = dict(self.files)
                 changed[PUBLIC] = changed[PUBLIC].replace(command, replacement)
+                mutations.append(changed)
+        for command in INSTRUCTION_ADDITIONS:
+            for replacement in (b"", command * 2, b"# " + command):
+                changed = dict(self.files)
+                changed[lib("tail")] = changed[lib("tail")].replace(command, replacement)
                 mutations.append(changed)
         for before, after in ((STATIC_COHORT + CANDIDATE_COHORT,
                                CANDIDATE_COHORT + STATIC_COHORT),
@@ -405,6 +429,27 @@ class GuardrailsSeamTests(unittest.TestCase):
             self.assertIn("error:", result.stderr)
             self.assertNotIn("UNREACHABLE", result.stdout)
         # Force a command-level diff failure; do not run any Git state operation.
+        # AK6800 witnesses execute each exact new assertion with real helpers.
+        template = self.repo / "copier-template/copier/tpl-agent-repo/AGENTS.md.j2"
+        template.parent.mkdir(parents=True)
+        admitted = "owner-admitted placement\nmain-first\nUnappointed agents are advisory\nnever issue or broaden a grant\n"
+        try:
+            for command in INSTRUCTION_ADDITIONS:
+                template.write_text(admitted)
+                result = self.helpers(command.decode(), trace=True)
+                self.assertEqual(0, result.returncode, result.stderr)
+                needle = command.decode().split('" ')[1]
+                if command.startswith(b"assert_contains "):
+                    target = needle.split('"')[1]
+                    template.write_text(admitted.replace(target, "forged"))
+                else:
+                    target = needle.split("'")[1]
+                    template.write_text(admitted + target + "\n")
+                result = self.helpers(command.decode() + "printf UNREACHABLE\n")
+                self.assertEqual(1, result.returncode, result.stderr)
+                self.assertNotIn("UNREACHABLE", result.stdout)
+        finally:
+            template.unlink()
         log = self.base / "git.log"
         self.install_command("git", f'printf "%s\\n" "$*" >>"{log}"\nexit 73\n')
         result = self.helpers(f'assert_files_equal "{sample}" "{sample}" label\n')

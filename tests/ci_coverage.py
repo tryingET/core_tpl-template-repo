@@ -34,6 +34,8 @@ import sys
 
 # Imports must not create source-tree bytecode, including dependencies.
 sys.dont_write_bytecode = True
+# Same finite 16-MiB bound as managed JSON artifacts, enforced before ID allocation.
+MAX_METHOD_ID_EXPANSION_BYTES = 16 * 1024 * 1024
 if __package__:
     from .ci_reorder import validate_ledger
 else:
@@ -83,12 +85,48 @@ def result(errors, **fields):
 
 
 def expand_inventory(inventory):
-    """Lossless explicit origin-reference bundles; no ID or raw-suffix rewriting.
+    """Lossless literal references; no ID normalization or raw-suffix rewriting.
 
-    Every alias supplies all three required method fields. Rows may override only
+    Every origin alias supplies all three required method fields. Rows may override only
     subtests with their explicit literal array. No implicit success/empty defaults.
     The expanded manifest retains the original strict field/type checks below.
+    A method-prefix pair restores its exact ID by literal concatenation before
+    accounting. Unknown, malformed or unused references refuse; no new I/O.
     """
+    if isinstance(inventory, dict) and "method_prefix_references" in inventory:
+        inventory = deepcopy(inventory)
+        prefixes = inventory.pop("method_prefix_references")
+        require(isinstance(prefixes, dict) and bool(prefixes), "inventory method prefix table")
+        for alias, prefix in prefixes.items():
+            require(text(alias) and alias.startswith("@") and text(prefix)
+                    and prefix.endswith(".") and not prefix.startswith("@"),
+                    "inventory method prefix fields")
+        prefix_sizes = {alias: len(prefix.encode("utf-8")) for alias, prefix in prefixes.items()}
+        cohorts = inventory.get("cohorts")
+        require(isinstance(cohorts, list), "inventory method prefix cohorts")
+        used_prefixes = set()
+        expansions = []
+        expanded_bytes = 0
+        for cohort in cohorts:
+            require(isinstance(cohort, dict) and isinstance(cohort.get("methods"), list),
+                    "inventory method prefix methods")
+            for row in cohort["methods"]:
+                require(isinstance(row, dict), "inventory method prefix row")
+                identifier = row.get("id")
+                if isinstance(identifier, list):
+                    require(len(identifier) == 2 and text(identifier[0])
+                            and identifier[0] in prefixes and text(identifier[1])
+                            and "." not in identifier[1] and not identifier[1].startswith("@"),
+                            "inventory unknown/malformed method prefix reference")
+                    used_prefixes.add(identifier[0])
+                    expanded_bytes += prefix_sizes[identifier[0]] + len(identifier[1].encode("utf-8"))
+                    require(expanded_bytes <= MAX_METHOD_ID_EXPANSION_BYTES,
+                            "inventory method ID expansion budget exceeded")
+                    expansions.append((row, identifier[0], identifier[1]))
+        require(used_prefixes == set(prefixes), "inventory unused method prefix reference")
+        # Validate the entire budget and reference set before allocating any full ID.
+        for row, alias, suffix in expansions:
+            row["id"] = prefixes[alias] + suffix
     if not isinstance(inventory, dict) or "origin_references" not in inventory:
         return inventory
     inventory = deepcopy(inventory)

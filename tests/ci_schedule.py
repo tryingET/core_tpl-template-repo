@@ -83,6 +83,9 @@ GENERATION_FAST = [
     'tests.test_l1_template_company_ownership.CompanyOntologyTests.test_v1_birth_relabel_cannot_erase_an_executed_ownership_transition',
     'tests.test_l1_template_company_ownership.CompanyOntologyTests.test_v3_birth_origin_and_applied_commit_forgery_do_not_bypass_wave_receipt',
     'tests.test_l1_template_company_ownership.CompanyOntologyTests.test_wrapper_cannot_grant_company_ownership_reseed_or_change_topology',
+    'tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_does_not_prescribe_unadmitted_home_or_mr_only_work',
+    'tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_preserves_owner_authority_and_unappointed_ceiling',
+    'tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_no_rendered_grant_or_loader_override_is_introduced',
 ]
 
 
@@ -113,7 +116,7 @@ SPECS = {
     "candidate-contracts": python_spec("guardrails-ci-candidate", "pinned-9.11.1",
                                      ["tests.test_ci_worker", "tests.test_ci_aggregate",
                                       "tests.test_ci_candidate_workflow"], 10000),
-    "Mf": python_spec("generation-main", "python3", GENERATION_FAST, 31000),
+    "Mf": python_spec("generation-main", "python3", GENERATION_FAST, 61000),
     "UPG": python_spec("generation-main", "python3",
                        [OWNER], 438000),
     "APPLY": python_spec("generation-main", "python3",

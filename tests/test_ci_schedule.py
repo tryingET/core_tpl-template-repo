@@ -8,6 +8,7 @@ never runs a product body or fixture. No unittest.subTest or real processes.
 from collections import Counter, defaultdict
 from copy import deepcopy
 import contextlib
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -23,12 +24,27 @@ ROOT = Path(__file__).resolve().parents[1]
 SHARED = ("tests.test_l1_template_company_ownership.CompanyOntologyTests."
           "test_legacy_plans_stay_nonempty_and_map_v2_refuses_unknown_or_overlapping_classes")
 SYNTHETIC_PLANNING = "tests.test_ci_schedule.SyntheticCase.test_contract"
+SOURCE_BRIDGE = {"path": "tests/ci_coverage_source_bridge.json",
+                 "sha256": "365532f75f75f47637b73cfed8effdef2ae2ce32aa42f00399a5a5653b21688c"}
+CONFORMANCE = [
+    "tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_does_not_prescribe_unadmitted_home_or_mr_only_work",
+    "tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_native_render_preserves_owner_authority_and_unappointed_ceiling",
+    "tests.test_agent_instruction_conformance.AgentInstructionConformanceTests.test_no_rendered_grant_or_loader_override_is_introduced",
+]
+
+
+def verify_source_bridge(reference, raw):
+    # Static source-integrity check only; runtime accounting remains pure.
+    if reference != SOURCE_BRIDGE or hashlib.sha256(raw).hexdigest() != SOURCE_BRIDGE["sha256"]:
+        raise ValueError("historical source bridge binding changed")
+    return json.loads(raw)
 
 
 def frozen_inputs():
     # Independent frozen data, NOT loader/candidate-derived expectations.
     plan = json.loads((ROOT / "tests/ci_schedule.json").read_text())
     inventory = schedule.coverage.load_json(io.StringIO((ROOT / "tests/ci_coverage_inventory.json").read_text()))
+    verify_source_bridge(inventory["source_bridge"], (ROOT / SOURCE_BRIDGE["path"]).read_bytes())
     return plan, inventory
 
 
@@ -75,7 +91,7 @@ class ScheduleContractTests(unittest.TestCase):
         saved = deepcopy((plan, inventory))
         result = schedule.validate_schedule(plan, inventory)
         self.assertTrue(result["valid"], result)
-        self.assertEqual(result["root_methods_assigned"], 281)
+        self.assertEqual(result["root_methods_assigned"], 284)
         self.assertEqual(result["nested_methods_assigned"], 2)
         self.assertEqual(result["shell_units_assigned"], 11)
         self.assertIs(result["planning_inventory_pending"], False)
@@ -91,13 +107,31 @@ class ScheduleContractTests(unittest.TestCase):
         self.assertEqual(schedule.worker_commands(plan, inventory, 4)[5]["unit"], "candidate-contracts")
         self.assertEqual(set(assigned.values()), {1})
         self.assertEqual(len(unit(plan, "Gf")["methods"]), 142)
-        self.assertEqual(len(unit(plan, "Mf")["methods"]), 31)
+        self.assertEqual(len(unit(plan, "Mf")["methods"]), 34)
         self.assertIn(SHARED, unit(plan, "Gf")["methods"])
         self.assertIn(SHARED, unit(plan, "Mf")["methods"])
         self.assertEqual(unit(plan, "UPG")["nested"][0]["parent_method"], schedule.OWNER)
         for worker in range(1, 7):
             self.assertTrue(schedule.worker_commands(plan, inventory, worker))
         self.assertEqual((plan, inventory), saved)
+        self.assertEqual(unit(plan, "Mf")["selectors"][-3:], CONFORMANCE)
+        self.assertEqual(unit(plan, "Mf")["methods"][-3:], CONFORMANCE)
+        rows = next(c["methods"] for c in inventory["cohorts"] if c["cohort"] == "generation-main")
+        added = [row for row in rows if row["id"] in CONFORMANCE]
+        self.assertEqual([row["id"] for row in added], CONFORMANCE)
+        companies = [[" (company='holdingco')", "success"], [" (company='softwareco')", "success"]]
+        self.assertEqual([row["subtests"] for row in added], [companies, companies, companies])
+        self.assertEqual([row["origin"] for row in added], ["16"] * 3)
+        counters, _, _ = schedule.coverage.inventory_counters(inventory)
+        self.assertEqual(sum(sum(value[2].values()) for value in counters.values()), 453)
+        self.assertLess((ROOT / "tests/ci_coverage_inventory.json").stat().st_size, 81920)
+        raw = (ROOT / SOURCE_BRIDGE["path"]).read_bytes()
+        self.assertFalse(verify_source_bridge(SOURCE_BRIDGE, raw)["current_head_full_equivalence_proven"])
+        for reference, changed_raw in (({}, raw), ({**SOURCE_BRIDGE, "path": "../foreign.json"}, raw),
+                                       ({**SOURCE_BRIDGE, "sha256": "0" * 64}, raw),
+                                       (SOURCE_BRIDGE, raw + b" "), (SOURCE_BRIDGE, b"{}\n")):
+            with self.assertRaises(ValueError):
+                verify_source_bridge(reference, changed_raw)
 
     def test_missing_excess_double_and_unknown_units_or_assignments_are_rejected(self):
         for kind in ("missing-unit", "extra-unit", "duplicate-unit", "unknown-unit",
@@ -184,7 +218,7 @@ class ScheduleContractTests(unittest.TestCase):
         plan, inventory = synthetic_inputs()
         result = schedule.validate_schedule(plan, inventory)
         self.assertEqual([w["estimated_ms"] for w in result["worker_estimates"]],
-                         [857400, 863000, 850000, 871000, 841000, 843000])
+                         [857400, 863000, 850000, 871000, 871000, 843000])
         self.assertIs(result["performance_proven"], False)
         # Reviewer's counterexample: an overloaded worker cannot be made feasible
         # by replacing declared setup/aggregation allowances with one millisecond.

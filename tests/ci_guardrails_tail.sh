@@ -363,4 +363,10 @@ if grep -nE 'copier[[:space:]]+(copy|update)' copier.yml >/dev/null 2>&1; then
 	fail "nested copier invocations are not allowed in template config files"
 fi
 
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "owner-admitted placement" "tpl-agent-repo must preserve owner-admitted placement"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "main-first" "tpl-agent-repo must preserve main-first work"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "Unappointed agents are advisory" "tpl-agent-repo must preserve the unappointed ceiling"
+assert_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" "never issue or broaden a grant" "tpl-agent-repo must not grant authority"
+assert_not_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" 'Never push to `main`; open branches + MRs.' "tpl-agent-repo must not require MR-only work"
+assert_not_contains "copier-template/copier/tpl-agent-repo/AGENTS.md.j2" 'Keep one role in one `ai-society/agents/agent-<name>` repository' "tpl-agent-repo must not prescribe an unadmitted home"
 echo "ok: l0 guardrails"
